@@ -1,0 +1,14 @@
+{ config, pkgs, lib, ... }:
+{
+  
+  programs.home-manager.enable = true;
+
+  imports = [
+    ./core
+    ./modules/shell
+    ./modules/hyprland
+    ./modules/terminal/kitty.nix
+    ./modules/dev/git.nix
+    ./modules/theme/gtk.nix
+  ];
+}
