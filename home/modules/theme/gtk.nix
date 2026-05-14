@@ -6,14 +6,11 @@ let
   pywalThemeScript = pkgs.writeShellScript "pywal-theme" ''
     mkdir -p "${walCacheDir}"
     if [ ! -f "${wallpaperPath}" ]; then
-      if [ ! -f "${walCacheDir}/colors-gtk.css" ]; then
-        printf '%s\n' ':root {}' > "${walCacheDir}/colors-gtk.css"
-      fi
-      echo "pywal-theme: wallpaper not found at ${wallpaperPath}, using empty CSS file" >&2
+      echo "pywal-theme: wallpaper not found at ${wallpaperPath}, skipping theme generation" >&2
       exit 0
     fi
 
-    if [ -f "${walCacheDir}/colors-gtk.css" ] && [ "${walCacheDir}/colors-gtk.css" -nt "${wallpaperPath}" ]; then
+    if [ -f "${walCacheDir}/colors-gtk.css" ] && [ "${wallpaperPath}" -ot "${walCacheDir}/colors-gtk.css" ]; then
       exit 0
     fi
 
@@ -28,7 +25,6 @@ in
   systemd.user.services.pywal-theme = {
     Unit = {
       Description = "Generate Pywal colors from wallpaper";
-      Before = [ "graphical-session.target" ];
     };
     Service = {
       Type = "oneshot";
