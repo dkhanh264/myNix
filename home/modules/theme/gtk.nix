@@ -6,11 +6,13 @@ let
   pywalThemeScript = pkgs.writeShellScript "pywal-theme" ''
     mkdir -p "${walCacheDir}"
     if [ ! -f "${wallpaperPath}" ]; then
-      echo "pywal-theme: wallpaper not found at ${wallpaperPath}, skipping theme generation" >&2
+      echo "pywal-theme: warning: wallpaper not found at ${wallpaperPath}, skipping theme generation" >&2
       exit 0
     fi
 
-    if [ -f "${walCacheDir}/colors-gtk.css" ] && [ "${walCacheDir}/colors-gtk.css" -nt "${wallpaperPath}" ]; then
+    if [ -f "${walCacheDir}/colors-gtk.css" ] \
+      && [ -f "${wallpaperPath}" ] \
+      && [ "${walCacheDir}/colors-gtk.css" -nt "${wallpaperPath}" ]; then
       exit 0
     fi
 

@@ -12,6 +12,7 @@
     defaultEditor = true;  # Đặt nvim làm $EDITOR mặc định
 
     # ── Colorscheme ─────────────────────────────────────────────────────
+    # Cần pywal tạo màu trước khi mở Neovim (~/.cache/wal/colors-wal.vim).
     extraPlugins = with pkgs.vimPlugins; [
       wal-vim
     ];
