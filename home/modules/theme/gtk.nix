@@ -10,7 +10,7 @@ let
       exit 0
     fi
 
-    if [ -f "${walCacheDir}/colors-gtk.css" ] && [ "${wallpaperPath}" -ot "${walCacheDir}/colors-gtk.css" ]; then
+    if [ -f "${walCacheDir}/colors-gtk.css" ] && [ "${walCacheDir}/colors-gtk.css" -nt "${wallpaperPath}" ]; then
       exit 0
     fi
 
@@ -31,7 +31,7 @@ in
       ExecStart = pywalThemeScript;
     };
     Install = {
-      WantedBy = [ "graphical-session-pre.target" ];
+      WantedBy = [ "graphical-session.target" ];
     };
   };
 
