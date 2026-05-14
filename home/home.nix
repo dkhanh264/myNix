@@ -10,7 +10,6 @@
     ./modules/terminal/kitty.nix
     ./modules/dev/git.nix
     ./modules/dev/neovim.nix
-    #./modules/theme/gtk.nix
-    ./modules/theme/stylix.nix
+    ./modules/theme/gtk.nix
   ];
 }

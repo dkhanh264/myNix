@@ -320,8 +320,7 @@
       "inputs": {
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
-        "nixvim": "nixvim",
-        "stylix": "stylix"
+        "nixvim": "nixvim"
       }
     },
     "stylix": {

@@ -12,11 +12,13 @@
     defaultEditor = true;  # Đặt nvim làm $EDITOR mặc định
 
     # ── Colorscheme ─────────────────────────────────────────────────────
-    # Sẽ bị override bởi Stylix nếu bạn dùng Stylix
-    colorschemes.tokyonight = {
-      enable = true;
-      settings.style = "night";
-    };
+    # Cần pywal tạo màu trước khi mở Neovim (~/.cache/wal/colors-wal.vim).
+    extraPlugins = with pkgs.vimPlugins; [
+      wal-vim
+    ];
+    extraConfigLua = ''
+      vim.cmd.colorscheme("wal")
+    '';
 
     # ── Global Options ───────────────────────────────────────────────────
     # Tương đương với vim.opt.xxx = yyy trong Lua
@@ -221,7 +223,7 @@
       lualine = {
         enable = true;
         settings.options = {
-          theme                = "tokyonight";
+          theme                = "auto";
           section_separators   = { left = ""; right = ""; };
           component_separators = { left = ""; right = ""; };
         };

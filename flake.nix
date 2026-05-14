@@ -13,14 +13,9 @@
       url = "github:nix-community/nixvim/nixos-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    stylix = {
-      url = "github:danth/stylix/release-25.11";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, home-manager, stylix, nixvim, ... }:
+  outputs = { self, nixpkgs, home-manager, nixvim, ... }:
   let
     mkSystem = hostname:
       nixpkgs.lib.nixosSystem {
@@ -28,8 +23,6 @@
 
         modules = [
           ./hosts/${hostname}/configuration.nix
-
-          stylix.nixosModules.stylix
           
           home-manager.nixosModules.home-manager
 
