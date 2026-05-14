@@ -11,6 +11,7 @@ NixOS 25.11 flake cho laptop dual-boot với Hyprland, NVIDIA prime offload và 
 - **NixVim** cấu hình hoàn toàn bằng Nix (LSP, Treesitter, Telescope, v.v.).
 - **Shell**: Zsh + Starship + alias tiện dụng.
 - **Theme**: GTK/Qt + Pywal theo wallpaper.
+- **Wallpaper picker**: Super+P để chọn wallpaper và cập nhật theme theo màu.
 
 ## Cấu trúc thư mục
 
@@ -74,4 +75,3 @@ sudo nix-collect-garbage -d
 
 - Wallpaper mặc định lấy từ `~/Pictures/wallpapers/wallpaper.jpg`.
 - Có alias sẵn trong Zsh để rebuild/update/gc.
-

@@ -1,8 +1,66 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
+let
+  wallpaperDir = "${config.home.homeDirectory}/Pictures/wallpapers";
+  wallpaperPath = "${wallpaperDir}/wallpaper.jpg";
+  wallpaperPicker = pkgs.writeShellScriptBin "wallpaper-picker" ''
+    set -euo pipefail
+
+    wallpaper_dir="${wallpaperDir}"
+    wallpaper_path="${wallpaperPath}"
+    wallpaper_extensions=(jpg jpeg png webp)
+
+    if [ ! -d "$wallpaper_dir" ]; then
+      echo "wallpaper-picker: missing directory $wallpaper_dir" >&2
+      exit 1
+    fi
+
+    find_args=()
+    for ext in "''${wallpaper_extensions[@]}"; do
+      find_args+=( -iname "*.''${ext}" -o )
+    done
+    unset "find_args[''${#find_args[@]}-1]"
+
+    selection="$(
+      find "$wallpaper_dir" -maxdepth 1 -type f \
+        \( "''${find_args[@]}" \) \
+        | sort \
+        | rofi -dmenu -i -p "Wallpaper"
+    )"
+
+    [ -z "$selection" ] && exit 0
+
+    existing_wallpaper_target=""
+    if [ -L "$wallpaper_path" ]; then
+      existing_wallpaper_target=$(readlink -f "$wallpaper_path" 2>/dev/null || true)
+    fi
+
+    should_update=true
+    if [ "$selection" = "$wallpaper_path" ]; then
+      should_update=false
+    elif [ -L "$wallpaper_path" ] && [ "$selection" = "$existing_wallpaper_target" ]; then
+      should_update=false
+    fi
+
+    if [ "$should_update" = true ]; then
+      ln -sfn "$selection" "$wallpaper_path"
+    fi
+
+    if command -v hyprctl >/dev/null 2>&1; then
+      hyprctl hyprpaper unload all
+      hyprctl hyprpaper preload "$wallpaper_path"
+      hyprctl hyprpaper wallpaper ",$wallpaper_path"
+    fi
+
+    if ! systemctl --user start pywal-theme.service; then
+      echo "wallpaper-picker: failed to start pywal-theme.service. Check status with: systemctl --user status pywal-theme.service" >&2
+    fi
+  '';
+in
 {
   home.packages = with pkgs; [
     waybar rofi dunst
     hyprpaper hyprlock hypridle
+    wallpaperPicker
   ];
 
   wayland.windowManager.hyprland = {
@@ -114,6 +172,7 @@
         "$mainMod, W,         exec, google-chrome"
         "$mainMod, E,         exec, nautilus"
         "$mainMod, R,         exec, rofi -show drun -show-icons"
+        "$mainMod, P,         exec, wallpaper-picker"
         "$mainMod, Q,         killactive"
         "$mainMod, V,         togglefloating"
         "$mainMod, F,         fullscreen, 0"
