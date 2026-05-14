@@ -3,8 +3,8 @@
   imports = [
     ./hyprland.nix
     ./waybar.nix
-    ./dunst.nix
-    ./hyprpaper.nix
+    ./mako.nix
+    ./scripts.nix
     ./hypridle.nix
   ];
 }

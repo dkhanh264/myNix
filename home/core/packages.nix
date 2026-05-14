@@ -44,7 +44,18 @@
     obs-studio
     vscode
     fastfetch
-    curl    
+
+    # Thêm các công cụ từ nixparency-dots
+    walker         # Thay thế Rofi làm launcher
+    mako           # Thay thế Dunst làm notification daemon
+    swaybg         # Đặt hình nền tĩnh
+    mpvpaper       # Đặt hình nền động (video)
+    cava           # Hiển thị sóng nhạc
+    ffmpeg         # Cần cho script trích xuất ảnh từ video
+    libqalculate   # Cho module máy tính của walker
+    jq             # Cần cho các script xử lý JSON
+    libnotify
+    
   ];
 }
 

@@ -1,66 +1,10 @@
 { pkgs, config, ... }:
-let
-  wallpaperDir = "${config.home.homeDirectory}/Pictures/wallpapers";
-  wallpaperPath = "${wallpaperDir}/wallpaper.jpg";
-  wallpaperPicker = pkgs.writeShellScriptBin "wallpaper-picker" ''
-    set -euo pipefail
 
-    wallpaper_dir="${wallpaperDir}"
-    wallpaper_path="${wallpaperPath}"
-    wallpaper_extensions=(jpg jpeg png webp)
-
-    if [ ! -d "$wallpaper_dir" ]; then
-      echo "wallpaper-picker: missing directory $wallpaper_dir" >&2
-      exit 1
-    fi
-
-    find_args=()
-    for ext in "''${wallpaper_extensions[@]}"; do
-      find_args+=( -iname "*.''${ext}" -o )
-    done
-    unset "find_args[''${#find_args[@]}-1]"
-
-    selection="$(
-      find "$wallpaper_dir" -maxdepth 1 -type f \
-        \( "''${find_args[@]}" \) \
-        | sort \
-        | rofi -dmenu -i -p "Wallpaper"
-    )"
-
-    [ -z "$selection" ] && exit 0
-
-    existing_wallpaper_target=""
-    if [ -L "$wallpaper_path" ]; then
-      existing_wallpaper_target=$(readlink -f "$wallpaper_path" 2>/dev/null || true)
-    fi
-
-    should_update=true
-    if [ "$selection" = "$wallpaper_path" ]; then
-      should_update=false
-    elif [ -L "$wallpaper_path" ] && [ "$selection" = "$existing_wallpaper_target" ]; then
-      should_update=false
-    fi
-
-    if [ "$should_update" = true ]; then
-      ln -sfn "$selection" "$wallpaper_path"
-    fi
-
-    if command -v hyprctl >/dev/null 2>&1; then
-      hyprctl hyprpaper unload all
-      hyprctl hyprpaper preload "$wallpaper_path"
-      hyprctl hyprpaper wallpaper ",$wallpaper_path"
-    fi
-
-    if ! systemctl --user start pywal-theme.service; then
-      echo "wallpaper-picker: failed to start pywal-theme.service. Check status with: systemctl --user status pywal-theme.service" >&2
-    fi
-  '';
-in
 {
+  # Các package chuyên biệt cho Hyprland
   home.packages = with pkgs; [
-    waybar rofi dunst
-    hyprpaper hyprlock hypridle
-    wallpaperPicker
+    hyprlock 
+    hypridle
   ];
 
   wayland.windowManager.hyprland = {
@@ -68,9 +12,7 @@ in
 
     settings = {
       # ── Monitors ──────────────────────────────────────────────────────
-      # Chạy `hyprctl monitors` trong Hyprland để xem tên thực tế.
       # eDP-1 là màn hình laptop, HDMI-A-1 là màn hình ngoài.
-      # Màn hình ngoài được đặt sang phải (offset 1920x0).
       monitor = [
         "eDP-1, 1920x1080@144, 0x0, 1"
         "HDMI-A-1, 1920x1080@179, 1920x0, 1"
@@ -90,9 +32,8 @@ in
 
       # ── Autostart ─────────────────────────────────────────────────────
       exec-once = [
-        "waybar"
-        "dunst"
-        "hyprpaper"
+        "waybar-auto" # Khởi động script ẩn/hiện thanh trạng thái
+        "mako"        # Khởi động trình thông báo
         "hypridle"
         "nm-applet --indicator"
         "blueman-applet"
@@ -119,10 +60,6 @@ in
           passes            = 3;
           new_optimizations = true;
         };
-        # drop_shadow = true;
-        # shadow_range = 10;
-        # shadow_render_power = 3;
-        # col.shadow = "rgba(1a1a1aee)";
       };
 
       animations = {
@@ -171,13 +108,20 @@ in
         "$mainMod, Return,    exec, kitty"
         "$mainMod, W,         exec, google-chrome"
         "$mainMod, E,         exec, nautilus"
-        "$mainMod, R,         exec, rofi -show drun -show-icons"
-        "$mainMod, P,         exec, wallpaper-picker"
+        
+        # ── Walker & Hình nền ──────────────────────────────────────────
+        "$mainMod, space,     exec, walker-menu apps"
+        "$mainMod, escape,    exec, walker-menu system"
+        "$mainMod CTRL, space, exec, cycle-background"
+        
         "$mainMod, Q,         killactive"
         "$mainMod, V,         togglefloating"
         "$mainMod, F,         fullscreen, 0"
         "$mainMod, L,         exec, hyprlock"
-        "$mainMod, C,         exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy"
+        
+        # Dùng walker --dmenu thay cho rofi -dmenu để gọi clipboard
+        "$mainMod, C,         exec, cliphist list | walker --dmenu | cliphist decode | wl-copy"
+        
         "$mainMod, left,      movefocus, l"
         "$mainMod, right,     movefocus, r"
         "$mainMod, up,        movefocus, u"
@@ -186,6 +130,7 @@ in
         "$mainMod SHIFT, right, movewindow, r"
         "$mainMod SHIFT, up,    movewindow, u"
         "$mainMod SHIFT, down,  movewindow, d"
+        
         "$mainMod, 1, workspace, 1"
         "$mainMod, 2, workspace, 2"
         "$mainMod, 3, workspace, 3"
@@ -196,16 +141,21 @@ in
         "$mainMod SHIFT, 3, movetoworkspace, 3"
         "$mainMod SHIFT, 4, movetoworkspace, 4"
         "$mainMod SHIFT, 5, movetoworkspace, 5"
+        
         "$mainMod, S,       togglespecialworkspace, magic"
         "$mainMod SHIFT, S, movetoworkspace, special:magic"
+        
         ", Print,      exec, grim -g \"$(slurp)\" - | wl-copy"
         "SHIFT, Print, exec, grim - | wl-copy"
-        ", XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
-        ", XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-        ", XF86AudioMute,        exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-        ", XF86AudioPlay, exec, playerctl play-pause"
-        ", XF86AudioNext, exec, playerctl next"
-        ", XF86AudioPrev, exec, playerctl previous"
+        
+        # ── OSD Âm lượng & Truyền thông ────────────────────────────────
+        ", XF86AudioRaiseVolume, exec, volume-osd up"
+        ", XF86AudioLowerVolume, exec, volume-osd down"
+        ", XF86AudioMute,        exec, volume-osd mute"
+        ", XF86AudioPlay,        exec, playerctl play-pause"
+        ", XF86AudioNext,        exec, playerctl next"
+        ", XF86AudioPrev,        exec, playerctl previous"
+        
         ", XF86MonBrightnessUp,   exec, brightnessctl set 10%+"
         ", XF86MonBrightnessDown, exec, brightnessctl set 10%-"
       ];
