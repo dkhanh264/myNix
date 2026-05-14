@@ -45,7 +45,9 @@ let
     fi
 
     if ! systemctl --user start pywal-theme.service; then
-      echo "wallpaper-picker: wallpaper applied, but failed to start pywal-theme.service. Check status with: systemctl --user status pywal-theme.service" >&2
+      if ! systemctl --user is-active --quiet pywal-theme.service; then
+        echo "wallpaper-picker: wallpaper applied, but failed to start pywal-theme.service. Check status with: systemctl --user status pywal-theme.service" >&2
+      fi
     fi
   '';
 in
