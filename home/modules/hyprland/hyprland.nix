@@ -7,7 +7,7 @@ let
 
     wallpaper_dir="${wallpaperDir}"
     wallpaper_path="${wallpaperPath}"
-    supported_extensions=(jpg jpeg png webp)
+    supported_extensions=(jpg jpeg png webp gif)
 
     if [ ! -d "$wallpaper_dir" ]; then
       echo "wallpaper-picker: missing directory $wallpaper_dir" >&2
@@ -40,7 +40,7 @@ let
     fi
 
     if ! systemctl_output=$(systemctl --user start pywal-theme.service 2>&1); then
-      echo "wallpaper-picker: failed to start pywal-theme.service: $systemctl_output (check: systemctl --user status pywal-theme.service)" >&2
+      echo "wallpaper-picker: wallpaper applied, but failed to start pywal-theme.service: $systemctl_output (check: systemctl --user status pywal-theme.service)" >&2
     fi
   '';
 in
