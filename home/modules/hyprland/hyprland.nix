@@ -1,8 +1,44 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
+let
+  wallpaperDir = "${config.home.homeDirectory}/Pictures/wallpapers";
+  wallpaperPath = "${wallpaperDir}/wallpaper.jpg";
+  wallpaperPicker = pkgs.writeShellScriptBin "wallpaper-picker" ''
+    set -euo pipefail
+
+    wallpaper_dir="${wallpaperDir}"
+    wallpaper_path="${wallpaperPath}"
+
+    if [ ! -d "$wallpaper_dir" ]; then
+      echo "wallpaper-picker: missing directory $wallpaper_dir" >&2
+      exit 1
+    fi
+
+    selection="$(
+      find "$wallpaper_dir" -maxdepth 1 -type f \
+        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+        | sort \
+        | rofi -dmenu -i -p "Wallpaper"
+    )"
+
+    [ -z "$selection" ] && exit 0
+
+    if [ "$selection" != "$wallpaper_path" ]; then
+      ln -sfn "$selection" "$wallpaper_path"
+    fi
+
+    if command -v hyprctl >/dev/null 2>&1; then
+      hyprctl hyprpaper preload "$wallpaper_path"
+      hyprctl hyprpaper wallpaper ",$wallpaper_path"
+    fi
+
+    systemctl --user start pywal-theme.service
+  '';
+in
 {
   home.packages = with pkgs; [
     waybar rofi dunst
     hyprpaper hyprlock hypridle
+    wallpaperPicker
   ];
 
   wayland.windowManager.hyprland = {
@@ -114,6 +150,7 @@
         "$mainMod, W,         exec, google-chrome"
         "$mainMod, E,         exec, nautilus"
         "$mainMod, R,         exec, rofi -show drun -show-icons"
+        "$mainMod, P,         exec, wallpaper-picker"
         "$mainMod, Q,         killactive"
         "$mainMod, V,         togglefloating"
         "$mainMod, F,         fullscreen, 0"
