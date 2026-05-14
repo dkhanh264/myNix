@@ -7,15 +7,22 @@ let
 
     wallpaper_dir="${wallpaperDir}"
     wallpaper_path="${wallpaperPath}"
+    supported_extensions=(jpg jpeg png webp)
 
     if [ ! -d "$wallpaper_dir" ]; then
       echo "wallpaper-picker: missing directory $wallpaper_dir" >&2
       exit 1
     fi
 
+    find_args=()
+    for ext in "''${supported_extensions[@]}"; do
+      find_args+=( -iname "*.''${ext}" -o )
+    done
+    unset "find_args[''${#find_args[@]}-1]"
+
     selection="$(
       find "$wallpaper_dir" -maxdepth 1 -type f \
-        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+        \( "''${find_args[@]}" \) \
         | sort \
         | rofi -dmenu -i -p "Wallpaper"
     )"
@@ -27,11 +34,14 @@ let
     fi
 
     if command -v hyprctl >/dev/null 2>&1; then
+      hyprctl hyprpaper unload all
       hyprctl hyprpaper preload "$wallpaper_path"
       hyprctl hyprpaper wallpaper ",$wallpaper_path"
     fi
 
-    systemctl --user start pywal-theme.service
+    if ! systemctl --user start pywal-theme.service; then
+      echo "wallpaper-picker: failed to start pywal-theme.service" >&2
+    fi
   '';
 in
 {
