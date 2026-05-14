@@ -9,7 +9,11 @@ let
       if [ ! -f "${walCacheDir}/colors-gtk.css" ]; then
         printf '%s\n' ':root {}' > "${walCacheDir}/colors-gtk.css"
       fi
-      echo "pywal-theme: wallpaper not found at ${wallpaperPath}" >&2
+      echo "pywal-theme: wallpaper not found at ${wallpaperPath}, using empty CSS file" >&2
+      exit 0
+    fi
+
+    if [ -f "${walCacheDir}/colors-gtk.css" ] && [ "${walCacheDir}/colors-gtk.css" -nt "${wallpaperPath}" ]; then
       exit 0
     fi
 
@@ -24,13 +28,14 @@ in
   systemd.user.services.pywal-theme = {
     Unit = {
       Description = "Generate Pywal colors from wallpaper";
+      Before = [ "graphical-session.target" ];
     };
     Service = {
       Type = "oneshot";
       ExecStart = pywalThemeScript;
     };
     Install = {
-      WantedBy = [ "graphical-session.target" ];
+      WantedBy = [ "graphical-session-pre.target" ];
     };
   };
 
