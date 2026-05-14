@@ -34,7 +34,11 @@ let
       current_target=$(readlink -f "$wallpaper_path" 2>/dev/null || true)
     fi
 
-    if [ "$selection" != "$wallpaper_path" ] && [ "$selection" != "$current_target" ]; then
+    if [ "$selection" = "$wallpaper_path" ]; then
+      :
+    elif [ -L "$wallpaper_path" ] && [ "$selection" = "$current_target" ]; then
+      :
+    else
       ln -sfn "$selection" "$wallpaper_path"
     fi
 
@@ -45,9 +49,7 @@ let
     fi
 
     if ! systemctl --user start pywal-theme.service; then
-      if ! systemctl --user is-active --quiet pywal-theme.service; then
-        echo "wallpaper-picker: wallpaper applied, but failed to start pywal-theme.service. Check status with: systemctl --user status pywal-theme.service" >&2
-      fi
+      echo "wallpaper-picker: wallpaper applied, but failed to start pywal-theme.service. Check status with: systemctl --user status pywal-theme.service" >&2
     fi
   '';
 in
