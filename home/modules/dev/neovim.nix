@@ -5,7 +5,7 @@
 { nixvim, pkgs, ... }:
 {
   # Import NixVim Home Manager module
-  imports = [ nixvim.homeManagerModules.nixvim ];
+  imports = [ nixvim.homeModules.nixvim ];
 
   programs.nixvim = {
     enable      = true;
@@ -280,12 +280,6 @@
             # Shell formatter
             shfmt.enable      = true;
           };
-          diagnostics = {
-            # Python linter
-            flake8.enable     = true;
-            # Shell linter
-            shellcheck.enable = true;
-          };
         };
       };
 
@@ -332,7 +326,7 @@
       shfmt         # Shell
 
       # Linters
-      python3Packages.flake8
+      # python3Packages.flake8
       shellcheck
 
       # LSP dependencies
