@@ -1,6 +1,14 @@
 { pkgs, config, ... }:
 let
+  wallpaperPath = config.home.sessionVariables.WALLPAPER;
   walCacheDir = "${config.home.homeDirectory}/.cache/wal";
+  pywalThemeScript = pkgs.writeShellScript "pywal-theme" ''
+    if [ ! -f "${wallpaperPath}" ]; then
+      exit 0
+    fi
+
+    ${pkgs.pywal}/bin/wal -i "${wallpaperPath}" -n
+  '';
 in
 {
   home.packages = with pkgs; [
@@ -14,7 +22,7 @@ in
     };
     Service = {
       Type = "oneshot";
-      ExecStart = "${pkgs.pywal}/bin/wal -i ${config.home.sessionVariables.WALLPAPER} -n";
+      ExecStart = pywalThemeScript;
     };
     Install = {
       WantedBy = [ "graphical-session.target" ];
@@ -53,9 +61,11 @@ in
     platformTheme.name = "gtk";
     style.name         = "adwaita-dark";
   };
-  xdg.configFile."gtk-3.0/gtk.css".source =
-    config.lib.file.mkOutOfStoreSymlink "${walCacheDir}/colors-gtk.css";
+  xdg.configFile."gtk-3.0/gtk.css".text = ''
+    @import url("file://${walCacheDir}/colors-gtk.css");
+  '';
 
-  xdg.configFile."gtk-4.0/gtk.css".source =
-    config.lib.file.mkOutOfStoreSymlink "${walCacheDir}/colors-gtk.css";
+  xdg.configFile."gtk-4.0/gtk.css".text = ''
+    @import url("file://${walCacheDir}/colors-gtk.css");
+  '';
 }
