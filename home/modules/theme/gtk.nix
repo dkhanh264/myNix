@@ -1,9 +1,15 @@
 { pkgs, config, ... }:
 let
-  wallpaperPath = config.home.sessionVariables.WALLPAPER;
+  wallpaperPath = config.home.sessionVariables.WALLPAPER
+    or "${config.home.homeDirectory}/Pictures/wallpapers/wallpaper.jpg";
   walCacheDir = "${config.home.homeDirectory}/.cache/wal";
   pywalThemeScript = pkgs.writeShellScript "pywal-theme" ''
+    mkdir -p "${walCacheDir}"
     if [ ! -f "${wallpaperPath}" ]; then
+      if [ ! -f "${walCacheDir}/colors-gtk.css" ]; then
+        printf '%s\n' '/* pywal theme not generated yet */' > "${walCacheDir}/colors-gtk.css"
+      fi
+      echo "pywal-theme: wallpaper not found at ${wallpaperPath}" >&2
       exit 0
     fi
 
@@ -18,7 +24,7 @@ in
   systemd.user.services.pywal-theme = {
     Unit = {
       Description = "Generate Pywal colors from wallpaper";
-      After = [ "graphical-session.target" ];
+      Before = [ "graphical-session.target" ];
     };
     Service = {
       Type = "oneshot";

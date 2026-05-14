@@ -1,6 +1,7 @@
 { config, ... }:
 let
-  wallpaperPath = config.home.sessionVariables.WALLPAPER;
+  wallpaperPath = config.home.sessionVariables.WALLPAPER
+    or "${config.home.homeDirectory}/Pictures/wallpapers/wallpaper.jpg";
 in
 {
   services.hyprpaper = {
