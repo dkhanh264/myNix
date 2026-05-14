@@ -29,15 +29,15 @@ let
 
     [ -z "$selection" ] && exit 0
 
-    current_target=""
+    existing_wallpaper_target=""
     if [ -L "$wallpaper_path" ]; then
-      current_target=$(readlink -f "$wallpaper_path" 2>/dev/null || true)
+      existing_wallpaper_target=$(readlink -f "$wallpaper_path" 2>/dev/null || true)
     fi
 
     should_update=true
     if [ "$selection" = "$wallpaper_path" ]; then
       should_update=false
-    elif [ -L "$wallpaper_path" ] && [ "$selection" = "$current_target" ]; then
+    elif [ -L "$wallpaper_path" ] && [ "$selection" = "$existing_wallpaper_target" ]; then
       should_update=false
     fi
 
@@ -52,7 +52,7 @@ let
     fi
 
     if ! systemctl --user start pywal-theme.service; then
-      echo "wallpaper-picker: wallpaper applied, but failed to start pywal-theme.service. Check: systemctl --user status pywal-theme.service (service may be missing or disabled)" >&2
+      echo "wallpaper-picker: failed to start pywal-theme.service. Check status with: systemctl --user status pywal-theme.service" >&2
     fi
   '';
 in
