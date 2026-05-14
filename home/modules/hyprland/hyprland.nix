@@ -7,7 +7,7 @@ let
 
     wallpaper_dir="${wallpaperDir}"
     wallpaper_path="${wallpaperPath}"
-    supported_extensions=(jpg jpeg png webp gif)
+    wallpaper_extensions=(jpg jpeg png webp gif)
 
     if [ ! -d "$wallpaper_dir" ]; then
       echo "wallpaper-picker: missing directory $wallpaper_dir" >&2
@@ -15,7 +15,7 @@ let
     fi
 
     find_args=()
-    for ext in "''${supported_extensions[@]}"; do
+    for ext in "''${wallpaper_extensions[@]}"; do
       find_args+=( -iname "*.''${ext}" -o )
     done
     unset "find_args[''${#find_args[@]}-1]"
@@ -29,7 +29,12 @@ let
 
     [ -z "$selection" ] && exit 0
 
-    if [ "$selection" != "$wallpaper_path" ]; then
+    current_target=""
+    if [ -L "$wallpaper_path" ]; then
+      current_target=$(readlink -f "$wallpaper_path" 2>/dev/null || true)
+    fi
+
+    if [ "$selection" != "$wallpaper_path" ] && [ "$selection" != "$current_target" ]; then
       ln -sfn "$selection" "$wallpaper_path"
     fi
 
