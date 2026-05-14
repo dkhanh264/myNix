@@ -1,9 +1,10 @@
-{ ... }:
+{ config, ... }:
 {
   home.sessionVariables = {
     EDITOR   = "nvim";
     BROWSER  = "google-chrome";
     TERMINAL = "kitty";
+    WALLPAPER = "${config.home.homeDirectory}/Pictures/wallpapers/wallpaper.jpg";
 
     # NVIDIA + Wayland — bốn biến này BẮT BUỘC phải có.
     # Thiếu một trong số này có thể gây crash hoặc render sai.

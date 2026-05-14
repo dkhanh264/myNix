@@ -149,14 +149,5 @@
     max-jobs = "auto";
   };
 
-  # Stylix system-level config
-  # Phần này sync với stylix config trong home.nix
-  stylix = {
-    enable = true;
-    # Trỏ đến cùng wallpaper với home.nix
-    image  = /etc/nixos/home/modules/theme/b-030.jpg;
-    # Stylix sẽ tự generate base16 colorscheme từ wallpaper
-  };
-
   system.stateVersion = "25.11";
 }
