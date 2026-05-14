@@ -44,8 +44,8 @@ let
       hyprctl hyprpaper wallpaper ",$wallpaper_path"
     fi
 
-    if ! systemctl_output=$(systemctl --user start pywal-theme.service 2>&1); then
-      echo "wallpaper-picker: wallpaper applied, but failed to start pywal-theme.service: $systemctl_output (check: systemctl --user status pywal-theme.service)" >&2
+    if ! systemctl --user start pywal-theme.service; then
+      echo "wallpaper-picker: wallpaper applied, but failed to start pywal-theme.service. Check status with: systemctl --user status pywal-theme.service" >&2
     fi
   '';
 in
