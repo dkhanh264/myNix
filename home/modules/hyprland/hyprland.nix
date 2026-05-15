@@ -105,14 +105,15 @@
       "$mainMod" = "SUPER";
 
       bind = [
-        "$mainMod, Return,    exec, kitty"
-        "$mainMod, W,         exec, google-chrome"
+        "$mainMod, Return,    exec, alacritty"
+        "$mainMod, W,         exec, firefox"
         "$mainMod, E,         exec, nautilus"
         
         # ── Walker & Hình nền ──────────────────────────────────────────
         "$mainMod, space,     exec, walker-menu apps"
         "$mainMod, escape,    exec, walker-menu system"
         "$mainMod CTRL, space, exec, cycle-background"
+        "$mainMod, P, exec, walker-menu profile"
         
         "$mainMod, Q,         killactive"
         "$mainMod, V,         togglefloating"
@@ -163,6 +164,15 @@
       bindm = [
         "$mainMod, mouse:272, movewindow"
         "$mainMod, mouse:273, resizewindow"
+      ];
+      # ── Blur cho các giao diện nổi ───────────────────────────────────
+      layerrule = [
+        "blur, walker"
+        "ignorezero, walker"
+        "blur, waybar"
+        "ignorezero, waybar"
+        "blur, notifications"
+        "ignorezero, notifications"
       ];
     };
   };
