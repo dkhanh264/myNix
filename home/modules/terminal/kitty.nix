@@ -7,7 +7,7 @@
       size = 13;
     };
     settings = {
-      background_opacity      = "0.95";
+      background_opacity      = "0.85";
       confirm_os_window_close = 0;
       enable_audio_bell       = false;
       cursor_shape            = "beam";

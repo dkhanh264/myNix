@@ -33,7 +33,7 @@
       fcitx5.addons = with pkgs; [
         qt6Packages.fcitx5-unikey
         fcitx5-gtk
-        qt6Packages.fcitx5-qt
+        qt6Packages.fcitx5-configtool
       ];
     };
   };
@@ -148,6 +148,11 @@
     experimental-features = [ "nix-command" "flakes" ];
     max-jobs = "auto";
   };
+  boot.extraModulePackages = with config.boot.kernelPackages; [
+  v4l2loopback
+  ];
+
+  boot.kernelModules = [ "v4l2loopback" ];
 
   system.stateVersion = "25.11";
 }

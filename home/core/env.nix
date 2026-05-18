@@ -2,8 +2,8 @@
 {
   home.sessionVariables = {
     EDITOR   = "nvim";
-    BROWSER  = "google-chrome";
-    TERMINAL = "kitty";
+    BROWSER  = "firefox";
+    TERMINAL = "alacritty";
     WALLPAPER = "${config.home.homeDirectory}/Pictures/wallpapers/wallpaper.jpg";
 
     # NVIDIA + Wayland — bốn biến này BẮT BUỘC phải có.
@@ -20,8 +20,9 @@
     MOZ_ENABLE_WAYLAND = "1";
 
     # Fcitx5 — input method tiếng Việt
-
-
-    XMODIFIERS    = "@im=fcitx";
+    GTK_IM_MODULE = "fcitx";
+    QT_IM_MODULE = "fcitx";
+    XMODIFIERS = "@im=fcitx";
+    INPUT_METHOD = "fcitx";
   };
 }

@@ -41,7 +41,6 @@
     google-chrome
     discord
     spotify
-    obs-studio
     vscode
     fastfetch
 

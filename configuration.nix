@@ -46,7 +46,11 @@
   # Configure keymap in X11
   # services.xserver.xkb.layout = "us";
   # services.xserver.xkb.options = "eurosign:e,caps:escape";
-
+  # enable zram swap
+  zramSwap = {
+  enable = true;
+  memoryPercent = 100;
+  };
   # Enable CUPS to print documents.
   # services.printing.enable = true;
 

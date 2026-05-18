@@ -12,5 +12,6 @@
     ./modules/dev/git.nix
     ./modules/dev/neovim.nix
     ./modules/theme/gtk.nix
+    ./modules/media/obs.nix
   ];
 }

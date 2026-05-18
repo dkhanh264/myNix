@@ -46,7 +46,7 @@
         gaps_in               = 5;
         gaps_out              = 10;
         border_size           = 2;
-        "col.active_border"   = "rgba(33ccffee) rgba(00ff99ee) 45deg";
+        "col.active_border"   = "rgba(eeaecaff) rgba(94bbe9ff) 45deg";
         "col.inactive_border" = "rgba(595959aa)";
         layout                = "dwindle";
         resize_on_border      = true;
@@ -59,6 +59,7 @@
           size              = 8;
           passes            = 3;
           new_optimizations = true;
+          ignore_opacity = true;
         };
       };
 
@@ -100,6 +101,7 @@
         "float, class:^(blueman-manager)$"
         "float, title:^(Picture-in-Picture)$"
         "pin,   title:^(Picture-in-Picture)$"
+        # Cú pháp: opacity <độ_đục_khi_đang_dùng> <độ_đục_khi_không_dùng>, class:^(tên_app)$
       ];
 
       "$mainMod" = "SUPER";
