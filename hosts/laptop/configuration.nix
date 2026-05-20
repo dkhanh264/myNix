@@ -45,21 +45,22 @@
 
   hardware.nvidia = {
     package = config.boot.kernelPackages.nvidiaPackages.production;
+    
+    # 1. Chuyển sang driver độc quyền (proprietary). Driver open-source hiện tại vẫn chưa hoàn toàn ổn định cho multi-monitor Wayland.
+    open = false; 
 
-    open = true;
+    # 2. Bật powerManagement (Bắt buộc trên Wayland để tránh lỗi crash/giật lag khi sleep/resume).
+    powerManagement.enable = true; 
+    powerManagement.finegrained = false;
 
     prime = {
-      offload = {
-        enable = true;
-        enableOffloadCmd = true;
-      };
-
+      # 3. Đổi sang chế độ Sync Mode (Reverse Prime). 
+      # Chế độ này sẽ dùng GPU NVIDIA để render toàn bộ, giúp màn hình rời hoạt động ở mức FPS tối đa và mượt mà nhất.
+      sync.enable = true; 
+      
       intelBusId = "PCI:0:2:0";
       nvidiaBusId = "PCI:1:0:0";
     };
-
-    powerManagement.enable = false;
-    powerManagement.finegrained = false;
   };
 
   hardware.graphics = {
