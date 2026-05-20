@@ -173,15 +173,48 @@ let
     limit=''${CAVA_SILENCE_FRAMES:-100} # ~0.5s at 60 FPS
     silence=0
     last=""
+    glyphs=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
+
+    render_frame() {
+       local raw="$1"
+       local rendered=""
+       local active=0
+       local value
+       local idx
+       local -a values=()
+
+       IFS=';' read -r -a values <<< "$raw"
+
+       for value in "''${values[@]}"; do
+          [[ -z "$value" ]] && continue
+          [[ "$value" =~ ^[0-9]+$ ]] || continue
+
+          if ((value > 0)); then
+             active=1
+          fi
+
+          idx=$((value * ''${#glyphs[@]} / 91))
+          if ((idx >= ''${#glyphs[@]})); then
+             idx=$((''${#glyphs[@]} - 1))
+          fi
+
+          rendered+="''${glyphs[$idx]}"
+       done
+
+       printf '%s:%s\n' "$active" "$rendered"
+    }
 
     cava -p "$cfg" | while read -r line; do
-       clean="''${line//;/}"
-       if [[ "''${clean//0/}" == "" ]]; then
-          ((silence++))
-          if ((silence >= limit)); then
-             printf '{"text":"","class":"silent"}\n'
-          else
-             printf '{"text":"%s","class":"active idle"}\n' "$last"
+       frame=$(render_frame "$line")
+       active=''${frame%%:*}
+       clean=''${frame#*:}
+
+       if ((active == 0)); then
+           ((silence++))
+           if ((silence >= limit)); then
+              printf '{"text":"","class":"silent"}\n'
+           else
+              printf '{"text":"%s","class":"active idle"}\n' "$last"
           fi
        else
           silence=0

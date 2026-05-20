@@ -86,7 +86,7 @@
 #custom-cavaLeft {
     border-left: 0px;
     border-right: 0px;
-    font-family: "bargraph";
+    font-family: JetBrains Mono Nerd Font, monospace;
     font-size: 18px;
     padding-left: 10px;
     padding-right: 0px;
@@ -94,7 +94,7 @@
 #custom-cavaRight{
     border-left: 0px;
     border-right: 0px;
-    font-family: "bargraph";
+    font-family: JetBrains Mono Nerd Font, monospace;
     font-size: 18px;
     padding-right: 10px;
     padding-left: 0px;
