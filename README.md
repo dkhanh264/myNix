@@ -11,19 +11,6 @@
 - **Theme**: GTK/Qt + Pywal theo wallpaper.
 - **Wallpaper picker**: Super+P để chọn wallpaper và cập nhật theme theo màu.
 
-
-.
-├── flake.nix
-├── hosts/
-│   └── laptop/
-│       ├── configuration.nix
-│       └── hardware-configuration.nix
-└── home/
-    ├── home.nix
-    ├── core/
-    └── modules/
-```
-
 ## Cấu hình hệ thống
 
 File chính: `hosts/laptop/configuration.nix`
