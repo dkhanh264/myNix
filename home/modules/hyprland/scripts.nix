@@ -175,7 +175,8 @@ let
     last=""
     glyphs=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
     max_value=90
-    scale=$((max_value + 1))
+    glyph_count=''${#glyphs[@]}
+    max_index=$((glyph_count - 1))
 
     render_frame() {
        local raw="$1"
@@ -188,15 +189,17 @@ let
        IFS=';' read -r -a values <<< "$raw"
 
        for value in "''${values[@]}"; do
-          [[ -z "$value" || ! "$value" =~ ^[0-9]+$ ]] && continue
+          [[ -z "$value" ]] && continue
+          # Ignore malformed samples so one bad frame does not break the Waybar module.
+          [[ "$value" =~ ^[0-9]+$ ]] || continue
 
           if ((value > 0)); then
              active=1
           fi
 
-          idx=$((value * ''${#glyphs[@]} / scale))
-          if ((idx >= ''${#glyphs[@]})); then
-             idx=$((''${#glyphs[@]} - 1))
+          idx=$(((value * max_index + (max_value / 2)) / max_value))
+          if ((idx >= glyph_count)); then
+             idx=$max_index
           fi
 
           rendered+="''${glyphs[$idx]}"
