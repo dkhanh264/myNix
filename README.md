@@ -1,6 +1,4 @@
-# myNix
 
-NixOS 25.11 flake cho laptop dual-boot với Hyprland, NVIDIA prime offload và Home Manager.
 
 ## Tính năng chính
 
@@ -13,9 +11,7 @@ NixOS 25.11 flake cho laptop dual-boot với Hyprland, NVIDIA prime offload và 
 - **Theme**: GTK/Qt + Pywal theo wallpaper.
 - **Wallpaper picker**: Super+P để chọn wallpaper và cập nhật theme theo màu.
 
-## Cấu trúc thư mục
 
-```
 .
 ├── flake.nix
 ├── hosts/
