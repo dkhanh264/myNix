@@ -178,6 +178,11 @@ let
     glyph_count=''${#glyphs[@]}
     max_index=$((glyph_count - 1))
 
+    if ((max_value <= 0)); then
+       printf 'cava-json: max_value must be greater than 0\n' >&2
+       exit 1
+    fi
+
     render_frame() {
        local raw="$1"
        local rendered=""
@@ -198,7 +203,7 @@ let
           fi
 
           idx=$(((value * max_index + (max_value / 2)) / max_value))
-          if ((idx >= glyph_count)); then
+          if ((idx > max_index)); then
              idx=$max_index
           fi
 
