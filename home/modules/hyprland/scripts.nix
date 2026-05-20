@@ -193,6 +193,7 @@ let
              active=1
           fi
 
+          # CAVA ascii_max_range is set to 90, so divide by 91 to map 0-90 across 8 glyph levels.
           idx=$((value * ''${#glyphs[@]} / 91))
           if ((idx >= ''${#glyphs[@]})); then
              idx=$((''${#glyphs[@]} - 1))
@@ -210,11 +211,11 @@ let
        clean=''${frame#*:}
 
        if ((active == 0)); then
-           ((silence++))
-           if ((silence >= limit)); then
-              printf '{"text":"","class":"silent"}\n'
-           else
-              printf '{"text":"%s","class":"active idle"}\n' "$last"
+          ((silence++))
+          if ((silence >= limit)); then
+             printf '{"text":"","class":"silent"}\n'
+          else
+             printf '{"text":"%s","class":"active idle"}\n' "$last"
           fi
        else
           silence=0
