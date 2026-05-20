@@ -174,6 +174,7 @@ let
     silence=0
     last=""
     glyphs=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
+    # Keep this in sync with ascii_max_range = 90 in the Waybar CAVA configs.
     max_value=90
     glyph_count=''${#glyphs[@]}
     max_index=$((glyph_count - 1))
@@ -202,6 +203,7 @@ let
              active=1
           fi
 
+          # Add half the divisor before dividing so bash rounds to the nearest glyph level.
           idx=$(((value * max_index + (max_value / 2)) / max_value))
           if ((idx > max_index)); then
              idx=$max_index
