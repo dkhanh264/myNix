@@ -4,7 +4,7 @@
 
 - **NixOS flake** với cấu hình `nixosConfigurations.your-laptop`.
 - **Hyprland (Wayland)**: waybar, dunst, hyprpaper, hypridle, hyprlock.
-- **NVIDIA + Intel PRIME offload** và biến môi trường Wayland cần thiết.
+- **NVIDIA + Intel PRIME Sync Mode** và biến môi trường Wayland cần thiết.
 - **Home Manager** cho user `dk` với module tách theo chủ đề.
 - **NixVim** cấu hình hoàn toàn bằng Nix (LSP, Treesitter, Telescope, v.v.).
 - **Shell**: Zsh + Starship + alias tiện dụng.
