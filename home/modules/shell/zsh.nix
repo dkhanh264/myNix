@@ -2,7 +2,7 @@
 {
   programs.zsh = {
     enable                    = true;
-    enableAutosuggestions     = true;
+    autosuggestion.enable     = true;
     enableCompletion          = true;
     syntaxHighlighting.enable = true;
 
@@ -14,7 +14,7 @@
       cd  = "z";
 
       # THAY "your-laptop" bằng hostname thực tế
-      rebuild     = "sudo nixos-rebuild switch --flake /etc/nixos#your-laptop";
+      rebuild     = "sudo nixos-rebuild switch --flake /etc/nixos#HiMeo";
       update      = "sudo nix flake update /etc/nixos";
       gc          = "sudo nix-collect-garbage -d";
       sync-config = "cd /etc/nixos && sudo git pull && rebuild";
@@ -27,7 +27,7 @@
       gl  = "git log --oneline --graph --decorate";
     };
 
-    initExtra = ''
+    initContent = ''
       eval "$(zoxide init zsh)"
       source ${pkgs.fzf}/share/fzf/key-bindings.zsh
       source ${pkgs.fzf}/share/fzf/completion.zsh
