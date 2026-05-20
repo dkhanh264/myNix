@@ -174,6 +174,8 @@ let
     silence=0
     last=""
     glyphs=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
+    max_value=90
+    scale=$((max_value + 1))
 
     render_frame() {
        local raw="$1"
@@ -186,15 +188,13 @@ let
        IFS=';' read -r -a values <<< "$raw"
 
        for value in "''${values[@]}"; do
-          [[ -z "$value" ]] && continue
-          [[ "$value" =~ ^[0-9]+$ ]] || continue
+          [[ -z "$value" || ! "$value" =~ ^[0-9]+$ ]] && continue
 
           if ((value > 0)); then
              active=1
           fi
 
-          # CAVA ascii_max_range is set to 90, so divide by 91 to map 0-90 across 8 glyph levels.
-          idx=$((value * ''${#glyphs[@]} / 91))
+          idx=$((value * ''${#glyphs[@]} / scale))
           if ((idx >= ''${#glyphs[@]})); then
              idx=$((''${#glyphs[@]} - 1))
           fi
