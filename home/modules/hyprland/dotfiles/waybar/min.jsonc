@@ -78,11 +78,11 @@
     "format": " │ "
   },
   "custom/cavaLeft": {
-    "exec": "~/.local/share/custom/bin/cava-json.sh /home/dk/.config/cava/waybar-left",
+    "exec": "cava-json \"$HOME/.config/cava/waybar-left\"",
     "return-type": "json"
   },
   "custom/cavaRight": {
-    "exec": "~/.local/share/custom/bin/cava-json.sh /home/dk/.config/cava/waybar-right",
+    "exec": "cava-json \"$HOME/.config/cava/waybar-right\"",
     "return-type": "json"
   },
   "custom/lowbattery": {
