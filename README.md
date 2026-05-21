@@ -28,6 +28,7 @@ File chính: `home/home.nix`
 
 - Core packages + môi trường
 - Hyprland + Waybar + Dunst + Hyprpaper + Hypridle
+- Quickshell (autostart qua Hyprland `exec-once`)
 - Terminal: Kitty
 - Dev: Git + NixVim
 - Theme: GTK/Qt + Pywal
@@ -58,3 +59,15 @@ sudo nix-collect-garbage -d
 
 - Wallpaper mặc định lấy từ `~/Pictures/wallpapers/wallpaper.jpg`.
 - Có alias sẵn trong Zsh để rebuild/update/gc.
+
+## Tích hợp vào cấu trúc `ilyamiro/nixos-configuration`
+
+Repo này đã thêm module Quickshell ở:
+- `/home/runner/work/myNix/myNix/home/modules/hyprland/quickshell.nix`
+- `/home/runner/work/myNix/myNix/home/modules/hyprland/dotfiles/quickshell/shell.qml`
+
+Nếu bạn giữ cấu trúc `/etc/nixos/config/...` như `ilyamiro/nixos-configuration`, có thể map tương đương:
+- `home/modules/hyprland/quickshell.nix` → `config/programs/quickshell/default.nix`
+- `home/modules/hyprland/dotfiles/quickshell/*` → `config/programs/quickshell/*`
+
+Và import module mới trong `home.nix` (hoặc cơ chế auto-import thư mục `config/programs`) để Home Manager symlink vào `~/.config/quickshell`.
