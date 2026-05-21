@@ -114,6 +114,8 @@
           ];
         };
       };
+     
+      web-devicons.enable = true;
 
       # Telescope — fuzzy finder mạnh nhất cho Neovim
       # Dùng Space+ff để tìm file, Space+fg để grep toàn project
@@ -143,10 +145,10 @@
           pyright.enable = true;
 
           # JavaScript/TypeScript LSP
-          ts-ls.enable = true;
+          ts_ls.enable = true;
 
           # Rust LSP — tự động cài rust-analyzer
-          rust-analyzer = {
+          rust_analyzer = {
             enable              = true;
             installCargo        = true;
             installRustc        = true;
@@ -156,7 +158,7 @@
           gopls.enable = true;
 
           # Lua LSP — cần khi viết config Neovim thuần Lua
-          lua-ls = {
+          lua_ls = {
             enable = true;
             settings.Lua = {
               diagnostics.globals = [ "vim" ];
@@ -274,7 +276,10 @@
             black.enable      = true;
             isort.enable      = true;
             # JavaScript/TypeScript formatter
-            prettier.enable   = true;
+            prettier = {
+              enable = true;
+              disableTsServerFormatter = true;  
+            };
             # Nix formatter
             nixpkgs_fmt.enable = true;
             # Shell formatter
@@ -310,7 +315,7 @@
       };
 
       # Highlight màu hex trực tiếp trong code
-      nvim-colorizer.enable = true;
+      colorizer.enable = true;
 
       # Smooth scrolling
       neoscroll.enable = true;

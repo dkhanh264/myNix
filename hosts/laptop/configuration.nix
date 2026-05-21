@@ -13,7 +13,7 @@
   ];
 
   # ── Network ────────────────────────────────────────────────────────────
-  networking.hostName = "your-laptop";
+  networking.hostName = "HiMeo";
   networking.networkmanager.enable = true;
 
   # ── Locale & Timezone ──────────────────────────────────────────────────
@@ -85,6 +85,12 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
+  };
+
+  # enable zram swap
+  zramSwap = {
+  enable = true;
+  memoryPercent = 100;
   };
 
   # ── Audio — PipeWire ───────────────────────────────────────────────────

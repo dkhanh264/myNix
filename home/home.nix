@@ -7,7 +7,7 @@
     ./core
     ./modules/shell
     ./modules/hyprland
-    ./modules/terminal/kitty.nix
+    ./modules/terminal
     ./modules/extra-dots.nix
     ./modules/dev/git.nix
     ./modules/dev/neovim.nix

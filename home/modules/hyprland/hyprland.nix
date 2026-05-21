@@ -15,7 +15,7 @@
       # eDP-1 là màn hình laptop, HDMI-A-1 là màn hình ngoài.
       monitor = [
         "eDP-1, 1920x1080@144, 0x0, 1"
-        "HDMI-A-1, 1920x1080@179, 1920x0, 1"
+        "HDMI-A-1, highrr, 1920x0, 1"
       ];
 
       # ── NVIDIA + Wayland env vars ──────────────────────────────────────
@@ -23,16 +23,18 @@
         "LIBVA_DRIVER_NAME,nvidia"
         "__GLX_VENDOR_LIBRARY_NAME,nvidia"
         "GBM_BACKEND,nvidia-drm"
-        "WLR_NO_HARDWARE_CURSORS,1"
         "XCURSOR_SIZE,24"
         "MOZ_ENABLE_WAYLAND,1"
         "QT_QPA_PLATFORM,wayland"
         "GDK_BACKEND,wayland,x11"
       ];
 
+      cursor = {
+        no_hardware_cursors = true;
+      };
+
       # ── Autostart ─────────────────────────────────────────────────────
       exec-once = [
-        "waybar-auto" # Khởi động script ẩn/hiện thanh trạng thái
         "mako"        # Khởi động trình thông báo
         "hypridle"
         "nm-applet --indicator"
@@ -107,7 +109,7 @@
       "$mainMod" = "SUPER";
 
       bind = [
-        "$mainMod, Return,    exec, alacritty"
+        "$mainMod, Q,    exec, kitty"
         "$mainMod, W,         exec, firefox"
         "$mainMod, E,         exec, nautilus"
         
@@ -117,7 +119,7 @@
         "$mainMod CTRL, space, exec, cycle-background"
         "$mainMod, P, exec, walker-menu profile"
         
-        "$mainMod, Q,         killactive"
+        "ALT, F4,         killactive"
         "$mainMod, V,         togglefloating"
         "$mainMod, F,         fullscreen, 0"
         "$mainMod, L,         exec, hyprlock"

@@ -1,1 +1,106 @@
-{"battery":{"format":"{icon} {capacity}%","format-charging":"{icon} {capacity}%","format-discharging":"{icon} {capacity}%","format-full":"󰂅","format-icons":{"charging":["󰁺","󰁻","󰁼","󰁽","󰁾","󰁿","󰂀","󰂁","󰂂","󰁹"],"default":["󰁺","󰁻","󰁼","󰁽","󰁾","󰁿","󰂀","󰂁","󰂂","󰁹"]},"format-plugged":" {capacity}%","interval":5,"on-click":"~/.local/share/custom/bin/walker-menu.sh power","states":{"critical":10,"warning":20},"tooltip-format-charging":"{power:>1.0f}W↑ {capacity}%","tooltip-format-discharging":"{power:>1.0f}W↓ {capacity}%"},"clock":{"format":"{:%H:%M}","tooltip":false},"custom/bar":{"format":" │ "},"custom/cavaLeft":{"exec":"~/.local/share/custom/bin/cava-json.sh /home/hakon/.config/cava/waybar-left","return-type":"json"},"custom/cavaRight":{"exec":"~/.local/share/custom/bin/cava-json.sh /home/hakon/.config/cava/waybar-right","return-type":"json"},"custom/lowbattery":{"exec":"bash -c 'bat=/sys/class/power_supply/BAT1; level=$(cat \"$bat/capacity\" 2>/dev/null || echo 100); status=$(cat \"$bat/status\" 2>/dev/null); if [ \"$status\" != \"Charging\" ] && [ \"$level\" -le 15 ]; then echo \"󰁺\"; fi'\n","format":"{}","interval":5},"custom/memory":{"exec":"awk '\n  /MemTotal:/ { total = $2 }\n  /MemAvailable:/ { avail = $2 }\n  END {\n    used = (total - avail) / 1024 / 1024;\n    percent = (total - avail) / total * 100;\n    printf \" %.0f%%  %.1fG\\n\", percent, used;\n  }\n' /proc/meminfo\n","format":"{}","interval":2},"custom/vpn":{"exec":"bash -c 'out=\"\"; pidfile=/run/openconnect.pid; if [ -r \"$pidfile\" ] && pid=$(cat \"$pidfile\") && ps -p \"$pid\" >/dev/null 2>&1; then out=\"OC\"; fi; if tailscale status --json 2>/dev/null | jq -e \".BackendState == \\\"Running\\\"\" >/dev/null; then out=\"${out:+$out·}TS\"; fi; if [ -n \"$out\" ]; then echo -e \"$out\"; else echo -e \"Disconnected\"; fi'\n","format":"{}","interval":1},"custom/vpnIcon":{"format":"🖧 "},"height":10,"hyprland/workspaces":{"format":"{icon}","format-icons":{"1":"1","2":"2","3":"3","4":"4","5":"5","6":"6","7":"7","8":"8","9":"9","active":"󱓻","default":""},"on-click":"activate","persistent-workspaces":{"1":[],"2":[],"3":[],"4":[],"5":[]}},"id":"min","layer":"top","modules-center":["custom/lowbattery","custom/cavaLeft","clock","custom/cavaRight","custom/lowbattery"],"modules-left":["hyprland/workspaces"],"modules-right":["custom/memory","custom/bar","battery","custom/bar","custom/vpnIcon","custom/vpn"],"position":"top","reload_style_on_change":true,"spacing":0}
+{
+  "id": "min",
+  "layer": "top",
+  "position": "top",
+  "height": 10,
+  "spacing": 0,
+  "reload_style_on_change": true,
+  "modules-left": [
+    "hyprland/workspaces"
+  ],
+  "modules-center": [
+    "custom/lowbattery",
+    "custom/cavaLeft",
+    "clock",
+    "custom/cavaRight",
+    "custom/lowbattery"
+  ],
+  "modules-right": [
+    "custom/memory",
+    "custom/bar",
+    "battery",
+    "custom/bar",
+    "custom/vpnIcon",
+    "custom/vpn"
+  ],
+  "hyprland/workspaces": {
+    "format": "{icon}",
+    "on-click": "activate",
+    "format-icons": {
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7",
+      "8": "8",
+      "9": "9",
+      "active": "󱓻",
+      "default": ""
+    },
+    "persistent-workspaces": {
+      "1": [],
+      "2": [],
+      "3": [],
+      "4": [],
+      "5": []
+    }
+  },
+  "clock": {
+    "format": "{:%H:%M}",
+    "tooltip": false
+  },
+  "battery": {
+    "interval": 5,
+    "states": {
+      "warning": 20,
+      "critical": 10
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": "{icon} {capacity}%",
+    "format-discharging": "{icon} {capacity}%",
+    "format-plugged": " {capacity}%",
+    "format-full": "󰂅",
+    "format-icons": {
+      "charging": [
+        "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"
+      ],
+      "default": [
+        "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"
+      ]
+    },
+    "tooltip-format-charging": "{power:>1.0f}W↑ {capacity}%",
+    "tooltip-format-discharging": "{power:>1.0f}W↓ {capacity}%",
+    "on-click": "~/.local/share/custom/bin/walker-menu.sh power"
+  },
+  "custom/bar": {
+    "format": " │ "
+  },
+  "custom/cavaLeft": {
+    "exec": "cava-json \"$HOME/.config/cava/waybar-left\"",
+    "return-type": "json"
+  },
+  "custom/cavaRight": {
+    "exec": "cava-json \"$HOME/.config/cava/waybar-right\"",
+    "return-type": "json"
+  },
+  "custom/lowbattery": {
+    "interval": 5,
+    "exec": "bash -c 'bat=/sys/class/power_supply/BAT1; level=$(cat \"$bat/capacity\" 2>/dev/null || echo 100); status=$(cat \"$bat/status\" 2>/dev/null);\nif [ \"$status\" != \"Charging\" ] && [ \"$level\" -le 15 ]; then echo \"󰁺\";\nfi'\n",
+    "format": "{}"
+  },
+  "custom/memory": {
+    "interval": 2,
+    "exec": "awk '\n  /MemTotal:/ { total = $2 }\n  /MemAvailable:/ { avail = $2 }\n  END {\n    used = (total - avail) / 1024 / 1024;\n    percent = (total - avail) / total * 100;\n    printf \" %.0f%%  %.1fG\\n\", percent, used;\n  }\n' /proc/meminfo\n",
+    "format": "{}"
+  },
+  "custom/vpn": {
+    "interval": 1,
+    "exec": "bash -c 'out=\"\";\npidfile=/run/openconnect.pid; if [ -r \"$pidfile\" ] && pid=$(cat \"$pidfile\") && ps -p \"$pid\" >/dev/null 2>&1; then out=\"OC\"; fi;\nif tailscale status --json 2>/dev/null | jq -e \".BackendState == \\\"Running\\\"\" >/dev/null; then out=\"${out:+$out·}TS\"; fi; if [ -n \"$out\" ];\nthen echo -e \"$out\"; else echo -e \"Disconnected\"; fi'\n",
+    "format": "{}"
+  },
+  "custom/vpnIcon": {
+    "format": "🖧 "
+  }
+}

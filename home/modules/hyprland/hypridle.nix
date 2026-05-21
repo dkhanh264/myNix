@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 {
   services.hypridle = {
     enable = true;
@@ -8,7 +8,14 @@
         ignore_dbus_inhibit = false;
         lock_cmd            = "hyprlock";
       };
+
       listener = [
+        # Giảm độ sáng màn hình sau 3 phút (180s)
+        {
+          timeout = 180;
+          on-timeout = "${pkgs.brightnessctl}/bin/brightnessctl -s set 10";
+          on-resume = "${pkgs.brightnessctl}/bin/brightnessctl -r";
+        }
       ];
     };
   };

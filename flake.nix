@@ -51,7 +51,7 @@
   in
   {
     nixosConfigurations = {
-      "your-laptop" = mkSystem "laptop";
+      "HiMeo" = mkSystem "laptop";
     };
   };
 }
