@@ -75,11 +75,10 @@
   };
 
   # ── Optimize for Gaming ────────────────────────────────────────────
-  # Disable AMDGPU if only NVIDIA is being used, or enable for hybrid graphics
-  # This helps prevent power management issues
   boot.kernelParams = [
+    # Preserve GPU VRAM allocations across suspend/resume cycles
+    # This prevents crashes when resuming from sleep with active GPU processes
     "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
-    "nvidia.NVreg_RegistryDwords=RmLogonProfile=0x1"
   ];
 
   # Configure keymap in X11

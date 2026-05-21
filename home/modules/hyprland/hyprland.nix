@@ -27,7 +27,6 @@
         "MOZ_ENABLE_WAYLAND,1"
         "QT_QPA_PLATFORM,wayland"
         "GDK_BACKEND,wayland,x11"
-        "NVIDIA_MIG_CONFIG,All-Disabled"
       ];
 
       cursor = {

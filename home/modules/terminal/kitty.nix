@@ -7,21 +7,20 @@
       size = 11;
     };
     settings = {
-      background_opacity      = "0.4";
+      background_opacity = "0.4";
       confirm_os_window_close = 0;
-      enable_audio_bell       = false;
-      cursor_shape            = "beam";
-      draw_bold_text_with_bright_colors = true;
-      # Font offsets
-      font_size = 11;
-      modify_font = "cell_height +0px";
+      enable_audio_bell = false;
+      cursor_shape = "beam";
     };
     theme = "Tokyo Night";
     extraConfig = ''
-      # Window padding similar to alacritty
-      window_padding_width 14 14
+      # Enable bold text rendering with bright colors (like Alacritty)
+      draw_bold_text_with_bright_colors yes
+      
+      # Window padding (14px uniform padding like Alacritty x=14 y=14)
+      window_padding_width 14
 
-      # Colors
+      # Colors matching Alacritty theme
       background #222222
       foreground #F8F8F2
 

@@ -43,7 +43,6 @@
     spotify
     vscode
     fastfetch
-    steam
 
     # Thêm các công cụ từ nixparency-dots
     walker         # Thay thế Rofi làm launcher
