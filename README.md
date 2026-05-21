@@ -63,8 +63,8 @@ sudo nix-collect-garbage -d
 ## Tích hợp vào cấu trúc `ilyamiro/nixos-configuration`
 
 Repo này đã thêm module Quickshell ở:
-- `/home/runner/work/myNix/myNix/home/modules/hyprland/quickshell.nix`
-- `/home/runner/work/myNix/myNix/home/modules/hyprland/dotfiles/quickshell/shell.qml`
+- `home/modules/hyprland/quickshell.nix`
+- `home/modules/hyprland/dotfiles/quickshell/shell.qml`
 
 Nếu bạn giữ cấu trúc `/etc/nixos/config/...` như `ilyamiro/nixos-configuration`, có thể map tương đương:
 - `home/modules/hyprland/quickshell.nix` → `config/programs/quickshell/default.nix`
