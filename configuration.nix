@@ -14,6 +14,27 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # ── NVIDIA GPU Support ─────────────────────────────────────────────
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia = {
+    modesetting.enable = true;
+    powerManagement.enable = false;
+    powerManagement.finegrained = false;
+    open = false;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+  };
+
+  # Vulkan support for gaming
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      vulkan-tools
+      vulkan-loader
+      mesa
+    ];
+  };
+
   # networking.hostName = "nixos"; # Define your hostname.
 
   # Configure network connections interactively with nmcli or nmtui.
@@ -42,6 +63,24 @@
   services.displayManager.gdm.enable = true;
   services.desktopManager.gnome.enable = true;
   services.power-profiles-daemon.enable = true;
+
+  # ── Steam Configuration ────────────────────────────────────────────
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
+    gamescopeSession = {
+      enable = true;
+    };
+  };
+
+  # ── Optimize for Gaming ────────────────────────────────────────────
+  # Disable AMDGPU if only NVIDIA is being used, or enable for hybrid graphics
+  # This helps prevent power management issues
+  boot.kernelParams = [
+    "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
+    "nvidia.NVreg_RegistryDwords=RmLogonProfile=0x1"
+  ];
 
   # Configure keymap in X11
   # services.xserver.xkb.layout = "us";

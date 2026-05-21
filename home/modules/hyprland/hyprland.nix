@@ -27,6 +27,7 @@
         "MOZ_ENABLE_WAYLAND,1"
         "QT_QPA_PLATFORM,wayland"
         "GDK_BACKEND,wayland,x11"
+        "NVIDIA_MIG_CONFIG,All-Disabled"
       ];
 
       cursor = {
@@ -35,7 +36,6 @@
 
       # ── Autostart ─────────────────────────────────────────────────────
       exec-once = [
-        "waybar-auto" # Khởi động script ẩn/hiện thanh trạng thái
         "mako"        # Khởi động trình thông báo
         "hypridle"
         "nm-applet --indicator"
@@ -110,7 +110,7 @@
       "$mainMod" = "SUPER";
 
       bind = [
-        "$mainMod, Q,    exec, alacritty"
+        "$mainMod, Q,    exec, kitty"
         "$mainMod, W,         exec, firefox"
         "$mainMod, E,         exec, nautilus"
         
