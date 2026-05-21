@@ -35,7 +35,6 @@
 
       # ── Autostart ─────────────────────────────────────────────────────
       exec-once = [
-        "waybar-auto" # Khởi động script ẩn/hiện thanh trạng thái
         "mako"        # Khởi động trình thông báo
         "hypridle"
         "nm-applet --indicator"
@@ -110,7 +109,7 @@
       "$mainMod" = "SUPER";
 
       bind = [
-        "$mainMod, Q,    exec, alacritty"
+        "$mainMod, Q,    exec, kitty"
         "$mainMod, W,         exec, firefox"
         "$mainMod, E,         exec, nautilus"
         

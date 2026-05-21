@@ -10,5 +10,4 @@
     source = ./dotfiles/walker;
     recursive = true;
   };
-  xdg.configFile."cava".source = ./dotfiles/cava;
 }

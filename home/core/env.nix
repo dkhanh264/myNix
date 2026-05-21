@@ -3,7 +3,7 @@
   home.sessionVariables = {
     EDITOR   = "nvim";
     BROWSER  = "firefox";
-    TERMINAL = "alacritty";
+    TERMINAL = "kitty";
     WALLPAPER = "${config.home.homeDirectory}/Pictures/wallpapers/wallpaper.jpg";
 
     # NVIDIA + Wayland — bốn biến này BẮT BUỘC phải có.
