@@ -173,7 +173,7 @@ let
     limit=''${CAVA_SILENCE_FRAMES:-100} # ~0.5s at 60 FPS
     silence=0
     last=""
-    glyphs=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
+     glyphs=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
     # Keep this in sync with ascii_max_range = 90 in the Waybar CAVA configs.
     max_value=90
     glyph_count=''${#glyphs[@]}
