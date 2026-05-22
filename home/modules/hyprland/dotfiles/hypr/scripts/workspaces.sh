@@ -103,6 +103,8 @@ print_workspaces
 while true; do
     socat -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock - | while read -r line; do
         case "$line" in
+            # activewindow* is intentionally excluded to avoid high-frequency title/focus churn;
+            # workspace occupancy and active workspace state are already covered by events below.
             workspace*|focusedmon*|createwindow*|closewindow*|movewindow*|destroyworkspace*)
                 
                 # -> THE FIX <-
@@ -110,7 +112,7 @@ while true; do
                 # This reads and discards all subsequent events arriving within a 50ms window.
                 # It bundles the storm into a single UI update, completely preventing CPU clogging!
                 # 120ms keeps updates smooth while avoiding storms from rapid Hyprland bursts.
-                while read -t 0.12 -r extra_line; do
+                while read -t 0.120 -r extra_line; do
                     continue
                 done
 
