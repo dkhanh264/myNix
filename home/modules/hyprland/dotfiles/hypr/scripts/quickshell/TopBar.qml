@@ -217,7 +217,7 @@ Variants {
 
             Process {
  	    	id: recWatcher
- 		running: barWindow.isDataHost
+                running: barWindow.isDataHost
  		command: ["bash", "-c", "inotifywait -qq -e create,delete,modify,close_write " + paths.getCacheDir("recording") + "/ 2>/dev/null || sleep 2"]
  	        onExited: {
  	        	recPoller.running = false;
