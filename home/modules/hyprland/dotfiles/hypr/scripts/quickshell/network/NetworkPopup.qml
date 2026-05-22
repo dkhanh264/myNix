@@ -124,14 +124,23 @@ Item {
 
     Process {
         id: modeWatcher
-        command: ["bash", "-c", "while [ ! -f '" + window.modeFilePath + "' ]; do sleep 0.2; done; inotifywait -qq -e modify,close_write '" + window.modeFilePath + "'"]
+        command: ["bash", "-c", "while [ ! -f \"$1\" ]; do sleep 0.2; done; inotifywait -qq -e modify,close_write \"$1\"", "--", window.modeFilePath]
         onExited: {
+            if (exitCode === 127) {
+                console.log("NetworkPopup: inotifywait not found; mode watching disabled.");
+                return;
+            }
+            if (exitCode !== 0) {
+                modeWatcherRetry.start();
+                return;
+            }
             modeReader.running = false;
             modeReader.running = true;
             running = false;
             running = true;
         }
     }
+    Timer { id: modeWatcherRetry; interval: 1000; repeat: false; onTriggered: { modeWatcher.running = false; modeWatcher.running = true; } }
 
     Component.onCompleted: {
         window.powerAnimAllowed = false;
