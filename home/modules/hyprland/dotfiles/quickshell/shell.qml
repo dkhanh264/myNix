@@ -74,7 +74,7 @@ ShellRoot {
           const occupied = parsed.map(ws => ws.id)
           root.workspaceData = [1, 2, 3, 4, 5].map(id => ({
             id: id,
-            occupied: occupied.indexOf(id) !== -1
+            occupied: occupied.includes(id)
           }))
         } catch (e) {}
       }
@@ -122,7 +122,7 @@ ShellRoot {
     stdout: StdioCollector {
       onStreamFinished: {
         const out = text.trim()
-        if (out.indexOf("wifi:") === 0) {
+        if (out.startsWith("wifi:")) {
           root.networkState = "wifi"
           root.networkName = out.slice(5)
         } else if (out === "ethernet") {
