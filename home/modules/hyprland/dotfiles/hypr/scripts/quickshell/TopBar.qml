@@ -91,7 +91,9 @@ Variants {
 
                 if (!barWindow.isSettingsOpen && barWindow.workspaceRefreshPending) {
                     barWindow.workspaceRefreshPending = false;
-                    // Quickshell Process restarts are triggered by toggling `running`.
+                    // Toggling `running` restarts Quickshell processes.
+                    // Restart wsReader first to consume the newest JSON snapshot,
+                    // then restart wsWatcher so it can wait for the next change event.
                     wsReader.running = false;
                     wsReader.running = true;
                     wsWatcher.running = false;

@@ -56,7 +56,7 @@ print_workspaces() {
     if [ -z "$spaces" ] || [ -z "$active" ]; then return; fi
 
     # Generate JSON payload
-    payload=$(echo "$spaces" | jq --unbuffered --argjson a "$active" --arg end "$SEQ_END" -c '
+    workspace_payload=$(echo "$spaces" | jq --unbuffered --argjson a "$active" --arg end "$SEQ_END" -c '
         # Create a map of workspace ID -> workspace data for easy lookup
         (map( { (.id|tostring): . } ) | add) as $s
         |
@@ -79,17 +79,17 @@ print_workspaces() {
         )
     ')
 
-    [ -z "$payload" ] && return
+    [ -z "$workspace_payload" ] && return
 
     # Skip redundant writes to avoid unnecessary UI re-rendering
-    if [ "$payload" = "$LAST_WORKSPACES_PAYLOAD" ]; then
+    if [ "$workspace_payload" = "$LAST_WORKSPACES_PAYLOAD" ]; then
         return
     fi
 
-    LAST_WORKSPACES_PAYLOAD="$payload"
+    LAST_WORKSPACES_PAYLOAD="$workspace_payload"
 
     # Write atomically to prevent UI flickering
-    printf '%s\n' "$payload" > "$QS_RUN_WORKSPACES/workspaces.tmp"
+    printf '%s\n' "$workspace_payload" > "$QS_RUN_WORKSPACES/workspaces.tmp"
     mv "$QS_RUN_WORKSPACES/workspaces.tmp" "$QS_RUN_WORKSPACES/workspaces.json"
 }
 
