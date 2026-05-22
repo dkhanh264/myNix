@@ -287,31 +287,51 @@ Variants {
             
             property var musicData: { "status": "Stopped", "title": "", "artUrl": "", "timeStr": "" }
 
-            Timer {
-                interval: 500
-                repeat: true
-                running: !barWindow.isDataHost
-                triggeredOnStart: true
-                onTriggered: {
-                    barWindow.wifiStatus = topBars.sharedWifiStatus;
-                    barWindow.wifiIcon = topBars.sharedWifiIcon;
-                    barWindow.wifiSsid = topBars.sharedWifiSsid;
-                    barWindow.ethStatus = topBars.sharedEthStatus;
-                    barWindow.btStatus = topBars.sharedBtStatus;
-                    barWindow.btIcon = topBars.sharedBtIcon;
-                    barWindow.btDevice = topBars.sharedBtDevice;
-                    barWindow.volPercent = topBars.sharedVolPercent;
-                    barWindow.volIcon = topBars.sharedVolIcon;
-                    barWindow.isMuted = topBars.sharedIsMuted;
-                    barWindow.batPercent = topBars.sharedBatPercent;
-                    barWindow.batIcon = topBars.sharedBatIcon;
-                    barWindow.batStatus = topBars.sharedBatStatus;
-                    barWindow.kbLayout = topBars.sharedKbLayout;
-                    barWindow.weatherIcon = topBars.sharedWeatherIcon;
-                    barWindow.weatherTemp = topBars.sharedWeatherTemp;
-                    barWindow.weatherHex = topBars.sharedWeatherHex;
-                    barWindow.musicData = topBars.sharedMusicData;
-                }
+            function syncSharedData() {
+                if (barWindow.isDataHost) return;
+                barWindow.wifiStatus = topBars.sharedWifiStatus;
+                barWindow.wifiIcon = topBars.sharedWifiIcon;
+                barWindow.wifiSsid = topBars.sharedWifiSsid;
+                barWindow.ethStatus = topBars.sharedEthStatus;
+                barWindow.btStatus = topBars.sharedBtStatus;
+                barWindow.btIcon = topBars.sharedBtIcon;
+                barWindow.btDevice = topBars.sharedBtDevice;
+                barWindow.volPercent = topBars.sharedVolPercent;
+                barWindow.volIcon = topBars.sharedVolIcon;
+                barWindow.isMuted = topBars.sharedIsMuted;
+                barWindow.batPercent = topBars.sharedBatPercent;
+                barWindow.batIcon = topBars.sharedBatIcon;
+                barWindow.batStatus = topBars.sharedBatStatus;
+                barWindow.kbLayout = topBars.sharedKbLayout;
+                barWindow.weatherIcon = topBars.sharedWeatherIcon;
+                barWindow.weatherTemp = topBars.sharedWeatherTemp;
+                barWindow.weatherHex = topBars.sharedWeatherHex;
+                barWindow.musicData = topBars.sharedMusicData;
+            }
+
+            Component.onCompleted: barWindow.syncSharedData()
+
+            Connections {
+                target: topBars
+                enabled: !barWindow.isDataHost
+                function onSharedWifiStatusChanged() { barWindow.syncSharedData(); }
+                function onSharedWifiIconChanged() { barWindow.syncSharedData(); }
+                function onSharedWifiSsidChanged() { barWindow.syncSharedData(); }
+                function onSharedEthStatusChanged() { barWindow.syncSharedData(); }
+                function onSharedBtStatusChanged() { barWindow.syncSharedData(); }
+                function onSharedBtIconChanged() { barWindow.syncSharedData(); }
+                function onSharedBtDeviceChanged() { barWindow.syncSharedData(); }
+                function onSharedVolPercentChanged() { barWindow.syncSharedData(); }
+                function onSharedVolIconChanged() { barWindow.syncSharedData(); }
+                function onSharedIsMutedChanged() { barWindow.syncSharedData(); }
+                function onSharedBatPercentChanged() { barWindow.syncSharedData(); }
+                function onSharedBatIconChanged() { barWindow.syncSharedData(); }
+                function onSharedBatStatusChanged() { barWindow.syncSharedData(); }
+                function onSharedKbLayoutChanged() { barWindow.syncSharedData(); }
+                function onSharedWeatherIconChanged() { barWindow.syncSharedData(); }
+                function onSharedWeatherTempChanged() { barWindow.syncSharedData(); }
+                function onSharedWeatherHexChanged() { barWindow.syncSharedData(); }
+                function onSharedMusicDataChanged() { barWindow.syncSharedData(); }
             }
 
             property string displayTitle: ""
