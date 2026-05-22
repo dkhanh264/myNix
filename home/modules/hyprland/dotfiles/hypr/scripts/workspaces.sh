@@ -44,6 +44,9 @@ if ! [[ "$SEQ_END" =~ ^[0-9]+$ ]]; then
     SEQ_END=8
 fi
 
+# Cache latest payload to skip redundant file writes.
+LAST_WORKSPACES_PAYLOAD=""
+
 print_workspaces() {
     # Get raw data with a timeout fallback
     spaces=$(timeout 2 hyprctl workspaces -j 2>/dev/null)
@@ -106,6 +109,7 @@ while true; do
                 # Hyprland emits HUNDREDS of events a second when you move/resize windows.
                 # This reads and discards all subsequent events arriving within a 50ms window.
                 # It bundles the storm into a single UI update, completely preventing CPU clogging!
+                # 120ms keeps updates smooth while avoiding storms from rapid Hyprland bursts.
                 while read -t 0.12 -r extra_line; do
                     continue
                 done
