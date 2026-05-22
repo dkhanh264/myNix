@@ -44,6 +44,9 @@ if ! [[ "$SEQ_END" =~ ^[0-9]+$ ]]; then
     SEQ_END=8
 fi
 
+# Cache latest payload to skip redundant file writes.
+LAST_WORKSPACES_PAYLOAD=""
+
 print_workspaces() {
     # Get raw data with a timeout fallback
     spaces=$(timeout 2 hyprctl workspaces -j 2>/dev/null)
@@ -52,8 +55,8 @@ print_workspaces() {
     # Failsafe if hyprctl crashes to prevent jq from outputting errors
     if [ -z "$spaces" ] || [ -z "$active" ]; then return; fi
 
-    # Generate the JSON and write it atomically to prevent UI flickering
-    echo "$spaces" | jq --unbuffered --argjson a "$active" --arg end "$SEQ_END" -c '
+    # Generate JSON payload
+    workspace_payload=$(echo "$spaces" | jq --unbuffered --argjson a "$active" --arg end "$SEQ_END" -c '
         # Create a map of workspace ID -> workspace data for easy lookup
         (map( { (.id|tostring): . } ) | add) as $s
         |
@@ -74,8 +77,19 @@ print_workspaces() {
                 tooltip: $win
             }
         )
-    ' > "$QS_RUN_WORKSPACES/workspaces.tmp"
-    
+    ')
+
+    [ -z "$workspace_payload" ] && return
+
+    # Skip redundant writes to avoid unnecessary UI re-rendering
+    if [ "$workspace_payload" = "$LAST_WORKSPACES_PAYLOAD" ]; then
+        return
+    fi
+
+    LAST_WORKSPACES_PAYLOAD="$workspace_payload"
+
+    # Write atomically to prevent UI flickering
+    printf '%s\n' "$workspace_payload" > "$QS_RUN_WORKSPACES/workspaces.tmp"
     mv "$QS_RUN_WORKSPACES/workspaces.tmp" "$QS_RUN_WORKSPACES/workspaces.json"
 }
 
@@ -89,13 +103,16 @@ print_workspaces
 while true; do
     socat -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock - | while read -r line; do
         case "$line" in
-            workspace*|focusedmon*|activewindow*|createwindow*|closewindow*|movewindow*|destroyworkspace*)
+            # activewindow* is intentionally excluded to avoid high-frequency title/focus churn;
+            # workspace occupancy and active workspace state are already covered by events below.
+            workspace*|focusedmon*|createwindow*|closewindow*|movewindow*|destroyworkspace*)
                 
                 # -> THE FIX <-
                 # Hyprland emits HUNDREDS of events a second when you move/resize windows.
-                # This reads and discards all subsequent events arriving within a 50ms window.
+                # This reads and discards all subsequent events arriving within a 120ms window.
                 # It bundles the storm into a single UI update, completely preventing CPU clogging!
-                while read -t 0.05 -r extra_line; do
+                # 120ms keeps updates smooth while avoiding storms from rapid Hyprland bursts.
+                while read -t 0.12 -r extra_line; do
                     continue
                 done
 
