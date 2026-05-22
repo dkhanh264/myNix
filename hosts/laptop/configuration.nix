@@ -155,6 +155,7 @@
     wget
     curl
     pciutils
+    home-manager
   ];
 
   # ── Nix Settings ───────────────────────────────────────────────────────

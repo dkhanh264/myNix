@@ -12,7 +12,6 @@
       enable_audio_bell = false;
       cursor_shape = "beam";
     };
-    theme = "Tokyo Night";
     extraConfig = ''
       # Enable bold text rendering with bright colors (like Alacritty)
       draw_bold_text_with_bright_colors yes
