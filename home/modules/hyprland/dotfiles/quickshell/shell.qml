@@ -180,7 +180,7 @@ ShellRoot {
 
             MouseArea {
               anchors.fill: parent
-              onClicked: Quickshell.execDetached(["hyprctl", "dispatch", "workspace", String(parent.modelData.id)])
+              onClicked: Quickshell.execDetached(["hyprctl", "dispatch", "workspace", String(modelData.id)])
             }
           }
         }
