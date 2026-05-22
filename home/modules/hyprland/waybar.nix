@@ -1,7 +1,7 @@
 { ... }:
 {
   programs.waybar = {
-    enable = true;
+    enable = false;
   };
 
   # Đẩy toàn bộ thư mục cấu hình từ dotfiles vào ~/.config

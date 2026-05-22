@@ -3,7 +3,7 @@
 ## Tính năng chính
 
 - **NixOS flake** với cấu hình `nixosConfigurations.your-laptop`.
-- **Hyprland (Wayland)**: waybar, dunst, hyprpaper, hypridle, hyprlock.
+- **Hyprland (Wayland)**: quickshell, dunst, hyprpaper, hypridle, hyprlock.
 - **NVIDIA + Intel PRIME Sync Mode** và biến môi trường Wayland cần thiết.
 - **Home Manager** cho user `dk` với module tách theo chủ đề.
 - **NixVim** cấu hình hoàn toàn bằng Nix (LSP, Treesitter, Telescope, v.v.).
@@ -27,7 +27,7 @@ File chính: `hosts/laptop/configuration.nix`
 File chính: `home/home.nix`
 
 - Core packages + môi trường
-- Hyprland + Waybar + Dunst + Hyprpaper + Hypridle
+- Hyprland + Quickshell + Dunst + Hyprpaper + Hypridle
 - Quickshell (autostart qua Hyprland `exec-once`)
 - Terminal: Kitty
 - Dev: Git + NixVim

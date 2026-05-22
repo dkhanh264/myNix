@@ -173,8 +173,8 @@
       layerrule = [
         "blur, walker"
         "ignorezero, walker"
-        "blur, waybar"
-        "ignorezero, waybar"
+        "blur, quickshell"
+        "ignorezero, quickshell"
         "blur, notifications"
         "ignorezero, notifications"
       ];
