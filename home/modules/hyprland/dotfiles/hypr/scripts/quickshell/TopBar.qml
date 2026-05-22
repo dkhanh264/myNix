@@ -28,6 +28,12 @@ Variants {
     property string sharedWeatherTemp: "--°"
     property string sharedWeatherHex: "#f9e2af"
     property var sharedMusicData: ({ "status": "Stopped", "title": "", "artUrl": "", "timeStr": "" })
+    property bool sharedShowHelpIcon: true
+    property bool sharedIsRecording: false
+    property bool sharedUpdateAvailable: false
+    property int sharedWorkspaceCount: 8
+    property string sharedWorkspacesJson: "[]"
+    property int sharedWorkspacesActiveIndex: 0
 
     delegate: Component {
         PanelWindow {
@@ -98,6 +104,59 @@ Variants {
             property bool isSettingsOpen: activeWidget === "settings"
             property bool workspaceRefreshPending: false
 
+            function syncWorkspacesModel(newData) {
+                while (workspacesModel.count < newData.length) {
+                    workspacesModel.append({ "wsId": "", "wsState": "" });
+                }
+
+                while (workspacesModel.count > newData.length) {
+                    workspacesModel.remove(workspacesModel.count - 1);
+                }
+
+                let newActive = -1;
+                for (let i = 0; i < newData.length; i++) {
+                    if (newData[i].state === "active") newActive = i;
+
+                    if (workspacesModel.get(i).wsState !== newData[i].state) {
+                        workspacesModel.setProperty(i, "wsState", newData[i].state);
+                    }
+                    let wsIdStr = newData[i].id.toString();
+                    if (workspacesModel.get(i).wsId !== wsIdStr) {
+                        workspacesModel.setProperty(i, "wsId", wsIdStr);
+                    }
+                }
+
+                if (newActive !== -1 && workspacesModel.activeIndex !== newActive) {
+                    workspacesModel.activeIndex = newActive;
+                }
+            }
+
+            function syncWorkspacesFromJson(jsonText) {
+                if (!jsonText || jsonText === "") return;
+                try {
+                    let parsed = JSON.parse(jsonText);
+                    if (Array.isArray(parsed)) {
+                        syncWorkspacesModel(parsed);
+                    }
+                } catch (e) {}
+            }
+
+            onShowHelpIconChanged: if (barWindow.isDataHost) topBars.sharedShowHelpIcon = barWindow.showHelpIcon
+            onIsRecordingChanged: if (barWindow.isDataHost) topBars.sharedIsRecording = barWindow.isRecording
+            onUpdateAvailableChanged: if (barWindow.isDataHost) topBars.sharedUpdateAvailable = barWindow.updateAvailable
+            onWorkspaceCountChanged: if (barWindow.isDataHost) topBars.sharedWorkspaceCount = barWindow.workspaceCount
+
+            Component.onCompleted: {
+                if (barWindow.isDataHost) {
+                    topBars.sharedShowHelpIcon = barWindow.showHelpIcon;
+                    topBars.sharedIsRecording = barWindow.isRecording;
+                    topBars.sharedUpdateAvailable = barWindow.updateAvailable;
+                    topBars.sharedWorkspaceCount = barWindow.workspaceCount;
+                } else {
+                    barWindow.syncWorkspacesFromJson(topBars.sharedWorkspacesJson);
+                }
+            }
+
             property real settingsSlideProgress: isSettingsOpen ? 1.0 : 0.0
             Behavior on settingsSlideProgress { 
                 enabled: barWindow.startupCascadeFinished
@@ -110,7 +169,7 @@ Variants {
                     Quickshell.reload(true);
                 }
 
-                if (!barWindow.isSettingsOpen && barWindow.workspaceRefreshPending) {
+                if (barWindow.isDataHost && !barWindow.isSettingsOpen && barWindow.workspaceRefreshPending) {
                     barWindow.workspaceRefreshPending = false;
                     // Toggling `running` restarts Quickshell processes.
                     // Restart wsReader first to consume the newest JSON snapshot,
@@ -158,7 +217,7 @@ Variants {
 
             Process {
  	    	id: recWatcher
- 		running: true
+                running: barWindow.isDataHost
  		command: ["bash", "-c", "inotifywait -qq -e create,delete,modify,close_write " + paths.getCacheDir("recording") + "/ 2>/dev/null || sleep 2"]
  	        onExited: {
  	        	recPoller.running = false;
@@ -170,7 +229,7 @@ Variants {
             Process {
 	        id: updatePoller
 	        command: ["bash", "-c", "if [ -f " + paths.getCacheDir("updater") + "/update_pending ]; then echo '1'; else echo '0'; fi"]
-	        running: true
+                running: barWindow.isDataHost
 	        stdout: StdioCollector {
 	            onStreamFinished: {
 	                barWindow.updateAvailable = (this.text.trim() === "1");
@@ -180,7 +239,7 @@ Variants {
 	    
 	    Process {
 	        id: updateWatcher
-	        running: true
+	        running: barWindow.isDataHost
 	        command: ["bash", "-c", "inotifywait -qq -e create,delete,close_write " + paths.getCacheDir("updater") + "/ 2>/dev/null || sleep 5"]
 	        onExited: {
 	            updatePoller.running = false;
@@ -193,7 +252,7 @@ Variants {
             Process {
                 id: settingsReader
                 command: ["bash", "-c", "cat ~/.config/hypr/settings.json 2>/dev/null || echo '{}'"]
-                running: true
+                running: barWindow.isDataHost
                 stdout: StdioCollector {
                     onStreamFinished: {
                         try {
@@ -218,7 +277,7 @@ Variants {
             Process {
                 id: settingsWatcher
                 command: ["bash", "-c", "while [ ! -f ~/.config/hypr/settings.json ]; do sleep 1; done; inotifywait -qq -e modify,close_write ~/.config/hypr/settings.json"]
-                running: true
+                running: barWindow.isDataHost
                 stdout: StdioCollector {
                     onStreamFinished: {
                         settingsReader.running = false;
@@ -306,6 +365,21 @@ Variants {
             Binding { target: barWindow; property: "weatherTemp"; when: !barWindow.isDataHost; value: topBars.sharedWeatherTemp }
             Binding { target: barWindow; property: "weatherHex"; when: !barWindow.isDataHost; value: topBars.sharedWeatherHex }
             Binding { target: barWindow; property: "musicData"; when: !barWindow.isDataHost; value: topBars.sharedMusicData }
+            Binding { target: barWindow; property: "showHelpIcon"; when: !barWindow.isDataHost; value: topBars.sharedShowHelpIcon }
+            Binding { target: barWindow; property: "isRecording"; when: !barWindow.isDataHost; value: topBars.sharedIsRecording }
+            Binding { target: barWindow; property: "updateAvailable"; when: !barWindow.isDataHost; value: topBars.sharedUpdateAvailable }
+            Binding { target: barWindow; property: "workspaceCount"; when: !barWindow.isDataHost; value: topBars.sharedWorkspaceCount }
+
+            Connections {
+                target: topBars
+                enabled: !barWindow.isDataHost
+                function onSharedWorkspacesJsonChanged() {
+                    barWindow.syncWorkspacesFromJson(topBars.sharedWorkspacesJson);
+                }
+                function onSharedWorkspacesActiveIndexChanged() {
+                    workspacesModel.activeIndex = topBars.sharedWorkspacesActiveIndex;
+                }
+            }
 
             property string displayTitle: ""
             property string displayTime: ""
@@ -337,12 +411,12 @@ Variants {
             Process {
                 id: wsDaemon
                 command: ["bash", "-c", "~/.config/hypr/scripts/workspaces.sh"]
-                running: true
+                running: barWindow.isDataHost
             }
 
             Process {
 		id: wsReader
-		running: true
+		running: barWindow.isDataHost
                 command: ["cat", paths.getRunDir("workspaces") + "/workspaces.json"]
                 stdout: StdioCollector {
                     onStreamFinished: {
@@ -350,32 +424,9 @@ Variants {
                         if (txt !== "") {
                             try { 
                                 let newData = JSON.parse(txt);
-                                
-                                while (workspacesModel.count < newData.length) {
-                                    workspacesModel.append({ "wsId": "", "wsState": "" });
-                                }
-                                
-                                while (workspacesModel.count > newData.length) {
-                                    workspacesModel.remove(workspacesModel.count - 1);
-                                }
-                                
-                                let newActive = -1;
-
-                                for (let i = 0; i < newData.length; i++) {
-                                    if (newData[i].state === "active") newActive = i;
-
-                                    if (workspacesModel.get(i).wsState !== newData[i].state) {
-                                        workspacesModel.setProperty(i, "wsState", newData[i].state);
-                                    }
-                                    if (workspacesModel.get(i).wsId !== newData[i].id.toString()) {
-                                        workspacesModel.setProperty(i, "wsId", newData[i].id.toString());
-                                    }
-                                }
-
-                                if (newActive !== -1 && workspacesModel.activeIndex !== newActive) {
-                                    workspacesModel.activeIndex = newActive;
-                                }
-
+                                barWindow.syncWorkspacesModel(newData);
+                                topBars.sharedWorkspacesJson = txt;
+                                topBars.sharedWorkspacesActiveIndex = workspacesModel.activeIndex;
                             } catch(e) {}
                         }
                     }
@@ -384,7 +435,7 @@ Variants {
 
             Process {
                 id: wsWatcher
-                running: true
+                running: barWindow.isDataHost
                 command: ["bash", "-c", "inotifywait -qq -e close_write,modify " + paths.getRunDir("workspaces") + "/workspaces.json"]
                 onExited: {
                     if (barWindow.isSettingsOpen) {
