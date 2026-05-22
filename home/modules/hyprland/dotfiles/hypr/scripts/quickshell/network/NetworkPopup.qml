@@ -122,12 +122,32 @@ Item {
         }
     }
 
-    Timer { interval: 100; running: true; repeat: true; onTriggered: modeReader.running = true }
+    Process {
+        id: modeWatcher
+        command: ["bash", "-c", "while [ ! -f \"$1\" ]; do sleep 0.2; done; inotifywait -qq -e modify,close_write \"$1\"", "--", window.modeFilePath]
+        onExited: {
+            if (exitCode === 127) {
+                console.log("NetworkPopup: inotifywait not found; mode watching disabled.");
+                return;
+            }
+            if (exitCode !== 0) {
+                modeWatcherRetry.start();
+                return;
+            }
+            modeReader.running = false;
+            modeReader.running = true;
+            running = false;
+            running = true;
+        }
+    }
+    Timer { id: modeWatcherRetry; interval: 1000; repeat: false; onTriggered: { modeWatcher.running = false; modeWatcher.running = true; } }
 
     Component.onCompleted: {
         window.powerAnimAllowed = false;
         powerAnimBlocker.restart();
         Quickshell.execDetached(["bash", "-c", "mkdir -p '" + window.cacheDir + "'; if [ ! -f '" + window.modeFilePath + "' ]; then echo '" + activeMode + "' > '" + window.modeFilePath + "'; fi"]);
+        modeReader.running = true;
+        modeWatcher.running = true;
         
         let hasCache = false;
         if (cache.lastEthJson !== "") { processEthJson(cache.lastEthJson, true); hasCache = true; }

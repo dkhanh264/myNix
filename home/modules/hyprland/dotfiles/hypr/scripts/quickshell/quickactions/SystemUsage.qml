@@ -68,14 +68,42 @@ Item {
     function alpha(color, a) { return Qt.rgba(color.r, color.g, color.b, a); }
 
     property bool widgetVisible: parent !== null && parent.visible !== undefined ? parent.visible : true
+    property bool sysSubscribed: false
     
     property real globalWavePhase: 0.0
     NumberAnimation on globalWavePhase {
         from: 0; to: Math.PI * 2; duration: 1800; loops: Animation.Infinite; running: root.widgetVisible
     }
 
-    Component.onCompleted: SysData.subscribe()
-    Component.onDestruction: SysData.unsubscribe()
+    function refreshBackgroundJobs() {
+        if (widgetVisible) {
+            if (!sysSubscribed) {
+                SysData.subscribe();
+                sysSubscribed = true;
+            }
+            if (!diskTimer.running) diskTimer.start();
+            diskProc.running = false;
+            diskProc.running = true;
+        } else {
+            if (sysSubscribed) {
+                SysData.unsubscribe();
+                sysSubscribed = false;
+            }
+            diskTimer.stop();
+            diskProc.running = false;
+        }
+    }
+
+    onWidgetVisibleChanged: refreshBackgroundJobs()
+    Component.onCompleted: refreshBackgroundJobs()
+    Component.onDestruction: {
+        diskTimer.stop();
+        diskProc.running = false;
+        if (sysSubscribed) {
+            SysData.unsubscribe();
+            sysSubscribed = false;
+        }
+    }
 
     // --- ANIMATED DATA STATE BINDINGS ---
     // Smooths out raw SysData to drive both the visual wave and the dynamic text counters in constant 800ms time
@@ -118,7 +146,9 @@ Item {
     Timer {
         id: diskTimer
         interval: 60000
-        running: true; repeat: true; triggeredOnStart: true
+        running: false
+        repeat: true
+        triggeredOnStart: true
         onTriggered: { diskProc.running = false; diskProc.running = true; }
     }
 
