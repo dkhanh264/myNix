@@ -215,12 +215,12 @@ ShellRoot {
         }
 
         WheelHandler {
-          onWheel: function(ev) {
+          onWheel: function(event) {
             const node = root.defaultSink
             if (!node || !node.audio) return
             const step = 0.05
-            if (ev.angleDelta.y > 0) node.audio.volume = Math.min(1, node.audio.volume + step)
-            if (ev.angleDelta.y < 0) node.audio.volume = Math.max(0, node.audio.volume - step)
+            if (event.angleDelta.y > 0) node.audio.volume = Math.min(1, node.audio.volume + step)
+            if (event.angleDelta.y < 0) node.audio.volume = Math.max(0, node.audio.volume - step)
           }
         }
       }
