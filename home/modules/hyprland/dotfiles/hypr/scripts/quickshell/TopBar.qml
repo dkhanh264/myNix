@@ -309,7 +309,32 @@ Variants {
                 barWindow.musicData = topBars.sharedMusicData;
             }
 
-            Component.onCompleted: barWindow.syncSharedData()
+            function syncLocalToShared() {
+                if (!barWindow.isDataHost) return;
+                topBars.sharedWifiStatus = barWindow.wifiStatus;
+                topBars.sharedWifiIcon = barWindow.wifiIcon;
+                topBars.sharedWifiSsid = barWindow.wifiSsid;
+                topBars.sharedEthStatus = barWindow.ethStatus;
+                topBars.sharedBtStatus = barWindow.btStatus;
+                topBars.sharedBtIcon = barWindow.btIcon;
+                topBars.sharedBtDevice = barWindow.btDevice;
+                topBars.sharedVolPercent = barWindow.volPercent;
+                topBars.sharedVolIcon = barWindow.volIcon;
+                topBars.sharedIsMuted = barWindow.isMuted;
+                topBars.sharedBatPercent = barWindow.batPercent;
+                topBars.sharedBatIcon = barWindow.batIcon;
+                topBars.sharedBatStatus = barWindow.batStatus;
+                topBars.sharedKbLayout = barWindow.kbLayout;
+                topBars.sharedWeatherIcon = barWindow.weatherIcon;
+                topBars.sharedWeatherTemp = barWindow.weatherTemp;
+                topBars.sharedWeatherHex = barWindow.weatherHex;
+                topBars.sharedMusicData = barWindow.musicData;
+            }
+
+            Component.onCompleted: {
+                barWindow.syncLocalToShared();
+                barWindow.syncSharedData();
+            }
 
             Connections {
                 target: topBars
@@ -632,6 +657,7 @@ Variants {
 
             Process {
                 id: weatherPoller
+                running: barWindow.isDataHost
                 command: ["bash", "-c", `
                     echo "$(~/.config/hypr/scripts/quickshell/calendar/weather.sh --current-icon)"
                     echo "$(~/.config/hypr/scripts/quickshell/calendar/weather.sh --current-temp)"
