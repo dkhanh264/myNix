@@ -76,7 +76,9 @@ ShellRoot {
             id: id,
             occupied: occupied.includes(id)
           }))
-        } catch (e) {}
+        } catch (e) {
+          console.warn("Failed to parse hyprctl workspaces:", e)
+        }
       }
     }
   }
@@ -89,7 +91,9 @@ ShellRoot {
         try {
           const parsed = JSON.parse(text.trim() || "{}")
           root.activeWorkspace = parsed.id || 1
-        } catch (e) {}
+        } catch (e) {
+          console.warn("Failed to parse hyprctl activeworkspace:", e)
+        }
       }
     }
   }
