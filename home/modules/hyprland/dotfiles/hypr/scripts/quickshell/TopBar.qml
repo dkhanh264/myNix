@@ -75,6 +75,7 @@ Variants {
             
             property string activeWidget: "" 
             property bool isSettingsOpen: activeWidget === "settings"
+            property bool wsRefreshPending: false
 
             property real settingsSlideProgress: isSettingsOpen ? 1.0 : 0.0
             Behavior on settingsSlideProgress { 
@@ -86,6 +87,14 @@ Variants {
                 if (!barWindow.isSettingsOpen && barWindow.pendingReload) {
                     barWindow.pendingReload = false;
                     Quickshell.reload(true);
+                }
+
+                if (!barWindow.isSettingsOpen && barWindow.wsRefreshPending) {
+                    barWindow.wsRefreshPending = false;
+                    wsReader.running = false;
+                    wsReader.running = true;
+                    wsWatcher.running = false;
+                    wsWatcher.running = true;
                 }
             }
 
@@ -335,6 +344,10 @@ Variants {
                 running: true
                 command: ["bash", "-c", "inotifywait -qq -e close_write,modify " + paths.getRunDir("workspaces") + "/workspaces.json"]
                 onExited: {
+                    if (barWindow.isSettingsOpen) {
+                        barWindow.wsRefreshPending = true;
+                        return;
+                    }
                     wsReader.running = false;
                     wsReader.running = true;
                     running = false;
