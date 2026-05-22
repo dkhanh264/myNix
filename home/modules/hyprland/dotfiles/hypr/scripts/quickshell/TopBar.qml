@@ -7,7 +7,26 @@ import Quickshell.Wayland
 import Quickshell.Services.SystemTray
 
 Variants {
+    id: topBars
     model: Quickshell.screens
+    property string sharedWifiStatus: "Off"
+    property string sharedWifiIcon: "󰤮"
+    property string sharedWifiSsid: ""
+    property string sharedEthStatus: "Ethernet"
+    property string sharedBtStatus: "Off"
+    property string sharedBtIcon: "󰂲"
+    property string sharedBtDevice: ""
+    property string sharedVolPercent: "0%"
+    property string sharedVolIcon: "󰕾"
+    property bool sharedIsMuted: false
+    property string sharedBatPercent: "100%"
+    property string sharedBatIcon: "󰁹"
+    property string sharedBatStatus: "Unknown"
+    property string sharedKbLayout: "us"
+    property string sharedWeatherIcon: ""
+    property string sharedWeatherTemp: "--°"
+    property string sharedWeatherHex: "#f9e2af"
+    property var sharedMusicData: ({ "status": "Stopped", "title": "", "artUrl": "", "timeStr": "" })
 
     delegate: Component {
         PanelWindow {
@@ -35,6 +54,7 @@ Variants {
 
             required property var modelData
             screen: modelData
+            readonly property bool isDataHost: Quickshell.screens.length > 0 && modelData.name === Quickshell.screens[0].name
 
             anchors {
                 top: true
@@ -267,6 +287,33 @@ Variants {
             
             property var musicData: { "status": "Stopped", "title": "", "artUrl": "", "timeStr": "" }
 
+            Timer {
+                interval: 500
+                repeat: true
+                running: !barWindow.isDataHost
+                triggeredOnStart: true
+                onTriggered: {
+                    barWindow.wifiStatus = topBars.sharedWifiStatus;
+                    barWindow.wifiIcon = topBars.sharedWifiIcon;
+                    barWindow.wifiSsid = topBars.sharedWifiSsid;
+                    barWindow.ethStatus = topBars.sharedEthStatus;
+                    barWindow.btStatus = topBars.sharedBtStatus;
+                    barWindow.btIcon = topBars.sharedBtIcon;
+                    barWindow.btDevice = topBars.sharedBtDevice;
+                    barWindow.volPercent = topBars.sharedVolPercent;
+                    barWindow.volIcon = topBars.sharedVolIcon;
+                    barWindow.isMuted = topBars.sharedIsMuted;
+                    barWindow.batPercent = topBars.sharedBatPercent;
+                    barWindow.batIcon = topBars.sharedBatIcon;
+                    barWindow.batStatus = topBars.sharedBatStatus;
+                    barWindow.kbLayout = topBars.sharedKbLayout;
+                    barWindow.weatherIcon = topBars.sharedWeatherIcon;
+                    barWindow.weatherTemp = topBars.sharedWeatherTemp;
+                    barWindow.weatherHex = topBars.sharedWeatherHex;
+                    barWindow.musicData = topBars.sharedMusicData;
+                }
+            }
+
             property string displayTitle: ""
             property string displayTime: ""
             property string displayArtUrl: ""
@@ -360,13 +407,14 @@ Variants {
 
             Process {
                 id: musicForceRefresh
-                running: true
+                running: barWindow.isDataHost
                 command: ["bash", "-c", "bash ~/.config/hypr/scripts/quickshell/music/music_info.sh | tee " + paths.getRunDir("music") + "/music_info.json"]
                 stdout: StdioCollector {
                     onStreamFinished: {
                         let txt = this.text.trim();
                         if (txt !== "") {
                             try { barWindow.musicData = JSON.parse(txt); } catch(e) {}
+                            topBars.sharedMusicData = barWindow.musicData;
                         }
                     }
                 }
@@ -374,7 +422,7 @@ Variants {
 
             Timer {
                 interval: 1000
-                running: barWindow.musicData !== null && barWindow.musicData.status === "Playing"
+                running: barWindow.isDataHost && barWindow.musicData !== null && barWindow.musicData.status === "Playing"
                 repeat: true
                 onTriggered: {
                     if (!barWindow.musicData || barWindow.musicData.status !== "Playing") return;
@@ -422,7 +470,7 @@ Variants {
 
             Process {
                 id: mprisWatcher
-                running: true
+                running: barWindow.isDataHost
                 command: ["bash", "-c", "dbus-monitor --session \"type='signal',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged',arg0='org.mpris.MediaPlayer2.Player'\" \"type='signal',interface='org.mpris.MediaPlayer2.Player',member='Seeked'\" 2>/dev/null | grep -m 1 'member=' > /dev/null || sleep 2"]
                 onExited: {
                     musicForceRefresh.running = false;
@@ -436,7 +484,7 @@ Variants {
                 id: artRetryTimer
                 interval: 500
                 repeat: true
-                running: barWindow.displayArtUrl && barWindow.displayArtUrl.indexOf("placeholder_blank.png") !== -1
+                running: barWindow.isDataHost && barWindow.displayArtUrl && barWindow.displayArtUrl.indexOf("placeholder_blank.png") !== -1
                 onTriggered: {
                     musicForceRefresh.running = false;
                     musicForceRefresh.running = true;
@@ -444,22 +492,25 @@ Variants {
             }
 
             Process {
-                id: kbPoller; running: true
+                id: kbPoller; running: barWindow.isDataHost
                 command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/kb_fetch.sh"]
                 stdout: StdioCollector {
                     onStreamFinished: {
                         let txt = this.text.trim();
-                        if (txt !== "" && barWindow.kbLayout !== txt) barWindow.kbLayout = txt;
+                        if (txt !== "" && barWindow.kbLayout !== txt) {
+                            barWindow.kbLayout = txt;
+                            topBars.sharedKbLayout = txt;
+                        }
                         kbWaiter.running = false;
                         kbWaiter.running = true;
                         barWindow.fastPollerLoaded = true; 
                     }
                 }
             }
-            Process { id: kbWaiter; command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/kb_wait.sh"]; onExited: { kbPoller.running = false; kbPoller.running = true; } }
+            Process { id: kbWaiter; running: barWindow.isDataHost; command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/kb_wait.sh"]; onExited: { kbPoller.running = false; kbPoller.running = true; } }
 
             Process {
-                id: audioPoller; running: true
+                id: audioPoller; running: barWindow.isDataHost
                 command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/audio_fetch.sh"]
                 stdout: StdioCollector {
                     onStreamFinished: {
@@ -472,6 +523,9 @@ Variants {
                                 if (barWindow.volIcon !== data.icon) barWindow.volIcon = data.icon;
                                 let newMuted = (data.is_muted === "true");
                                 if (barWindow.isMuted !== newMuted) barWindow.isMuted = newMuted;
+                                topBars.sharedVolPercent = barWindow.volPercent;
+                                topBars.sharedVolIcon = barWindow.volIcon;
+                                topBars.sharedIsMuted = barWindow.isMuted;
                             } catch(e) {}
                         }
                         audioWaiter.running = false;
@@ -479,10 +533,10 @@ Variants {
                     }
                 }
             }
-            Process { id: audioWaiter; command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/audio_wait.sh"]; onExited: { audioPoller.running = false; audioPoller.running = true; } }
+            Process { id: audioWaiter; running: barWindow.isDataHost; command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/audio_wait.sh"]; onExited: { audioPoller.running = false; audioPoller.running = true; } }
 
             Process {
-                id: networkPoller; running: true
+                id: networkPoller; running: barWindow.isDataHost
                 command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/network_fetch.sh"]
                 stdout: StdioCollector {
                     onStreamFinished: {
@@ -494,6 +548,10 @@ Variants {
                                 if (barWindow.wifiIcon !== data.icon) barWindow.wifiIcon = data.icon;
                                 if (barWindow.wifiSsid !== data.ssid) barWindow.wifiSsid = data.ssid;
                                 if (barWindow.ethStatus !== data.eth_status) barWindow.ethStatus = data.eth_status;
+                                topBars.sharedWifiStatus = barWindow.wifiStatus;
+                                topBars.sharedWifiIcon = barWindow.wifiIcon;
+                                topBars.sharedWifiSsid = barWindow.wifiSsid;
+                                topBars.sharedEthStatus = barWindow.ethStatus;
                             } catch(e) {}
                         }
                         networkWaiter.running = false;
@@ -501,10 +559,10 @@ Variants {
                     }
                 }
             }
-            Process { id: networkWaiter; command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/network_wait.sh"]; onExited: { networkPoller.running = false; networkPoller.running = true; } }
+            Process { id: networkWaiter; running: barWindow.isDataHost; command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/network_wait.sh"]; onExited: { networkPoller.running = false; networkPoller.running = true; } }
 
             Process {
-                id: btPoller; running: true
+                id: btPoller; running: barWindow.isDataHost
                 command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/bt_fetch.sh"]
                 stdout: StdioCollector {
                     onStreamFinished: {
@@ -515,6 +573,9 @@ Variants {
                                 if (barWindow.btStatus !== data.status) barWindow.btStatus = data.status;
                                 if (barWindow.btIcon !== data.icon) barWindow.btIcon = data.icon;
                                 if (barWindow.btDevice !== data.connected) barWindow.btDevice = data.connected;
+                                topBars.sharedBtStatus = barWindow.btStatus;
+                                topBars.sharedBtIcon = barWindow.btIcon;
+                                topBars.sharedBtDevice = barWindow.btDevice;
                             } catch(e) {}
                         }
                         btWaiter.running = false;
@@ -522,10 +583,10 @@ Variants {
                     }
                 }
             }
-            Process { id: btWaiter; command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/bt_wait.sh"]; onExited: { btPoller.running = false; btPoller.running = true; } }
+            Process { id: btWaiter; running: barWindow.isDataHost; command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/bt_wait.sh"]; onExited: { btPoller.running = false; btPoller.running = true; } }
 
             Process {
-                id: batteryPoller; running: true
+                id: batteryPoller; running: barWindow.isDataHost
                 command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/battery_fetch.sh"]
                 stdout: StdioCollector {
                     onStreamFinished: {
@@ -537,6 +598,9 @@ Variants {
                                 if (barWindow.batPercent !== newBat) barWindow.batPercent = newBat;
                                 if (barWindow.batIcon !== data.icon) barWindow.batIcon = data.icon;
                                 if (barWindow.batStatus !== data.status) barWindow.batStatus = data.status;
+                                topBars.sharedBatPercent = barWindow.batPercent;
+                                topBars.sharedBatIcon = barWindow.batIcon;
+                                topBars.sharedBatStatus = barWindow.batStatus;
                             } catch(e) {}
                         }
                         batteryWaiter.running = false;
@@ -544,7 +608,7 @@ Variants {
                     }
                 }
             }
-            Process { id: batteryWaiter; command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/battery_wait.sh"]; onExited: { batteryPoller.running = false; batteryPoller.running = true; } }
+            Process { id: batteryWaiter; running: barWindow.isDataHost; command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/watchers/battery_wait.sh"]; onExited: { batteryPoller.running = false; batteryPoller.running = true; } }
 
             Process {
                 id: weatherPoller
@@ -560,11 +624,14 @@ Variants {
                             barWindow.weatherIcon = lines[0];
                             barWindow.weatherTemp = lines[1];
                             barWindow.weatherHex = lines[2] || mocha.yellow;
+                            topBars.sharedWeatherIcon = barWindow.weatherIcon;
+                            topBars.sharedWeatherTemp = barWindow.weatherTemp;
+                            topBars.sharedWeatherHex = barWindow.weatherHex;
                         }
                     }
                 }
             }
-            Timer { interval: 150000; running: true; repeat: true; triggeredOnStart: true; onTriggered: { weatherPoller.running = false; weatherPoller.running = true; } }
+            Timer { interval: 150000; running: barWindow.isDataHost; repeat: true; triggeredOnStart: true; onTriggered: { weatherPoller.running = false; weatherPoller.running = true; } }
 
 
             Timer {
