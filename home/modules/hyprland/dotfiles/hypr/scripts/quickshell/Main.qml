@@ -104,43 +104,6 @@ PanelWindow {
     }
 
     // =========================================================
-    // --- DAEMON: PRELOADING SYSTEM
-    // =========================================================
-    Item {
-        id: preloaderContainer
-        visible: false
-    }
-
-    property var widgetCache: ({})
-
-    function preloadWidget(name) {
-        if (widgetCache[name]) return;
-        let t = getLayout(name);
-        if (!t || !t.comp) return;
-        let obj = t.comp.createObject(preloaderContainer, {
-            "notifModel": masterWindow.notifModel,
-            "liveNotifs": masterWindow.liveNotifs,
-            "visible": false
-        });
-        if (obj) widgetCache[name] = obj;
-    }
-
-    Component.onCompleted: {
-        Qt.callLater(() => preloadWidget("settings"));
-        preloadStaggerTimer.start();
-    }
-
-    Timer {
-        id: preloadStaggerTimer
-        interval: 900
-        repeat: false
-        onTriggered: {
-            preloadWidget("search");
-            preloadWidget("help");
-        }
-    }
-
-    // =========================================================
 
     property string currentActive: "hidden"
 
@@ -478,27 +441,10 @@ PanelWindow {
         props["layoutHeight"] = t.h;
         if (newWidget === "wallpaper") props["widgetArg"] = arg;
 
-        let cached = widgetCache[newWidget];
-        if (cached) {
-            if (cached.notifModel   !== undefined) cached.notifModel   = masterWindow.notifModel;
-            if (cached.liveNotifs   !== undefined) cached.liveNotifs   = masterWindow.liveNotifs;
-            if (cached.layoutWidth  !== undefined) cached.layoutWidth  = t.w;
-            if (cached.layoutHeight !== undefined) cached.layoutHeight = t.h;
-            if (newWidget === "wallpaper" && cached.widgetArg !== undefined) cached.widgetArg = arg;
-            if (arg !== "" && cached.activeMode !== undefined) cached.activeMode = arg;
-
-            cached.visible = true;
-            if (immediate) {
-                widgetStack.replace(cached, {}, StackView.Immediate);
-            } else {
-                widgetStack.replace(cached, {});
-            }
+        if (immediate) {
+            widgetStack.replace(t.comp, props, StackView.Immediate);
         } else {
-            if (immediate) {
-                widgetStack.replace(t.comp, props, StackView.Immediate);
-            } else {
-                widgetStack.replace(t.comp, props);
-            }
+            widgetStack.replace(t.comp, props);
         }
 
         let currentItem = widgetStack.currentItem;

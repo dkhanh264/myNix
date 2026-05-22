@@ -37,6 +37,7 @@
       exec-once = [
         "mako"        # Khởi động trình thông báo
         "hypridle"
+        "swww-daemon"
         "nm-applet --indicator"
         "blueman-applet"
         "wl-paste --type text --watch cliphist store"
@@ -79,7 +80,8 @@
       };
 
       input = {
-        kb_layout    = "us";
+        kb_layout    = "us,vn";
+        kb_options   = "grp:alt_shift_toggle";
         follow_mouse = 1;
         touchpad = {
           natural_scroll       = true;
