@@ -55,7 +55,7 @@ Variants {
 
             required property var modelData
             screen: modelData
-            readonly property bool isDataHost: Quickshell.screens.length > 0 && modelData.name === Quickshell.screens[0].name
+            readonly property bool isDataHost: modelData.name === Quickshell.screens[0].name
 
             anchors {
                 top: true
@@ -287,30 +287,6 @@ Variants {
             }
             
             property var musicData: { "status": "Stopped", "title": "", "artUrl": "", "timeStr": "" }
-
-            function syncLocalToShared() {
-                if (!barWindow.isDataHost) return;
-                topBars.sharedWifiStatus = barWindow.wifiStatus;
-                topBars.sharedWifiIcon = barWindow.wifiIcon;
-                topBars.sharedWifiSsid = barWindow.wifiSsid;
-                topBars.sharedEthStatus = barWindow.ethStatus;
-                topBars.sharedBtStatus = barWindow.btStatus;
-                topBars.sharedBtIcon = barWindow.btIcon;
-                topBars.sharedBtDevice = barWindow.btDevice;
-                topBars.sharedVolPercent = barWindow.volPercent;
-                topBars.sharedVolIcon = barWindow.volIcon;
-                topBars.sharedIsMuted = barWindow.isMuted;
-                topBars.sharedBatPercent = barWindow.batPercent;
-                topBars.sharedBatIcon = barWindow.batIcon;
-                topBars.sharedBatStatus = barWindow.batStatus;
-                topBars.sharedKbLayout = barWindow.kbLayout;
-                topBars.sharedWeatherIcon = barWindow.weatherIcon;
-                topBars.sharedWeatherTemp = barWindow.weatherTemp;
-                topBars.sharedWeatherHex = barWindow.weatherHex;
-                topBars.sharedMusicData = barWindow.musicData;
-            }
-
-            Component.onCompleted: barWindow.syncLocalToShared()
 
             Binding { target: barWindow; property: "wifiStatus"; when: !barWindow.isDataHost; value: topBars.sharedWifiStatus }
             Binding { target: barWindow; property: "wifiIcon"; when: !barWindow.isDataHost; value: topBars.sharedWifiIcon }
