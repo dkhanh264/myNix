@@ -36,6 +36,7 @@ in
     lm_sensors
     ffmpeg
     imagemagick
+    swww
     
     (lib.hiPrio cava-dynamic) # Ưu tiên chạy wrapper của cava động
   ];

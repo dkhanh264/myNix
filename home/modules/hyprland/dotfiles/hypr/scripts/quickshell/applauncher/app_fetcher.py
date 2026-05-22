@@ -2,32 +2,49 @@
 import os
 import glob
 import json
+import pwd
+
+def collect_app_dirs(home):
+    username = os.environ.get("USER")
+    if not username:
+        try:
+            username = pwd.getpwuid(os.getuid()).pw_name
+        except Exception:
+            username = os.path.basename(os.path.normpath(home))
+
+    dirs = {
+        '/usr/share/applications',
+        '/usr/local/share/applications',
+        '/var/lib/flatpak/exports/share/applications',
+        f'{home}/.local/share/flatpak/exports/share/applications',
+        f'{home}/.local/share/applications',
+        f'{home}/.nix-profile/share/applications',
+        f'/etc/profiles/per-user/{username}/share/applications',
+        '/run/current-system/sw/share/applications',
+        '/nix/var/nix/profiles/default/share/applications',
+    }
+
+    xdg_data_dirs = os.environ.get("XDG_DATA_DIRS", "")
+    for base in xdg_data_dirs.split(":"):
+        if base:
+            dirs.add(os.path.join(base, "applications"))
+
+    return [d for d in dirs if os.path.exists(d)]
 
 def fetch_apps():
     apps = {}
     home = os.path.expanduser('~')
-    
-    # Expanded directories to catch Flatpaks, system apps, and Nix packages
-    dirs = [
-        '/usr/share/applications',
-        '/usr/local/share/applications',
-        f'{home}/.local/share/applications',
-        '/var/lib/flatpak/exports/share/applications',
-        f'{home}/.local/share/flatpak/exports/share/applications',
-        f'{home}/.nix-profile/share/applications',
-        '/run/current-system/sw/share/applications'
-    ]
-    
+
+    dirs = collect_app_dirs(home)
+
     for d in dirs:
-        if not os.path.exists(d):
-            continue
-            
         for f in glob.glob(os.path.join(d, '**/*.desktop'), recursive=True):
             try:
                 with open(f, 'r', encoding='utf-8') as file:
                     app = {'name': '', 'exec': '', 'icon': ''}
                     is_desktop = False
                     no_display = False
+                    hidden = False
                     
                     for line in file:
                         line = line.strip()
@@ -46,8 +63,10 @@ def fetch_apps():
                                 app['icon'] = line[5:]
                             elif line.startswith('NoDisplay=true') or line.startswith('NoDisplay=1'):
                                 no_display = True
+                            elif line.startswith('Hidden=true') or line.startswith('Hidden=1'):
+                                hidden = True
                                 
-                    if app['name'] and app['exec'] and not no_display:
+                    if app['name'] and app['exec'] and not no_display and not hidden:
                         apps[app['name']] = app
             except Exception:
                 pass
@@ -59,5 +78,3 @@ def fetch_apps():
 
 if __name__ == "__main__":
     fetch_apps()
-
-
