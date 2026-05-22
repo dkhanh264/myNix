@@ -112,7 +112,7 @@ while true; do
                 # This reads and discards all subsequent events arriving within a 120ms window.
                 # It bundles the storm into a single UI update, completely preventing CPU clogging!
                 # 120ms keeps updates smooth while avoiding storms from rapid Hyprland bursts.
-                while read -t 0.120 -r extra_line; do
+                while read -t 0.12 -r extra_line; do
                     continue
                 done
 
