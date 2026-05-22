@@ -5,5 +5,6 @@ pkgs.mkShell {
     python3
     python3Packages.selenium
     geckodriver
+    firefox
   ];
 }
