@@ -2,8 +2,16 @@
 import os
 import glob
 import json
+import pwd
 
 def collect_app_dirs(home):
+    username = os.environ.get("USER")
+    if not username:
+        try:
+            username = pwd.getpwuid(os.getuid()).pw_name
+        except Exception:
+            username = os.path.basename(os.path.normpath(home))
+
     dirs = {
         '/usr/share/applications',
         '/usr/local/share/applications',
@@ -11,7 +19,7 @@ def collect_app_dirs(home):
         f'{home}/.local/share/flatpak/exports/share/applications',
         f'{home}/.local/share/applications',
         f'{home}/.nix-profile/share/applications',
-        f'/etc/profiles/per-user/{os.path.basename(home)}/share/applications',
+        f'/etc/profiles/per-user/{username}/share/applications',
         '/run/current-system/sw/share/applications',
         '/nix/var/nix/profiles/default/share/applications',
     }
@@ -70,4 +78,3 @@ def fetch_apps():
 
 if __name__ == "__main__":
     fetch_apps()
-
