@@ -12,4 +12,4 @@ else
 fi
 
 read -r _ < "$PIPE"
-sleep 0.05
+sleep 0.3

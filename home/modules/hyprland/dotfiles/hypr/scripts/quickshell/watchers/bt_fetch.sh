@@ -1,20 +1,31 @@
 #!/usr/bin/env bash
-get_bt_status() {
-    if LC_ALL=C timeout 0.5 bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then echo "on"; else echo "off"; fi
+read_bt_state() {
+    local show_output connected_output status icon connected
+    show_output=$(LC_ALL=C timeout 0.5 bluetoothctl show 2>/dev/null || true)
+    connected_output=$(LC_ALL=C timeout 0.5 bluetoothctl devices Connected 2>/dev/null || true)
+
+    if grep -q "Powered: yes" <<< "$show_output"; then
+        status="on"
+        if grep -q "^Device" <<< "$connected_output"; then
+            icon="󰂱"
+            connected=$(head -n1 <<< "$connected_output" | cut -d' ' -f3-)
+            connected="${connected:-Disconnected}"
+        else
+            icon="󰂯"
+            connected="Disconnected"
+        fi
+    else
+        status="off"
+        icon="󰂲"
+        connected="Off"
+    fi
+
+    echo "$status|$icon|$connected"
 }
-get_bt_connected_device() {
-    if [ "$(get_bt_status)" = "on" ]; then
-        local device=$(LC_ALL=C timeout 0.5 bluetoothctl devices Connected 2>/dev/null | head -n1 | cut -d' ' -f3-)
-        if [ -n "$device" ]; then echo "$device"; else echo "Disconnected"; fi
-    else echo "Off"; fi
-}
-get_bt_icon() {
-    if [ "$(get_bt_status)" = "on" ]; then
-        if LC_ALL=C timeout 0.5 bluetoothctl devices Connected 2>/dev/null | grep -q "^Device"; then echo "󰂱"; else echo "󰂯"; fi
-    else echo "󰂲"; fi
-}
+
 toggle_bt() {
-    if [ "$(get_bt_status)" = "on" ]; then
+    IFS='|' read -r status _ _ <<< "$(read_bt_state)"
+    if [ "$status" = "on" ]; then
         LC_ALL=C timeout 0.5 bluetoothctl power off 2>/dev/null
         notify-send -u low -i bluetooth-disabled "Bluetooth" "Disabled"
     else
@@ -24,5 +35,8 @@ toggle_bt() {
 }
 case $1 in
     --toggle) toggle_bt ;;
-    *) jq -n -c --arg status "$(get_bt_status)" --arg icon "$(get_bt_icon)" --arg connected "$(get_bt_connected_device)" '{status: $status, icon: $icon, connected: $connected}' ;;
+    *)
+        IFS='|' read -r status icon connected <<< "$(read_bt_state)"
+        jq -n -c --arg status "$status" --arg icon "$icon" --arg connected "$connected" '{status: $status, icon: $icon, connected: $connected}'
+        ;;
 esac

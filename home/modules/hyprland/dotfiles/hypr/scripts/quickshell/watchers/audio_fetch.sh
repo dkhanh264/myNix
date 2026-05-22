@@ -1,28 +1,27 @@
 #!/usr/bin/env bash
-get_volume() {
-    local vol=""
-    if command -v wpctl &> /dev/null; then 
-        vol=$(LC_ALL=C wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk '{print int($2*100)}')
-    fi
-    if [[ -z "$vol" ]] && command -v pamixer &> /dev/null; then 
-        vol=$(LC_ALL=C pamixer --get-volume 2>/dev/null)
-    fi
-    echo "${vol:-0}"
-}
 
-is_muted() {
+get_volume_and_mute() {
+    local vol="0"
+    local muted="false"
+
     if command -v wpctl &> /dev/null; then
-        if LC_ALL=C wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | grep -q "MUTED"; then echo "true"; else echo "false"; fi
+        local line
+        line=$(LC_ALL=C wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)
+        if [ -n "$line" ]; then
+            vol=$(awk '{print int($2*100)}' <<< "$line")
+            if grep -q "MUTED" <<< "$line"; then muted="true"; fi
+        fi
     elif command -v pamixer &> /dev/null; then
-        if LC_ALL=C pamixer --get-mute 2>/dev/null | grep -q "true"; then echo "true"; else echo "false"; fi
-    else 
-        echo "false"
+        vol=$(LC_ALL=C pamixer --get-volume 2>/dev/null || echo "0")
+        if LC_ALL=C pamixer --get-mute 2>/dev/null | grep -q "true"; then muted="true"; fi
     fi
+
+    echo "${vol:-0}|$muted"
 }
 
 get_volume_icon() {
-    local vol=$(get_volume)
-    local muted=$(is_muted)
+    local vol="$1"
+    local muted="$2"
     if [ "$muted" = "true" ]; then echo "󰝟"
     elif [ "$vol" -ge 70 ]; then echo "󰕾"
     elif [ "$vol" -ge 30 ]; then echo "󰖀"
@@ -36,11 +35,19 @@ toggle_mute() {
     elif command -v pamixer &> /dev/null; then
         LC_ALL=C pamixer --toggle-mute 2>/dev/null
     fi
-    if [ "$(is_muted)" = "true" ]; then notify-send -u low -i audio-volume-muted "Volume" "Muted"
-    else notify-send -u low -i audio-volume-high "Volume" "Unmuted ($(get_volume)%)"; fi
+    IFS='|' read -r vol muted <<< "$(get_volume_and_mute)"
+    if [ "$muted" = "true" ]; then notify-send -u low -i audio-volume-muted "Volume" "Muted"
+    else notify-send -u low -i audio-volume-high "Volume" "Unmuted (${vol:-0}%)"; fi
 }
 
 case $1 in
     --toggle) toggle_mute ;;
-    *) jq -n -c --arg volume "$(get_volume)" --arg icon "$(get_volume_icon)" --arg is_muted "$(is_muted)" '{volume: $volume, icon: $icon, is_muted: $is_muted}' ;;
+    *)
+        IFS='|' read -r vol muted <<< "$(get_volume_and_mute)"
+        jq -n -c \
+            --arg volume "${vol:-0}" \
+            --arg icon "$(get_volume_icon "${vol:-0}" "$muted")" \
+            --arg is_muted "$muted" \
+            '{volume: $volume, icon: $icon, is_muted: $is_muted}'
+        ;;
 esac
