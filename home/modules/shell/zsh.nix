@@ -25,6 +25,12 @@
       gcm = "git commit -m";
       gp  = "git push";
       gl  = "git log --oneline --graph --decorate";
+      # Bổ sung các lệnh hữu ích từ hệ thống ilyamiro
+      edit   = "sudo -E nvim -n";
+      stop   = "shutdown now";
+      
+      # Sửa lỗi hardcode cũ: Chuyển tên user tĩnh sang biến môi trường động của Linux
+      out    = "loginctl terminate-user $USER"; 
     };
 
     initContent = ''

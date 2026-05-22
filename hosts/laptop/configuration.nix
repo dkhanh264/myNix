@@ -11,6 +11,7 @@
     "nvidia-drm.modeset=1"
     "nvidia-drm.fbdev=1"
   ];
+  
 
   # ── Network ────────────────────────────────────────────────────────────
   networking.hostName = "HiMeo";
@@ -44,6 +45,8 @@
   services.xserver.videoDrivers = [ "nvidia" ];
 
   hardware.nvidia = {
+    
+    modesetting.enable = true;
     package = config.boot.kernelPackages.nvidiaPackages.production;
     
     # 1. Chuyển sang driver độc quyền (proprietary). Driver open-source hiện tại vẫn chưa hoàn toàn ổn định cho multi-monitor Wayland.
@@ -79,6 +82,10 @@
     enable = true;
     xwayland.enable = true;
   };
+  
+  programs.steam = {
+  enable = true;
+  };	
 
   security.polkit.enable = true;
 

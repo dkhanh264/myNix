@@ -2,7 +2,7 @@
 {
   imports = [
     ./hyprland.nix
-    ./waybar.nix
+    ./quickshell-addons.nix
     ./mako.nix
     ./scripts.nix
     ./hypridle.nix
