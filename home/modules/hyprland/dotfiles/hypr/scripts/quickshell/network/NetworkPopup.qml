@@ -122,12 +122,23 @@ Item {
         }
     }
 
-    Timer { interval: 100; running: true; repeat: true; onTriggered: modeReader.running = true }
+    Process {
+        id: modeWatcher
+        command: ["bash", "-c", "while [ ! -f '" + window.modeFilePath + "' ]; do sleep 0.2; done; inotifywait -qq -e modify,close_write '" + window.modeFilePath + "'"]
+        onExited: {
+            modeReader.running = false;
+            modeReader.running = true;
+            running = false;
+            running = true;
+        }
+    }
 
     Component.onCompleted: {
         window.powerAnimAllowed = false;
         powerAnimBlocker.restart();
         Quickshell.execDetached(["bash", "-c", "mkdir -p '" + window.cacheDir + "'; if [ ! -f '" + window.modeFilePath + "' ]; then echo '" + activeMode + "' > '" + window.modeFilePath + "'; fi"]);
+        modeReader.running = true;
+        modeWatcher.running = true;
         
         let hasCache = false;
         if (cache.lastEthJson !== "") { processEthJson(cache.lastEthJson, true); hasCache = true; }
