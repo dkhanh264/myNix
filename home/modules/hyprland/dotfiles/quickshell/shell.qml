@@ -24,6 +24,7 @@ ShellRoot {
   property string networkState: "disconnected"
   property string networkName: ""
   property string clockText: Qt.formatDateTime(new Date(), "ddd dd/MM  HH:mm")
+  property real volumeStepSize: 0.05
 
   readonly property var defaultSink: Pipewire.defaultAudioSink
 
@@ -218,9 +219,8 @@ ShellRoot {
           onWheel: function(event) {
             const node = root.defaultSink
             if (!node || !node.audio) return
-            const step = 0.05
-            if (event.angleDelta.y > 0) node.audio.volume = Math.min(1, node.audio.volume + step)
-            if (event.angleDelta.y < 0) node.audio.volume = Math.max(0, node.audio.volume - step)
+            if (event.angleDelta.y > 0) node.audio.volume = Math.min(1, node.audio.volume + root.volumeStepSize)
+            if (event.angleDelta.y < 0) node.audio.volume = Math.max(0, node.audio.volume - root.volumeStepSize)
           }
         }
       }
