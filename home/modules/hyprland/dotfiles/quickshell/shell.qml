@@ -180,7 +180,7 @@ ShellRoot {
 
             MouseArea {
               anchors.fill: parent
-              onClicked: Quickshell.execDetached(["hyprctl", "dispatch", "workspace", `${parent.modelData.id}`])
+              onClicked: Quickshell.execDetached(["hyprctl", "dispatch", "workspace", String(parent.modelData.id)])
             }
           }
         }
@@ -215,7 +215,7 @@ ShellRoot {
         }
 
         WheelHandler {
-          onWheel: ev => {
+          onWheel: function(ev) {
             const node = root.defaultSink
             if (!node || !node.audio) return
             const step = 0.05
@@ -259,7 +259,7 @@ ShellRoot {
             MouseArea {
               anchors.fill: parent
               acceptedButtons: Qt.LeftButton | Qt.RightButton
-              onClicked: mouse => {
+              onClicked: function(mouse) {
                 if (mouse.button === Qt.LeftButton) trayIcon.modelData.activate()
                 else menuAnchor.open()
               }
