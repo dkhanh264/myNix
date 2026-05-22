@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQml
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -287,28 +288,6 @@ Variants {
             
             property var musicData: { "status": "Stopped", "title": "", "artUrl": "", "timeStr": "" }
 
-            function syncSharedData() {
-                if (barWindow.isDataHost) return;
-                barWindow.wifiStatus = topBars.sharedWifiStatus;
-                barWindow.wifiIcon = topBars.sharedWifiIcon;
-                barWindow.wifiSsid = topBars.sharedWifiSsid;
-                barWindow.ethStatus = topBars.sharedEthStatus;
-                barWindow.btStatus = topBars.sharedBtStatus;
-                barWindow.btIcon = topBars.sharedBtIcon;
-                barWindow.btDevice = topBars.sharedBtDevice;
-                barWindow.volPercent = topBars.sharedVolPercent;
-                barWindow.volIcon = topBars.sharedVolIcon;
-                barWindow.isMuted = topBars.sharedIsMuted;
-                barWindow.batPercent = topBars.sharedBatPercent;
-                barWindow.batIcon = topBars.sharedBatIcon;
-                barWindow.batStatus = topBars.sharedBatStatus;
-                barWindow.kbLayout = topBars.sharedKbLayout;
-                barWindow.weatherIcon = topBars.sharedWeatherIcon;
-                barWindow.weatherTemp = topBars.sharedWeatherTemp;
-                barWindow.weatherHex = topBars.sharedWeatherHex;
-                barWindow.musicData = topBars.sharedMusicData;
-            }
-
             function syncLocalToShared() {
                 if (!barWindow.isDataHost) return;
                 topBars.sharedWifiStatus = barWindow.wifiStatus;
@@ -331,33 +310,26 @@ Variants {
                 topBars.sharedMusicData = barWindow.musicData;
             }
 
-            Component.onCompleted: {
-                barWindow.syncLocalToShared();
-                barWindow.syncSharedData();
-            }
+            Component.onCompleted: barWindow.syncLocalToShared()
 
-            Connections {
-                target: topBars
-                enabled: !barWindow.isDataHost
-                function onSharedWifiStatusChanged() { barWindow.syncSharedData(); }
-                function onSharedWifiIconChanged() { barWindow.syncSharedData(); }
-                function onSharedWifiSsidChanged() { barWindow.syncSharedData(); }
-                function onSharedEthStatusChanged() { barWindow.syncSharedData(); }
-                function onSharedBtStatusChanged() { barWindow.syncSharedData(); }
-                function onSharedBtIconChanged() { barWindow.syncSharedData(); }
-                function onSharedBtDeviceChanged() { barWindow.syncSharedData(); }
-                function onSharedVolPercentChanged() { barWindow.syncSharedData(); }
-                function onSharedVolIconChanged() { barWindow.syncSharedData(); }
-                function onSharedIsMutedChanged() { barWindow.syncSharedData(); }
-                function onSharedBatPercentChanged() { barWindow.syncSharedData(); }
-                function onSharedBatIconChanged() { barWindow.syncSharedData(); }
-                function onSharedBatStatusChanged() { barWindow.syncSharedData(); }
-                function onSharedKbLayoutChanged() { barWindow.syncSharedData(); }
-                function onSharedWeatherIconChanged() { barWindow.syncSharedData(); }
-                function onSharedWeatherTempChanged() { barWindow.syncSharedData(); }
-                function onSharedWeatherHexChanged() { barWindow.syncSharedData(); }
-                function onSharedMusicDataChanged() { barWindow.syncSharedData(); }
-            }
+            Binding { target: barWindow; property: "wifiStatus"; when: !barWindow.isDataHost; value: topBars.sharedWifiStatus }
+            Binding { target: barWindow; property: "wifiIcon"; when: !barWindow.isDataHost; value: topBars.sharedWifiIcon }
+            Binding { target: barWindow; property: "wifiSsid"; when: !barWindow.isDataHost; value: topBars.sharedWifiSsid }
+            Binding { target: barWindow; property: "ethStatus"; when: !barWindow.isDataHost; value: topBars.sharedEthStatus }
+            Binding { target: barWindow; property: "btStatus"; when: !barWindow.isDataHost; value: topBars.sharedBtStatus }
+            Binding { target: barWindow; property: "btIcon"; when: !barWindow.isDataHost; value: topBars.sharedBtIcon }
+            Binding { target: barWindow; property: "btDevice"; when: !barWindow.isDataHost; value: topBars.sharedBtDevice }
+            Binding { target: barWindow; property: "volPercent"; when: !barWindow.isDataHost; value: topBars.sharedVolPercent }
+            Binding { target: barWindow; property: "volIcon"; when: !barWindow.isDataHost; value: topBars.sharedVolIcon }
+            Binding { target: barWindow; property: "isMuted"; when: !barWindow.isDataHost; value: topBars.sharedIsMuted }
+            Binding { target: barWindow; property: "batPercent"; when: !barWindow.isDataHost; value: topBars.sharedBatPercent }
+            Binding { target: barWindow; property: "batIcon"; when: !barWindow.isDataHost; value: topBars.sharedBatIcon }
+            Binding { target: barWindow; property: "batStatus"; when: !barWindow.isDataHost; value: topBars.sharedBatStatus }
+            Binding { target: barWindow; property: "kbLayout"; when: !barWindow.isDataHost; value: topBars.sharedKbLayout }
+            Binding { target: barWindow; property: "weatherIcon"; when: !barWindow.isDataHost; value: topBars.sharedWeatherIcon }
+            Binding { target: barWindow; property: "weatherTemp"; when: !barWindow.isDataHost; value: topBars.sharedWeatherTemp }
+            Binding { target: barWindow; property: "weatherHex"; when: !barWindow.isDataHost; value: topBars.sharedWeatherHex }
+            Binding { target: barWindow; property: "musicData"; when: !barWindow.isDataHost; value: topBars.sharedMusicData }
 
             property string displayTitle: ""
             property string displayTime: ""
