@@ -15,6 +15,8 @@ from selenium.common.exceptions import TimeoutException
 BASE_URL = "https://all.uddataplus.dk/skema/?id=id_menu_skema"
 RESOURCE_ID = "99217" 
 PROFILE_PATH = os.environ.get(
+    # Optional: absolute path to Firefox profile dir used by Selenium session.
+    # Example: /home/<user>/.mozilla/firefox/schedule.special
     "QS_SCHEDULE_FIREFOX_PROFILE",
     os.path.expanduser("~/.mozilla/firefox/schedule.special")
 )
@@ -180,6 +182,8 @@ def update_schedule():
     if PROFILE_PATH and os.path.isdir(PROFILE_PATH):
         options.add_argument("-profile")
         options.add_argument(PROFILE_PATH)
+    elif PROFILE_PATH and os.environ.get("QS_SCHEDULE_FIREFOX_PROFILE"):
+        print(f"Warning: QS_SCHEDULE_FIREFOX_PROFILE does not exist: {PROFILE_PATH}")
 
     driver = None
     output = {"header": "No Classes Found", "lessons": [], "link": GENERIC_URL}
