@@ -407,8 +407,10 @@ Variants {
                         let txt = this.text.trim();
                         if (txt !== "") {
                             try { barWindow.musicData = JSON.parse(txt); } catch(e) {}
-                            topBars.sharedMusicData = barWindow.musicData;
+                        } else {
+                            barWindow.musicData = { "status": "Stopped", "title": "", "artUrl": "", "timeStr": "" };
                         }
+                        topBars.sharedMusicData = barWindow.musicData;
                     }
                 }
             }
