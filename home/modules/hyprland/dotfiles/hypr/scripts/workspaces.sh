@@ -109,7 +109,7 @@ while true; do
                 
                 # -> THE FIX <-
                 # Hyprland emits HUNDREDS of events a second when you move/resize windows.
-                # This reads and discards all subsequent events arriving within a 50ms window.
+                # This reads and discards all subsequent events arriving within a 120ms window.
                 # It bundles the storm into a single UI update, completely preventing CPU clogging!
                 # 120ms keeps updates smooth while avoiding storms from rapid Hyprland bursts.
                 while read -t 0.120 -r extra_line; do
