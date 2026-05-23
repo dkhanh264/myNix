@@ -31,7 +31,7 @@
 
         /* Khối hiển thị chính: Đẩy margin đều các góc để tạo khoảng trống lộ phần nền Blur */
         #browser {
-            margin: 2vh 2vh 2vh 2vh !important;
+            margin: 2vh 2vh 2vh 0vh !important;
             background-color: transparent !important;
         }
 
