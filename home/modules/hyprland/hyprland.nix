@@ -35,6 +35,7 @@
 
       # ── Autostart ─────────────────────────────────────────────────────
       exec-once = [
+        "waybar"
         "mako"        # Khởi động trình thông báo
         "hypridle"
         "nm-applet --indicator"
