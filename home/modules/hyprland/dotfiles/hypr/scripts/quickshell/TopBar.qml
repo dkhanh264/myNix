@@ -517,7 +517,7 @@ Variants {
             Process {
                 id: mprisWatcher
                 running: barWindow.isDataHost
-                command: ["bash", "-c", "dbus-monitor --session \"type='signal',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged',arg0='org.mpris.MediaPlayer2.Player'\" \"type='signal',interface='org.mpris.MediaPlayer2.Player',member='Seeked'\" 2>/dev/null | grep -m 1 'member=' > /dev/null || sleep 2"]
+                command: ["bash", "-c", "dbus-monitor --session \"type='signal',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged',arg0='org.mpris.MediaPlayer2.Player'\" \"type='signal',interface='org.mpris.MediaPlayer2.Player',member='Seeked'\" 2>/dev/null | grep -m 1 -E 'PlaybackStatus|Metadata|Seeked' > /dev/null || sleep 2"]
                 onExited: {
                     musicForceRefresh.running = false;
                     musicForceRefresh.running = true;
@@ -528,9 +528,9 @@ Variants {
 
             Timer {
                 id: artRetryTimer
-                interval: 500
+                interval: 2000
                 repeat: true
-                running: barWindow.isDataHost && barWindow.displayArtUrl && barWindow.displayArtUrl.indexOf("placeholder_blank.png") !== -1
+                running: barWindow.isDataHost && barWindow.isMediaActive && barWindow.displayArtUrl && barWindow.displayArtUrl.indexOf("placeholder_blank.png") !== -1
                 onTriggered: {
                     musicForceRefresh.running = false;
                     musicForceRefresh.running = true;
