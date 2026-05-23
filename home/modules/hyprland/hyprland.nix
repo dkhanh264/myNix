@@ -104,6 +104,7 @@
         "float, class:^(blueman-manager)$"
         "float, title:^(Picture-in-Picture)$"
         "pin,   title:^(Picture-in-Picture)$"
+        "opacity 0.95 0.90, class:^(firefox)$"
         # Cú pháp: opacity <độ_đục_khi_đang_dùng> <độ_đục_khi_không_dùng>, class:^(tên_app)$
       ];
 
