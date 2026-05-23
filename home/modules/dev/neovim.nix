@@ -12,12 +12,56 @@
     defaultEditor = true;  # Đặt nvim làm $EDITOR mặc định
 
     # ── Colorscheme ─────────────────────────────────────────────────────
-    # Cần pywal tạo màu trước khi mở Neovim (~/.cache/wal/colors-wal.vim).
+    # Đồng bộ theo Pywal và làm nền trong suốt để "ăn" blur của terminal/compositor.
     extraPlugins = with pkgs.vimPlugins; [
       wal-vim
     ];
     extraConfigLua = ''
-      vim.cmd.colorscheme("wal")
+      local wal_file = vim.fn.expand("~/.cache/wal/colors-wal.vim")
+
+      local transparent_groups = {
+        "Normal", "NormalNC", "NormalFloat", "FloatBorder", "SignColumn",
+        "EndOfBuffer", "LineNr", "FoldColumn", "CursorLineNr",
+        "StatusLine", "StatusLineNC", "TabLineFill", "WinSeparator", "VertSplit",
+      }
+
+      local function apply_transparency()
+        for _, group in ipairs(transparent_groups) do
+          vim.api.nvim_set_hl(0, group, { bg = "none", ctermbg = "none" })
+        end
+      end
+
+      local function apply_wal_theme()
+        pcall(vim.cmd.colorscheme, "wal")
+        apply_transparency()
+      end
+
+      local function get_mtime(path)
+        local stat = vim.uv.fs_stat(path)
+        if not stat or not stat.mtime then
+          return nil
+        end
+        return (stat.mtime.sec or 0) * 1000000000 + (stat.mtime.nsec or 0)
+      end
+
+      local wal_mtime = get_mtime(wal_file)
+      apply_wal_theme()
+
+      local group = vim.api.nvim_create_augroup("WalThemeAutoSync", { clear = true })
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        group = group,
+        callback = apply_transparency,
+      })
+      vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter" }, {
+        group = group,
+        callback = function()
+          local current_mtime = get_mtime(wal_file)
+          if current_mtime and current_mtime ~= wal_mtime then
+            wal_mtime = current_mtime
+            apply_wal_theme()
+          end
+        end,
+      })
     '';
 
     # ── Global Options ───────────────────────────────────────────────────

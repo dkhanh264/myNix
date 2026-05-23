@@ -53,6 +53,8 @@ Tài liệu này dành cho cấu hình NixVim trong repo này (`home/modules/dev
 
 ## 6) Tự động hỗ trợ đã bật sẵn
 
+- Theme `wal` lấy màu từ Pywal và **tự đồng bộ lại khi màu hệ thống đổi** (sau khi đổi wallpaper/theme).
+- Nền NixVim được đặt trong suốt để thấy hiệu ứng blur của terminal/compositor giống hệ thống.
 - Autocomplete (`nvim-cmp`)
 - Snippets (`LuaSnip`)
 - Auto pairs (tự đóng ngoặc/dấu nháy)
