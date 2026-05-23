@@ -123,6 +123,7 @@ let
     ${pkgs.mako}/bin/makoctl reload >/dev/null 2>&1 || true
 
     ${pkgs.libnotify}/bin/notify-send "Thành công" "Màu hệ thống đã được đồng bộ!"
+    pkill -SIGUSR1 btop >/dev/null 2>&1 || true
     pkill walker || true
     pkill -SIGUSR2 waybar || true
   '';
