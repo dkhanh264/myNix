@@ -101,14 +101,17 @@ let
         -o ${walColorExport}/bin/wal-color-export -b 010101
       rm -f "$TMPFRAME"
     else
-      # ── Static image wallpaper with fade transition ──────────────────
+      # ── Static image wallpaper with varied transition ────────────────
       # Ensure swww daemon is running
       if ! pgrep -x swww-daemon >/dev/null 2>&1; then
         ${pkgs.swww}/bin/swww-daemon >/dev/null 2>&1 &
         sleep 0.5
       fi
+      TRANSITIONS=(fade wipe wave grow center outer)
+      TRANSITION_INDEX=$((NEXT_INDEX % ''${#TRANSITIONS[@]}))
+      SELECTED_TRANSITION="''${TRANSITIONS[$TRANSITION_INDEX]}"
       ${pkgs.swww}/bin/swww img "$NEW_BACKGROUND" \
-        --transition-type fade \
+        --transition-type "$SELECTED_TRANSITION" \
         --transition-duration 1 \
         --transition-fps 60 \
         >/dev/null 2>&1

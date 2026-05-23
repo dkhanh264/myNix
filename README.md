@@ -9,7 +9,7 @@
 - **NixVim** cấu hình hoàn toàn bằng Nix (LSP, Treesitter, Telescope, v.v.).
 - **Shell**: Zsh + Starship + alias tiện dụng.
 - **Theme**: GTK/Qt + Pywal theo wallpaper.
-- **Wallpaper picker**: Super+P để chọn wallpaper và cập nhật theme theo màu.
+- **Wallpaper switcher**: Super+Ctrl+Space để đổi wallpaper, mỗi lần đổi dùng hiệu ứng animation khác nhau và cập nhật theme theo màu.
 
 ## Cấu hình hệ thống
 
