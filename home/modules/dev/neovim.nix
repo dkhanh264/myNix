@@ -24,7 +24,7 @@
     # Tương đương với vim.opt.xxx = yyy trong Lua
     opts = {
       number         = true;   # Hiện số dòng tuyệt đối
-      relativenumber = true;   # Hiện số dòng tương đối (tiện di chuyển)
+      relativenumber = false;  # Dễ làm quen hơn cho người mới
       tabstop        = 2;      # Tab = 2 spaces
       shiftwidth     = 2;      # Indent = 2 spaces
       expandtab      = true;   # Dùng spaces thay vì tab
@@ -41,6 +41,9 @@
       splitright     = true;   # Split ngang mở sang phải
       splitbelow     = true;   # Split dọc mở xuống dưới
       clipboard      = "unnamedplus"; # Sync clipboard với hệ thống
+      mouse          = "a";    # Bật chuột để click chuyển cửa sổ/con trỏ
+      confirm        = true;   # Hỏi xác nhận khi đóng file chưa lưu
+      timeoutlen     = 400;    # Which-key hiện gợi ý nhanh hơn
     };
 
     # ── Global Variables ─────────────────────────────────────────────────
@@ -59,6 +62,12 @@
       { mode = "n"; key = "<leader>fg"; action = "<cmd>Telescope live_grep<cr>";  options.desc = "Live grep"; }
       { mode = "n"; key = "<leader>fb"; action = "<cmd>Telescope buffers<cr>";    options.desc = "Find buffers"; }
       { mode = "n"; key = "<leader>fh"; action = "<cmd>Telescope help_tags<cr>";  options.desc = "Help tags"; }
+      { mode = "n"; key = "<leader>fr"; action = "<cmd>Telescope oldfiles<cr>";   options.desc = "Recent files"; }
+      { mode = "n"; key = "<leader>fk"; action = "<cmd>Telescope keymaps<cr>";    options.desc = "Find keymaps"; }
+
+      # Save/quit cơ bản cho người mới
+      { mode = "n"; key = "<leader>w"; action = "<cmd>w<cr>"; options.desc = "Save file"; }
+      { mode = "n"; key = "<leader>q"; action = "<cmd>q<cr>"; options.desc = "Quit window"; }
 
       # Buffer navigation
       { mode = "n"; key = "<S-h>"; action = "<cmd>bprevious<cr>"; options.desc = "Previous buffer"; }
@@ -88,6 +97,7 @@
 
       # Misc
       { mode = "n"; key = "<leader>nh"; action = "<cmd>nohl<cr>"; options.desc = "Clear search highlight"; }
+      { mode = "n"; key = "<Esc>"; action = "<cmd>nohlsearch<cr>"; options.desc = "Clear search highlight"; }
       { mode = "i"; key = "jk";  action = "<ESC>"; options.desc = "Exit insert mode nhanh"; }
       { mode = "v"; key = "<";   action = "<gv"; options.desc = "Indent left và giữ selection"; }
       { mode = "v"; key = ">";   action = ">gv"; options.desc = "Indent right và giữ selection"; }
