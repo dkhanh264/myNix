@@ -15,6 +15,9 @@ in
     matugen               # Hệ thống sinh phối màu tự động từ hình nền
     playerctl             # Điều khiển nhạc nền qua phím tắt đa phương tiện
     swayosd               # Trình hiển thị OSD cho âm lượng và độ sáng
+    inotify-tools         # cung cấp inotifywait
+    networkmanager        # cung cấp lệnh nmcli
+    pulseaudio            # cung cấp lệnh 
     
     # Các dependencies cần thiết cho các Widget QML của Quickshell
     qt6.qtmultimedia

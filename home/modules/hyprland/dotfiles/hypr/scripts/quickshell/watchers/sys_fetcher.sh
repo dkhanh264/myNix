@@ -5,7 +5,7 @@ read -r u1 n1 s1 i1 io1 ir1 so1 st1 g1 gn1 < <(awk '/^cpu /{print $2, $3, $4, $5
 read rx1 tx1 <<< "$(awk -v IGNORECASE=1 '/^ *[ew]/{rx+=$2; tx+=$10} END{print rx, tx}' /proc/net/dev)"
 
 # 2. Small delay to calculate precise usage deltas
-sleep 0.5
+sleep 0.2
 
 # 3. Read final values
 read -r u2 n2 s2 i2 io2 ir2 so2 st2 g2 gn2 < <(awk '/^cpu /{print $2, $3, $4, $5, $6, $7, $8, $9, $10, $11; exit}' /proc/stat)
@@ -20,8 +20,8 @@ if [ "$DIFF_TOTAL" -eq 0 ]; then CPU_USAGE=0; else CPU_USAGE=$(( 100 * (DIFF_TOT
 
 # --- Network Calculation ---
 # Bytes across 0.5 seconds multiplied by 2 = Bytes per second
-RX_RATE=$(((rx2 - rx1) * 2))
-TX_RATE=$(((tx2 - tx1) * 2))
+RX_RATE=$(((rx2 - rx1) * 5))
+TX_RATE=$(((tx2 - tx1) * 5))
 
 # --- RAM Calculation ---
 read -r TOTAL_MEM AVAIL_MEM RAM_PCT RAM_GB < <(

@@ -1,18 +1,34 @@
 #!/usr/bin/env bash
 read_bt_state() {
-    local show_output connected_output status icon connected
-    show_output=$(LC_ALL=C timeout 0.5 bluetoothctl show 2>/dev/null || true)
-    connected_output=$(LC_ALL=C timeout 0.5 bluetoothctl devices Connected 2>/dev/null || true)
+    local status="off"
+    local icon="󰂲"
+    local connected="Off"
 
-    if grep -q "Powered: yes" <<< "$show_output"; then
+    # Kiểm tra trạng thái nguồn cực nhanh qua D-Bus bằng busctl (gần như 0% CPU)
+    local powered=""
+    if command -v busctl &>/dev/null; then
+        powered=$(busctl get-property org.bluez /org/bluez/hci0 org.bluez.Adapter1 Powered 2>/dev/null | awk '{print $2}')
+    fi
+
+    # Fallback dự phòng nếu busctl thất bại
+    if [ -z "$powered" ]; then
+        if LC_ALL=C rfkill list bluetooth 2>/dev/null | grep -q "Soft blocked: yes"; then
+            powered="false"
+        fi
+    fi
+
+    if [ "$powered" = "true" ]; then
         status="on"
+        icon="󰂯"
+        connected="Disconnected"
+
+        # CHỈ gọi bluetoothctl khi chắc chắn Bluetooth đang BẬT
+        local connected_output
+        connected_output=$(LC_ALL=C timeout 0.2 bluetoothctl devices Connected 2>/dev/null || true)
         if grep -q "^Device" <<< "$connected_output"; then
             icon="󰂱"
             connected=$(head -n1 <<< "$connected_output" | cut -d' ' -f3-)
             connected="${connected:-Disconnected}"
-        else
-            icon="󰂯"
-            connected="Disconnected"
         fi
     else
         status="off"
@@ -33,6 +49,7 @@ toggle_bt() {
         notify-send -u low -i bluetooth-active "Bluetooth" "Enabled"
     fi
 }
+
 case $1 in
     --toggle) toggle_bt ;;
     *)

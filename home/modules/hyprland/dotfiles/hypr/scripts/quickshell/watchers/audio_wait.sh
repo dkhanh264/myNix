@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 source "$(dirname "${BASH_SOURCE[0]}")/../../caching.sh"
 
+if ! command -v pactl >/dev/null 2>&1; then
+    sleep 5
+    exit 1
+fi
+
 PIPE="$QS_RUN_DIR/qs_audio_wait_$$.fifo"
 mkfifo "$PIPE" 2>/dev/null
 
@@ -11,4 +16,4 @@ LC_ALL=C pactl subscribe 2>/dev/null > "$PIPE" &
 MONITOR_PID=$!
 
 grep -m 1 -E "sink|server" < "$PIPE" > /dev/null
-sleep 0.3
+sleep 1.5

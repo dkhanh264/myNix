@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 source "$(dirname "${BASH_SOURCE[0]}")/../../caching.sh"
 
+if ! command -v socat >/dev/null 2>&1; then
+    sleep 5
+    exit 1
+fi
+
 PIPE="$QS_RUN_DIR/qs_kb_wait_$$.fifo"
 mkfifo "$PIPE" 2>/dev/null
 trap 'rm -f "$PIPE"; kill $(jobs -p) 2>/dev/null; exit 0' EXIT INT TERM
