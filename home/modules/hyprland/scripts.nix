@@ -6,6 +6,11 @@ let
     WALJSON="$HOME/.cache/wal/colors.json"
     OUT_DIR="$HOME/.config/current"
     OUT="$OUT_DIR/wal-colors.css"
+    KITTY_WAL="$HOME/.config/kitty/wal-theme.conf"
+    BTOP_THEME_DIR="$HOME/.config/btop/themes"
+    BTOP_THEME="$BTOP_THEME_DIR/wal.theme"
+    MAKO_WAL_DIR="$HOME/.cache/wal"
+    MAKO_WAL_CONF="$MAKO_WAL_DIR/mako-colors.conf"
 
     mkdir -p "$OUT_DIR"
     sleep 1
@@ -36,6 +41,86 @@ let
     @define-color foreground $(hex_to_rgba "$FG" 0.9);
     @define-color background $(hex_to_rgba "$BG" 0.9);
     EOF
+
+    # Persist terminal colors so newly opened terminals/CLI apps use latest palette.
+    mkdir -p "$(dirname "$KITTY_WAL")"
+    cat <<EOF > "$KITTY_WAL"
+    background $BG
+    foreground $FG
+    selection_background $FG
+    selection_foreground $BG
+    cursor $FG
+
+    color0  $(${pkgs.jq}/bin/jq -r '.colors.color0' "$WALJSON")
+    color1  $(${pkgs.jq}/bin/jq -r '.colors.color1' "$WALJSON")
+    color2  $(${pkgs.jq}/bin/jq -r '.colors.color2' "$WALJSON")
+    color3  $(${pkgs.jq}/bin/jq -r '.colors.color3' "$WALJSON")
+    color4  $(${pkgs.jq}/bin/jq -r '.colors.color4' "$WALJSON")
+    color5  $(${pkgs.jq}/bin/jq -r '.colors.color5' "$WALJSON")
+    color6  $(${pkgs.jq}/bin/jq -r '.colors.color6' "$WALJSON")
+    color7  $(${pkgs.jq}/bin/jq -r '.colors.color7' "$WALJSON")
+    color8  $(${pkgs.jq}/bin/jq -r '.colors.color8' "$WALJSON")
+    color9  $(${pkgs.jq}/bin/jq -r '.colors.color9' "$WALJSON")
+    color10 $(${pkgs.jq}/bin/jq -r '.colors.color10' "$WALJSON")
+    color11 $(${pkgs.jq}/bin/jq -r '.colors.color11' "$WALJSON")
+    color12 $(${pkgs.jq}/bin/jq -r '.colors.color12' "$WALJSON")
+    color13 $(${pkgs.jq}/bin/jq -r '.colors.color13' "$WALJSON")
+    color14 $(${pkgs.jq}/bin/jq -r '.colors.color14' "$WALJSON")
+    color15 $(${pkgs.jq}/bin/jq -r '.colors.color15' "$WALJSON")
+    EOF
+
+    # Generate btop theme from pywal palette so btop stays synced across restarts.
+    mkdir -p "$BTOP_THEME_DIR"
+    cat <<EOF > "$BTOP_THEME"
+    theme[main_bg]="$BG"
+    theme[main_fg]="$FG"
+    theme[title]="$ACCENT"
+    theme[hi_fg]="$ACCENT"
+    theme[selected_bg]="$ACCENT"
+    theme[selected_fg]="$BG"
+    theme[inactive_fg]="$(${pkgs.jq}/bin/jq -r '.colors.color8' "$WALJSON")"
+    theme[graph_text]="$(${pkgs.jq}/bin/jq -r '.colors.color6' "$WALJSON")"
+    theme[meter_bg]="$(${pkgs.jq}/bin/jq -r '.colors.color0' "$WALJSON")"
+    theme[proc_misc]="$(${pkgs.jq}/bin/jq -r '.colors.color5' "$WALJSON")"
+    theme[cpu_box]="$(${pkgs.jq}/bin/jq -r '.colors.color4' "$WALJSON")"
+    theme[mem_box]="$(${pkgs.jq}/bin/jq -r '.colors.color3' "$WALJSON")"
+    theme[net_box]="$(${pkgs.jq}/bin/jq -r '.colors.color2' "$WALJSON")"
+    theme[proc_box]="$(${pkgs.jq}/bin/jq -r '.colors.color1' "$WALJSON")"
+    theme[div_line]="$(${pkgs.jq}/bin/jq -r '.colors.color8' "$WALJSON")"
+    theme[temp_start]="$(${pkgs.jq}/bin/jq -r '.colors.color2' "$WALJSON")"
+    theme[temp_mid]="$(${pkgs.jq}/bin/jq -r '.colors.color3' "$WALJSON")"
+    theme[temp_end]="$(${pkgs.jq}/bin/jq -r '.colors.color1' "$WALJSON")"
+    theme[cpu_start]="$(${pkgs.jq}/bin/jq -r '.colors.color2' "$WALJSON")"
+    theme[cpu_mid]="$(${pkgs.jq}/bin/jq -r '.colors.color3' "$WALJSON")"
+    theme[cpu_end]="$(${pkgs.jq}/bin/jq -r '.colors.color1' "$WALJSON")"
+    theme[free_start]="$(${pkgs.jq}/bin/jq -r '.colors.color2' "$WALJSON")"
+    theme[free_mid]="$(${pkgs.jq}/bin/jq -r '.colors.color3' "$WALJSON")"
+    theme[free_end]="$(${pkgs.jq}/bin/jq -r '.colors.color1' "$WALJSON")"
+    theme[cached_start]="$(${pkgs.jq}/bin/jq -r '.colors.color6' "$WALJSON")"
+    theme[cached_mid]="$(${pkgs.jq}/bin/jq -r '.colors.color4' "$WALJSON")"
+    theme[cached_end]="$(${pkgs.jq}/bin/jq -r '.colors.color5' "$WALJSON")"
+    theme[available_start]="$(${pkgs.jq}/bin/jq -r '.colors.color6' "$WALJSON")"
+    theme[available_mid]="$(${pkgs.jq}/bin/jq -r '.colors.color4' "$WALJSON")"
+    theme[available_end]="$(${pkgs.jq}/bin/jq -r '.colors.color5' "$WALJSON")"
+    theme[used_start]="$(${pkgs.jq}/bin/jq -r '.colors.color2' "$WALJSON")"
+    theme[used_mid]="$(${pkgs.jq}/bin/jq -r '.colors.color3' "$WALJSON")"
+    theme[used_end]="$(${pkgs.jq}/bin/jq -r '.colors.color1' "$WALJSON")"
+    theme[download_start]="$(${pkgs.jq}/bin/jq -r '.colors.color2' "$WALJSON")"
+    theme[download_mid]="$(${pkgs.jq}/bin/jq -r '.colors.color3' "$WALJSON")"
+    theme[download_end]="$(${pkgs.jq}/bin/jq -r '.colors.color1' "$WALJSON")"
+    theme[upload_start]="$(${pkgs.jq}/bin/jq -r '.colors.color6' "$WALJSON")"
+    theme[upload_mid]="$(${pkgs.jq}/bin/jq -r '.colors.color4' "$WALJSON")"
+    theme[upload_end]="$(${pkgs.jq}/bin/jq -r '.colors.color5' "$WALJSON")"
+    EOF
+
+    # Keep notification daemon in sync with current system palette.
+    mkdir -p "$MAKO_WAL_DIR"
+    cat <<EOF > "$MAKO_WAL_CONF"
+    background-color=''${BG}99
+    text-color=$FG
+    border-color=$ACCENT
+    EOF
+    ${pkgs.mako}/bin/makoctl reload >/dev/null 2>&1 || true
 
     ${pkgs.libnotify}/bin/notify-send "Thành công" "Màu hệ thống đã được đồng bộ!"
     pkill walker || true
