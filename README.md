@@ -32,6 +32,18 @@ File chính: `home/home.nix`
 - Dev: Git + NixVim
 - Theme: GTK/Qt + Pywal
 
+## NixVim thân thiện cho người mới
+
+- `Space + e`: mở/đóng cây thư mục.
+- `Space + ff`: tìm file nhanh.
+- `Space + fg`: tìm text trong project.
+- `Space + fr`: mở file gần đây.
+- `Space + fk`: tìm/phím tắt đã map.
+- `Space + w`: lưu file.
+- `Space + q`: đóng cửa sổ hiện tại.
+- `Esc`: bỏ highlight sau khi search.
+- Khi quên phím tắt, bấm `Space` và chờ popup `which-key` hiện gợi ý.
+
 ## Sử dụng
 
 > **Lưu ý:** Thay `your-laptop` bằng hostname thực tế của bạn.
