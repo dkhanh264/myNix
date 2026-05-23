@@ -659,18 +659,19 @@ Variants {
             Process {
                 id: weatherPoller
                 running: barWindow.isDataHost
-                command: ["bash", "-c", `
-                    echo "$(~/.config/hypr/scripts/quickshell/calendar/weather.sh --current-icon)"
-                    echo "$(~/.config/hypr/scripts/quickshell/calendar/weather.sh --current-temp)"
-                    echo "$(~/.config/hypr/scripts/quickshell/calendar/weather.sh --current-hex)"
-                `]
+                command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/calendar/weather_current_all.sh"]
                 stdout: StdioCollector {
                     onStreamFinished: {
-                        let lines = this.text.trim().split("\n");
-                        if (lines.length >= 3) {
-                            barWindow.weatherIcon = lines[0];
-                            barWindow.weatherTemp = lines[1];
-                            barWindow.weatherHex = lines[2] || mocha.yellow;
+                        let txt = this.text.trim();
+                        if (txt !== "") {
+                            try {
+                                let data = JSON.parse(txt);
+                                barWindow.weatherIcon = data.icon || "";
+                                barWindow.weatherTemp = data.temp || "--°";
+                                barWindow.weatherHex = data.hex || mocha.yellow;
+                            } catch(e) {
+                                return;
+                            }
                             topBars.sharedWeatherIcon = barWindow.weatherIcon;
                             topBars.sharedWeatherTemp = barWindow.weatherTemp;
                             topBars.sharedWeatherHex = barWindow.weatherHex;

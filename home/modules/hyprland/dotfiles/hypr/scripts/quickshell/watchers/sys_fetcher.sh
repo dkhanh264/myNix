@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 # 1. Read initial values for time-sensitive metrics (CPU and Network)
-read -r _ u1 n1 s1 i1 io1 ir1 so1 st1 g1 gn1 <<< "$(grep '^cpu ' /proc/stat)"
+read -r u1 n1 s1 i1 io1 ir1 so1 st1 g1 gn1 < <(awk '/^cpu /{print $2, $3, $4, $5, $6, $7, $8, $9, $10, $11; exit}' /proc/stat)
 read rx1 tx1 <<< "$(awk -v IGNORECASE=1 '/^ *[ew]/{rx+=$2; tx+=$10} END{print rx, tx}' /proc/net/dev)"
 
 # 2. Small delay to calculate precise usage deltas
 sleep 0.5
 
 # 3. Read final values
-read -r _ u2 n2 s2 i2 io2 ir2 so2 st2 g2 gn2 <<< "$(grep '^cpu ' /proc/stat)"
+read -r u2 n2 s2 i2 io2 ir2 so2 st2 g2 gn2 < <(awk '/^cpu /{print $2, $3, $4, $5, $6, $7, $8, $9, $10, $11; exit}' /proc/stat)
 read rx2 tx2 <<< "$(awk -v IGNORECASE=1 '/^ *[ew]/{rx+=$2; tx+=$10} END{print rx, tx}' /proc/net/dev)"
 
 # --- CPU Calculation ---
@@ -24,50 +24,83 @@ RX_RATE=$(((rx2 - rx1) * 2))
 TX_RATE=$(((tx2 - tx1) * 2))
 
 # --- RAM Calculation ---
-while IFS=":" read -r key val; do
-    case "$key" in
-        MemTotal) TOTAL_MEM=$(echo "$val" | awk '{print $1}') ;;
-        MemAvailable) AVAIL_MEM=$(echo "$val" | awk '{print $1}') ;;
-    esac
-done < /proc/meminfo
-USED_MEM=$((TOTAL_MEM - AVAIL_MEM))
-RAM_PCT=$(( 100 * USED_MEM / TOTAL_MEM ))
-RAM_GB=$(awk "BEGIN {printf \"%.1f\", $USED_MEM / 1024 / 1024}")
+read -r TOTAL_MEM AVAIL_MEM RAM_PCT RAM_GB < <(
+    awk '
+        /^MemTotal:/     { total=$2 }
+        /^MemAvailable:/ { avail=$2 }
+        END {
+            used = total - avail
+            if (total <= 0) {
+                printf "0 0 0 0.0\n"
+            } else {
+                printf "%d %d %d %.1f\n", total, avail, (100 * used / total), (used / 1048576)
+            }
+        }
+    ' /proc/meminfo
+)
 
 # --- Temperature Calculation ---
-TEMP_RAW=""
+: "${QS_CACHE_SYSDATA:=/tmp/quickshell/sysdata}"
+mkdir -p "$QS_CACHE_SYSDATA"
+TEMP_PATH_FILE="${QS_CACHE_SYSDATA}/temp_path"
 
-# Attempt 1: Check hwmon for known CPU temperature drivers (Intel, AMD, ARM)
-for hwmon in /sys/class/hwmon/hwmon*; do
-    if [ -f "$hwmon/name" ]; then
-        hwmon_name=$(cat "$hwmon/name" 2>/dev/null)
-        if [[ "$hwmon_name" =~ ^(coretemp|k10temp|zenpower|cpu_thermal|bcm2835_thermal)$ ]]; then
-            # Usually temp1_input is the main package/die temp
-            if [ -f "$hwmon/temp1_input" ]; then
-                TEMP_RAW=$(cat "$hwmon/temp1_input" 2>/dev/null)
-                break
-            fi
+resolve_temp_path() {
+    local hwmon hwmon_name tz tz_type
+
+    for hwmon in /sys/class/hwmon/hwmon*; do
+        [ -r "$hwmon/name" ] || continue
+        read -r hwmon_name < "$hwmon/name" || continue
+        case "$hwmon_name" in
+            coretemp|k10temp|zenpower|cpu_thermal|bcm2835_thermal)
+                if [ -r "$hwmon/temp1_input" ]; then
+                    printf '%s\n' "$hwmon/temp1_input"
+                    return
+                fi
+                ;;
+        esac
+    done
+
+    for tz in /sys/class/thermal/thermal_zone*; do
+        [ -r "$tz/type" ] || continue
+        read -r tz_type < "$tz/type" || continue
+        case "$tz_type" in
+            x86_pkg_temp|cpu_thermal|cpu-thermal)
+                if [ -r "$tz/temp" ]; then
+                    printf '%s\n' "$tz/temp"
+                    return
+                fi
+                ;;
+        esac
+    done
+
+    [ -r /sys/class/hwmon/hwmon0/temp1_input ] && { printf '%s\n' "/sys/class/hwmon/hwmon0/temp1_input"; return; }
+    [ -r /sys/class/thermal/thermal_zone0/temp ] && { printf '%s\n' "/sys/class/thermal/thermal_zone0/temp"; return; }
+}
+
+get_temp_raw() {
+    local temp_path="" raw_temp=0
+
+    if [ -r "$TEMP_PATH_FILE" ]; then
+        read -r temp_path < "$TEMP_PATH_FILE" || temp_path=""
+    fi
+
+    if [ -z "$temp_path" ] || [ ! -r "$temp_path" ]; then
+        temp_path="$(resolve_temp_path)"
+        if [ -n "$temp_path" ]; then
+            printf '%s\n' "$temp_path" > "$TEMP_PATH_FILE"
+        else
+            rm -f "$TEMP_PATH_FILE"
         fi
     fi
-done
 
-# Attempt 2: Fallback to thermal_zone for known CPU identifiers
-if [ -z "$TEMP_RAW" ]; then
-    for tz in /sys/class/thermal/thermal_zone*; do
-        if [ -f "$tz/type" ]; then
-            tz_type=$(cat "$tz/type" 2>/dev/null)
-            if [[ "$tz_type" =~ ^(x86_pkg_temp|cpu_thermal|cpu-thermal)$ ]]; then
-                TEMP_RAW=$(cat "$tz/temp" 2>/dev/null)
-                break
-            fi
-        fi
-    done
-fi
+    if [ -n "$temp_path" ] && [ -r "$temp_path" ]; then
+        read -r raw_temp < "$temp_path" || raw_temp=0
+    fi
 
-# Attempt 3: Ultimate fallback to the first available hardware monitor or thermal zone
-if [ -z "$TEMP_RAW" ]; then
-    TEMP_RAW=$(cat /sys/class/hwmon/hwmon0/temp1_input 2>/dev/null || cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null || echo 0)
-fi
+    printf '%s\n' "${raw_temp:-0}"
+}
+
+TEMP_RAW="$(get_temp_raw)"
 
 # Normalize to degrees Celsius
 if [ "$TEMP_RAW" -gt 1000 ]; then
