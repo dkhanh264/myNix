@@ -8,7 +8,7 @@
   ];
 
   xdg.configFile = {
-    "btop".source = ./hyprland/dotfiles/btop;
+    "btop/btop.conf".source = ./hyprland/dotfiles/btop/btop.conf;
     "mpv".source = ./hyprland/dotfiles/mpv;
     "neofetch".source = ./hyprland/dotfiles/neofetch;
     

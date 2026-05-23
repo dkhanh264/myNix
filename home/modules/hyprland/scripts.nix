@@ -9,8 +9,8 @@ let
     KITTY_WAL="$HOME/.config/kitty/wal-theme.conf"
     BTOP_THEME_DIR="$HOME/.config/btop/themes"
     BTOP_THEME="$BTOP_THEME_DIR/wal.theme"
-    MAKO_CONF_DIR="$HOME/.config/mako"
-    MAKO_CONF="$MAKO_CONF_DIR/config"
+    MAKO_WAL_DIR="$HOME/.cache/wal"
+    MAKO_WAL_CONF="$MAKO_WAL_DIR/mako-colors.conf"
 
     mkdir -p "$OUT_DIR"
     sleep 1
@@ -114,21 +114,11 @@ let
     EOF
 
     # Keep notification daemon in sync with current system palette.
-    mkdir -p "$MAKO_CONF_DIR"
-    cat <<EOF > "$MAKO_CONF"
-    font=JetBrainsMono Nerd Font 10
-    width=300
-    height=100
-    margin=10
-    padding=10
-    border-size=0
-    border-radius=10
-    default-timeout=2000
+    mkdir -p "$MAKO_WAL_DIR"
+    cat <<EOF > "$MAKO_WAL_CONF"
     background-color=''${BG}99
     text-color=$FG
     border-color=$ACCENT
-    layer=top
-    anchor=top-right
     EOF
     ${pkgs.mako}/bin/makoctl reload >/dev/null 2>&1 || true
 
