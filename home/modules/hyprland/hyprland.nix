@@ -42,6 +42,7 @@
         "blueman-applet"
         "wl-paste --type text --watch cliphist store"
         "fcitx5 -d"
+        "swww-daemon"  # Daemon cho hình nền có hiệu ứng chuyển cảnh
       ];
 
       # ── General ───────────────────────────────────────────────────────

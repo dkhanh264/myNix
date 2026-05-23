@@ -47,7 +47,10 @@ let
     BACKGROUNDS_DIR="$HOME/Pictures/wallpapers"
     CURRENT_BACKGROUND_LINK="$HOME/.config/current-wallpaper"
 
-    mapfile -d "" -t BACKGROUNDS < <(find "$BACKGROUNDS_DIR" -type f \( -iname "*.jpg" -o -iname "*.png" \) -print0 | sort -z)
+    mapfile -d "" -t BACKGROUNDS < <(find "$BACKGROUNDS_DIR" -type f \( \
+      -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \
+      -o -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.webm" -o -iname "*.avi" -o -iname "*.mov" \
+    \) -print0 | sort -z)
     TOTAL=''${#BACKGROUNDS[@]}
 
     if [[ $TOTAL -eq 0 ]]; then 
@@ -73,10 +76,46 @@ let
     NEW_BACKGROUND="''${BACKGROUNDS[$NEXT_INDEX]}"
 
     ln -nsf "$NEW_BACKGROUND" "$CURRENT_BACKGROUND_LINK"
-    pkill swaybg || true
-    ${pkgs.swaybg}/bin/swaybg -i "$CURRENT_BACKGROUND_LINK" -m fill >/dev/null 2>&1 &
-    
-    ${pkgs.pywal}/bin/wal -i "$NEW_BACKGROUND" -n --saturate 0.7 -q -o ${walColorExport}/bin/wal-color-export -b 010101
+
+    # Detect video files
+    is_video() {
+      local f="''${1,,}"
+      case "$f" in
+        *.mp4|*.mkv|*.webm|*.avi|*.mov) return 0 ;;
+        *) return 1 ;;
+      esac
+    }
+
+    # Kill existing wallpaper daemons
+    pkill mpvpaper || true
+    pkill swaybg   || true
+
+    if is_video "$NEW_BACKGROUND"; then
+      # ── Video wallpaper ──────────────────────────────────────────────
+      ${pkgs.mpvpaper}/bin/mpvpaper "*" --mpv-options "loop no-audio" "$NEW_BACKGROUND" >/dev/null 2>&1 &
+
+      # Extract first frame so pywal can generate a colour scheme
+      TMPFRAME=$(mktemp /tmp/wallpaper-frame-XXXXXX.png)
+      ${pkgs.ffmpeg}/bin/ffmpeg -y -i "$NEW_BACKGROUND" -vframes 1 -q:v 2 "$TMPFRAME" >/dev/null 2>&1
+      ${pkgs.pywal}/bin/wal -i "$TMPFRAME" -n --saturate 0.7 -q \
+        -o ${walColorExport}/bin/wal-color-export -b 010101
+      rm -f "$TMPFRAME"
+    else
+      # ── Static image wallpaper with fade transition ──────────────────
+      # Ensure swww daemon is running
+      if ! pgrep -x swww-daemon >/dev/null 2>&1; then
+        ${pkgs.swww}/bin/swww-daemon >/dev/null 2>&1 &
+        sleep 0.5
+      fi
+      ${pkgs.swww}/bin/swww img "$NEW_BACKGROUND" \
+        --transition-type fade \
+        --transition-duration 1 \
+        --transition-fps 60 \
+        >/dev/null 2>&1
+
+      ${pkgs.pywal}/bin/wal -i "$NEW_BACKGROUND" -n --saturate 0.7 -q \
+        -o ${walColorExport}/bin/wal-color-export -b 010101
+    fi
   '';
 
   walkerMenu = pkgs.writeShellScriptBin "walker-menu" ''
