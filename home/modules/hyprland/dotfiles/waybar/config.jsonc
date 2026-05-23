@@ -1,0 +1,101 @@
+{
+  "layer": "top",
+  "position": "top",
+  "exclusive": true,
+  "passthrough": false,
+  "height": 32,
+  "margin-top": 8,
+  "margin-left": 10,
+  "margin-right": 10,
+  "spacing": 0,
+
+  // Sắp xếp lại bố cục các khối theo yêu cầu mới của bạn
+  "modules-left": ["custom/nixos", "hyprland/workspaces", "custom/music"],
+  "modules-center": ["clock", "custom/weather"],
+  "modules-right": ["tray", "pulseaudio", "network", "cpu", "memory", "battery"],
+
+  // Khối hiển thị Logo NixOS (Click chuột để mở Walker Application Menu)
+  "custom/nixos": {
+    "format": " ",
+    "tooltip": false,
+    "on-click": "walker-menu apps"
+  },
+
+  "hyprland/workspaces": {
+    "disable-scroll": true,
+    "all-outputs": true,
+    "active-only": false,
+    "format": "{icon}",
+    "format-icons": {
+      "active": "󱓻",
+      "default": ""
+    },
+    "persistent-workspaces": {
+      "1": [], "2": [], "3": [], "4": [], "5": []
+    }
+  },
+
+  "custom/music": {
+    "format": "󰎆  {}",
+    "interval": 2,
+    "exec": "playerctl metadata --format '{{title}} - {{artist}}' 2>/dev/null || echo 'Dừng phát'",
+    "on-click": "playerctl play-pause",
+    "max-length": 25
+  },
+
+  "clock": {
+    "format": "  {:%H:%M    %d/%m}",
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+  },
+
+  "custom/weather": {
+    "format": "{}",
+    "tooltip": false,
+    "interval": 1800,
+    "exec": "curl -s 'https://wttr.in/Ho_Chi_Minh?format=%c+%t' | xargs",
+    "on-click": "xdg-open https://wttr.in/Ho_Chi_Minh"
+  },
+
+  "cpu": {
+    "interval": 10,
+    "format": "  {usage}%"
+  },
+
+  "memory": {
+    "interval": 10,
+    "format": "  {used:.1f}G"
+  },
+
+  "battery": {
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "{icon}  {capacity}%",
+    "format-charging": "󰢝  {capacity}%",
+    "format-plugged": "  {capacity}%",
+    "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+  },
+
+  "network": {
+    "format-wifi": "  {essid}",
+    "format-ethernet": "󰀂  Connected",
+    "format-disconnected": "󰤮  Disconnected",
+    "tooltip-format": "{ifname} via {gwaddr}",
+    "on-click": "nm-connection-editor"
+  },
+
+  "pulseaudio": {
+    "format": "{icon}  {volume}%",
+    "format-muted": "  Muted",
+    "format-icons": {
+      "default": ["", "", ""]
+    },
+    "on-click": "pavucontrol"
+  },
+
+  "tray": {
+    "icon-size": 16,
+    "spacing": 10
+  }
+}

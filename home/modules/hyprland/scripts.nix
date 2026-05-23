@@ -39,6 +39,7 @@ let
 
     ${pkgs.libnotify}/bin/notify-send "Thành công" "Màu hệ thống đã được đồng bộ!"
     pkill walker || true
+    pkill -SIGUSR2 waybar || true
   '';
 
   cycleBackground = pkgs.writeShellScriptBin "cycle-background" ''

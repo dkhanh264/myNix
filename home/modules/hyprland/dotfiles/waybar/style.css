@@ -1,0 +1,105 @@
+/* Import bảng màu hệ thống được sinh ra từ Pywal script */
+@import url("file:///home/dk/.config/current/wal-colors.css");
+
+* {
+    font-family: "JetBrains Mono Nerd Font", sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+window#waybar {
+    background-color: transparent;
+}
+
+/* Định dạng chung cho các khối Pill độc lập */
+#custom-nixos,
+#custom-music,
+#workspaces,
+#clock,
+#custom-weather,
+#tray,
+#pulseaudio,
+#network,
+#battery {
+    background-color: @base;
+    border: 1px solid @border;
+    border-radius: 12px;
+    padding: 2px 12px;
+    margin: 0px 4px;
+    color: @text;
+}
+
+/* Tinh chỉnh riêng cho nút Logo NixOS (Đồng bộ màu Accent của hệ thống) */
+#custom-nixos {
+    color: @selected-text;
+    font-size: 15px;
+    padding: 2px 10px 2px 12px;
+}
+
+/* Căn chỉnh khối Workspaces */
+#workspaces {
+    padding: 2px 6px;
+}
+
+#workspaces button {
+    padding: 0px 6px;
+    color: @text;
+    background-color: transparent;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#workspaces button:hover {
+    background-color: @border;
+    color: @selected-text;
+}
+
+#workspaces button.active {
+    color: @selected-text;
+}
+
+/* ── Kỹ thuật gộp khối CPU & RAM thành 1 viên thuốc duy nhất ── */
+#cpu {
+    background-color: @base;
+    border: 1px solid @border;
+    border-right: none;               /* Xóa viền bên phải để nối với khối RAM */
+    border-radius: 12px 0px 0px 12px; /* Chỉ bo góc tròn phía bên trái */
+    padding: 2px 6px 2px 12px;
+    margin: 0px 0px 0px 4px;          /* Triệt tiêu margin-right để dính liền vào RAM */
+    color: @text;
+}
+
+#memory {
+    background-color: @base;
+    border: 1px solid @border;
+    border-left: none;                /* Xóa viền bên trái để nối với khối CPU */
+    border-radius: 0px 12px 12px 0px; /* Chỉ bo góc tròn phía bên phải */
+    padding: 2px 12px 2px 6px;
+    margin: 0px 4px 0px 0px;          /* Triệt tiêu margin-left để dính liền vào CPU */
+    color: @text;
+}
+/* ──────────────────────────────────────────────────────────── */
+
+#clock, #custom-weather {
+    color: @selected-text;
+}
+
+#custom-music {
+    color: @foreground;
+}
+
+#battery.critical:not(.charging) {
+    color: #f38ba8;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+@keyframes blink {
+    to {
+        background-color: #f38ba8;
+        color: @base;
+    }
+}
