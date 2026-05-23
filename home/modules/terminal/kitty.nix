@@ -20,9 +20,8 @@
       # Window padding (14px uniform padding like Alacritty x=14 y=14)
       window_padding_width 14
 
-      # Colors matching Alacritty theme
-      background #222222
-      foreground #F8F8F2
+      # Dynamic pywal colors generated on wallpaper switch
+      include ~/.config/kitty/wal-theme.conf
 
       # Keyboard bindings
       map f11 toggle_fullscreen
