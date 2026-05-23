@@ -14,8 +14,8 @@
       # ── Monitors ──────────────────────────────────────────────────────
       # eDP-1 là màn hình laptop, HDMI-A-1 là màn hình ngoài.
       monitor = [
-        "eDP-1, 1920x1080@144, 0x0, 1"
-        "HDMI-A-1, highrr, 1920x0, 1"
+        "eDP-1, 1920x1080@144, 1920x0, 1"
+        "HDMI-A-1, highrr, 0x0, 1"
       ];
 
       # ── NVIDIA + Wayland env vars ──────────────────────────────────────
