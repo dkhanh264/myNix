@@ -42,7 +42,7 @@ let
     @define-color background $(hex_to_rgba "$BG" 0.9);
     EOF
 
-    # Persist terminal colors so newly opened terminals/CLI apps use latest palette.
+    # Persist terminal colors and live-apply to running Kitty windows.
     mkdir -p "$(dirname "$KITTY_WAL")"
     cat <<EOF > "$KITTY_WAL"
     background $BG
@@ -68,6 +68,7 @@ let
     color14 $(${pkgs.jq}/bin/jq -r '.colors.color14' "$WALJSON")
     color15 $(${pkgs.jq}/bin/jq -r '.colors.color15' "$WALJSON")
     EOF
+    ${pkgs.kitty}/bin/kitty @ set-colors -a "$KITTY_WAL" >/dev/null 2>&1 || true
 
     # Generate btop theme from pywal palette so btop stays synced across restarts.
     mkdir -p "$BTOP_THEME_DIR"
@@ -123,7 +124,6 @@ let
     ${pkgs.mako}/bin/makoctl reload >/dev/null 2>&1 || true
 
     ${pkgs.libnotify}/bin/notify-send "Thành công" "Màu hệ thống đã được đồng bộ!"
-    pkill -SIGUSR1 btop >/dev/null 2>&1 || true
     pkill walker || true
     pkill -SIGUSR2 waybar || true
   '';

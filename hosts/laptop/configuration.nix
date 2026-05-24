@@ -94,10 +94,13 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
-    theme = "breeze";
+    theme = "sugar-candy";
+    extraPackages = with pkgs; [
+      sddm-sugar-candy-theme
+    ];
     settings = {
       Theme = {
-        Current = "breeze";
+        Current = "sugar-candy";
         CursorTheme = "Adwaita";
         CursorSize = 24;
         Font = "JetBrains Mono Nerd Font";
