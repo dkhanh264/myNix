@@ -17,6 +17,7 @@ window#waybar {
 #workspaces,
 #clock,
 #custom-weather,
+#custom-active-apps,
 #tray,
 #pulseaudio,
 #network,
@@ -80,7 +81,7 @@ window#waybar {
 }
 /* ──────────────────────────────────────────────────────────── */
 
-#clock, #custom-weather {
+#clock, #custom-weather, #custom-active-apps {
     color: @selected-text;
 }
 

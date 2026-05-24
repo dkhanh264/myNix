@@ -11,7 +11,7 @@
 
   // Sắp xếp lại bố cục các khối theo yêu cầu mới của bạn
   "modules-left": ["custom/nixos", "hyprland/workspaces", "custom/music"],
-  "modules-center": ["clock", "custom/weather"],
+  "modules-center": ["clock", "custom/weather", "custom/active-apps"],
   "modules-right": ["tray", "pulseaudio", "network", "cpu", "memory", "battery"],
 
   // Khối hiển thị Logo NixOS (Click chuột để mở Walker Application Menu)
@@ -36,14 +36,20 @@
   },
 
   "custom/music": {
-    "format": "{}    󰐎  ",
-    "interval": 1,
-    "exec": "playerctl --player=spotify,%any metadata --format '󰓇  {{title}} - {{artist}}  {{duration(position)}}/{{duration(mpris:length)}}' 2>/dev/null || echo '󰝛  Chưa phát nhạc'",
-    "on-click": "playerctl --player=spotify,%any play-pause",
-    "on-scroll-up": "playerctl --player=spotify,%any next",
-    "on-scroll-down": "playerctl --player=spotify,%any previous",
-    "on-click-right": "spotify",
-    "max-length": 45
+    "format": "{}",
+    "interval": 2,
+    "exec": "~/.config/waybar/scripts/music.sh",
+    "on-click": "playerctl play-pause",
+    "on-scroll-up": "playerctl next",
+    "on-scroll-down": "playerctl previous",
+    "max-length": 40
+  },
+
+  "custom/active-apps": {
+    "format": "{}",
+    "interval": 2,
+    "exec": "~/.config/waybar/scripts/active-apps.sh",
+    "tooltip": false
   },
 
   "clock": {
