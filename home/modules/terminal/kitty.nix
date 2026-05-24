@@ -13,7 +13,7 @@
       cursor_shape = "beam";
       allow_remote_control = "yes";
     };
-    theme = "Tokyo Night";
+    themeFile = "tokyo_night_night";
     extraConfig = ''
       # Enable bold text rendering with bright colors (like Alacritty)
       draw_bold_text_with_bright_colors yes

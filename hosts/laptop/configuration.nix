@@ -81,6 +81,9 @@
       intel-media-driver
       libva-vdpau-driver
       libvdpau-va-gl
+      vulkan-tools
+      vulkan-loader
+      mesa
     ];
   };
 
@@ -91,7 +94,15 @@
   };
 
   programs.steam = {
-  enable = true;
+    enable = true;
+    # mở firewall cho remote play
+    remotePlay.openFirewall = true;
+
+    # mở firewall cho dedicated server
+    dedicatedServer.openFirewall = true;
+
+    # tối ưu cho Wayland/Hyprland
+    gamescopeSession.enable = true;
   };	
 
   security.polkit.enable = true;
@@ -213,6 +224,12 @@
     curl
     pciutils
   ];
+
+  environment.sessionVariables = {
+  NIXOS_OZONE_WL = "1";
+  STEAM_EXTRA_COMPAT_TOOLS_PATHS =
+    "/home/dk/.steam/root/compatibilitytools.d";
+};
 
   # ── Nix Settings ───────────────────────────────────────────────────────
   nix.settings = {
