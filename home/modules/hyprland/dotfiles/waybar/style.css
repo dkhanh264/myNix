@@ -85,7 +85,9 @@ window#waybar {
 }
 
 #custom-music {
-    color: @foreground;
+    color: @selected-text;
+    border-color: @selected-text;
+    padding: 2px 14px;
 }
 
 #battery.critical:not(.charging) {
