@@ -226,7 +226,7 @@ let
     }
 
     profile_menu() {
-       case $(menu "Power Profile" "🚀  Performance\n⚖️  Balanced\n🍃  Power Saver" "$SYSTEM_THEME") in
+       case $(menu "Power Profile" "󰾅 Performance\n󰾅 Balanced\n󰾅 Power Saver" "$SYSTEM_THEME") in
        *Performance*) 
           powerprofilesctl set performance 
           ${pkgs.libnotify}/bin/notify-send -t 2000 "Power Profile" "Đã chuyển sang Hiệu năng cao" 
@@ -305,7 +305,7 @@ let
      | sort -u)
 
     icons=""
-    for class in "${classes[@]}"; do
+    for class in "''${classes[@]}"; do
      lower=$(echo "$class" | tr '[:upper:]' '[:lower:]')
      case "$lower" in
        firefox*|librewolf*)        icon="󰈹" ;;
