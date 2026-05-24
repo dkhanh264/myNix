@@ -36,11 +36,14 @@
   },
 
   "custom/music": {
-    "format": "󰎆  {}",
-    "interval": 2,
-    "exec": "playerctl metadata --format '{{title}} - {{artist}}' 2>/dev/null || echo 'Dừng phát'",
-    "on-click": "playerctl play-pause",
-    "max-length": 25
+    "format": "{}    󰐎  ",
+    "interval": 1,
+    "exec": "playerctl --player=spotify,%any metadata --format '󰓇  {{title}} - {{artist}}  {{duration(position)}}/{{duration(mpris:length)}}' 2>/dev/null || echo '󰝛  Chưa phát nhạc'",
+    "on-click": "playerctl --player=spotify,%any play-pause",
+    "on-scroll-up": "playerctl --player=spotify,%any next",
+    "on-scroll-down": "playerctl --player=spotify,%any previous",
+    "on-click-right": "spotify",
+    "max-length": 45
   },
 
   "clock": {
