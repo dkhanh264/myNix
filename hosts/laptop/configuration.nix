@@ -11,6 +11,11 @@
     "nvidia-drm.fbdev=1"
   ];
 
+  # Improve headset/external mic detection on many HDA laptops.
+  boot.extraModprobeConfig = ''
+    options snd_hda_intel dmic_detect=0
+  '';
+
   boot.lanzaboote = {
   enable = true;
   pkiBundle = "/etc/secureboot";
@@ -137,6 +142,21 @@
             actions = {
               update-props = {
                 "session.suspend-timeout-seconds" = 0;
+              };
+            };
+          }
+        ];
+      };
+      extraConfig."52-alsa-auto-switch" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [
+              { "device.name" = "~alsa_card.*"; }
+            ];
+            actions = {
+              update-props = {
+                "api.acp.auto-profile" = true;
+                "api.acp.auto-port" = true;
               };
             };
           }
