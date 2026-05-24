@@ -2,7 +2,7 @@
 
 ## Tính năng chính
 
-- **NixOS flake** với cấu hình `nixosConfigurations.your-laptop`.
+- **NixOS flake** với cấu hình `nixosConfigurations.HiMeo`.
 - **Hyprland (Wayland)**: waybar, dunst, hyprpaper, hypridle, hyprlock.
 - **NVIDIA + Intel PRIME Sync Mode** và biến môi trường Wayland cần thiết.
 - **Home Manager** cho user `dk` với module tách theo chủ đề.
@@ -10,6 +10,7 @@
 - **Shell**: Zsh + Starship + alias tiện dụng.
 - **Theme**: GTK/Qt + Pywal theo wallpaper.
 - **Wallpaper switcher**: Super+Ctrl+Space để đổi wallpaper, mỗi lần đổi dùng hiệu ứng animation khác nhau và cập nhật theme theo màu.
+- **Scripts quản lý bởi Nix flake**: script tùy biến (Waybar/menu/wallpaper/OSD) được đóng gói bằng `writeShellScriptBin`.
 
 ## Cấu hình hệ thống
 
@@ -46,12 +47,10 @@ File chính: `home/home.nix`
 
 ## Sử dụng
 
-> **Lưu ý:** Thay `your-laptop` bằng hostname thực tế của bạn.
-
 ### Build / Switch
 
 ```
-sudo nixos-rebuild switch --flake /etc/nixos#your-laptop
+sudo nixos-rebuild switch --flake /etc/nixos#HiMeo
 ```
 
 ### Update flake

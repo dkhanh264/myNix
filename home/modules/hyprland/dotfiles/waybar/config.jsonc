@@ -38,7 +38,7 @@
   "custom/music": {
     "format": "{}",
     "interval": 2,
-    "exec": "~/.config/waybar/scripts/music.sh",
+    "exec": "waybar-music",
     "on-click": "playerctl play-pause",
     "on-scroll-up": "playerctl next",
     "on-scroll-down": "playerctl previous",
@@ -48,7 +48,7 @@
   "custom/active-apps": {
     "format": "{}",
     "interval": 2,
-    "exec": "~/.config/waybar/scripts/active-apps.sh",
+    "exec": "waybar-active-apps",
     "tooltip": false
   },
 
