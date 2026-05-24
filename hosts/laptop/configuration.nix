@@ -100,9 +100,6 @@
     enable = true;
     wayland.enable = true;
     theme = "sugar-candy";
-    extraPackages = with pkgs; [
-      sddm-sugar-candy-theme
-    ];
     settings = {
       Theme = {
         Current = "sugar-candy";
@@ -165,7 +162,7 @@
     };
   };
 
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
 
   security.rtkit.enable = true;
 
