@@ -268,6 +268,69 @@ let
     fi
   '';
 
+  waybarMusic = pkgs.writeShellScriptBin "waybar-music" ''
+    #!/usr/bin/env bash
+    output=$(${pkgs.playerctl}/bin/playerctl metadata --format '{{playerName}}|{{title}}' 2>/dev/null)
+
+    if [ -z "$output" ] || [ "$output" = "|" ]; then
+     echo "󰝛  Chưa phát nhạc"
+     exit 0
+    fi
+
+    player=$(echo "$output" | cut -d'|' -f1)
+    title=$(echo "$output" | cut -d'|' -f2-)
+
+    case "$(echo "$player" | tr '[:upper:]' '[:lower:]')" in
+     spotify*)                  icon="󰓇" ;;
+     firefox*|librewolf*)       icon="󰈹" ;;
+     chromium*|chrome*|google*) icon="󰊯" ;;
+     mpv*)                      icon="󰕓" ;;
+     vlc*)                      icon="󰕼" ;;
+     *)                         icon="󰝛" ;;
+    esac
+
+    [ -z "$title" ] && echo "󰝛  Chưa phát nhạc" || echo "$icon  $title"
+  '';
+
+  waybarActiveApps = pkgs.writeShellScriptBin "waybar-active-apps" ''
+    #!/usr/bin/env bash
+    workspace=$(hyprctl activeworkspace -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.id')
+
+    if [ -z "$workspace" ] || [ "$workspace" = "null" ]; then
+     exit 0
+    fi
+
+    mapfile -t classes < <(hyprctl clients -j 2>/dev/null \
+     | ${pkgs.jq}/bin/jq -r ".[] | select(.workspace.id == $workspace) | .class" \
+     | sort -u)
+
+    icons=""
+    for class in "${classes[@]}"; do
+     lower=$(echo "$class" | tr '[:upper:]' '[:lower:]')
+     case "$lower" in
+       firefox*|librewolf*)        icon="󰈹" ;;
+       chromium*|chrome*|google*)  icon="󰊯" ;;
+       code*|vscodium*|vscodiym*)  icon="󰨞" ;;
+       kitty*|alacritty*|foot*|wezterm*) icon="" ;;
+       spotify*)                   icon="󰓇" ;;
+       discord*)                   icon="󰙯" ;;
+       telegram*)                  icon="" ;;
+       thunar*|nautilus*|dolphin*|nemo*) icon="󰉋" ;;
+       mpv*)                       icon="󰕓" ;;
+       vlc*)                       icon="󰕼" ;;
+       obs*)                       icon="󰑋" ;;
+       gimp*)                      icon="󰐇" ;;
+       inkscape*)                  icon="󰠠" ;;
+       libreoffice*)               icon="󰈙" ;;
+       steam*)                     icon="󰓓" ;;
+       *)                          icon="" ;;
+     esac
+     [ -n "$icons" ] && icons="$icons $icon" || icons="$icon"
+    done
+
+    echo "$icons"
+  '';
+
 in
 {
   home.packages = [ 
@@ -276,5 +339,7 @@ in
     cycleBackground 
     walkerMenu
     volumeOsd 
+    waybarMusic
+    waybarActiveApps
   ];
 }
