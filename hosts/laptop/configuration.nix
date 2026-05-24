@@ -94,6 +94,15 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
+    theme = "breeze";
+    settings = {
+      Theme = {
+        Current = "breeze";
+        CursorTheme = "Adwaita";
+        CursorSize = 24;
+        Font = "JetBrains Mono Nerd Font";
+      };
+    };
   };
 
   # enable zram swap
@@ -113,11 +122,37 @@
 
     pulse.enable = true;
     jack.enable = true;
+    wireplumber = {
+      enable = true;
+      extraConfig."51-disable-node-suspend" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [
+              { "node.name" = "~alsa_input.*"; }
+              { "node.name" = "~alsa_output.*"; }
+            ];
+            actions = {
+              update-props = {
+                "session.suspend-timeout-seconds" = 0;
+              };
+            };
+          }
+        ];
+      };
+    };
   };
 
-  services.pulseaudio.enable = false;
+  hardware.pulseaudio.enable = false;
 
   security.rtkit.enable = true;
+
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-hyprland
+      xdg-desktop-portal-gtk
+    ];
+  };
 
   # ── Bluetooth ──────────────────────────────────────────────────────────
   hardware.bluetooth.enable = true;
