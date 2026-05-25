@@ -6,13 +6,14 @@ let
     WALJSON="$HOME/.cache/wal/colors.json"
     OUT_DIR="$HOME/.config/current"
     OUT="$OUT_DIR/wal-colors.css"
+    WAYBAR_WAL="$HOME/.config/waybar/wal-colors.css"
     KITTY_WAL="$HOME/.config/kitty/wal-theme.conf"
     BTOP_THEME_DIR="$HOME/.config/btop/themes"
     BTOP_THEME="$BTOP_THEME_DIR/wal.theme"
     MAKO_WAL_DIR="$HOME/.cache/wal"
     MAKO_WAL_CONF="$MAKO_WAL_DIR/mako-colors.conf"
 
-    mkdir -p "$OUT_DIR"
+    mkdir -p "$OUT_DIR" "$(dirname "$WAYBAR_WAL")"
 
     if [ ! -f "$WALJSON" ]; then 
        ${pkgs.libnotify}/bin/notify-send "Lỗi" "Không tìm thấy màu từ Pywal"
@@ -32,7 +33,7 @@ let
        echo "rgba(''${r}, ''${g}, ''${b}, ''${a})"
     }
 
-    cat <<EOF > "$OUT"
+    cat <<EOF | tee "$OUT" "$WAYBAR_WAL" >/dev/null
     @define-color selected-text $ACCENT;
     @define-color text $(hex_to_rgba "$FG" 0.9);
     @define-color base $(hex_to_rgba "$BG" 0.4);
