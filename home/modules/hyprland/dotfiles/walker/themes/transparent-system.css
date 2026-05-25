@@ -22,7 +22,7 @@ slider,
 
 * {
   font-family: monospace;
-  font-size: 20px;
+  font-size: 22px;
 }
 
 /* Window */
@@ -33,10 +33,10 @@ slider,
 
 /* Main box container */
 #box {
-  background: alpha(@base, 0.95);
-  padding: 30px;
+  background: alpha(@base, 0.92);
+  padding: 16px 18px;
   border: 2px solid @border;
-  border-radius: 0px;
+  border-radius: 12px;
 }
 
 /* Search container */
@@ -81,14 +81,14 @@ slider,
 
 /* List items */
 child {
-  padding: 0px 12px;
+  padding: 6px 12px;
   background: transparent;
-  border-radius: 0;
+  border-radius: 10px;
 }
 
 child:selected,
 child:hover {
-  background: transparent;
+  background: alpha(@selected-text, 0.18);
 }
 
 /* Item layout */
@@ -109,8 +109,7 @@ child:hover {
 /* Text */
 #text {
   color: @text;
-  padding: 14px 0;
-
+  padding: 10px 0;
 }
 
 #label {
@@ -167,13 +166,6 @@ scrollbar {
   border-radius: 7px;
 }
 
-
-#box {
-}
-* {
-  font-size: 24px;
-}
-
 /* OVERRIDE: HIDE SEARCH BAR COMPLETELY */
 #search {
   all: unset;
@@ -185,5 +177,5 @@ scrollbar {
 
 /* Pull list up to compensate for hidden search bar */
 #list {
-  margin-top: -30px;
+  margin-top: -12px;
 }

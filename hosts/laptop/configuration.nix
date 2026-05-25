@@ -103,7 +103,10 @@
 
     # tối ưu cho Wayland/Hyprland
     gamescopeSession.enable = true;
-  };	
+  };
+
+  programs.gamemode.enable = true;
+  programs.gamescope.enable = true;
 
   security.polkit.enable = true;
 
@@ -229,6 +232,7 @@
   NIXOS_OZONE_WL = "1";
   STEAM_EXTRA_COMPAT_TOOLS_PATHS =
     "/home/dk/.steam/root/compatibilitytools.d";
+  STEAM_USE_XDG_PORTAL = "1";
 };
 
   # ── Nix Settings ───────────────────────────────────────────────────────

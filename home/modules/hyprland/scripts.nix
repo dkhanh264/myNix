@@ -13,7 +13,6 @@ let
     MAKO_WAL_CONF="$MAKO_WAL_DIR/mako-colors.conf"
 
     mkdir -p "$OUT_DIR"
-    sleep 1
 
     if [ ! -f "$WALJSON" ]; then 
        ${pkgs.libnotify}/bin/notify-send "Lỗi" "Không tìm thấy màu từ Pywal"
@@ -41,6 +40,7 @@ let
     @define-color foreground $(hex_to_rgba "$FG" 0.9);
     @define-color background $(hex_to_rgba "$BG" 0.9);
     EOF
+    pkill -x -SIGUSR2 waybar || true
 
     # Persist terminal colors and live-apply to running Kitty windows.
     mkdir -p "$(dirname "$KITTY_WAL")"
@@ -124,8 +124,7 @@ let
     ${pkgs.mako}/bin/makoctl reload >/dev/null 2>&1 || true
 
     ${pkgs.libnotify}/bin/notify-send "Thành công" "Màu hệ thống đã được đồng bộ!"
-    pkill walker || true
-    pkill -SIGUSR2 waybar || true
+    pkill -x walker || true
   '';
 
   cycleBackground = pkgs.writeShellScriptBin "cycle-background" ''
@@ -212,6 +211,7 @@ let
     
     APP_THEME="--theme transparent-apps"
     SYSTEM_THEME="--theme transparent-system"
+    POWER_THEME="--theme transparent-power"
 
     menu() { echo -e "$2" | walker --dmenu $3 -p "$1…"; }
 
@@ -226,7 +226,7 @@ let
     }
 
     profile_menu() {
-       case $(menu "Power Profile" "󰾅 Performance\n󰾅 Balanced\n󰾅 Power Saver" "$SYSTEM_THEME") in
+       case $(menu "Power Profile" "󰾅  Performance\n󰾆  Balanced\n󰓅  Power Saver" "$POWER_THEME") in
        *Performance*) 
           powerprofilesctl set performance 
           ${pkgs.libnotify}/bin/notify-send -t 2000 "Power Profile" "Đã chuyển sang Hiệu năng cao" 
