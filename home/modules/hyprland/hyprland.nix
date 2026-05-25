@@ -35,6 +35,7 @@
 
       # ── Autostart ─────────────────────────────────────────────────────
       exec-once = [
+        "cycle-background"
         "waybar"
         "mako"        # Khởi động trình thông báo
         "hypridle"
