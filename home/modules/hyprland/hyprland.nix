@@ -14,8 +14,8 @@
       # ── Monitors ──────────────────────────────────────────────────────
       # eDP-1 là màn hình laptop, HDMI-A-1 là màn hình ngoài.
       monitor = [
-        "eDP-1, 1920x1080@144, 0x0, 1"
-        "HDMI-A-1, highrr, 1920x0, 1"
+        "eDP-1, 1920x1080@144, 1920x0, 1"
+        "HDMI-A-1, highrr, 0x0, 1"
       ];
 
       # ── NVIDIA + Wayland env vars ──────────────────────────────────────
@@ -42,6 +42,7 @@
         "blueman-applet"
         "wl-paste --type text --watch cliphist store"
         "fcitx5 -d"
+        "swww-daemon"  # Daemon cho hình nền có hiệu ứng chuyển cảnh
       ];
 
       # ── General ───────────────────────────────────────────────────────
@@ -105,6 +106,12 @@
         "float, title:^(Picture-in-Picture)$"
         "pin,   title:^(Picture-in-Picture)$"
         "opacity 0.95 0.90, class:^(firefox)$"
+        "opacity 0.94 0.90, class:^(kitty)$"
+        "opacity 0.95 0.92, class:^(org\\.gnome\\.Nautilus)$"
+        "opacity 0.95 0.90, class:^(google-chrome)$"
+        "opacity 0.95 0.90, class:^(discord)$"
+        "opacity 0.95 0.90, class:^(Spotify)$"
+        "opacity 0.95 0.90, class:^(Code|code)$"
         # Cú pháp: opacity <độ_đục_khi_đang_dùng> <độ_đục_khi_không_dùng>, class:^(tên_app)$
       ];
 
@@ -143,11 +150,17 @@
         "$mainMod, 3, workspace, 3"
         "$mainMod, 4, workspace, 4"
         "$mainMod, 5, workspace, 5"
+        "$mainMod, 6, workspace, 6"
+        "$mainMod, 7, workspace, 7"
+        "$mainMod, 8, workspace, 8"
         "$mainMod SHIFT, 1, movetoworkspace, 1"
         "$mainMod SHIFT, 2, movetoworkspace, 2"
         "$mainMod SHIFT, 3, movetoworkspace, 3"
         "$mainMod SHIFT, 4, movetoworkspace, 4"
         "$mainMod SHIFT, 5, movetoworkspace, 5"
+        "$mainMod SHIFT, 6, movetoworkspace, 6"
+        "$mainMod SHIFT, 7, movetoworkspace, 7"
+        "$mainMod SHIFT, 8, movetoworkspace, 8"
         
         "$mainMod, S,       togglespecialworkspace, magic"
         "$mainMod SHIFT, S, movetoworkspace, special:magic"

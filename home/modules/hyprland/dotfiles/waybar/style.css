@@ -17,6 +17,7 @@ window#waybar {
 #workspaces,
 #clock,
 #custom-weather,
+#custom-active-apps,
 #tray,
 #pulseaudio,
 #network,
@@ -80,12 +81,14 @@ window#waybar {
 }
 /* ──────────────────────────────────────────────────────────── */
 
-#clock, #custom-weather {
+#clock, #custom-weather, #custom-active-apps {
     color: @selected-text;
 }
 
 #custom-music {
-    color: @foreground;
+    color: @selected-text;
+    border-color: @selected-text;
+    padding: 2px 14px;
 }
 
 #battery.critical:not(.charging) {

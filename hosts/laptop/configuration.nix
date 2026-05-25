@@ -11,6 +11,11 @@
     "nvidia-drm.fbdev=1"
   ];
 
+  # Improve headset/external mic detection on many HDA laptops.
+  boot.extraModprobeConfig = ''
+    options snd_hda_intel dmic_detect=0
+  '';
+
   boot.lanzaboote = {
   enable = true;
   pkiBundle = "/etc/secureboot";
@@ -76,6 +81,9 @@
       intel-media-driver
       libva-vdpau-driver
       libvdpau-va-gl
+      vulkan-tools
+      vulkan-loader
+      mesa
     ];
   };
 
@@ -86,7 +94,15 @@
   };
 
   programs.steam = {
-  enable = true;
+    enable = true;
+    # mở firewall cho remote play
+    remotePlay.openFirewall = true;
+
+    # mở firewall cho dedicated server
+    dedicatedServer.openFirewall = true;
+
+    # tối ưu cho Wayland/Hyprland
+    gamescopeSession.enable = true;
   };	
 
   security.polkit.enable = true;
@@ -94,6 +110,15 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
+    theme = "sugar-candy";
+    settings = {
+      Theme = {
+        Current = "sugar-candy";
+        CursorTheme = "Adwaita";
+        CursorSize = 24;
+        Font = "JetBrains Mono Nerd Font";
+      };
+    };
   };
 
   # enable zram swap
@@ -113,11 +138,52 @@
 
     pulse.enable = true;
     jack.enable = true;
+    wireplumber = {
+      enable = true;
+      extraConfig."51-disable-node-suspend" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [
+              { "node.name" = "~alsa_input.*"; }
+              { "node.name" = "~alsa_output.*"; }
+            ];
+            actions = {
+              update-props = {
+                "session.suspend-timeout-seconds" = 0;
+              };
+            };
+          }
+        ];
+      };
+      extraConfig."52-alsa-auto-switch" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [
+              { "device.name" = "~alsa_card.*"; }
+            ];
+            actions = {
+              update-props = {
+                "api.acp.auto-profile" = true;
+                "api.acp.auto-port" = true;
+              };
+            };
+          }
+        ];
+      };
+    };
   };
 
   services.pulseaudio.enable = false;
 
   security.rtkit.enable = true;
+
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-hyprland
+      xdg-desktop-portal-gtk
+    ];
+  };
 
   # ── Bluetooth ──────────────────────────────────────────────────────────
   hardware.bluetooth.enable = true;
@@ -158,6 +224,12 @@
     curl
     pciutils
   ];
+
+  environment.sessionVariables = {
+  NIXOS_OZONE_WL = "1";
+  STEAM_EXTRA_COMPAT_TOOLS_PATHS =
+    "/home/dk/.steam/root/compatibilitytools.d";
+};
 
   # ── Nix Settings ───────────────────────────────────────────────────────
   nix.settings = {

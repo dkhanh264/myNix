@@ -12,19 +12,63 @@
     defaultEditor = true;  # Đặt nvim làm $EDITOR mặc định
 
     # ── Colorscheme ─────────────────────────────────────────────────────
-    # Cần pywal tạo màu trước khi mở Neovim (~/.cache/wal/colors-wal.vim).
+    # Đồng bộ theo Pywal và làm nền trong suốt để "ăn" blur của terminal/compositor.
     extraPlugins = with pkgs.vimPlugins; [
       wal-vim
     ];
     extraConfigLua = ''
-      vim.cmd.colorscheme("wal")
+      local wal_file = vim.fn.expand("~/.cache/wal/colors-wal.vim")
+
+      local transparent_groups = {
+        "Normal", "NormalNC", "NormalFloat", "FloatBorder", "SignColumn",
+        "EndOfBuffer", "LineNr", "FoldColumn", "CursorLineNr",
+        "StatusLine", "StatusLineNC", "TabLineFill", "WinSeparator", "VertSplit",
+      }
+
+      local function apply_transparency()
+        for _, group in ipairs(transparent_groups) do
+          vim.api.nvim_set_hl(0, group, { bg = "none", ctermbg = "none" })
+        end
+      end
+
+      local function apply_wal_theme()
+        pcall(vim.cmd.colorscheme, "wal")
+        apply_transparency()
+      end
+
+      local function get_mtime(path)
+        local stat = vim.uv.fs_stat(path)
+        if not stat or not stat.mtime then
+          return nil
+        end
+        return (stat.mtime.sec or 0) * 1000000000 + (stat.mtime.nsec or 0)
+      end
+
+      local wal_mtime = get_mtime(wal_file)
+      apply_wal_theme()
+
+      local group = vim.api.nvim_create_augroup("WalThemeAutoSync", { clear = true })
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        group = group,
+        callback = apply_transparency,
+      })
+      vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter" }, {
+        group = group,
+        callback = function()
+          local current_mtime = get_mtime(wal_file)
+          if current_mtime and current_mtime ~= wal_mtime then
+            wal_mtime = current_mtime
+            apply_wal_theme()
+          end
+        end,
+      })
     '';
 
     # ── Global Options ───────────────────────────────────────────────────
     # Tương đương với vim.opt.xxx = yyy trong Lua
     opts = {
       number         = true;   # Hiện số dòng tuyệt đối
-      relativenumber = true;   # Hiện số dòng tương đối (tiện di chuyển)
+      relativenumber = false;  # Dễ làm quen hơn cho người mới
       tabstop        = 2;      # Tab = 2 spaces
       shiftwidth     = 2;      # Indent = 2 spaces
       expandtab      = true;   # Dùng spaces thay vì tab
@@ -41,6 +85,9 @@
       splitright     = true;   # Split ngang mở sang phải
       splitbelow     = true;   # Split dọc mở xuống dưới
       clipboard      = "unnamedplus"; # Sync clipboard với hệ thống
+      mouse          = "a";    # Bật chuột để click chuyển cửa sổ/con trỏ
+      confirm        = true;   # Hỏi xác nhận khi đóng file chưa lưu
+      timeoutlen     = 400;    # Which-key hiện gợi ý nhanh hơn
     };
 
     # ── Global Variables ─────────────────────────────────────────────────
@@ -59,6 +106,12 @@
       { mode = "n"; key = "<leader>fg"; action = "<cmd>Telescope live_grep<cr>";  options.desc = "Live grep"; }
       { mode = "n"; key = "<leader>fb"; action = "<cmd>Telescope buffers<cr>";    options.desc = "Find buffers"; }
       { mode = "n"; key = "<leader>fh"; action = "<cmd>Telescope help_tags<cr>";  options.desc = "Help tags"; }
+      { mode = "n"; key = "<leader>fr"; action = "<cmd>Telescope oldfiles<cr>";   options.desc = "Recent files"; }
+      { mode = "n"; key = "<leader>fk"; action = "<cmd>Telescope keymaps<cr>";    options.desc = "Find keymaps"; }
+
+      # Save/quit cơ bản cho người mới
+      { mode = "n"; key = "<leader>w"; action = "<cmd>w<cr>"; options.desc = "Save file"; }
+      { mode = "n"; key = "<leader>q"; action = "<cmd>q<cr>"; options.desc = "Quit window"; }
 
       # Buffer navigation
       { mode = "n"; key = "<S-h>"; action = "<cmd>bprevious<cr>"; options.desc = "Previous buffer"; }
@@ -88,6 +141,7 @@
 
       # Misc
       { mode = "n"; key = "<leader>nh"; action = "<cmd>nohl<cr>"; options.desc = "Clear search highlight"; }
+      { mode = "n"; key = "<Esc>"; action = "<cmd>nohlsearch<cr>"; options.desc = "Clear search highlight"; }
       { mode = "i"; key = "jk";  action = "<ESC>"; options.desc = "Exit insert mode nhanh"; }
       { mode = "v"; key = "<";   action = "<gv"; options.desc = "Indent left và giữ selection"; }
       { mode = "v"; key = ">";   action = ">gv"; options.desc = "Indent right và giữ selection"; }

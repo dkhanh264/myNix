@@ -2,6 +2,9 @@
 {
   services.mako = {
     enable = true;
+    extraConfig = ''
+      include=~/.cache/wal/mako-colors.conf
+    '';
     
     # Gom toàn bộ cấu hình cũ vào khối settings và đổi sang dạng dấu gạch ngang (-)
     settings = {
@@ -13,8 +16,6 @@
       border-size = 0;
       border-radius = 10;
       default-timeout = 2000;
-      background-color = "#1e1e2e99";
-      text-color = "#cdd6f4";
       layer = "top";
       anchor = "top-right";
     };

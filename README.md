@@ -2,14 +2,15 @@
 
 ## Tính năng chính
 
-- **NixOS flake** với cấu hình `nixosConfigurations.your-laptop`.
+- **NixOS flake** với cấu hình `nixosConfigurations.HiMeo`.
 - **Hyprland (Wayland)**: waybar, dunst, hyprpaper, hypridle, hyprlock.
 - **NVIDIA + Intel PRIME Sync Mode** và biến môi trường Wayland cần thiết.
 - **Home Manager** cho user `dk` với module tách theo chủ đề.
 - **NixVim** cấu hình hoàn toàn bằng Nix (LSP, Treesitter, Telescope, v.v.).
 - **Shell**: Zsh + Starship + alias tiện dụng.
 - **Theme**: GTK/Qt + Pywal theo wallpaper.
-- **Wallpaper picker**: Super+P để chọn wallpaper và cập nhật theme theo màu.
+- **Wallpaper switcher**: Super+Ctrl+Space để đổi wallpaper, mỗi lần đổi dùng hiệu ứng animation khác nhau và cập nhật theme theo màu.
+- **Scripts quản lý bởi Nix flake**: script tùy biến (Waybar/menu/wallpaper/OSD) được đóng gói bằng `writeShellScriptBin`.
 
 ## Cấu hình hệ thống
 
@@ -32,14 +33,24 @@ File chính: `home/home.nix`
 - Dev: Git + NixVim
 - Theme: GTK/Qt + Pywal
 
-## Sử dụng
+## NixVim thân thiện cho người mới
 
-> **Lưu ý:** Thay `your-laptop` bằng hostname thực tế của bạn.
+- `Space + e`: mở/đóng cây thư mục.
+- `Space + ff`: tìm file nhanh.
+- `Space + fg`: tìm text trong project.
+- `Space + fr`: mở file gần đây.
+- `Space + fk`: tìm/phím tắt đã map.
+- `Space + w`: lưu file.
+- `Space + q`: đóng cửa sổ hiện tại.
+- `Esc`: bỏ highlight sau khi search.
+- Khi quên phím tắt, bấm `Space` và chờ popup `which-key` hiện gợi ý.
+
+## Sử dụng
 
 ### Build / Switch
 
 ```
-sudo nixos-rebuild switch --flake /etc/nixos#your-laptop
+sudo nixos-rebuild switch --flake /etc/nixos#HiMeo
 ```
 
 ### Update flake

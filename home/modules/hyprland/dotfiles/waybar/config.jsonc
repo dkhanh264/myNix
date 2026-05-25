@@ -11,7 +11,7 @@
 
   // Sắp xếp lại bố cục các khối theo yêu cầu mới của bạn
   "modules-left": ["custom/nixos", "hyprland/workspaces", "custom/music"],
-  "modules-center": ["clock", "custom/weather"],
+  "modules-center": ["clock", "custom/weather", "custom/active-apps"],
   "modules-right": ["tray", "pulseaudio", "network", "cpu", "memory", "battery"],
 
   // Khối hiển thị Logo NixOS (Click chuột để mở Walker Application Menu)
@@ -31,16 +31,25 @@
       "default": ""
     },
     "persistent-workspaces": {
-      "1": [], "2": [], "3": [], "4": [], "5": []
+      "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], "7": [], "8": []
     }
   },
 
   "custom/music": {
-    "format": "󰎆  {}",
+    "format": "{}",
     "interval": 2,
-    "exec": "playerctl metadata --format '{{title}} - {{artist}}' 2>/dev/null || echo 'Dừng phát'",
+    "exec": "waybar-music",
     "on-click": "playerctl play-pause",
-    "max-length": 25
+    "on-scroll-up": "playerctl next",
+    "on-scroll-down": "playerctl previous",
+    "max-length": 40
+  },
+
+  "custom/active-apps": {
+    "format": "{}",
+    "interval": 2,
+    "exec": "waybar-active-apps",
+    "tooltip": false
   },
 
   "clock": {
