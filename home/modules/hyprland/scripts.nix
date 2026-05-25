@@ -13,7 +13,19 @@ let
     MAKO_WAL_DIR="$HOME/.cache/wal"
     MAKO_WAL_CONF="$MAKO_WAL_DIR/mako-colors.conf"
 
-    mkdir -p "$OUT_DIR" "$(dirname "$WAYBAR_WAL")"
+    mkdir -p "$OUT_DIR"
+
+    # Nếu ~/.config/waybar là symlink vào Nix store (read-only), thay bằng thư mục thật
+    # để script có thể ghi wal-colors.css vào đó.
+    _waybar_dir="$(dirname "$WAYBAR_WAL")"
+    if [ -L "$_waybar_dir" ]; then
+      _store_path="$(readlink -f "$_waybar_dir")"
+      unlink "$_waybar_dir"
+      mkdir -p "$_waybar_dir"
+      [ -d "$_store_path" ] && cp -a "$_store_path"/. "$_waybar_dir/" 2>/dev/null || true
+    else
+      mkdir -p "$_waybar_dir"
+    fi
 
     if [ ! -f "$WALJSON" ]; then 
        ${pkgs.libnotify}/bin/notify-send "Lỗi" "Không tìm thấy màu từ Pywal"
