@@ -226,10 +226,10 @@
   ];
 
   environment.sessionVariables = {
-    NIXOS_OZONE_WL = "1";
-    STEAM_EXTRA_COMPAT_TOOLS_PATHS =
-      "/home/dk/.steam/root/compatibilitytools.d";
-  };
+  NIXOS_OZONE_WL = "1";
+  STEAM_EXTRA_COMPAT_TOOLS_PATHS =
+    "/home/dk/.steam/root/compatibilitytools.d";
+};
 
   # ── Nix Settings ───────────────────────────────────────────────────────
   nix.settings = {
