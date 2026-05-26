@@ -1,5 +1,5 @@
 /* Import bảng màu hệ thống được sinh ra từ Pywal script */
-@import url("./wal-colors.css");
+@import url("file:///home/dk/.config/current/wal-colors.css");
 
 * {
     font-family: "JetBrains Mono Nerd Font", sans-serif;

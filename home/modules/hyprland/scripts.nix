@@ -4,7 +4,7 @@ let
   walColorExport = pkgs.writeShellScriptBin "wal-color-export" ''
     #!/usr/bin/env bash
     WALJSON="$HOME/.cache/wal/colors.json"
-    OUT_DIR="$HOME/.config/waybar"
+    OUT_DIR="$HOME/.config/current"
     OUT="$OUT_DIR/wal-colors.css"
     KITTY_WAL="$HOME/.config/kitty/wal-theme.conf"
     BTOP_THEME_DIR="$HOME/.config/btop/themes"
