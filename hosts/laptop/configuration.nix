@@ -55,6 +55,7 @@
   hardware.nvidia = {
     modesetting.enable = true;
     package = config.boot.kernelPackages.nvidiaPackages.production;
+    nvidiaSettings = true;
     
     # 1. Chuyển sang driver độc quyền (proprietary). Driver open-source hiện tại vẫn chưa hoàn toàn ổn định cho multi-monitor Wayland.
     open = false; 
@@ -104,6 +105,7 @@
     # tối ưu cho Wayland/Hyprland
     gamescopeSession.enable = true;
   };	
+  programs.gamemode.enable = true;
 
   security.polkit.enable = true;
 
@@ -226,10 +228,14 @@
   ];
 
   environment.sessionVariables = {
-  NIXOS_OZONE_WL = "1";
-  STEAM_EXTRA_COMPAT_TOOLS_PATHS =
-    "/home/dk/.steam/root/compatibilitytools.d";
-};
+    NIXOS_OZONE_WL = "1";
+    __GL_THREADED_OPTIMIZATIONS = "1";
+    __GL_SHADER_DISK_CACHE = "1";
+    __GL_SHADER_DISK_CACHE_PATH = "/home/dk/.cache/nv-shader-cache";
+    __GL_VRR_ALLOWED = "1";
+    STEAM_EXTRA_COMPAT_TOOLS_PATHS =
+      "/home/dk/.steam/root/compatibilitytools.d";
+  };
 
   # ── Nix Settings ───────────────────────────────────────────────────────
   nix.settings = {
