@@ -91,6 +91,13 @@ window#waybar {
     padding: 2px 14px;
 }
 
+#custom-music.hidden {
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background-color: transparent;
+}
+
 #battery.critical:not(.charging) {
     color: #f38ba8;
     animation-name: blink;
