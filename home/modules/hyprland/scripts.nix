@@ -269,23 +269,26 @@ let
 
   waybarMusic = pkgs.writeShellScriptBin "waybar-music" ''
     #!/usr/bin/env bash
-    playerctl="${pkgs.playerctl}/bin/playerctl"
-    jq="${pkgs.jq}/bin/jq"
+    output=$(${pkgs.playerctl}/bin/playerctl metadata --format '{{playerName}}|{{title}}' 2>/dev/null)
 
-    status=$($playerctl -p spotify,spicetify status 2>/dev/null)
-    if [ "$status" != "Playing" ]; then
-      $jq -Rn --arg text "" --arg class "hidden" '{text:$text, class:$class}'
-      exit 0
+    if [ -z "$output" ] || [ "$output" = "|" ]; then
+     echo "󰝛  Chưa phát nhạc"
+     exit 0
     fi
 
-    title=$($playerctl -p spotify,spicetify metadata --format '{{title}}' 2>/dev/null)
-    if [ -z "$title" ]; then
-      $jq -Rn --arg text "" --arg class "hidden" '{text:$text, class:$class}'
-      exit 0
-    fi
+    player=$(echo "$output" | cut -d'|' -f1)
+    title=$(echo "$output" | cut -d'|' -f2-)
 
-    text="󰓇  $title"
-    $jq -Rn --arg text "$text" --arg class "playing" '{text:$text, class:$class}'
+    case "$(echo "$player" | tr '[:upper:]' '[:lower:]')" in
+     spotify*)                  icon="󰓇" ;;
+     firefox*|librewolf*)       icon="󰈹" ;;
+     chromium*|chrome*|google*) icon="󰊯" ;;
+     mpv*)                      icon="󰕓" ;;
+     vlc*)                      icon="󰕼" ;;
+     *)                         icon="󰝛" ;;
+    esac
+
+    [ -z "$title" ] && echo "󰝛  Chưa phát nhạc" || echo "$icon  $title"
   '';
 
   waybarActiveApps = pkgs.writeShellScriptBin "waybar-active-apps" ''
@@ -308,7 +311,7 @@ let
        chromium*|chrome*|google*)  icon="󰊯" ;;
        code*|vscodium*|vscodiym*)  icon="󰨞" ;;
        kitty*|alacritty*|foot*|wezterm*) icon="" ;;
-       spicetify*|spotify*)         icon="󰓇" ;;
+       spotify*)                   icon="󰓇" ;;
        discord*)                   icon="󰙯" ;;
        telegram*)                  icon="" ;;
        thunar*|nautilus*|dolphin*|nemo*) icon="󰉋" ;;

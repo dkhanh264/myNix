@@ -40,7 +40,7 @@
     firefox
     google-chrome
     discord
-    spicetify-cli
+    spotify
     vscode
     fastfetch
 
@@ -57,3 +57,4 @@
     
   ];
 }
+
