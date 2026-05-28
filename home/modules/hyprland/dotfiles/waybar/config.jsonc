@@ -27,8 +27,8 @@
     "active-only": false,
     "format": "{icon}",
     "format-icons": {
-      "active": "",
-      "default": ""
+      "active": "󱓻",
+      "default": ""
     },
     "persistent-workspaces": {
       "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], "7": [], "8": []
@@ -37,7 +37,6 @@
 
   "custom/music": {
     "format": "{}",
-    "return-type": "json",
     "interval": 2,
     "exec": "waybar-music",
     "on-click": "playerctl play-pause",
@@ -54,7 +53,7 @@
   },
 
   "clock": {
-    "format": "󰥔 {:%H:%M} 󰃭 {:%d/%m}",
+    "format": "  {:%H:%M    %d/%m}",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
   },
 
@@ -68,12 +67,12 @@
 
   "cpu": {
     "interval": 10,
-    "format": "󰍛  {usage}%"
+    "format": "  {usage}%"
   },
 
   "memory": {
     "interval": 10,
-    "format": "󰘚  {used:.1f}G"
+    "format": "  {used:.1f}G"
   },
 
   "battery": {
@@ -82,24 +81,24 @@
       "critical": 15
     },
     "format": "{icon}  {capacity}%",
-    "format-charging": "󰂄  {capacity}%",
-    "format-plugged": "󰚥  {capacity}%",
+    "format-charging": "󰢝  {capacity}%",
+    "format-plugged": "  {capacity}%",
     "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
   },
 
   "network": {
-    "format-wifi": "󰤨  {essid}",
-    "format-ethernet": "󰈀  Wired",
-    "format-disconnected": "󰤭  Disconnected",
+    "format-wifi": "  {essid}",
+    "format-ethernet": "󰀂  Connected",
+    "format-disconnected": "󰤮  Disconnected",
     "tooltip-format": "{ifname} via {gwaddr}",
     "on-click": "nm-connection-editor"
   },
 
   "pulseaudio": {
     "format": "{icon}  {volume}%",
-    "format-muted": "󰝟  Muted",
+    "format-muted": "  Muted",
     "format-icons": {
-      "default": ["󰕿", "󰖀", "󰕾"]
+      "default": ["", "", ""]
     },
     "on-click": "pavucontrol"
   },

@@ -110,7 +110,7 @@
         "opacity 0.95 0.92, class:^(org\\.gnome\\.Nautilus)$"
         "opacity 0.95 0.90, class:^(google-chrome)$"
         "opacity 0.95 0.90, class:^(discord)$"
-        "opacity 0.95 0.90, class:^(Spotify|Spicetify)$"
+        "opacity 0.95 0.90, class:^(Spotify)$"
         "opacity 0.95 0.90, class:^(Code|code)$"
         # Cú pháp: opacity <độ_đục_khi_đang_dùng> <độ_đục_khi_không_dùng>, class:^(tên_app)$
       ];
