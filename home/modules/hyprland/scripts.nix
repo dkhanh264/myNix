@@ -13,7 +13,6 @@ let
     MAKO_WAL_CONF="$MAKO_WAL_DIR/mako-colors.conf"
 
     mkdir -p "$OUT_DIR"
-    sleep 1
 
     if [ ! -f "$WALJSON" ]; then 
        ${pkgs.libnotify}/bin/notify-send "Lỗi" "Không tìm thấy màu từ Pywal"
@@ -191,7 +190,7 @@ let
       # Ensure swww daemon is running
       if ! pgrep -x swww-daemon >/dev/null 2>&1; then
         ${pkgs.swww}/bin/swww-daemon >/dev/null 2>&1 &
-        sleep 0.5
+        sleep 0.3
       fi
       TRANSITIONS=(fade wipe wave grow center outer)
       TRANSITION_INDEX=$((NEXT_INDEX % ''${#TRANSITIONS[@]}))
@@ -226,7 +225,7 @@ let
     }
 
     profile_menu() {
-       case $(menu "Power Profile" "󰾅 Performance\n󰾅 Balanced\n󰾅 Power Saver" "$SYSTEM_THEME") in
+       case $(menu "Power Profile" "󰾅  Performance\n󰾅  Balanced\n󰾅  Power Saver" "$SYSTEM_THEME") in
        *Performance*) 
           powerprofilesctl set performance 
           ${pkgs.libnotify}/bin/notify-send -t 2000 "Power Profile" "Đã chuyển sang Hiệu năng cao" 
