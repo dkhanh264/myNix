@@ -9,6 +9,7 @@
     fzf
     zoxide
     btop
+    cava
 
     # Wayland essentials
     wl-clipboard
@@ -43,6 +44,7 @@
     spotify
     vscode
     fastfetch
+    android-studio
 
     # Thêm các công cụ từ nixparency-dots
     walker         # Thay thế Rofi làm launcher
