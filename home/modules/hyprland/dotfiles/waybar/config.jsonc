@@ -10,9 +10,9 @@
   "spacing": 0,
 
   // Sắp xếp lại bố cục các khối theo yêu cầu mới của bạn
-  "modules-left": ["custom/nixos", "hyprland/workspaces", "custom/music"],
-  "modules-center": ["clock", "custom/weather", "custom/active-apps"],
-  "modules-right": ["tray", "pulseaudio", "network", "cpu", "memory", "battery"],
+  "modules-left": ["custom/nixos", "hyprland/workspaces", "group/music-pill"],
+  "modules-center": ["clock", "custom/weather"],
+  "modules-right": ["tray", "pulseaudio", "network", "cpu", "temperature", "memory", "battery"],
 
   // Khối hiển thị Logo NixOS (Click chuột để mở Walker Application Menu)
   "custom/nixos": {
@@ -21,39 +21,75 @@
     "on-click": "walker-menu apps"
   },
 
+  
   "hyprland/workspaces": {
     "disable-scroll": true,
     "all-outputs": true,
     "active-only": false,
     "format": "{icon}",
     "format-icons": {
-      "active": "󱓻",
-      "default": ""
+      "active": "󱓻",  // Giữ nguyên icon hình vuông dẹt khi bạn đang ở workspace đó
+      "1": "1",       // Định nghĩa số hiển thị cho các workspace còn lại
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7",
+      "8": "8"
     },
     "persistent-workspaces": {
       "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], "7": [], "8": []
     }
   },
 
-  "custom/music": {
-    "format": "{}",
-    "interval": 2,
-    "exec": "waybar-music",
-    "on-click": "playerctl play-pause",
-    "on-scroll-up": "playerctl next",
-    "on-scroll-down": "playerctl previous",
-    "max-length": 40
+  "group/music-pill": {
+    "orientation": "horizontal",
+    "modules": [
+      "image#music-art",
+      "custom/music",
+      "custom/player-prev",
+      "custom/player-toggle",
+      "custom/player-next"
+    ]
   },
 
-  "custom/active-apps": {
+  "image#music-art": {
+    "path": "/tmp/music_cover.png",
+    "size": 22, // Kích thước ảnh vuông (22x22 pixel) cân bằng với thanh bar
+    "interval": 1
+  },
+
+  "custom/music": {
     "format": "{}",
-    "interval": 2,
-    "exec": "waybar-active-apps",
+    "escape": true,
+    "exec": "waybar-music",
+    "on-click": "playerctl play-pause",
+    "max-length": 15
+  },
+
+  "custom/player-prev": {
+    "format": "󰒮",
+    "on-click": "playerctl previous",
+    "tooltip": false
+  },
+
+  "custom/player-toggle": {
+    "interval": 1,
+    "exec": "playerctl status 2>/dev/null | grep -q 'Playing' && echo '󰏤' || echo '󰐊'",
+    "format": "{}",
+    "on-click": "playerctl play-pause",
+    "tooltip": false
+  },
+
+  "custom/player-next": {
+    "format": "󰒭",
+    "on-click": "playerctl next",
     "tooltip": false
   },
 
   "clock": {
-    "format": "  {:%H:%M    %d/%m}",
+    "format": " {:%H:%M   %d/%m}",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
   },
 
@@ -67,12 +103,20 @@
 
   "cpu": {
     "interval": 10,
-    "format": "  {usage}%"
+    "format": " {usage}%"
+  },
+
+  "temperature": {
+    "hwmon-path": "/sys/class/hwmon/hwmon3/temp1_input", // Ép module đọc đúng cảm biến coretemp
+    "critical-threshold": 80, // Ngưỡng nhiệt độ cảnh báo nguy hiểm (độ C)
+    "format": "{icon} {temperatureC}°C",
+    "format-critical": " {temperatureC}°C",
+    "format-icons": ["", "", "", "", ""]
   },
 
   "memory": {
     "interval": 10,
-    "format": "  {used:.1f}G"
+    "format": " {used:.1f}G"
   },
 
   "battery": {
@@ -80,15 +124,15 @@
       "warning": 30,
       "critical": 15
     },
-    "format": "{icon}  {capacity}%",
-    "format-charging": "󰢝  {capacity}%",
-    "format-plugged": "  {capacity}%",
-    "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+    "format": "{icon} {capacity}%",
+    "format-charging": "󰂄 {capacity}%",
+    "format-plugged": "󰂄 {capacity}%",
+    "format-icons": ["", "", "", "", "", "", "", "", "", ""]
   },
 
   "network": {
     "format-wifi": "  {essid}",
-    "format-ethernet": "󰀂  Connected",
+    "format-ethernet": "  Wired",
     "format-disconnected": "󰤮  Disconnected",
     "tooltip-format": "{ifname} via {gwaddr}",
     "on-click": "nm-connection-editor"
@@ -96,9 +140,9 @@
 
   "pulseaudio": {
     "format": "{icon}  {volume}%",
-    "format-muted": "  Muted",
+    "format-muted": " Muted",
     "format-icons": {
-      "default": ["", "", ""]
+      "default": ["", "", ""]
     },
     "on-click": "pavucontrol"
   },
@@ -107,4 +151,5 @@
     "icon-size": 16,
     "spacing": 10
   }
+  
 }

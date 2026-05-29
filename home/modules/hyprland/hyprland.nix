@@ -50,7 +50,7 @@
         gaps_in               = 5;
         gaps_out              = 10;
         border_size           = 2;
-        "col.active_border"   = "rgba(eeaecaff) rgba(94bbe9ff) 45deg";
+        "col.active_border"   = "rgba(aee0e6ff) rgba(aeb1e6ff) 45deg";
         "col.inactive_border" = "rgba(595959aa)";
         layout                = "dwindle";
         resize_on_border      = true;

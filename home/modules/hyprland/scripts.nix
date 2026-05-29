@@ -269,66 +269,82 @@ let
 
   waybarMusic = pkgs.writeShellScriptBin "waybar-music" ''
     #!/usr/bin/env bash
-    output=$(${pkgs.playerctl}/bin/playerctl metadata --format '{{playerName}}|{{title}}' 2>/dev/null)
+    
+    create_placeholder() {
+      echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | ${pkgs.coreutils}/bin/base64 -d > /tmp/music_cover.png 2>/dev/null
+    }
 
-    if [ -z "$output" ] || [ "$output" = "|" ]; then
-     echo "󰝛  Chưa phát nhạc"
-     exit 0
-    fi
+    LAST_CHECK=0
+    TEXT=""
+    OLD_TEXT=""
+    OFFSET=0
+    MAX_LEN=15
 
-    player=$(echo "$output" | cut -d'|' -f1)
-    title=$(echo "$output" | cut -d'|' -f2-)
+    while true; do
+      CURRENT_TIME=$(date +%s)
+      
+      # Cứ sau 2 giây mới check trạng thái playerctl một lần để tránh tốn CPU
+      if [ $((CURRENT_TIME - LAST_CHECK)) -ge 2 ] || [ -z "$TEXT" ]; then
+        LAST_CHECK=$CURRENT_TIME
+        status=$(${pkgs.playerctl}/bin/playerctl status 2>/dev/null)
+        
+        if [ -z "$status" ]; then
+          TEXT="Không có nhạc"
+          OLD_TEXT=""
+          create_placeholder
+          echo "" > /tmp/music_last_art 2>/dev/null
+        else
+          new_text=$(${pkgs.playerctl}/bin/playerctl metadata --format '{{ title }} - {{ artist }}' 2>/dev/null)
+          if [ -z "$new_text" ]; then
+            TEXT="Không có nhạc"
+            OLD_TEXT=""
+            create_placeholder
+            echo "" > /tmp/music_last_art 2>/dev/null
+          elif [ "$new_text" != "$OLD_TEXT" ]; then
+            OLD_TEXT="$new_text"
+            # Thêm khoảng cách ngăn cách khi lặp chữ
+            TEXT="$new_text   |   "
+            OFFSET=0
+            
+            # Tải ảnh Album Art (chỉ tải khi đổi bài hát mới)
+            art_url=$(${pkgs.playerctl}/bin/playerctl metadata mpris:artUrl 2>/dev/null)
+            if [ -n "$art_url" ]; then
+              last_art=$(cat /tmp/music_last_art 2>/dev/null)
+              if [ "$art_url" != "$last_art" ]; then
+                echo "$art_url" > /tmp/music_last_art
+                if [[ "$art_url" == file://* ]]; then
+                  cp "''${art_url##file://}" /tmp/music_cover.png 2>/dev/null
+                elif [[ "$art_url" == http* ]]; then
+                  ${pkgs.curl}/bin/curl -s "$art_url" -o /tmp/music_cover_tmp.png && mv /tmp/music_cover_tmp.png /tmp/music_cover.png &
+                fi
+              fi
+            else
+              create_placeholder
+              echo "" > /tmp/music_last_art 2>/dev/null
+            fi
+          fi
+        fi
+      fi
 
-    case "$(echo "$player" | tr '[:upper:]' '[:lower:]')" in
-     spotify*)                  icon="󰓇" ;;
-     firefox*|librewolf*)       icon="󰈹" ;;
-     chromium*|chrome*|google*) icon="󰊯" ;;
-     mpv*)                      icon="󰕓" ;;
-     vlc*)                      icon="󰕼" ;;
-     *)                         icon="󰝛" ;;
-    esac
+      # Xử lý dịch chuyển ký tự từng chút một
+      if [ "$TEXT" = "Không có nhạc" ]; then
+        echo "Không có nhạc"
+      else
+        clean_text="''${TEXT%   |   }"
+        if [ "''${#clean_text}" -le "$MAX_LEN" ]; then
+          echo "$clean_text"
+        else
+          LEN=''${#TEXT}
+          SCROLLED="''${TEXT:OFFSET}''${TEXT:0:OFFSET}"
+          echo "''${SCROLLED:0:MAX_LEN}"
+          OFFSET=$(( (OFFSET + 1) % LEN ))
+        fi
+      fi
 
-    [ -z "$title" ] && echo "󰝛  Chưa phát nhạc" || echo "$icon  $title"
-  '';
-
-  waybarActiveApps = pkgs.writeShellScriptBin "waybar-active-apps" ''
-    #!/usr/bin/env bash
-    workspace=$(hyprctl activeworkspace -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.id')
-
-    if [ -z "$workspace" ] || [ "$workspace" = "null" ]; then
-     exit 0
-    fi
-
-    mapfile -t classes < <(hyprctl clients -j 2>/dev/null \
-     | ${pkgs.jq}/bin/jq -r ".[] | select(.workspace.id == $workspace) | .class" \
-     | sort -u)
-
-    icons=""
-    for class in "''${classes[@]}"; do
-     lower=$(echo "$class" | tr '[:upper:]' '[:lower:]')
-     case "$lower" in
-       firefox*|librewolf*)        icon="󰈹" ;;
-       chromium*|chrome*|google*)  icon="󰊯" ;;
-       code*|vscodium*|vscodiym*)  icon="󰨞" ;;
-       kitty*|alacritty*|foot*|wezterm*) icon="" ;;
-       spotify*)                   icon="󰓇" ;;
-       discord*)                   icon="󰙯" ;;
-       telegram*)                  icon="" ;;
-       thunar*|nautilus*|dolphin*|nemo*) icon="󰉋" ;;
-       mpv*)                       icon="󰕓" ;;
-       vlc*)                       icon="󰕼" ;;
-       obs*)                       icon="󰑋" ;;
-       gimp*)                      icon="󰐇" ;;
-       inkscape*)                  icon="󰠠" ;;
-       libreoffice*)               icon="󰈙" ;;
-       *)                          icon="" ;;
-     esac
-     [ -n "$icons" ] && icons="$icons $icon" || icons="$icon"
+      sleep 0.25 # Khoảng thời gian dịch chữ (0.15 giây giúp chữ trượt cực kỳ mượt mà)
     done
-
-    echo "$icons"
   '';
-
+  
 in
 {
   home.packages = [ 
@@ -338,6 +354,5 @@ in
     walkerMenu
     volumeOsd 
     waybarMusic
-    waybarActiveApps
   ];
 }

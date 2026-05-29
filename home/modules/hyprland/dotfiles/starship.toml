@@ -11,6 +11,8 @@ repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($r
 repo_root_style = "bold cyan"
 truncation_length = 2
 truncation_symbol = "…/"
+read_only = " 󰌾" # Bạn có thể đổi thành icon Nerd Font khác hoặc để trống "" nếu không muốn hiện
+read_only_style = "red"
 
 [git_branch]
 format = "[$branch]($style) "
