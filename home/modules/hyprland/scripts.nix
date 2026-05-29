@@ -277,7 +277,7 @@ let
     round_cover() {
       local input="/tmp/music_cover.png"
       local tmp="/tmp/music_cover_rounded.png"
-      local radius=8
+      local radius="$ROUND_RADIUS"
       local dims
 
       [ -s "$input" ] || return 0
@@ -300,6 +300,7 @@ let
     OLD_TEXT=""
     OFFSET=0
     MAX_LEN=15
+    ROUND_RADIUS=8
 
     while true; do
       CURRENT_TIME=$(date +%s)
@@ -339,7 +340,7 @@ let
                 elif [[ "$art_url" == http* ]]; then
                   ${pkgs.curl}/bin/curl -s "$art_url" -o /tmp/music_cover_tmp.png \
                     && mv /tmp/music_cover_tmp.png /tmp/music_cover.png \
-                    && round_cover
+                    && round_cover &
                 fi
               fi
             else
