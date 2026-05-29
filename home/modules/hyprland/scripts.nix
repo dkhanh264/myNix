@@ -273,6 +273,27 @@ let
     create_placeholder() {
       echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | ${pkgs.coreutils}/bin/base64 -d > /tmp/music_cover.png 2>/dev/null
     }
+    
+    round_cover() {
+      local input="/tmp/music_cover.png"
+      local tmp="/tmp/music_cover_rounded.png"
+      local radius=8
+      local dims
+
+      [ -s "$input" ] || return 0
+
+      dims=$(${pkgs.imagemagick}/bin/identify -format "%w %h" "$input" 2>/dev/null || true)
+      [ -n "$dims" ] || return 0
+
+      local w h
+      read -r w h <<< "$dims"
+      [ -n "$w" ] && [ -n "$h" ] || return 0
+
+      ${pkgs.imagemagick}/bin/convert "$input" \
+        \( -size "${w}x${h}" xc:none -fill white -draw "roundrectangle 0,0,$((w - 1)),$((h - 1)),${radius},${radius}" \) \
+        -compose DstIn -composite "$tmp" 2>/dev/null \
+        && mv "$tmp" "$input"
+    }
 
     LAST_CHECK=0
     TEXT=""
@@ -314,8 +335,11 @@ let
                 echo "$art_url" > /tmp/music_last_art
                 if [[ "$art_url" == file://* ]]; then
                   cp "''${art_url##file://}" /tmp/music_cover.png 2>/dev/null
+                  round_cover
                 elif [[ "$art_url" == http* ]]; then
-                  ${pkgs.curl}/bin/curl -s "$art_url" -o /tmp/music_cover_tmp.png && mv /tmp/music_cover_tmp.png /tmp/music_cover.png &
+                  ${pkgs.curl}/bin/curl -s "$art_url" -o /tmp/music_cover_tmp.png \
+                    && mv /tmp/music_cover_tmp.png /tmp/music_cover.png \
+                    && round_cover
                 fi
               fi
             else
