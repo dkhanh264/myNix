@@ -188,6 +188,7 @@
       "video"
       "audio"
       "input"
+      "kvm"
     ];
 
     shell = pkgs.zsh;

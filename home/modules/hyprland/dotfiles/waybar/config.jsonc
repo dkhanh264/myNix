@@ -55,7 +55,7 @@
   },
 
   "image#music-art": {
-    "path": "/tmp/music_cover.png",
+    "path": "/tmp/music_cover_rounded.png",
     "size": 22, // Kích thước ảnh vuông (22x22 pixel) cân bằng với thanh bar
     "interval": 1
   },
@@ -97,8 +97,8 @@
     "format": "{}",
     "tooltip": false,
     "interval": 1800,
-    "exec": "curl -s 'https://wttr.in/Ho_Chi_Minh?format=%c+%t' | xargs",
-    "on-click": "xdg-open https://wttr.in/Ho_Chi_Minh"
+    "exec": "curl -s 'https://api.open-meteo.com/v1/forecast?latitude=10.7756&longitude=106.7019&current=temperature_2m,weather_code' | jq -r '(.current.weather_code | tostring as $w | if $w == \"0\" then \"☀️\" elif $w == \"1\" or $w == \"2\" or $w == \"3\" then \"⛅\" elif $w == \"61\" or $w == \"63\" or $w == \"65\" or $w == \"80\" or $w == \"81\" or $w == \"82\" then \"🌧️\" elif $w == \"95\" then \"⛈️\" else \"🌡️\" end) + \" \" + (.current.temperature_2m | round | tostring) + \"°C\"'",
+    "on-click": "xdg-open 'https://www.google.com/search?q=thoi+tiet+Ho+Chi+Minh'"
   },
 
   "cpu": {
