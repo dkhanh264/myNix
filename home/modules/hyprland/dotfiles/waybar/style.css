@@ -111,10 +111,6 @@ window#waybar {
     margin: 0px 0px;
 }
 
-#image.music-art image {
-    border-radius: 8px;
-}
-
 #custom-music {
     background-color: @base;
     border: 1px solid @border;

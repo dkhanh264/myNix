@@ -24,6 +24,7 @@
     nautilus
     mesa-demos
     nwg-look
+    gnome-clocks
 
     # Media
     mpv

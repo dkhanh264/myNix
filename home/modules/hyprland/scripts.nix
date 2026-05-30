@@ -273,7 +273,7 @@ let
     create_placeholder() {
       echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | ${pkgs.coreutils}/bin/base64 -d > /tmp/music_cover.png 2>/dev/null
     }
-    
+
     round_cover() {
       local input="/tmp/music_cover.png"
       local tmp="/tmp/music_cover_rounded.png"
@@ -290,9 +290,13 @@ let
       [ -n "$w" ] && [ -n "$h" ] || return 0
 
       ${pkgs.imagemagick}/bin/convert "$input" \
-        \( -size "${w}x${h}" xc:none -fill white -draw "roundrectangle 0,0,$((w - 1)),$((h - 1)),${radius},${radius}" \) \
-        -compose DstIn -composite "$tmp" 2>/dev/null \
-        && mv "$tmp" "$input"
+        \( -size "''${w}x''${h}" xc:none \
+        -fill white \
+        -draw "roundrectangle 0,0,$((w-1)),$((h-1)),100,100" \) \
+        -alpha off \
+        -compose CopyOpacity \
+        -composite \
+        "$tmp"
     }
 
     LAST_CHECK=0
@@ -300,7 +304,7 @@ let
     OLD_TEXT=""
     OFFSET=0
     MAX_LEN=15
-    ROUND_RADIUS=8
+    ROUND_RADIUS=100
 
     while true; do
       CURRENT_TIME=$(date +%s)
