@@ -46,7 +46,8 @@
       ];
     };
   };
-
+  #---Android SDK----------------------------------------------------------
+  nixpkgs.config.android_sdk.accept_license = true;
   # ── NVIDIA Driver ──────────────────────────────────────────────────────
   nixpkgs.config.allowUnfree = true;
 
