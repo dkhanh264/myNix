@@ -216,8 +216,19 @@
   ];
 
   environment.sessionVariables = {
-  NIXOS_OZONE_WL = "1";
-};
+    NIXOS_OZONE_WL = "1";
+  };
+
+  # ── Automatic Nix Garbage Collection ───────────────────────────────
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";           # Chạy mỗi tuần (hoặc daily)
+    options = "--delete-older-than 30d";
+  };
+
+  # Tối ưu hoá Nix Store tự động
+  nix.optimise.automatic = true;
+  nix.optimise.dates = [ "weekly" ];
 
   # ── Nix Settings ───────────────────────────────────────────────────────
   nix.settings = {
