@@ -29,6 +29,7 @@
     # Media
     mpv
     imv
+    gnome-sound-recorder
 
     # Hardware control
     brightnessctl
@@ -40,12 +41,13 @@
 
     # user apps
     firefox
-    google-chrome
     discord
     spotify
     vscode
     fastfetch
     android-studio
+    jetbrains.idea-community
+    brave
 
     # Thêm các công cụ từ nixparency-dots
     walker         # Thay thế Rofi làm launcher
