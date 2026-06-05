@@ -119,7 +119,7 @@
 
       bind = [
         "$mainMod, Q,    exec, kitty"
-        "$mainMod, W,         exec, firefox"
+        "$mainMod, W,         exec, brave"
         "$mainMod, E,         exec, nautilus"
         
         # ── Walker & Hình nền ──────────────────────────────────────────

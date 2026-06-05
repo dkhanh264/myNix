@@ -40,7 +40,7 @@
     unzip
 
     # user apps
-    firefox
+    #firefox
     discord
     spotify
     vscode

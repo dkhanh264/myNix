@@ -2,7 +2,7 @@
 {
   home.sessionVariables = {
     EDITOR   = "nvim";
-    BROWSER  = "firefox";
+    BROWSER  = "brave";
     TERMINAL = "kitty";
     WALLPAPER = "${config.home.homeDirectory}/Pictures/wallpapers/wallpaper.jpg";
 
