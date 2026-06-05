@@ -46,7 +46,7 @@
     vscode
     fastfetch
     android-studio
-    jetbrains.idea-community
+    jetbrains.idea-oss
     brave
 
     # Thêm các công cụ từ nixparency-dots
