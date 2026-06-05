@@ -1,7 +1,6 @@
 { ... }:
 {
   imports = [
-    ./kitty.nix
-    ./btop.nix
+    ./walker.nix
   ];
 }

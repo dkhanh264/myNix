@@ -3,8 +3,9 @@
   imports = [
     ./hyprland.nix
     ./waybar.nix
+    ./waybar-music.nix
     ./mako.nix
-    ./scripts.nix
     ./hypridle.nix
+    ./hyprlock.nix
   ];
 }
