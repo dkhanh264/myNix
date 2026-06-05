@@ -1,7 +1,7 @@
 { ... }:
 {
   imports = [
-    ./kitty.nix
-    ./btop.nix
+    ./git.nix
+    ./neovim.nix
   ];
 }

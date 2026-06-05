@@ -8,12 +8,11 @@
     ./modules/shell
     ./modules/hyprland
     ./modules/terminal
-    ./modules/extra-dots.nix
-    ./modules/dev/git.nix
-    ./modules/dev/neovim.nix
-    ./modules/theme/gtk.nix
-    ./modules/media/obs.nix
-    ./modules/browser/firefox.nix
+    ./modules/launcher
+    ./modules/dev
+    ./modules/theme
+    ./modules/media
+    ./modules/browser
   ];
   xdg.desktopEntries.android-studio = {
     name = "Android Studio";

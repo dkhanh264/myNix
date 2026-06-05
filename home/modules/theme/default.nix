@@ -1,7 +1,7 @@
 { ... }:
 {
   imports = [
-    ./kitty.nix
-    ./btop.nix
+    ./gtk.nix
+    ./pywal.nix
   ];
 }
