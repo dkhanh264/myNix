@@ -46,6 +46,6 @@ in
   home.packages = [ walkerMenu ];
   xdg.configFile."walker" = {
     source = ../hyprland/dotfiles/walker;
-    force = true;
+    recursive = true;
   };
 }
