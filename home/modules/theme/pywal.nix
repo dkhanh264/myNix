@@ -1,7 +1,6 @@
 { pkgs, ... }:
 let
   walColorExport = pkgs.writeShellScriptBin "wal-color-export" ''
-      #!/usr/bin/env bash
       WALJSON="$HOME/.cache/wal/colors.json"
       OUT_DIR="$HOME/.config/current"
       OUT="$OUT_DIR/wal-colors.css"
@@ -127,7 +126,6 @@ let
     '';
 
   cycleBackground = pkgs.writeShellScriptBin "cycle-background" ''
-      #!/usr/bin/env bash
       BACKGROUNDS_DIR="$HOME/Pictures/wallpapers"
       CURRENT_BACKGROUND_LINK="$HOME/.config/current-wallpaper"
   

@@ -1,7 +1,6 @@
 { pkgs, ... }:
 let
   walkerMenu = pkgs.writeShellScriptBin "walker-menu" ''
-      #!/usr/bin/env bash
       
       APP_THEME="--theme transparent-apps"
       SYSTEM_THEME="--theme transparent-system"

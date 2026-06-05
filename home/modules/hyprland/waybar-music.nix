@@ -1,7 +1,6 @@
 { pkgs, ... }:
 let
   waybarMusic = pkgs.writeShellScriptBin "waybar-music" ''
-      #!/usr/bin/env bash
       
       create_placeholder() {
         echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | ${pkgs.coreutils}/bin/base64 -d > /tmp/music_cover.png 2>/dev/null
@@ -103,7 +102,7 @@ let
           fi
         fi
   
-        sleep 0.25 # Khoảng thời gian dịch chữ (0.15 giây giúp chữ trượt cực kỳ mượt mà)
+        sleep 0.25 # Khoảng thời gian dịch chữ (0.25 giây giúp chữ trượt cực kỳ mượt mà)
       done
     '';
 
