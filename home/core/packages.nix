@@ -10,6 +10,7 @@
     zoxide
     btop
     cava
+    clock-rs
 
     # Wayland essentials
     wl-clipboard
@@ -30,6 +31,7 @@
     mpv
     imv
     gnome-sound-recorder
+    gpu-screen-recorder
 
     # Hardware control
     brightnessctl
@@ -48,6 +50,7 @@
     android-studio
     jetbrains.idea-oss
     brave
+    papers
 
     # Thêm các công cụ từ nixparency-dots
     walker         # Thay thế Rofi làm launcher

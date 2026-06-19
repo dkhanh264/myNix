@@ -222,8 +222,8 @@
   # ── Automatic Nix Garbage Collection ───────────────────────────────
   nix.gc = {
     automatic = true;
-    dates = "weekly";           # Chạy mỗi tuần (hoặc daily)
-    options = "--delete-older-than 30d";
+    dates = "daily";           # Chạy mỗi tuần (hoặc daily)
+    options = "--delete-older-than 14d";
   };
 
   # Tối ưu hoá Nix Store tự động

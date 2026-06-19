@@ -33,6 +33,10 @@
               useUserPackages = true;
 
               extraSpecialArgs = { inherit nixvim; };
+              
+              sharedModules = [
+                nixvim.homeModules.nixvim
+              ];
 
               users.dk = { ... }: {
                 imports = [
