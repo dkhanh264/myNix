@@ -23,8 +23,8 @@ window#waybar {
 #battery {
     background-color: @base;
     border: 1px solid @border;
-    border-radius: 12px;
-    padding: 2px 12px;
+    border-radius: 100px;
+    padding: 0px 12px;
     margin: 0px 4px;
     color: @text;
 }
@@ -42,11 +42,15 @@ window#waybar {
 }
 
 #workspaces button {
-    padding: 0px 6px;
+    padding: 0px 12px;
+    margin: 4px 0px;
     color: @text;
     background-color: transparent;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    border-radius: 100px;
+    transition:
+    background-color .25s cubic-bezier(.22,1,.36,1),
+    color .25s cubic-bezier(.22,1,.36,1),
+    transform .25s cubic-bezier(.22,1,.36,1);
 }
 
 #workspaces button:hover {
@@ -55,7 +59,9 @@ window#waybar {
 }
 
 #workspaces button.active {
-    color: @selected-text;
+    border-radius: 100px; 
+    background-color: @selected-text;
+    color: @selected-text ; 
 }
 
 /* ── Kỹ thuật gộp khối CPU, Nhiệt độ & RAM thành 1 viên thuốc duy nhất ── */
@@ -63,7 +69,7 @@ window#waybar {
     background-color: @base;
     border: 1px solid @border;
     border-right: none;               /* Xóa viền bên phải để nối với khối Nhiệt độ */
-    border-radius: 12px 0px 0px 12px; /* Chỉ bo góc tròn phía bên trái */
+    border-radius: 100px 0px 0px 100px; /* Chỉ bo góc tròn phía bên trái */
     padding: 2px 6px 2px 12px;
     margin: 0px 0px;                  /* Triệt tiêu margin để dính liền vào khối tiếp theo */
     color: @text;
@@ -89,7 +95,7 @@ window#waybar {
     background-color: @base;
     border: 1px solid @border;
     border-left: none;                /* Xóa viền bên trái để nối với khối Nhiệt độ */
-    border-radius: 0px 12px 12px 0px; /* Chỉ bo góc tròn phía bên phải */
+    border-radius: 0px 100px 100px 0px; /* Chỉ bo góc tròn phía bên phải */
     padding: 2px 12px 2px 6px;
     margin: 0px 4px 0px 0px;          /* Tạo khoảng cách bên phải với viên thuốc kế tiếp */
     color: @text;
@@ -102,22 +108,13 @@ window#waybar {
 }
 
 /* ── Viên thuốc Điều khiển Nhạc Liền Mạch với Ảnh Album thật ── */
-#image.music-art {
-    background-color: @base;
-    border: 1px solid @border;
-    border-right: none;               /* Xóa viền phải để dính liền vào khối chữ */
-    border-radius: 12px 0px 0px 12px; /* Bo tròn góc xa bên trái viên thuốc */
-    padding: 2px 2px 2px 8px;
-    margin: 0px 0px;
-}
 
 #custom-music {
     background-color: @base;
     border: 1px solid @border;
-    border-left: none;                /* Xóa viền trái để nối liền mạch sang Ảnh */
     border-right: none;               /* Xóa viền phải để nối liền sang nút bấm */
-    border-radius: 0px;               /* Nằm ở giữa nên giữ vuông vức */
-    padding: 2px 10px 2px 4px;
+    border-radius: 100px 0px 0px 100px;            
+    padding: 2px 10px;
     margin: 0px 0px;
     color: @text;                   /* Chữ trắng sạch sẽ */
 }
@@ -141,7 +138,7 @@ window#waybar {
 
 #custom-player-next {
     border-right: 1px solid @border;  /* Giữ lại viền ngoài cùng bên phải */
-    border-radius: 0px 12px 12px 0px; /* Bo tròn góc ngoài cùng bên phải viên thuốc */
+    border-radius: 0px 100px 100px 0px; /* Bo tròn góc ngoài cùng bên phải viên thuốc */
     padding-right: 12px;
 }
 

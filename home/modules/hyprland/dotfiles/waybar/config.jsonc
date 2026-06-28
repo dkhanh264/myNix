@@ -28,7 +28,7 @@
     "active-only": false,
     "format": "{icon}",
     "format-icons": {
-      "active": "󱓻",  // Giữ nguyên icon hình vuông dẹt khi bạn đang ở workspace đó
+      "active": " ",  // Giữ nguyên icon hình vuông dẹt khi bạn đang ở workspace đó
       "1": "1",       // Định nghĩa số hiển thị cho các workspace còn lại
       "2": "2",
       "3": "3",
@@ -46,18 +46,11 @@
   "group/music-pill": {
     "orientation": "horizontal",
     "modules": [
-      "image#music-art",
       "custom/music",
       "custom/player-prev",
       "custom/player-toggle",
       "custom/player-next"
     ]
-  },
-
-  "image#music-art": {
-    "path": "/tmp/music_cover_rounded.png",
-    "size": 22, // Kích thước ảnh vuông (22x22 pixel) cân bằng với thanh bar
-    "interval": 1
   },
 
   "custom/music": {

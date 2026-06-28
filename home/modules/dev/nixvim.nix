@@ -22,6 +22,11 @@
       winborder = "rounded";
     };
 
+    extraPlugins = with pkgs.vimPlugins; [
+      cord-nvim
+    ];
+
+
     extraPackages = with pkgs; [
       tree-sitter
       git

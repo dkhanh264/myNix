@@ -26,6 +26,7 @@
     mesa-demos
     nwg-look
     gnome-clocks
+    quickshell
 
     # Media
     mpv
@@ -51,6 +52,11 @@
     jetbrains.idea-oss
     brave
     papers
+    anki
+    vesktop
+
+
+  
 
     # Thêm các công cụ từ nixparency-dots
     walker         # Thay thế Rofi làm launcher
