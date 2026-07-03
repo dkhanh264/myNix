@@ -62,7 +62,7 @@ in
 {
   home.packages = [ walkerMenu ];
   xdg.configFile."walker" = {
-    source = ../hyprland/dotfiles/walker;
+    source = ./walker;
     recursive = true;
   };
 }

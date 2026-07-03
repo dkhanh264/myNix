@@ -1,8 +1,7 @@
-{ ... }:
-{
+{ config, pkgs, ... }: {
   programs.starship = {
     enable = true;
-    # Bỏ trống phần settings để hệ thống tự đọc file starship.toml từ ~/.config
+    enableZshIntegration = true;
+    settings = builtins.fromTOML (builtins.readFile ./starship.toml);
   };
-  xdg.configFile."starship.toml".source = ../hyprland/dotfiles/starship.toml;
 }

@@ -13,5 +13,6 @@
     ./modules/theme
     ./modules/media
     ./modules/browser
+    ./modules/waybar
   ];
 }
