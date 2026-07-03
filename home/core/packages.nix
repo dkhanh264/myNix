@@ -44,7 +44,6 @@
     spotify
     vscode
     fastfetch
-    android-studio
     jetbrains.idea-oss
     brave
     papers
