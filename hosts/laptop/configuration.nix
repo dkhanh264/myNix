@@ -21,6 +21,8 @@
   pkiBundle = "/etc/secureboot";
   };
 
+  programs.nix-ld.enable = true;
+
   # ── Network ────────────────────────────────────────────────────────────
   networking.hostName = "HiMeo";
   networking.networkmanager.enable = true;
@@ -74,6 +76,8 @@
     };
   };
 
+  services.power-profiles-daemon.enable = true;
+
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
@@ -113,8 +117,10 @@
   # enable zram swap
   zramSwap = {
   enable = true;
-  memoryPercent = 100;
+  memoryPercent = 50;
   };
+
+  services.fstrim.enable = true;
 
   # ── Audio — PipeWire ───────────────────────────────────────────────────
   services.pipewire = {
@@ -234,6 +240,7 @@
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
     max-jobs = "auto";
+    auto-optimise-store = true;
   };
   boot.extraModulePackages = with config.boot.kernelPackages; [
   v4l2loopback

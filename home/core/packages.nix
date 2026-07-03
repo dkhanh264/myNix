@@ -8,7 +8,6 @@
     eza
     fzf
     zoxide
-    btop
     cava
     clock-rs
 
@@ -20,7 +19,6 @@
 
     # System tray & GUI tools
     networkmanagerapplet
-    blueman
     pavucontrol
     nautilus
     mesa-demos
@@ -29,7 +27,6 @@
     quickshell
 
     # Media
-    mpv
     imv
     gnome-sound-recorder
     gpu-screen-recorder
@@ -43,7 +40,6 @@
     unzip
 
     # user apps
-    #firefox
     discord
     spotify
     vscode
@@ -55,7 +51,8 @@
     anki
     vesktop
 
-
+    # dev 
+    jdk17
   
 
     # Thêm các công cụ từ nixparency-dots
