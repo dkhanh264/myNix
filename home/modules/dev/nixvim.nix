@@ -103,8 +103,8 @@
             "        "
           ];
           center = [
-            { icon = " "; desc = "Find File              "; action = "Telescope find_files"; key = "f"; }
-            { icon = " "; desc = "Quit Neovim          "; action = "qa"; key = "q"; }
+            { icon = " "; desc = "Find File              "; action = "Telescope find_files"; key = "f"; }
+            { icon = " "; desc = "Quit Neovim          "; action = "qa"; key = "q"; }
           ];
         };
       };
@@ -167,6 +167,46 @@
           "<CR>" = "actions.select";
           "-" = "actions.parent";
           "_" = "actions.open_cwd";
+        };
+      };
+    };
+
+    # Thanh project / cây thư mục kiểu VSCode: tạo, xóa, đổi tên file & folder
+    plugins.nvim-tree = {
+      enable = true;
+
+      settings = {
+        hijack_cursor = true;
+
+        diagnostics.enable = true;      # hiện lỗi/warning từ LSP trên cây thư mục
+        git.enable = true;              # hiện trạng thái git (modified, staged...)
+        update_focused_file.enable = true; # tự focus vào file đang mở
+
+        view = {
+          width = 30;
+          side = "left";
+        };
+
+        renderer = {
+          group_empty = true;
+          indent_markers.enable = true;
+          icons = {
+            show = {
+              git = true;
+              folder = true;
+              file = true;
+              folder_arrow = true;
+            };
+          };
+        };
+
+        filters = {
+          dotfiles = false;   # để true nếu muốn ẩn file ẩn (.git, .env...)
+          custom = [ "node_modules" ".cache" ];
+        };
+
+        actions = {
+          open_file.quit_on_open = false; # không tự đóng tree khi mở file
         };
       };
     };
@@ -264,6 +304,23 @@
         local hl = "DiagnosticSign" .. type
         vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
       end
+
+      -- Tự động mở NvimTree khi mở Neovim với một thư mục
+      -- (không ảnh hưởng tới Dashboard khi mở "nvim" trơn,
+      -- và không tự mở khi mở kèm một file lẻ)
+      local function open_nvim_tree(data)
+        local directory = vim.fn.isdirectory(data.file) == 1
+
+        if not directory then
+          return
+        end
+
+        -- đổi vào thư mục đó rồi mở tree
+        vim.cmd.cd(data.file)
+        require("nvim-tree.api").tree.open()
+      end
+
+      vim.api.nvim_create_autocmd({ "VimEnter" }, { callback = open_nvim_tree })
     '';
 
     plugins.harpoon = {
@@ -333,6 +390,8 @@
       { mode = "n"; key = "[d"; action = "<cmd>lua vim.diagnostic.goto_prev()<CR>"; }
       { mode = "n"; key = "]d"; action = "<cmd>lua vim.diagnostic.goto_next()<CR>"; }
       { mode = "n"; key = "<leader>d"; action = "<cmd>lua vim.diagnostic.open_float()<CR>"; }
+      { mode = "n"; key = "<leader>e"; action = "<cmd>NvimTreeToggle<CR>"; options.desc = "Toggle File Tree"; }
+      { mode = "n"; key = "<leader>ef"; action = "<cmd>NvimTreeFindFile<CR>"; options.desc = "Find Current File in Tree"; }
       {
         mode = "n";
         key = "<leader>ll";
@@ -345,3 +404,4 @@
     ];
   };
 }
+

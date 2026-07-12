@@ -6,6 +6,12 @@
   # ── Bootloader ─────────────────────────────────────────────────────────
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # tat firewall
+  networking.firewall.allowedUDPPorts = [
+    4698
+  ];
+
+
   boot.kernelParams = [
     "nvidia-drm.modeset=1"
     "nvidia-drm.fbdev=1"
@@ -14,6 +20,7 @@
   # Improve headset/external mic detection on many HDA laptops.
   boot.extraModprobeConfig = ''
     options snd_hda_intel dmic_detect=0
+    options v4l2loopback devices=1 video_nr=2 card_label="Iriun Webcam" exclusive_caps=1
   '';
 
   boot.lanzaboote = {
@@ -77,6 +84,9 @@
   };
 
   services.power-profiles-daemon.enable = true;
+
+  services.usbmuxd.enable = true;
+
 
   hardware.graphics = {
     enable = true;
@@ -219,6 +229,8 @@
     wget
     curl
     pciutils
+    libimobiledevice
+    usbmuxd
   ];
 
   environment.sessionVariables = {
@@ -228,7 +240,7 @@
   # ── Automatic Nix Garbage Collection ───────────────────────────────
   nix.gc = {
     automatic = true;
-    dates = "daily";           # Chạy mỗi tuần (hoặc daily)
+    dates = "weekly";           # Chạy mỗi tuần (hoặc daily)
     options = "--delete-older-than 14d";
   };
 

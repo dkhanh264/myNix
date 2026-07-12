@@ -14,9 +14,11 @@
       url = "github:nix-community/nixvim/nixos-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    codex-cli-nix.url = "github:sadjow/codex-cli-nix";
   };
 
-  outputs = { self, nixpkgs, home-manager, nixvim, lanzaboote, ... }:
+  outputs = { self, nixpkgs, home-manager, nixvim, lanzaboote, codex-cli-nix, ... }:
   let
     mkSystem = hostname:
       nixpkgs.lib.nixosSystem {
@@ -32,7 +34,7 @@
               useGlobalPkgs = true;
               useUserPackages = true;
 
-              extraSpecialArgs = { inherit nixvim; };
+              extraSpecialArgs = { inherit nixvim codex-cli-nix; };
               
               sharedModules = [
                 nixvim.homeModules.nixvim

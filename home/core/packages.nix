@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, codex-cli-nix, ... }:
 {
   home.packages = with pkgs; [
     # Terminal tools
@@ -24,7 +24,6 @@
     mesa-demos
     nwg-look
     gnome-clocks
-    quickshell
 
     # Media
     imv
@@ -49,9 +48,13 @@
     papers
     anki
     vesktop
+    localsend
+    droidcam
 
     # dev 
     jdk17
+    codex-cli-nix.packages.${pkgs.system}.default
+
   
 
     # Thêm các công cụ từ nixparency-dots

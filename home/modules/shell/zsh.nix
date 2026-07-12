@@ -13,6 +13,9 @@
       cat = "bat";
       cd  = "z";
 
+      # Khởi động emulator android
+      runadr = "emulator -avd test -gpu host";
+
       # THAY "your-laptop" bằng hostname thực tế
       rebuild     = "sudo nixos-rebuild switch --flake /etc/nixos#HiMeo";
       update      = "sudo nix flake update /etc/nixos";

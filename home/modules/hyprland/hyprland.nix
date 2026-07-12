@@ -35,7 +35,7 @@
 
       # ── Autostart ─────────────────────────────────────────────────────
       exec-once = [
-        "waybar"
+        "quickshell"
         "mako"        # Khởi động trình thông báo
         "hypridle"
         "nm-applet --indicator"
@@ -57,7 +57,7 @@
       };
 
       decoration = {
-        rounding = 10;
+        rounding = 30;
         blur = {
           enabled           = true;
           size              = 8;
