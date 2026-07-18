@@ -23,7 +23,8 @@ Singleton {
     readonly property color background: darkPalette
         ? ensureLuminance(wallpaperBackground, 0.12, wallpaperForeground)
         : blend(wallpaperBackground, wallpaperForeground, 0.04)
-    readonly property color onBackground: wallpaperForeground
+    readonly property color onBackground: ensureContrast(
+        wallpaperForeground, background, 4.5)
     readonly property color surface: blend(background, wallpaperPrimary,
         darkPalette ? 0.06 : 0.025)
     readonly property color surfaceContainerLow: blend(background, wallpaperPrimary,
@@ -41,26 +42,30 @@ Singleton {
     readonly property color onPrimary: contrastText(primary)
     readonly property color primaryContainer: blend(background, primary,
         darkPalette ? 0.39 : 0.17)
-    readonly property color onPrimaryContainer: blend(onBackground, primary,
-        darkPalette ? 0.12 : 0.28)
+    readonly property color onPrimaryContainer: ensureContrast(
+        blend(onBackground, primary, darkPalette ? 0.12 : 0.28),
+        primaryContainer, 4.5)
 
     readonly property color secondary: wallpaperSecondary
     readonly property color onSecondary: contrastText(secondary)
     readonly property color secondaryContainer: blend(background, secondary,
         darkPalette ? 0.34 : 0.15)
-    readonly property color onSecondaryContainer: blend(onBackground, secondary,
-        darkPalette ? 0.10 : 0.25)
+    readonly property color onSecondaryContainer: ensureContrast(
+        blend(onBackground, secondary, darkPalette ? 0.10 : 0.25),
+        secondaryContainer, 4.5)
 
     readonly property color tertiary: wallpaperTertiary
     readonly property color onTertiary: contrastText(tertiary)
     readonly property color tertiaryContainer: blend(background, tertiary,
         darkPalette ? 0.32 : 0.14)
-    readonly property color onTertiaryContainer: blend(onBackground, tertiary,
-        darkPalette ? 0.09 : 0.24)
+    readonly property color onTertiaryContainer: ensureContrast(
+        blend(onBackground, tertiary, darkPalette ? 0.09 : 0.24),
+        tertiaryContainer, 4.5)
 
-    readonly property color onSurface: onBackground
-    readonly property color onSurfaceVariant: blend(onBackground, background,
-        darkPalette ? 0.21 : 0.32)
+    readonly property color onSurface: ensureContrast(onBackground, surface, 4.5)
+    readonly property color onSurfaceVariant: ensureContrast(
+        blend(onBackground, background, darkPalette ? 0.21 : 0.32),
+        surfaceContainerHighest, 4.5)
     readonly property color outline: blend(onBackground, background,
         darkPalette ? 0.46 : 0.56)
     readonly property color outlineVariant: blend(onBackground, background,
@@ -71,18 +76,26 @@ Singleton {
     readonly property string textFont: "Noto Sans"
     readonly property string iconFont: "JetBrainsMono Nerd Font"
 
-    // Material 3 motion tokens. BezierSpline arrays contain control point 1,
-    // control point 2, then the end point (1, 1).
-    readonly property int motionShort1: 50
-    readonly property int motionShort2: 100
-    readonly property int motionShort3: 150
-    readonly property int motionShort4: 200
-    readonly property int motionMedium1: 250
-    readonly property int motionMedium2: 300
-    readonly property int motionMedium3: 350
-    readonly property int motionMedium4: 400
-    readonly property int motionLong1: 450
-    readonly property int motionLong2: 500
+    // Set QS_REDUCED_MOTION=1 to disable non-essential movement. Keeping the
+    // preference in one token also makes every existing transition instant.
+    readonly property string reducedMotionPreference: String(
+        Quickshell.env("QS_REDUCED_MOTION") || "").toLowerCase()
+    readonly property bool reduceMotion: reducedMotionPreference === "1"
+        || reducedMotionPreference === "true"
+        || reducedMotionPreference === "yes"
+
+    // Material 3 motion tokens. Interactive motion stays at or below 400ms.
+    // BezierSpline arrays contain control point 1, point 2, then (1, 1).
+    readonly property int motionShort1: reduceMotion ? 0 : 50
+    readonly property int motionShort2: reduceMotion ? 0 : 100
+    readonly property int motionShort3: reduceMotion ? 0 : 150
+    readonly property int motionShort4: reduceMotion ? 0 : 200
+    readonly property int motionMedium1: reduceMotion ? 0 : 250
+    readonly property int motionMedium2: reduceMotion ? 0 : 300
+    readonly property int motionMedium3: reduceMotion ? 0 : 350
+    readonly property int motionMedium4: reduceMotion ? 0 : 400
+    readonly property int motionLong1: reduceMotion ? 0 : 400
+    readonly property int motionLong2: reduceMotion ? 0 : 400
 
     readonly property int motionShort: motionShort3
     readonly property int motionMedium: motionMedium2
@@ -93,6 +106,7 @@ Singleton {
     readonly property var standardAccelerate: [0.3, 0.0, 1.0, 1.0, 1.0, 1.0]
     readonly property var emphasizedDecelerate: [0.05, 0.7, 0.1, 1.0, 1.0, 1.0]
     readonly property var emphasizedAccelerate: [0.3, 0.0, 0.8, 0.15, 1.0, 1.0]
+    readonly property var springCurve: [0.34, 1.56, 0.64, 1.0, 1.0, 1.0]
 
     function blend(first, second, amount) {
         const a = Math.max(0, Math.min(1, amount));
@@ -156,6 +170,24 @@ Singleton {
         const lightText = "#ffffff";
         return contrastRatio(color, darkText) >= contrastRatio(color, lightText)
             ? darkText : lightText;
+    }
+
+    function ensureContrast(foreground, backgroundColor, minimum) {
+        if (contrastRatio(foreground, backgroundColor) >= minimum)
+            return foreground;
+
+        const target = contrastText(backgroundColor);
+        let lower = 0;
+        let upper = 1;
+        for (let step = 0; step < 8; ++step) {
+            const middle = (lower + upper) / 2;
+            if (contrastRatio(blend(foreground, target, middle),
+                    backgroundColor) >= minimum)
+                upper = middle;
+            else
+                lower = middle;
+        }
+        return blend(foreground, target, upper);
     }
 
     function applyWalPalette() {

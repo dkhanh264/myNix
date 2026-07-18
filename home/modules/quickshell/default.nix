@@ -13,6 +13,7 @@
     pavucontrol
     blueman
     nwg-look
+    curl
   ];
 
   xdg.configFile."quickshell".source = ./config;

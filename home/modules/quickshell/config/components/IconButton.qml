@@ -12,6 +12,7 @@ Item {
     property color foregroundColor: Theme.onSurface
     property bool checked: false
     property bool enabled: true
+    property string accessibleName: ""
     readonly property bool hovered: pointer.containsMouse
 
     signal clicked
@@ -20,6 +21,21 @@ Item {
     implicitHeight: buttonSize
     opacity: enabled ? 1 : 0.38
     scale: pointer.pressed ? 0.88 : 1
+    activeFocusOnTab: enabled
+
+    Accessible.role: Accessible.Button
+    Accessible.name: accessibleName
+    Accessible.focusable: enabled
+
+    Keys.onPressed: event => {
+        if (!root.enabled)
+            return;
+        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                || event.key === Qt.Key_Space) {
+            root.clicked();
+            event.accepted = true;
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -62,8 +78,21 @@ Item {
         enabled: root.enabled
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onPressed: mouse => ripple.burst(mouse.x, mouse.y)
+        onPressed: mouse => {
+            root.forceActiveFocus();
+            ripple.burst(mouse.x, mouse.y);
+        }
         onClicked: root.clicked()
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: -2
+        radius: width / 2
+        color: "transparent"
+        border.width: 2
+        border.color: Theme.primary
+        visible: root.activeFocus
     }
 
     Behavior on scale {

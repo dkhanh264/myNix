@@ -20,9 +20,25 @@ Scope {
     property string batteryState: "Unknown"
     property bool batteryAvailable: false
 
+    property int cpuUsage: 0
+    property real memoryUsedGib: 0
+    property int memoryPercent: 0
+    property int temperatureC: 0
+    property bool temperatureAvailable: false
+
+    property int weatherTemperature: 0
+    property int weatherCode: -1
+    property string weatherIcon: "󰔏"
+    property string weatherDescription: "Đang tải"
+    property bool weatherAvailable: false
+
     property string message: ""
     property int pendingVolume: 0
     property int pendingBrightness: 0
+
+    property double previousCpuTotal: 0
+    property double previousCpuIdle: 0
+    property double weatherLastUpdated: 0
 
     property alias wifiNetworks: wifiNetworkModel
 
@@ -72,6 +88,101 @@ Scope {
         refreshWifi(false);
         refreshPowerProfile();
         refreshBattery();
+        refreshSystemStats();
+        refreshWeather(false);
+    }
+
+    function refreshSystemStats() {
+        if (!systemStatsQuery.running)
+            systemStatsQuery.running = true;
+    }
+
+    function applySystemStats(output) {
+        const lines = output.trim().split("\n");
+        if (lines.length < 2)
+            return;
+
+        const cpuFields = lines[0].trim().split(/\s+/).slice(1);
+        if (cpuFields.length >= 5) {
+            let total = 0;
+            for (let index = 0; index < Math.min(8, cpuFields.length); ++index)
+                total += Number(cpuFields[index]) || 0;
+
+            const idle = (Number(cpuFields[3]) || 0)
+                + (Number(cpuFields[4]) || 0);
+            const totalDelta = total - previousCpuTotal;
+            const idleDelta = idle - previousCpuIdle;
+            if (previousCpuTotal > 0 && totalDelta > 0)
+                cpuUsage = Math.round(clamp(
+                    (totalDelta - idleDelta) * 100 / totalDelta, 0, 100));
+            previousCpuTotal = total;
+            previousCpuIdle = idle;
+        }
+
+        const memoryFields = lines[1].trim().split(/\s+/);
+        if (memoryFields.length >= 2) {
+            const totalKiB = Number(memoryFields[0]) || 0;
+            const availableKiB = Number(memoryFields[1]) || 0;
+            if (totalKiB > 0) {
+                const usedKiB = Math.max(0, totalKiB - availableKiB);
+                memoryUsedGib = usedKiB / 1048576;
+                memoryPercent = Math.round(usedKiB * 100 / totalKiB);
+            }
+        }
+
+        const millidegrees = lines.length >= 3 ? Number(lines[2]) || 0 : 0;
+        temperatureAvailable = millidegrees >= 10000;
+        if (temperatureAvailable)
+            temperatureC = Math.round(millidegrees / 1000);
+    }
+
+    function weatherPresentation(code) {
+        if (code === 0)
+            return { "icon": "󰖙", "description": "Trời quang" };
+        if (code === 1 || code === 2)
+            return { "icon": "󰖕", "description": "Ít mây" };
+        if (code === 3)
+            return { "icon": "󰖐", "description": "Nhiều mây" };
+        if (code === 45 || code === 48)
+            return { "icon": "󰖑", "description": "Có sương" };
+        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82))
+            return { "icon": "󰖗", "description": "Có mưa" };
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86)
+            return { "icon": "󰖘", "description": "Có tuyết" };
+        if (code >= 95)
+            return { "icon": "󰙾", "description": "Giông bão" };
+        return { "icon": "󰔏", "description": "Thời tiết" };
+    }
+
+    function refreshWeather(force) {
+        const now = Date.now();
+        if (weatherQuery.running)
+            return;
+        if (!force && weatherAvailable && now - weatherLastUpdated < 900000)
+            return;
+
+        weatherQuery.exec([
+            "curl", "--fail", "--silent", "--show-error", "--max-time", "8",
+            "https://api.open-meteo.com/v1/forecast?latitude=10.7756&longitude=106.7019&current=temperature_2m,weather_code&timezone=Asia%2FHo_Chi_Minh"
+        ]);
+    }
+
+    function applyWeather(output) {
+        try {
+            const payload = JSON.parse(output);
+            if (!payload.current)
+                return;
+
+            weatherTemperature = Math.round(Number(payload.current.temperature_2m));
+            weatherCode = Number(payload.current.weather_code);
+            const presentation = weatherPresentation(weatherCode);
+            weatherIcon = presentation.icon;
+            weatherDescription = presentation.description;
+            weatherAvailable = true;
+            weatherLastUpdated = Date.now();
+        } catch (error) {
+            console.warn("Không thể đọc dữ liệu thời tiết:", error);
+        }
     }
 
     function refreshVolume() {
@@ -291,6 +402,13 @@ Scope {
         Quickshell.execDetached(command);
     }
 
+    function openWeather() {
+        Quickshell.execDetached([
+            "xdg-open",
+            "https://www.google.com/search?q=thoi+tiet+Ho+Chi+Minh"
+        ]);
+    }
+
     function sessionAction(action) {
         switch (action) {
         case "lock":
@@ -305,6 +423,32 @@ Scope {
         case "shutdown":
             Quickshell.execDetached(["systemctl", "poweroff"]);
             break;
+        }
+    }
+
+    Process {
+        id: systemStatsQuery
+        command: [
+            "sh", "-c",
+            "sed -n '1p' /proc/stat; "
+                + "awk '/MemTotal:/ { total=$2 } /MemAvailable:/ { available=$2 } "
+                + "END { printf \"%s %s\\n\", total, available }' /proc/meminfo; "
+                + "maximum=0; for input in /sys/class/hwmon/hwmon*/temp*_input; do "
+                + "[ -r \"$input\" ] || continue; IFS= read -r value < \"$input\"; "
+                + "case \"$value\" in ''|*[!0-9]*) continue ;; esac; "
+                + "if [ \"$value\" -ge 10000 ] && [ \"$value\" -le 120000 ] "
+                + "&& [ \"$value\" -gt \"$maximum\" ]; then maximum=$value; fi; "
+                + "done; printf '%s\\n' \"$maximum\""
+        ]
+        stdout: StdioCollector {
+            onStreamFinished: root.applySystemStats(this.text)
+        }
+    }
+
+    Process {
+        id: weatherQuery
+        stdout: StdioCollector {
+            onStreamFinished: root.applyWeather(this.text)
         }
     }
 
@@ -466,6 +610,13 @@ Scope {
     }
 
     Timer {
+        interval: 3000
+        running: true
+        repeat: true
+        onTriggered: root.refreshSystemStats()
+    }
+
+    Timer {
         interval: 5000
         running: true
         repeat: true
@@ -484,6 +635,13 @@ Scope {
             root.refreshPowerProfile();
             root.refreshBattery();
         }
+    }
+
+    Timer {
+        interval: 1800000
+        running: true
+        repeat: true
+        onTriggered: root.refreshWeather(true)
     }
 
     Timer {

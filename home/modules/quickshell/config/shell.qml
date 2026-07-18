@@ -112,6 +112,7 @@ ShellRoot {
 
             TopBarContent {
                 anchors.fill: parent
+                barWindow: barWindow
                 controller: systemService
                 screen: barWindow.modelData
                 panelOpen: root.controlCenterOpen
