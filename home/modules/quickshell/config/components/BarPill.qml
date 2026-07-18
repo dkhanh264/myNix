@@ -34,7 +34,7 @@ Item {
         contentItem.childrenRect.width + horizontalPadding * 2)
     implicitHeight: 40
     activeFocusOnTab: interactive
-    scale: pressed ? 0.96 : (hovered && interactive ? 1.015 : 1)
+    scale: pressed ? 0.96 : 1
 
     Accessible.role: interactive ? Accessible.Button : Accessible.Grouping
     Accessible.name: accessibleName
@@ -57,12 +57,12 @@ Item {
 
     RectangularShadow {
         anchors.fill: surface
-        offset: Qt.vector2d(0, root.elevated || root.hovered ? 3 : 2)
+        offset: Qt.vector2d(0, root.elevated ? 3 : 2)
         radius: surface.radius
-        blur: root.elevated || root.hovered ? 11 : 7
+        blur: root.elevated ? 11 : 7
         spread: -1
         color: Theme.alpha("#000000", Theme.darkPalette ? 0.30 : 0.18)
-        opacity: root.elevated || root.hovered ? 1 : 0.72
+        opacity: root.elevated ? 1 : 0.72
 
         Behavior on opacity {
             NumberAnimation { duration: Theme.motionShort3 }
@@ -101,7 +101,7 @@ Item {
 
     MaterialRipple {
         id: ripple
-        rippleColor: root.checked ? Theme.onPrimaryContainer : Theme.onSurface
+        rippleColor: root.checked ? Theme.textPrimary : Theme.textPrimary
         peakOpacity: 0.12
     }
 

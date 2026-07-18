@@ -4,7 +4,7 @@ import "../theme"
 Item {
     id: root
 
-    property color rippleColor: Theme.onSurface
+    property color rippleColor: Theme.textPrimary
     property real originX: width / 2
     property real originY: height / 2
     property real targetDiameter: 0

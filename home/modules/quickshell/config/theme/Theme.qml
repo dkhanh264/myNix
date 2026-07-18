@@ -8,83 +8,77 @@ Singleton {
     id: root
 
     // Fallback Material You seeds. Pywal replaces these at runtime whenever
-    // the wallpaper palette changes.
+    // the wallpaper palette changes. The shell itself intentionally stays
+    // dark: translucent system surfaces need a predictable white-text
+    // contrast even when a wallpaper produces a very bright palette.
     property color wallpaperBackground: "#111318"
     property color wallpaperForeground: "#e3e2e9"
     property color wallpaperPrimary: "#bec2ff"
     property color wallpaperSecondary: "#c6bfff"
     property color wallpaperTertiary: "#ffb1c8"
 
-    // Pywal colors are seeds, not ready-to-use UI colors. Toning them first
-    // keeps Material roles readable across both bright and dark wallpapers.
-    readonly property bool darkPalette: luminance(wallpaperBackground)
-        < luminance(wallpaperForeground)
-    readonly property color background: tone(wallpaperBackground,
-        darkPalette ? 0.085 : 0.955)
-    readonly property color onBackground: ensureContrast(
-        tone(wallpaperForeground, darkPalette ? 0.91 : 0.13), background, 7)
+    // Restrained dark M3 roles. Wallpaper colors are used as accents, never as
+    // raw text or large surfaces, so the palette remains legible and calm.
+    readonly property bool darkPalette: true
+    readonly property color background: "#090b10"
+    readonly property color onBackground: Qt.rgba(1, 1, 1, 1)
+    readonly property color surface: "#11141b"
+    readonly property color surfaceDim: "#0b0e13"
+    readonly property color surfaceBright: "#252a35"
+    readonly property color surfaceContainerLow: "#151922"
+    readonly property color surfaceContainer: "#1a1f2a"
+    readonly property color surfaceContainerHigh: "#202633"
+    readonly property color surfaceContainerHighest: "#29313f"
+    readonly property color surfaceVariant: blend(surfaceContainerHigh,
+        wallpaperSecondary, 0.11)
 
-    readonly property color surface: blend(background, wallpaperPrimary,
-        darkPalette ? 0.035 : 0.018)
-    readonly property color surfaceDim: tone(surface, darkPalette ? 0.07 : 0.87)
-    readonly property color surfaceBright: tone(surface, darkPalette ? 0.20 : 0.98)
-    readonly property color surfaceContainerLow: blend(background, wallpaperPrimary,
-        darkPalette ? 0.075 : 0.032)
-    readonly property color surfaceContainer: blend(background, wallpaperPrimary,
-        darkPalette ? 0.12 : 0.052)
-    readonly property color surfaceContainerHigh: blend(background, wallpaperPrimary,
-        darkPalette ? 0.17 : 0.078)
-    readonly property color surfaceContainerHighest: blend(background, wallpaperPrimary,
-        darkPalette ? 0.23 : 0.11)
-    readonly property color surfaceVariant: blend(background, wallpaperSecondary,
-        darkPalette ? 0.18 : 0.085)
+    // Material layers intended to reveal Hyprland's compositor blur.
+    readonly property color barSurface: alpha(
+        blend("#0c0f15", wallpaperPrimary, 0.07), 0.66)
+    readonly property color barSurfaceHover: alpha(
+        blend("#121722", wallpaperPrimary, 0.11), 0.90)
+    readonly property color barSurfaceActive: alpha(
+        blend("#151b27", wallpaperPrimary, 0.23), 0.94)
+    readonly property color popupSurface: alpha(
+        blend("#0d1118", wallpaperPrimary, 0.08), 0.72)
+    readonly property color popupSurfaceStrong: alpha("#121720", 0.95)
 
-    readonly property color primary: tone(wallpaperPrimary,
-        darkPalette ? 0.72 : 0.34)
-    readonly property color onPrimary: contrastText(primary)
-    readonly property color primaryContainer: blend(background, primary,
-        darkPalette ? 0.30 : 0.15)
-    readonly property color onPrimaryContainer: ensureContrast(
-        blend(onBackground, primary, darkPalette ? 0.10 : 0.22),
-        primaryContainer, 4.5)
+    readonly property color primary: tone(wallpaperPrimary, 0.36)
+    readonly property color onPrimary: Qt.rgba(1, 1, 1, 1)
+    readonly property color primaryContainer: blend(surfaceContainerHigh,
+        primary, 0.34)
+    readonly property color onPrimaryContainer: Qt.rgba(1, 1, 1, 1)
 
-    readonly property color secondary: tone(wallpaperSecondary,
-        darkPalette ? 0.68 : 0.33)
-    readonly property color onSecondary: contrastText(secondary)
-    readonly property color secondaryContainer: blend(background, secondary,
-        darkPalette ? 0.25 : 0.13)
-    readonly property color onSecondaryContainer: ensureContrast(
-        blend(onBackground, secondary, darkPalette ? 0.08 : 0.20),
-        secondaryContainer, 4.5)
+    readonly property color secondary: tone(wallpaperSecondary, 0.38)
+    readonly property color onSecondary: Qt.rgba(1, 1, 1, 1)
+    readonly property color secondaryContainer: blend(surfaceContainerHigh,
+        secondary, 0.30)
+    readonly property color onSecondaryContainer: Qt.rgba(1, 1, 1, 1)
 
-    readonly property color tertiary: tone(wallpaperTertiary,
-        darkPalette ? 0.70 : 0.35)
-    readonly property color onTertiary: contrastText(tertiary)
-    readonly property color tertiaryContainer: blend(background, tertiary,
-        darkPalette ? 0.24 : 0.13)
-    readonly property color onTertiaryContainer: ensureContrast(
-        blend(onBackground, tertiary, darkPalette ? 0.08 : 0.20),
-        tertiaryContainer, 4.5)
+    readonly property color tertiary: tone(wallpaperTertiary, 0.38)
+    readonly property color onTertiary: Qt.rgba(1, 1, 1, 1)
+    readonly property color tertiaryContainer: blend(surfaceContainerHigh,
+        tertiary, 0.28)
+    readonly property color onTertiaryContainer: Qt.rgba(1, 1, 1, 1)
 
-    readonly property color onSurface: ensureContrast(onBackground, surface, 4.5)
-    readonly property color onSurfaceVariant: ensureContrast(
-        blend(onBackground, background, darkPalette ? 0.21 : 0.32),
-        surfaceContainerHighest, 4.5)
-    readonly property color outline: blend(onBackground, background,
-        darkPalette ? 0.52 : 0.58)
-    readonly property color outlineVariant: blend(onBackground, background,
-        darkPalette ? 0.73 : 0.78)
+    readonly property color onSurface: Qt.rgba(1, 1, 1, 1)
+    readonly property color onSurfaceVariant: Qt.rgba(0.776, 0.788, 0.824, 1)
+    // Qt can interpret `onSurface*` as signal-handler syntax in a QML
+    // singleton. Components consume these unambiguous aliases instead.
+    readonly property color textPrimary: "#ffffff"
+    readonly property color textSecondary: "#c6c9d2"
+    readonly property color outline: "#aeb4c0"
+    readonly property color outlineVariant: "#3b4350"
 
-    readonly property color error: darkPalette ? "#ffb4ab" : "#ba1a1a"
+    readonly property color error: "#ffb4ab"
     readonly property color onError: contrastText(error)
-    readonly property color errorContainer: darkPalette ? "#57201d" : "#ffdad6"
+    readonly property color errorContainer: "#5a2225"
     readonly property color onErrorContainer: ensureContrast(
-        darkPalette ? "#ffdad6" : "#410002", errorContainer, 4.5)
-    readonly property color success: darkPalette ? "#8bd49c" : "#246b3a"
-    readonly property color successContainer: blend(background, success,
-        darkPalette ? 0.24 : 0.13)
-    readonly property color warning: darkPalette ? "#f6c453" : "#7b5800"
-    readonly property color scrim: alpha("#000000", darkPalette ? 0.52 : 0.34)
+        "#ffffff", errorContainer, 4.5)
+    readonly property color success: "#8bd49c"
+    readonly property color successContainer: "#173d29"
+    readonly property color warning: "#f6c453"
+    readonly property color scrim: alpha("#000000", 0.58)
 
     readonly property string textFont: "Noto Sans"
     readonly property string iconFont: "Material Symbols Rounded"
@@ -96,6 +90,8 @@ Singleton {
     readonly property int shapeMedium: 12
     readonly property int shapeLarge: 16
     readonly property int shapeExtraLarge: 24
+    readonly property int shapePressed: 10
+    readonly property int shapeSelected: 20
     readonly property int space1: 4
     readonly property int space2: 8
     readonly property int space3: 12

@@ -7,6 +7,7 @@ M3BarPill {
 
     property var controller
     property bool compact: false
+    signal popupRequested
 
     function weatherIcon(code) {
         if (code === 0)
@@ -28,28 +29,31 @@ M3BarPill {
 
     function weatherLabel(code) {
         if (code === 0)
-            return "Clear";
+            return I18n.tr("Trời quang", "Clear");
         if (code === 1 || code === 2)
-            return "Partly cloudy";
+            return I18n.tr("Ít mây", "Partly cloudy");
         if (code === 3)
-            return "Overcast";
+            return I18n.tr("Nhiều mây", "Cloudy");
         if (code === 45 || code === 48)
-            return "Foggy";
+            return I18n.tr("Có sương", "Foggy");
         if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82))
-            return "Rain";
+            return I18n.tr("Có mưa", "Rain");
         if ((code >= 71 && code <= 77) || code === 85 || code === 86)
-            return "Snow";
+            return I18n.tr("Có tuyết", "Snow");
         if (code >= 95)
-            return "Thunderstorm";
-        return "Updating";
+            return I18n.tr("Giông bão", "Thunderstorm");
+        return I18n.tr("Đang tải", "Loading");
     }
 
     interactive: true
     implicitWidth: weatherRow.implicitWidth + horizontalPadding * 2
     accessibleName: controller && controller.weatherAvailable
         ? weatherLabel(controller.weatherCode) + ", "
-            + controller.weatherTemperature + " degrees Celsius"
-        : "Updating weather for Ho Chi Minh City"
+            + controller.weatherTemperature
+            + I18n.tr(" độ C tại ", " degrees Celsius in ")
+            + controller.weatherLocation
+        : I18n.tr("Đang cập nhật thời tiết tại vị trí hiện tại",
+            "Updating weather for your current location")
 
     Row {
         id: weatherRow
@@ -71,7 +75,7 @@ M3BarPill {
             Text {
                 text: root.controller && root.controller.weatherAvailable
                     ? root.controller.weatherTemperature + "°" : "--°"
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 13
                 font.weight: Font.Bold
@@ -81,7 +85,7 @@ M3BarPill {
                 visible: !root.compact
                 text: root.weatherLabel(root.controller
                     ? root.controller.weatherCode : -1)
-                color: Theme.onSurfaceVariant
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 9
                 font.weight: Font.Medium
@@ -89,8 +93,5 @@ M3BarPill {
         }
     }
 
-    onClicked: {
-        if (controller)
-            controller.openWeather();
-    }
+    onClicked: root.popupRequested()
 }

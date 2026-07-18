@@ -7,7 +7,7 @@ Rectangle {
 
     property var controller
 
-    implicitHeight: 124
+    implicitHeight: 142
     radius: Theme.shapeLarge
     color: Theme.surfaceContainerLow
 
@@ -58,8 +58,8 @@ Rectangle {
 
                 Text {
                     width: parent.width
-                    text: "Sound"
-                    color: Theme.onSurface
+                    text: "Âm thanh"
+                    color: Theme.textPrimary
                     font.family: Theme.textFont
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
@@ -68,10 +68,10 @@ Rectangle {
 
                 Text {
                     width: parent.width
-                    text: !root.controller ? "Updating…"
-                        : root.controller.muted ? "Muted"
+                    text: !root.controller ? "Đang cập nhật…"
+                        : root.controller.muted ? "Đã tắt tiếng"
                         : root.controller.volume + "%"
-                    color: Theme.onSurfaceVariant
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 11
                     elide: Text.ElideRight
@@ -91,7 +91,7 @@ Rectangle {
                         ? "volume_off" : "volume_up"
                     checked: root.controller && root.controller.muted
                     accessibleName: root.controller && root.controller.muted
-                        ? "Unmute" : "Mute"
+                        ? "Bật tiếng" : "Tắt tiếng"
                     onClicked: {
                         if (root.controller)
                             root.controller.toggleMute();
@@ -102,7 +102,7 @@ Rectangle {
                     buttonSize: 38
                     iconSize: 19
                     icon: "tune"
-                    accessibleName: "Open sound settings"
+                    accessibleName: "Mở cài đặt âm thanh"
                     onClicked: {
                         if (root.controller)
                             root.controller.openSettings("audio");
@@ -116,8 +116,13 @@ Rectangle {
             from: 0
             to: 100
             value: root.controller ? root.controller.volume : 0
+            icon: root.volumeIcon()
+            accessibleName: "Âm lượng hệ thống"
             activeColor: root.controller && root.controller.muted
+                ? Theme.errorContainer : Theme.primaryContainer
+            accentColor: root.controller && root.controller.muted
                 ? Theme.error : Theme.primary
+            foregroundColor: Theme.textPrimary
             onMoved: value => {
                 if (root.controller)
                     root.controller.setVolume(value);

@@ -6,9 +6,9 @@ Rectangle {
     id: root
 
     property var controller
+    property string selectedAddress: ""
 
     implicitHeight: content.implicitHeight + 16
-    radius: 0
     color: "transparent"
 
     Column {
@@ -20,7 +20,7 @@ Rectangle {
 
         Item {
             width: parent.width
-            height: 40
+            height: 42
 
             Column {
                 anchors.left: parent.left
@@ -28,8 +28,8 @@ Rectangle {
                 spacing: 0
 
                 Text {
-                    text: "Bluetooth devices"
-                    color: Theme.onSurface
+                    text: I18n.tr("Thiết bị Bluetooth", "Bluetooth devices")
+                    color: Theme.textPrimary
                     font.family: Theme.textFont
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
@@ -37,9 +37,11 @@ Rectangle {
 
                 Text {
                     text: root.controller && root.controller.bluetoothDiscovering
-                        ? "Looking for nearby devices…"
-                        : "Paired and nearby devices"
-                    color: Theme.onSurfaceVariant
+                        ? I18n.tr("Đang tìm thiết bị lân cận…",
+                            "Finding nearby devices…")
+                        : I18n.tr("Đã ghép đôi và ở gần",
+                            "Paired and nearby devices")
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                 }
@@ -48,34 +50,39 @@ Rectangle {
             IconButton {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                buttonSize: 36
-                iconSize: 17
+                buttonSize: 38
+                iconSize: 18
                 icon: root.controller && root.controller.bluetoothDiscovering
                     ? "progress_activity" : "radar"
                 checked: root.controller && root.controller.bluetoothDiscovering
                 fillColor: Theme.surfaceContainerHigh
                 enabled: root.controller && root.controller.bluetoothEnabled
-                accessibleName: root.controller && root.controller.bluetoothDiscovering
-                    ? "Stop scanning" : "Scan for Bluetooth devices"
+                accessibleName: root.controller
+                    && root.controller.bluetoothDiscovering
+                        ? I18n.tr("Dừng quét", "Stop scanning")
+                        : I18n.tr("Quét thiết bị Bluetooth",
+                            "Scan for Bluetooth devices")
                 onClicked: root.controller.toggleBluetoothScan()
             }
         }
 
         Item {
-            visible: !root.controller
-                || !root.controller.bluetoothDevices
+            visible: !root.controller || !root.controller.bluetoothDevices
                 || root.controller.bluetoothDevices.values.length === 0
             width: parent.width
-            height: visible ? 56 : 0
+            height: visible ? 64 : 0
 
             Text {
                 anchors.centerIn: parent
                 text: root.controller && !root.controller.bluetoothAvailable
-                    ? "No Bluetooth adapter found"
+                    ? I18n.tr("Không tìm thấy bộ điều hợp Bluetooth",
+                        "No Bluetooth adapter found")
                     : root.controller && !root.controller.bluetoothEnabled
-                        ? "Turn on Bluetooth to see devices"
-                        : "No devices found"
-                color: Theme.onSurfaceVariant
+                        ? I18n.tr("Bật Bluetooth để xem thiết bị",
+                            "Turn on Bluetooth to see devices")
+                        : I18n.tr("Không tìm thấy thiết bị",
+                            "No devices found")
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 12
             }
@@ -83,159 +90,221 @@ Rectangle {
 
         Repeater {
             model: root.controller && root.controller.bluetoothDevices
-                ? root.controller.bluetoothDevices
-                : 0
+                ? root.controller.bluetoothDevices : 0
 
             Item {
                 id: deviceRow
+
                 required property int index
                 required property var modelData
                 readonly property string displayName: modelData.name
-                    || modelData.deviceName
-                    || modelData.address
+                    || modelData.deviceName || modelData.address
+                readonly property string deviceKey: modelData.address
+                    || displayName
+                readonly property bool selected: root.selectedAddress === deviceKey
                 readonly property bool shouldShow: modelData.paired
                     || modelData.connected
                     || (root.controller && root.controller.bluetoothDiscovering)
 
                 visible: shouldShow
                 width: content.width
-                height: visible ? 56 : 0
-                scale: devicePointer.pressed ? 0.985 : 1
+                height: visible ? 58 + (selected ? 52 : 0) : 0
                 activeFocusOnTab: visible && root.controller
                     && root.controller.bluetoothEnabled
 
                 Accessible.role: Accessible.Button
                 Accessible.name: displayName + (modelData.connected
-                    ? ", connected" : modelData.paired ? ", paired" : ", not paired")
+                    ? I18n.tr(", đã kết nối", ", connected")
+                    : modelData.paired
+                        ? I18n.tr(", đã ghép đôi", ", paired")
+                        : I18n.tr(", chưa ghép đôi", ", not paired"))
                 Accessible.focusable: activeFocusOnTab
 
                 Keys.onPressed: event => {
                     if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
                             || event.key === Qt.Key_Space) {
-                        root.controller.toggleBluetoothDevice(deviceRow.modelData);
+                        root.selectedAddress = selected ? "" : deviceKey;
                         event.accepted = true;
                     }
                 }
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: devicePointer.pressed
-                        ? Theme.shapeSmall : Theme.shapeMedium
-                    color: deviceRow.modelData.connected
+                    radius: devicePointer.pressed ? Theme.shapeSmall
+                        : selected || modelData.connected
+                            ? Theme.shapeLarge : Theme.shapeMedium
+                    color: modelData.connected
                         ? Theme.tertiaryContainer
-                        : (devicePointer.containsMouse ? Theme.surfaceContainerHigh : "transparent")
+                        : selected ? Theme.surfaceContainerHigh
+                        : devicePointer.containsMouse
+                            ? Theme.alpha(Theme.textPrimary, 0.06)
+                            : "transparent"
 
-                    Behavior on color { ColorAnimation { duration: Theme.motionShort } }
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.motionShort3 }
+                    }
+                    Behavior on radius {
+                        NumberAnimation {
+                            duration: Theme.motionMedium1
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Theme.springCurve
+                        }
+                    }
                 }
 
-                MaterialRipple {
-                    id: deviceRipple
-                    rippleColor: deviceRow.modelData.connected
-                        ? Theme.onTertiaryContainer : Theme.onSurface
-                    peakOpacity: 0.11
-                }
+                Item {
+                    id: deviceSummary
+                    width: parent.width
+                    height: 58
 
-                Rectangle {
-                    id: deviceIcon
-                    width: 38
-                    height: 38
-                    radius: deviceRow.modelData.connected
-                        ? Theme.shapeMedium : width / 2
-                    anchors.left: parent.left
-                    anchors.leftMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: deviceRow.modelData.connected ? Theme.tertiary : Theme.surfaceContainerHighest
-                    scale: devicePointer.pressed ? 0.9 : 1
+                    Rectangle {
+                        id: deviceIcon
+                        width: 38
+                        height: 38
+                        radius: modelData.connected
+                            ? Theme.shapeMedium : width / 2
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: modelData.connected
+                            ? Theme.tertiary : Theme.surfaceContainerHighest
 
-                    Behavior on scale { NumberAnimation { duration: Theme.motionShort4 } }
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: modelData.icon
+                                && modelData.icon.indexOf("head") >= 0
+                                ? "headphones" : "bluetooth"
+                            iconSize: 19
+                            color: modelData.connected
+                                ? Theme.textPrimary : Theme.textSecondary
+                            filled: modelData.connected
+                        }
+                    }
+
+                    Column {
+                        anchors.left: deviceIcon.right
+                        anchors.leftMargin: 10
+                        anchors.right: connectionIcon.left
+                        anchors.rightMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 1
+
+                        Text {
+                            width: parent.width
+                            text: deviceRow.displayName
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 13
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            width: parent.width
+                            text: {
+                                if (modelData.connected) {
+                                    if (modelData.batteryAvailable)
+                                        return I18n.tr("Đã kết nối · Pin ",
+                                            "Connected · Battery ")
+                                            + Math.round(modelData.battery * 100)
+                                            + "%";
+                                    return I18n.tr("Đã kết nối", "Connected");
+                                }
+                                if (modelData.pairing)
+                                    return I18n.tr("Đang ghép đôi…", "Pairing…");
+                                return modelData.paired
+                                    ? I18n.tr("Đã ghép đôi", "Paired")
+                                    : I18n.tr("Sẵn sàng ghép đôi",
+                                        "Ready to pair");
+                            }
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 10
+                            elide: Text.ElideRight
+                        }
+                    }
 
                     MaterialIcon {
-                        anchors.centerIn: parent
-                        text: deviceRow.modelData.icon && deviceRow.modelData.icon.indexOf("head") >= 0
-                            ? "headphones" : "bluetooth"
-                        iconSize: 19
-                        color: deviceRow.modelData.connected ? Theme.onTertiary : Theme.onSurfaceVariant
+                        id: connectionIcon
+                        anchors.right: parent.right
+                        anchors.rightMargin: 12
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: selected ? "expand_less"
+                            : modelData.connected ? "check_circle" : "link"
+                        iconSize: 18
+                        color: modelData.connected
+                            ? Theme.tertiary : Theme.textSecondary
                     }
                 }
 
-                Column {
-                    anchors.left: deviceIcon.right
-                    anchors.leftMargin: 10
-                    anchors.right: connectionIcon.left
-                    anchors.rightMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 1
-
-                    Text {
-                        width: parent.width
-                        text: deviceRow.displayName
-                        color: deviceRow.modelData.connected
-                            ? Theme.onTertiaryContainer
-                            : Theme.onSurface
-                        font.family: Theme.textFont
-                        font.pixelSize: 13
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
-
-                    Text {
-                        width: parent.width
-                        text: {
-                            if (deviceRow.modelData.connected) {
-                                if (deviceRow.modelData.batteryAvailable)
-                                    return "Connected · Battery "
-                                        + Math.round(deviceRow.modelData.battery * 100) + "%";
-                                return "Connected";
-                            }
-                            if (deviceRow.modelData.pairing)
-                                return "Pairing…";
-                            return deviceRow.modelData.paired ? "Paired" : "Select to pair";
-                        }
-                        color: Theme.onSurfaceVariant
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
-                        elide: Text.ElideRight
-                    }
-                }
-
-                MaterialIcon {
-                    id: connectionIcon
+                Row {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 8
                     anchors.right: parent.right
-                    anchors.rightMargin: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: deviceRow.modelData.connected ? "link_off" : "link"
-                    iconSize: 18
-                    color: deviceRow.modelData.connected ? Theme.tertiary : Theme.onSurfaceVariant
+                    anchors.rightMargin: 8
+                    anchors.top: deviceSummary.bottom
+                    height: 44
+                    spacing: 8
+                    opacity: selected ? 1 : 0
+
+                    M3Button {
+                        id: bluetoothPrimaryAction
+                        width: modelData.paired
+                            ? (parent.width - parent.spacing) * 0.62
+                            : parent.width
+                        height: parent.height
+                        icon: modelData.connected ? "link_off" : "link"
+                        text: modelData.connected
+                            ? I18n.tr("Ngắt kết nối", "Disconnect")
+                            : modelData.paired
+                                ? I18n.tr("Kết nối", "Connect")
+                                : I18n.tr("Ghép đôi", "Pair")
+                        onClicked: root.controller.toggleBluetoothDevice(modelData)
+                    }
+
+                    M3Button {
+                        visible: modelData.paired
+                        width: visible ? parent.width
+                            - bluetoothPrimaryAction.width - parent.spacing : 0
+                        height: parent.height
+                        icon: "delete"
+                        text: I18n.tr("Xóa", "Forget")
+                        destructive: true
+                        onClicked: root.controller.forgetBluetoothDevice(modelData)
+                    }
                 }
 
                 MouseArea {
                     id: devicePointer
-                    anchors.fill: parent
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    height: deviceSummary.height
                     enabled: root.controller && root.controller.bluetoothEnabled
                     hoverEnabled: true
                     cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                    onPressed: mouse => {
-                        deviceRow.forceActiveFocus();
-                        deviceRipple.burst(mouse.x, mouse.y);
-                    }
-                    onClicked: root.controller.toggleBluetoothDevice(deviceRow.modelData)
+                    onPressed: deviceRow.forceActiveFocus()
+                    onClicked: root.selectedAddress = selected ? "" : deviceKey
                 }
 
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: 2
-                    radius: Theme.shapeMedium
+                    radius: Theme.shapeLarge
                     color: "transparent"
                     border.width: 2
                     border.color: Theme.primary
                     visible: deviceRow.activeFocus
                 }
 
-                Behavior on scale {
+                Behavior on height {
+                    enabled: !Theme.reduceMotion
                     NumberAnimation {
-                        duration: Theme.motionShort4
+                        duration: Theme.motionMedium2
                         easing.type: Easing.BezierSpline
-                        easing.bezierCurve: Theme.standardCurve
+                        easing.bezierCurve: selected
+                            ? Theme.emphasizedDecelerate
+                            : Theme.emphasizedAccelerate
                     }
                 }
             }
@@ -243,34 +312,26 @@ Rectangle {
 
         Item {
             width: parent.width
-            height: 42
+            height: 44
 
             Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Need a PIN or advanced options?"
-                color: Theme.onSurfaceVariant
+                text: I18n.tr("Mã PIN và tùy chọn nâng cao",
+                    "PIN and advanced options")
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 11
             }
 
-            Text {
+            M3Button {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Open settings"
-                color: settingsPointer.containsMouse ? Theme.tertiary : Theme.primary
-                font.family: Theme.textFont
-                font.pixelSize: 11
-                font.weight: Font.DemiBold
-
-                MouseArea {
-                    id: settingsPointer
-                    anchors.fill: parent
-                    anchors.margins: -8
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.controller.openSettings("bluetooth")
-                }
+                compact: true
+                tonal: true
+                icon: "settings"
+                text: I18n.tr("Cài đặt", "Settings")
+                onClicked: root.controller.openSettings("bluetooth")
             }
         }
     }

@@ -81,7 +81,7 @@ BarPill {
                     visible: coverImage.status !== Image.Ready
                     text: "󰎆"
                     iconSize: 16
-                    color: Theme.onSecondaryContainer
+                    color: Theme.textPrimary
                 }
             }
 
@@ -97,7 +97,7 @@ BarPill {
                     id: titleLabel
                     width: parent.width
                     text: root.titleText
-                    color: Theme.onSurface
+                    color: Theme.textPrimary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.Bold
@@ -107,7 +107,7 @@ BarPill {
                 Text {
                     width: parent.width
                     text: root.artistText
-                    color: Theme.onSurfaceVariant
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 8
                     font.weight: Font.Medium

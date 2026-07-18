@@ -40,13 +40,17 @@ Item {
         }
 
         Behavior on radius {
-            SpringAnimation { spring: 5; damping: 0.42; mass: 0.75; epsilon: 0.08 }
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
         }
     }
 
     MaterialRipple {
         id: ripple
-        rippleColor: root.checked ? Theme.onPrimary : Theme.onSurface
+        rippleColor: root.checked ? Theme.textPrimary : Theme.textPrimary
         peakOpacity: 0.12
     }
 
@@ -57,14 +61,22 @@ Item {
         radius: width / 2
         x: root.checked ? root.width - width - 4 : 8
         anchors.verticalCenter: parent.verticalCenter
-        color: root.checked ? Theme.onPrimary : Theme.outline
+        color: root.checked ? Theme.textPrimary : Theme.outline
 
         Behavior on x {
-            SpringAnimation { spring: 4.5; damping: 0.4; epsilon: 0.05 }
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.emphasizedDecelerate
+            }
         }
 
         Behavior on width {
-            SpringAnimation { spring: 4.5; damping: 0.4; epsilon: 0.05 }
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
         }
 
         Behavior on color {
@@ -95,6 +107,10 @@ Item {
     }
 
     Behavior on scale {
-        SpringAnimation { spring: 5; damping: 0.42; mass: 0.7; epsilon: 0.002 }
+        NumberAnimation {
+            duration: Theme.motionShort4
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.standardCurve
+        }
     }
 }

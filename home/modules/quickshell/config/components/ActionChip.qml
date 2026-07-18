@@ -52,7 +52,7 @@ Item {
 
     MaterialRipple {
         id: ripple
-        rippleColor: root.selected ? Theme.onSecondaryContainer : Theme.onSurface
+        rippleColor: root.selected ? Theme.textPrimary : Theme.textPrimary
     }
 
     Rectangle {
@@ -70,7 +70,7 @@ Item {
             anchors.centerIn: parent
             text: root.icon
             iconSize: 17
-            color: root.selected ? Theme.onSecondary : Theme.onSurfaceVariant
+            color: root.selected ? Theme.textPrimary : Theme.textSecondary
         }
 
         Behavior on radius {
@@ -93,7 +93,7 @@ Item {
         Text {
             width: parent.width
             text: root.label
-            color: root.selected ? Theme.onSecondaryContainer : Theme.onSurface
+            color: root.selected ? Theme.textPrimary : Theme.textPrimary
             font.family: Theme.textFont
             font.pixelSize: 13
             font.weight: Font.DemiBold
@@ -104,7 +104,7 @@ Item {
             visible: root.supportingText.length > 0
             width: parent.width
             text: root.supportingText
-            color: Theme.onSurfaceVariant
+            color: Theme.textSecondary
             font.family: Theme.textFont
             font.pixelSize: 10
             elide: Text.ElideRight

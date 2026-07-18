@@ -7,15 +7,15 @@ Rectangle {
 
     property var controller
 
-    implicitHeight: 126
+    implicitHeight: root.controller && root.controller.powerProfileError ? 146 : 126
     radius: Theme.shapeLarge
     color: Theme.surfaceContainer
 
     ListModel {
         id: profiles
-        ListElement { profileKey: "power-saver"; profileIcon: "energy_savings_leaf"; profileLabel: "Saver" }
-        ListElement { profileKey: "balanced"; profileIcon: "balance"; profileLabel: "Balanced" }
-        ListElement { profileKey: "performance"; profileIcon: "speed"; profileLabel: "Performance" }
+        ListElement { profileKey: "power-saver"; profileIcon: "energy_savings_leaf"; viLabel: "Tiết kiệm"; enLabel: "Saver" }
+        ListElement { profileKey: "balanced"; profileIcon: "balance"; viLabel: "Cân bằng"; enLabel: "Balanced" }
+        ListElement { profileKey: "performance"; profileIcon: "speed"; viLabel: "Hiệu năng"; enLabel: "Performance" }
     }
 
     Column {
@@ -45,8 +45,8 @@ Rectangle {
                 spacing: 0
 
                 Text {
-                    text: "Power mode"
-                    color: Theme.onSurface
+                    text: I18n.tr("Chế độ nguồn", "Power profile")
+                    color: Theme.textPrimary
                     font.family: Theme.textFont
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
@@ -54,11 +54,18 @@ Rectangle {
 
                 Text {
                     text: root.controller
-                        ? (root.controller.powerProfile === "power-saver" ? "Extend battery life"
-                            : root.controller.powerProfile === "performance" ? "Prioritize performance"
-                            : "Balance performance and battery")
-                        : "Updating…"
-                    color: Theme.onSurfaceVariant
+                        ? root.controller.powerProfileBusy
+                            ? I18n.tr("Đang áp dụng…", "Applying…")
+                            : (root.controller.powerProfile === "power-saver"
+                                ? I18n.tr("Kéo dài thời lượng pin",
+                                    "Extend battery life")
+                                : root.controller.powerProfile === "performance"
+                                    ? I18n.tr("Ưu tiên hiệu năng",
+                                        "Prioritize performance")
+                                    : I18n.tr("Cân bằng hiệu năng và pin",
+                                        "Balance performance and battery"))
+                        : I18n.tr("Đang cập nhật…", "Updating…")
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                 }
@@ -77,19 +84,31 @@ Rectangle {
                 ActionChip {
                     required property string profileKey
                     required property string profileIcon
-                    required property string profileLabel
+                    required property string viLabel
+                    required property string enLabel
 
                     width: (profileRow.width - profileRow.spacing * 2) / 3
                     height: profileRow.height
                     icon: profileIcon
-                    label: profileLabel
+                    label: I18n.tr(viLabel, enLabel)
                     selected: root.controller && root.controller.powerProfile === profileKey
+                    enabled: root.controller && !root.controller.powerProfileBusy
                     onClicked: {
                         if (root.controller)
                             root.controller.setPowerProfile(profileKey);
                     }
                 }
             }
+        }
+
+        Text {
+            visible: root.controller && root.controller.powerProfileError.length > 0
+            width: parent.width
+            text: root.controller ? root.controller.powerProfileError : ""
+            color: Theme.error
+            font.family: Theme.textFont
+            font.pixelSize: 10
+            elide: Text.ElideRight
         }
     }
 }

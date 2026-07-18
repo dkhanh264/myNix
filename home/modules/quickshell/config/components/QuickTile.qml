@@ -40,7 +40,11 @@ Item {
         border.color: Theme.outlineVariant
 
         Behavior on radius {
-            SpringAnimation { spring: 4.5; damping: 0.4; mass: 0.8; epsilon: 0.08 }
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
         }
 
         Behavior on color {
@@ -51,7 +55,7 @@ Item {
     MaterialRipple {
         id: ripple
         anchors.rightMargin: root.showDetails ? 44 : 0
-        rippleColor: root.active ? Theme.onPrimaryContainer : Theme.onSurface
+        rippleColor: root.active ? Theme.textPrimary : Theme.textPrimary
         peakOpacity: 0.12
     }
 
@@ -70,11 +74,15 @@ Item {
             anchors.centerIn: parent
             text: root.icon
             iconSize: 21
-            color: root.active ? Theme.onPrimary : Theme.onSurfaceVariant
+            color: root.active ? Theme.textPrimary : Theme.textSecondary
         }
 
         Behavior on radius {
-            SpringAnimation { spring: 5; damping: 0.38; mass: 0.7; epsilon: 0.08 }
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
         }
 
         Behavior on color {
@@ -82,7 +90,11 @@ Item {
         }
 
         Behavior on scale {
-            SpringAnimation { spring: 6; damping: 0.36; mass: 0.65; epsilon: 0.002 }
+            NumberAnimation {
+                duration: Theme.motionShort4
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.standardCurve
+            }
         }
     }
 
@@ -97,7 +109,7 @@ Item {
         Text {
             width: parent.width
             text: root.title
-            color: root.active ? Theme.onPrimaryContainer : Theme.onSurface
+            color: root.active ? Theme.textPrimary : Theme.textPrimary
             font.family: Theme.textFont
             font.pixelSize: 14
             font.weight: Font.DemiBold
@@ -108,8 +120,8 @@ Item {
             width: parent.width
             text: root.subtitle
             color: root.active
-                ? Theme.alpha(Theme.onPrimaryContainer, 0.76)
-                : Theme.onSurfaceVariant
+                ? Theme.alpha(Theme.textPrimary, 0.76)
+                : Theme.textSecondary
             font.family: Theme.textFont
             font.pixelSize: 11
             elide: Text.ElideRight
@@ -127,11 +139,15 @@ Item {
         icon: "󰅂"
         rotation: root.expanded ? 90 : 0
         fillColor: "transparent"
-        foregroundColor: root.active ? Theme.onPrimaryContainer : Theme.onSurfaceVariant
+        foregroundColor: root.active ? Theme.textPrimary : Theme.textSecondary
         onClicked: root.detailsClicked()
 
         Behavior on rotation {
-            SpringAnimation { spring: 4; damping: 0.42; mass: 0.75; epsilon: 0.1; modulus: 360 }
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.emphasizedDecelerate
+            }
         }
     }
 
@@ -149,7 +165,11 @@ Item {
     }
 
     Behavior on scale {
-        SpringAnimation { spring: 5; damping: 0.44; mass: 0.75; epsilon: 0.002 }
+        NumberAnimation {
+            duration: Theme.motionShort4
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.standardCurve
+        }
     }
 
     SequentialAnimation {
@@ -157,18 +177,17 @@ Item {
         NumberAnimation {
             target: root
             property: "iconPulse"
-            to: 1.16
+            to: 1.08
             duration: Theme.motionShort2
             easing.type: Easing.OutCubic
         }
-        SpringAnimation {
+        NumberAnimation {
             target: root
             property: "iconPulse"
             to: 1
-            spring: 5
-            damping: 0.38
-            mass: 0.7
-            epsilon: 0.002
+            duration: Theme.motionMedium1
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.emphasizedDecelerate
         }
     }
 }

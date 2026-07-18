@@ -6,9 +6,9 @@ Rectangle {
     id: root
 
     property var controller
+    property string selectedSsid: ""
 
     implicitHeight: content.implicitHeight + 16
-    radius: 0
     color: "transparent"
 
     function signalIcon(strength) {
@@ -30,7 +30,7 @@ Rectangle {
 
         Item {
             width: parent.width
-            height: 40
+            height: 42
 
             Column {
                 anchors.left: parent.left
@@ -38,8 +38,8 @@ Rectangle {
                 spacing: 0
 
                 Text {
-                    text: "Available networks"
-                    color: Theme.onSurface
+                    text: I18n.tr("Mạng khả dụng", "Available networks")
+                    color: Theme.textPrimary
                     font.family: Theme.textFont
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
@@ -47,9 +47,11 @@ Rectangle {
 
                 Text {
                     text: root.controller && root.controller.wifiSsid
-                        ? "Connected to " + root.controller.wifiSsid
-                        : "Choose a saved or open network"
-                    color: Theme.onSurfaceVariant
+                        ? I18n.tr("Đã kết nối ", "Connected to ")
+                            + root.controller.wifiSsid
+                        : I18n.tr("Chọn mạng để kết nối",
+                            "Choose a network to connect")
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                 }
@@ -58,12 +60,14 @@ Rectangle {
             IconButton {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                buttonSize: 36
-                iconSize: 17
+                buttonSize: 38
+                iconSize: 18
                 icon: "refresh"
                 fillColor: Theme.surfaceContainerHigh
-                accessibleName: "Scan for Wi-Fi networks"
-                enabled: root.controller && root.controller.wifiEnabled && !root.controller.wifiBusy
+                accessibleName: I18n.tr("Quét mạng Wi‑Fi",
+                    "Scan Wi-Fi networks")
+                enabled: root.controller && root.controller.wifiEnabled
+                    && !root.controller.wifiBusy
                 onClicked: root.controller.refreshWifi(true)
             }
         }
@@ -71,14 +75,15 @@ Rectangle {
         Item {
             visible: !root.controller || root.controller.wifiNetworks.count === 0
             width: parent.width
-            height: visible ? 56 : 0
+            height: visible ? 64 : 0
 
             Text {
                 anchors.centerIn: parent
                 text: root.controller && !root.controller.wifiEnabled
-                    ? "Turn on Wi-Fi to find networks"
-                    : "No networks found"
-                color: Theme.onSurfaceVariant
+                    ? I18n.tr("Bật Wi‑Fi để tìm mạng",
+                        "Turn on Wi-Fi to find networks")
+                    : I18n.tr("Không tìm thấy mạng", "No networks found")
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 12
             }
@@ -89,145 +94,277 @@ Rectangle {
 
             Item {
                 id: networkRow
+
                 required property int index
                 required property string ssid
                 required property int strength
                 required property string security
                 required property bool active
-                // Compatibility with the legacy service label while keeping
-                // all user-facing copy in English.
-                readonly property bool openNetwork: security === "\u004d\u1edf"
+                required property bool saved
+                required property string connectionName
+                property bool editingPassword: false
+                readonly property bool selected: root.selectedSsid === ssid
+                readonly property bool openNetwork: security === "Mở"
                     || security.toLowerCase() === "open"
+                readonly property bool showPassword: selected && !openNetwork
+                    && (!saved || editingPassword)
 
                 width: content.width
-                height: 56
-                scale: networkPointer.pressed ? 0.985 : 1
-                activeFocusOnTab: !active && root.controller
-                    && !root.controller.wifiBusy
+                height: 58 + (selected ? actionPanel.implicitHeight + 8 : 0)
+                activeFocusOnTab: root.controller && !root.controller.wifiBusy
 
                 Accessible.role: Accessible.Button
-                Accessible.name: active ? ssid + ", connected"
-                    : ssid + ", " + strength + " percent signal"
-                Accessible.focusable: activeFocusOnTab
+                Accessible.name: active
+                    ? ssid + I18n.tr(", đã kết nối", ", connected")
+                    : ssid + I18n.tr(", tín hiệu ", ", signal ")
+                        + strength + I18n.tr(" phần trăm", " percent")
+                Accessible.focusable: true
 
                 Keys.onPressed: event => {
                     if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
                             || event.key === Qt.Key_Space) {
-                        root.controller.connectWifi(networkRow.ssid);
+                        networkRow.chooseNetwork();
                         event.accepted = true;
                     }
+                }
+
+                function chooseNetwork() {
+                    if (!root.controller || root.controller.wifiBusy)
+                        return;
+                    if (!active && !saved && openNetwork) {
+                        root.controller.connectWifi(ssid, "", "");
+                        return;
+                    }
+                    root.selectedSsid = selected ? "" : ssid;
+                    editingPassword = false;
                 }
 
                 Rectangle {
                     anchors.fill: parent
                     radius: networkPointer.pressed
-                        ? Theme.shapeSmall : Theme.shapeMedium
+                        ? Theme.shapeSmall
+                        : networkRow.selected || networkRow.active
+                            ? Theme.shapeLarge : Theme.shapeMedium
                     color: networkRow.active
                         ? Theme.secondaryContainer
-                        : (networkPointer.containsMouse ? Theme.surfaceContainerHigh : "transparent")
+                        : networkRow.selected
+                            ? Theme.surfaceContainerHigh
+                            : networkPointer.containsMouse
+                                ? Theme.alpha(Theme.textPrimary, 0.06)
+                                : "transparent"
 
-                    Behavior on color { ColorAnimation { duration: Theme.motionShort } }
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.motionShort3 }
+                    }
+                    Behavior on radius {
+                        NumberAnimation {
+                            duration: Theme.motionMedium1
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Theme.springCurve
+                        }
+                    }
                 }
 
-                MaterialRipple {
-                    id: networkRipple
-                    rippleColor: networkRow.active
-                        ? Theme.onSecondaryContainer : Theme.onSurface
-                    peakOpacity: 0.11
-                }
+                Item {
+                    id: summaryRow
+                    width: parent.width
+                    height: 58
 
-                Rectangle {
-                    id: signalContainer
-                    width: 38
-                    height: 38
-                    radius: networkRow.active
-                        ? Theme.shapeMedium : width / 2
-                    anchors.left: parent.left
-                    anchors.leftMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: networkRow.active ? Theme.secondary : Theme.surfaceContainerHighest
-                    scale: networkPointer.pressed ? 0.9 : 1
+                    Rectangle {
+                        id: signalContainer
+                        width: 38
+                        height: 38
+                        radius: networkRow.active
+                            ? Theme.shapeMedium : width / 2
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: networkRow.active
+                            ? Theme.secondary : Theme.surfaceContainerHighest
 
-                    Behavior on scale { NumberAnimation { duration: Theme.motionShort4 } }
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: root.signalIcon(networkRow.strength)
+                            iconSize: 18
+                            color: networkRow.active
+                                ? Theme.textPrimary : Theme.textSecondary
+                            filled: networkRow.active
+                        }
+                    }
+
+                    Column {
+                        anchors.left: signalContainer.right
+                        anchors.leftMargin: 10
+                        anchors.right: statusIcon.left
+                        anchors.rightMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 1
+
+                        Text {
+                            width: parent.width
+                            text: networkRow.ssid
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 13
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            width: parent.width
+                            text: networkRow.active
+                                ? I18n.tr("Đã kết nối", "Connected") + " · "
+                                    + networkRow.strength + "%"
+                                : (networkRow.saved
+                                    ? I18n.tr("Đã lưu", "Saved")
+                                    : networkRow.openNetwork
+                                        ? I18n.tr("Mạng mở", "Open network")
+                                        : networkRow.security)
+                                    + " · " + networkRow.strength + "%"
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 10
+                            elide: Text.ElideRight
+                        }
+                    }
 
                     MaterialIcon {
-                        anchors.centerIn: parent
-                        text: root.signalIcon(networkRow.strength)
+                        id: statusIcon
+                        anchors.right: parent.right
+                        anchors.rightMargin: 12
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: networkRow.selected ? "expand_less"
+                            : networkRow.active ? "check_circle"
+                            : networkRow.openNetwork ? "lock_open" : "lock"
                         iconSize: 18
-                        color: networkRow.active ? Theme.onSecondary : Theme.onSurfaceVariant
+                        color: networkRow.active
+                            ? Theme.secondary : Theme.textSecondary
                     }
                 }
 
                 Column {
-                    anchors.left: signalContainer.right
-                    anchors.leftMargin: 10
-                    anchors.right: securityIcon.left
-                    anchors.rightMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 1
-
-                    Text {
-                        width: parent.width
-                        text: networkRow.ssid
-                        color: networkRow.active ? Theme.onSecondaryContainer : Theme.onSurface
-                        font.family: Theme.textFont
-                        font.pixelSize: 13
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
-
-                    Text {
-                        width: parent.width
-                        text: networkRow.active
-                            ? "Connected · " + networkRow.strength + "%"
-                            : (networkRow.openNetwork ? "Open" : networkRow.security)
-                                + " · " + networkRow.strength + "%"
-                        color: Theme.onSurfaceVariant
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
-                        elide: Text.ElideRight
-                    }
-                }
-
-                MaterialIcon {
-                    id: securityIcon
+                    id: actionPanel
+                    anchors.left: parent.left
+                    anchors.leftMargin: 8
                     anchors.right: parent.right
-                    anchors.rightMargin: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: networkRow.active ? "check_circle"
-                        : networkRow.openNetwork ? "lock_open" : "lock"
-                    iconSize: 18
-                    color: networkRow.active ? Theme.secondary : Theme.onSurfaceVariant
+                    anchors.rightMargin: 8
+                    anchors.top: summaryRow.bottom
+                    spacing: 8
+                    opacity: networkRow.selected ? 1 : 0
+
+                    M3TextField {
+                        id: passwordField
+                        visible: networkRow.showPassword
+                        width: parent.width
+                        height: visible ? implicitHeight : 0
+                        label: networkRow.saved
+                            ? I18n.tr("Mật khẩu mới", "New password")
+                            : I18n.tr("Mật khẩu Wi‑Fi", "Wi-Fi password")
+                        placeholderText: I18n.tr("Nhập mật khẩu",
+                            "Enter password")
+                        leadingIcon: "password"
+                        echoMode: TextInput.Password
+                        onAccepted: primaryAction.clicked()
+                    }
+
+                    Row {
+                        width: parent.width
+                        height: 44
+                        spacing: 7
+
+                        M3Button {
+                            id: primaryAction
+                            height: parent.height
+                            width: networkRow.saved
+                                ? Math.max(94, (parent.width - parent.spacing * 2) / 3)
+                                : parent.width
+                            icon: networkRow.active ? "link_off"
+                                : networkRow.editingPassword ? "save" : "link"
+                            text: networkRow.active
+                                ? I18n.tr("Ngắt", "Disconnect")
+                                : networkRow.editingPassword
+                                    ? I18n.tr("Lưu", "Save")
+                                    : I18n.tr("Kết nối", "Connect")
+                            enabled: !root.controller.wifiBusy
+                                && (networkRow.active
+                                    || !networkRow.showPassword
+                                    || passwordField.text.length >= 8)
+                            onClicked: {
+                                if (networkRow.active) {
+                                    root.controller.disconnectWifi(
+                                        networkRow.connectionName);
+                                } else if (networkRow.editingPassword) {
+                                    root.controller.updateWifiPassword(
+                                        networkRow.connectionName,
+                                        passwordField.text);
+                                } else {
+                                    root.controller.connectWifi(networkRow.ssid,
+                                        passwordField.text,
+                                        networkRow.saved
+                                            ? networkRow.connectionName : "");
+                                }
+                            }
+                        }
+
+                        M3Button {
+                            visible: networkRow.saved
+                            height: parent.height
+                            width: visible
+                                ? (parent.width - parent.spacing * 2) / 3 : 0
+                            icon: "edit"
+                            text: I18n.tr("Sửa", "Edit")
+                            tonal: true
+                            enabled: !root.controller.wifiBusy
+                            onClicked: networkRow.editingPassword
+                                = !networkRow.editingPassword
+                        }
+
+                        M3Button {
+                            visible: networkRow.saved
+                            height: parent.height
+                            width: visible
+                                ? (parent.width - parent.spacing * 2) / 3 : 0
+                            icon: "delete"
+                            text: I18n.tr("Xóa", "Forget")
+                            destructive: true
+                            enabled: !root.controller.wifiBusy
+                            onClicked: root.controller.forgetWifi(
+                                networkRow.connectionName)
+                        }
+                    }
                 }
 
                 MouseArea {
                     id: networkPointer
-                    anchors.fill: parent
-                    enabled: !networkRow.active && root.controller && !root.controller.wifiBusy
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    height: summaryRow.height
+                    enabled: root.controller && !root.controller.wifiBusy
                     hoverEnabled: true
                     cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                    onPressed: mouse => {
-                        networkRow.forceActiveFocus();
-                        networkRipple.burst(mouse.x, mouse.y);
-                    }
-                    onClicked: root.controller.connectWifi(networkRow.ssid)
+                    onPressed: networkRow.forceActiveFocus()
+                    onClicked: networkRow.chooseNetwork()
                 }
 
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: 2
-                    radius: Theme.shapeMedium
+                    radius: Theme.shapeLarge
                     color: "transparent"
                     border.width: 2
                     border.color: Theme.primary
                     visible: networkRow.activeFocus
                 }
 
-                Behavior on scale {
+                Behavior on height {
+                    enabled: !Theme.reduceMotion
                     NumberAnimation {
-                        duration: Theme.motionShort4
+                        duration: Theme.motionMedium2
                         easing.type: Easing.BezierSpline
-                        easing.bezierCurve: Theme.standardCurve
+                        easing.bezierCurve: networkRow.selected
+                            ? Theme.emphasizedDecelerate
+                            : Theme.emphasizedAccelerate
                     }
                 }
             }
@@ -235,34 +372,26 @@ Rectangle {
 
         Item {
             width: parent.width
-            height: 42
+            height: 44
 
             Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: "New secured network?"
-                color: Theme.onSurfaceVariant
+                text: I18n.tr("Tùy chọn nâng cao",
+                    "Advanced network options")
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 11
             }
 
-            Text {
+            M3Button {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Open settings"
-                color: settingsPointer.containsMouse ? Theme.tertiary : Theme.primary
-                font.family: Theme.textFont
-                font.pixelSize: 11
-                font.weight: Font.DemiBold
-
-                MouseArea {
-                    id: settingsPointer
-                    anchors.fill: parent
-                    anchors.margins: -8
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.controller.openSettings("network")
-                }
+                compact: true
+                tonal: true
+                icon: "settings"
+                text: I18n.tr("Cài đặt", "Settings")
+                onClicked: root.controller.openSettings("network")
             }
         }
     }

@@ -34,7 +34,7 @@ BarPill {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.controller ? root.controller.cpuUsage + "%" : "--%"
-                color: Theme.onSurfaceVariant
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 10
                 font.weight: Font.DemiBold
@@ -64,7 +64,7 @@ BarPill {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.controller ? root.controller.temperatureC + "°" : "--°"
                 color: root.controller && root.controller.temperatureC >= 80
-                    ? Theme.error : Theme.onSurfaceVariant
+                    ? Theme.error : Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 10
                 font.weight: Font.DemiBold
@@ -93,7 +93,7 @@ BarPill {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.controller
                     ? root.controller.memoryUsedGib.toFixed(1) + "G" : "--G"
-                color: Theme.onSurfaceVariant
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 10
                 font.weight: Font.DemiBold

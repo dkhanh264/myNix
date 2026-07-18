@@ -95,7 +95,7 @@ Item {
             Text {
                 width: parent.width
                 text: "Control center"
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 18
                 font.weight: Font.Bold
@@ -105,7 +105,7 @@ Item {
             Text {
                 width: parent.width
                 text: root.controller ? root.controller.longDateText : ""
-                color: Theme.onSurfaceVariant
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 10
                 elide: Text.ElideRight
@@ -184,7 +184,7 @@ Item {
                 topPadding: 6
                 leftPadding: 4
                 text: "Device controls"
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 15
                 font.weight: Font.Bold
@@ -221,7 +221,7 @@ Item {
                 topPadding: 6
                 leftPadding: 4
                 text: "Connections"
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 15
                 font.weight: Font.Bold
@@ -258,7 +258,7 @@ Item {
                 topPadding: 6
                 leftPadding: 4
                 text: "Launch"
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 15
                 font.weight: Font.Bold
@@ -272,7 +272,7 @@ Item {
                 topPadding: 6
                 leftPadding: 4
                 text: "Tools"
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 15
                 font.weight: Font.Bold

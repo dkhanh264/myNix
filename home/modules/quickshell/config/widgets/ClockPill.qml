@@ -33,7 +33,7 @@ BarPill {
                 id: timeText
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: root.controller ? root.controller.timeText : "--:--"
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 14
                 font.weight: Font.Bold
@@ -68,7 +68,7 @@ BarPill {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: root.controller ? root.controller.shortDateText : ""
-                color: Theme.onSurfaceVariant
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 9
                 font.weight: Font.Medium

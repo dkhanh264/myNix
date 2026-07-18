@@ -48,9 +48,11 @@ Rectangle {
 
         Accessible.role: Accessible.Button
         Accessible.name: root.controller && root.controller.wifiSsid
-            ? "Wi-Fi connected to " + root.controller.wifiSsid
+            ? I18n.tr("Wi-Fi đã kết nối ", "Wi-Fi connected to ")
+                + root.controller.wifiSsid
             : root.controller && root.controller.wifiEnabled
-                ? "Wi-Fi is on" : "Wi-Fi is off"
+                ? I18n.tr("Wi-Fi đang bật", "Wi-Fi is on")
+                : I18n.tr("Wi-Fi đang tắt", "Wi-Fi is off")
 
         Rectangle {
             anchors.fill: parent
@@ -79,7 +81,7 @@ Rectangle {
                 text: root.wifiIcon()
                 iconSize: 24
                 color: root.controller && root.controller.wifiEnabled
-                    ? Theme.primary : Theme.onSurfaceVariant
+                    ? Theme.primary : Theme.textSecondary
                 filled: root.controller && root.controller.wifiSsid.length > 0
             }
         }
@@ -95,7 +97,7 @@ Rectangle {
             Text {
                 width: parent.width
                 text: "Wi-Fi"
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 14
                 font.weight: Font.DemiBold
@@ -104,10 +106,13 @@ Rectangle {
 
             Text {
                 width: parent.width
-                text: !root.controller ? "Updating…"
-                    : !root.controller.wifiEnabled ? "Off"
-                    : root.controller.wifiSsid || "Not connected"
-                color: Theme.onSurfaceVariant
+                text: !root.controller
+                    ? I18n.tr("Đang cập nhật…", "Updating…")
+                    : !root.controller.wifiEnabled
+                        ? I18n.tr("Đã tắt", "Off")
+                        : root.controller.wifiSsid
+                            || I18n.tr("Chưa kết nối", "Not connected")
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 11
                 elide: Text.ElideRight
@@ -137,7 +142,8 @@ Rectangle {
                 iconSize: 20
                 icon: root.expanded ? "expand_less" : "expand_more"
                 accessibleName: root.expanded
-                    ? "Hide Wi-Fi networks" : "Show Wi-Fi networks"
+                    ? I18n.tr("Ẩn danh sách Wi-Fi", "Hide Wi-Fi list")
+                    : I18n.tr("Hiện danh sách Wi-Fi", "Show Wi-Fi list")
                 onClicked: root.expansionRequested(!root.expanded)
             }
         }

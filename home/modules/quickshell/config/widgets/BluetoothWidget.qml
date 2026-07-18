@@ -34,12 +34,16 @@ Rectangle {
         activeFocusOnTab: true
 
         Accessible.role: Accessible.Button
-        Accessible.name: !root.controller ? "Bluetooth controls"
-            : !root.controller.bluetoothAvailable ? "Bluetooth is unavailable"
-            : !root.controller.bluetoothEnabled ? "Bluetooth is off"
+        Accessible.name: !root.controller
+            ? I18n.tr("Điều khiển Bluetooth", "Bluetooth controls")
+            : !root.controller.bluetoothAvailable
+                ? I18n.tr("Bluetooth không khả dụng", "Bluetooth unavailable")
+            : !root.controller.bluetoothEnabled
+                ? I18n.tr("Bluetooth đang tắt", "Bluetooth is off")
             : root.controller.bluetoothConnectedCount > 0
-                ? root.controller.bluetoothConnectedCount + " devices connected"
-                : "Bluetooth is on"
+                ? root.controller.bluetoothConnectedCount
+                    + I18n.tr(" thiết bị đã kết nối", " connected devices")
+                : I18n.tr("Bluetooth đang bật", "Bluetooth is on")
 
         Rectangle {
             anchors.fill: parent
@@ -71,7 +75,7 @@ Rectangle {
                         ? "bluetooth_connected" : "bluetooth"
                 iconSize: 24
                 color: root.controller && root.controller.bluetoothEnabled
-                    ? Theme.tertiary : Theme.onSurfaceVariant
+                    ? Theme.tertiary : Theme.textSecondary
                 filled: root.controller && root.controller.bluetoothConnectedCount > 0
             }
         }
@@ -87,7 +91,7 @@ Rectangle {
             Text {
                 width: parent.width
                 text: "Bluetooth"
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 14
                 font.weight: Font.DemiBold
@@ -96,13 +100,18 @@ Rectangle {
 
             Text {
                 width: parent.width
-                text: !root.controller ? "Updating…"
-                    : !root.controller.bluetoothAvailable ? "Unavailable"
-                    : !root.controller.bluetoothEnabled ? "Off"
+                text: !root.controller
+                    ? I18n.tr("Đang cập nhật…", "Updating…")
+                    : !root.controller.bluetoothAvailable
+                        ? I18n.tr("Không khả dụng", "Unavailable")
+                    : !root.controller.bluetoothEnabled
+                        ? I18n.tr("Đã tắt", "Off")
                     : root.controller.bluetoothConnectedCount > 0
-                        ? root.controller.bluetoothConnectedCount + " connected"
-                        : "No connected devices"
-                color: Theme.onSurfaceVariant
+                        ? root.controller.bluetoothConnectedCount
+                            + I18n.tr(" đã kết nối", " connected")
+                        : I18n.tr("Chưa có thiết bị kết nối",
+                            "No connected devices")
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 11
                 elide: Text.ElideRight
@@ -133,7 +142,10 @@ Rectangle {
                 icon: root.expanded ? "expand_less" : "expand_more"
                 enabled: root.controller && root.controller.bluetoothAvailable
                 accessibleName: root.expanded
-                    ? "Hide Bluetooth devices" : "Show Bluetooth devices"
+                    ? I18n.tr("Ẩn thiết bị Bluetooth",
+                        "Hide Bluetooth devices")
+                    : I18n.tr("Hiện thiết bị Bluetooth",
+                        "Show Bluetooth devices")
                 onClicked: root.expansionRequested(!root.expanded)
             }
         }

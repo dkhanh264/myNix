@@ -8,14 +8,17 @@
     
     # Gom toàn bộ cấu hình cũ vào khối settings và đổi sang dạng dấu gạch ngang (-)
     settings = {
-      font = "JetBrainsMono Nerd Font 10";
-      width = 300;
-      height = 100;
-      margin = "10";
-      padding = "10";
+      font = "Noto Sans 10";
+      width = 360;
+      height = 130;
+      margin = "12";
+      padding = "16";
       border-size = 0;
-      border-radius = 10;
-      default-timeout = 2000;
+      border-radius = 24;
+      default-timeout = 5000;
+      max-history = 50;
+      icons = true;
+      max-icon-size = 48;
       layer = "top";
       anchor = "top-right";
     };

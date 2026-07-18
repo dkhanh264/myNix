@@ -6,10 +6,10 @@ Item {
     id: root
 
     property var controller
-    property bool panelOpen: false
+    property string activePopup: ""
     property bool showLabels: true
 
-    signal controlCenterRequested
+    signal popupRequested(string section)
 
     implicitWidth: statusRow.implicitWidth
     implicitHeight: 44
@@ -50,24 +50,27 @@ Item {
         spacing: 8
 
         M3BarPill {
-            id: audioPill
+            id: controlsPill
 
             interactive: true
             horizontalPadding: root.showLabels ? 11 : 0
             minimumWidth: 44
             implicitWidth: Math.max(minimumWidth,
-                audioRow.implicitWidth + horizontalPadding * 2)
+                controlsRow.implicitWidth + horizontalPadding * 2)
             alert: root.controller && root.controller.muted
-            checked: root.panelOpen
+            checked: root.activePopup === "controls"
             accessibleName: root.controller
-                ? (root.controller.muted ? "Sound is muted" : "Volume "
-                    + root.controller.volume + " percent")
-                : "Sound controls"
+                ? I18n.tr("Âm lượng ", "Volume ")
+                    + root.controller.volume + I18n.tr(" phần trăm, độ sáng ",
+                        " percent, brightness ")
+                    + root.controller.brightness + I18n.tr(" phần trăm",
+                        " percent")
+                : I18n.tr("Âm thanh và độ sáng", "Sound and brightness")
 
             Row {
-                id: audioRow
+                id: controlsRow
                 anchors.centerIn: parent
-                spacing: 7
+                spacing: root.showLabels ? 8 : 4
 
                 MaterialIcon {
                     anchors.verticalCenter: parent.verticalCenter
@@ -75,19 +78,46 @@ Item {
                     iconSize: 18
                     color: root.controller && root.controller.muted
                         ? Theme.error : Theme.primary
+                    filled: true
                 }
                 Text {
                     visible: root.showLabels
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller ? root.controller.volume + "%" : "--%"
-                    color: Theme.onSurfaceVariant
+                    color: Theme.textSecondary
+                    font.family: Theme.textFont
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
+
+                Rectangle {
+                    visible: root.showLabels
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 1
+                    height: 18
+                    color: Theme.outlineVariant
+                }
+
+                MaterialIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "brightness_6"
+                    iconSize: 18
+                    color: Theme.tertiary
+                    filled: true
+                }
+                Text {
+                    visible: root.showLabels
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.controller
+                        ? root.controller.brightness + "%" : "--%"
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
 
-            onClicked: root.controlCenterRequested()
+            onClicked: root.popupRequested("controls")
             onSecondaryClicked: {
                 if (root.controller)
                     root.controller.openSettings("audio");
@@ -100,18 +130,104 @@ Item {
         }
 
         M3BarPill {
+            id: recorderPill
+
+            visible: root.controller && root.controller.recording
+            interactive: true
+            checked: root.activePopup === "recorder"
+            alert: true
+            horizontalPadding: root.showLabels ? 11 : 0
+            minimumWidth: 44
+            implicitWidth: Math.max(minimumWidth,
+                recorderRow.implicitWidth + horizontalPadding * 2)
+            accessibleName: root.controller && root.controller.recordingPaused
+                ? I18n.tr("Bản ghi màn hình đang tạm dừng",
+                    "Screen recording paused")
+                : I18n.tr("Đang ghi màn hình", "Screen recording active")
+
+            Row {
+                id: recorderRow
+                anchors.centerIn: parent
+                spacing: 6
+
+                MaterialIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.controller && root.controller.recordingPaused
+                        ? "pause" : "fiber_manual_record"
+                    iconSize: 18
+                    color: Theme.error
+                    filled: true
+                }
+                Text {
+                    visible: root.showLabels
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.controller && root.controller.recordingPaused
+                        ? I18n.tr("Tạm dừng", "Paused")
+                        : I18n.tr("REC", "REC")
+                    color: Theme.error
+                    font.family: Theme.textFont
+                    font.pixelSize: 10
+                    font.weight: Font.Bold
+                }
+            }
+
+            onClicked: root.popupRequested("recorder")
+        }
+
+        M3BarPill {
+            id: activityPill
+
+            interactive: true
+            checked: root.activePopup === "activity"
+            horizontalPadding: root.showLabels ? 11 : 0
+            minimumWidth: 44
+            implicitWidth: Math.max(minimumWidth,
+                activityRow.implicitWidth + horizontalPadding * 2)
+            accessibleName: I18n.tr("Lịch sử thông báo và ảnh chụp",
+                "Notification and screenshot history")
+
+            Row {
+                id: activityRow
+                anchors.centerIn: parent
+                spacing: 6
+
+                MaterialIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "notifications"
+                    iconSize: 18
+                    color: Theme.secondary
+                    filled: root.controller
+                        && root.controller.notificationHistory.count > 0
+                }
+                Text {
+                    visible: root.showLabels
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.controller
+                        ? root.controller.notificationHistory.count.toString() : "0"
+                    color: Theme.textSecondary
+                    font.family: Theme.textFont
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
+            }
+
+            onClicked: root.popupRequested("activity")
+        }
+
+        M3BarPill {
             id: wifiPill
 
             interactive: true
-            checked: root.panelOpen
+            checked: root.activePopup === "wifi"
             alert: root.controller && !root.controller.wifiEnabled
             horizontalPadding: root.showLabels ? 11 : 0
             minimumWidth: 44
             implicitWidth: Math.max(minimumWidth,
                 wifiRow.implicitWidth + horizontalPadding * 2)
             accessibleName: root.controller && root.controller.wifiSsid
-                ? "Wi-Fi connected to " + root.controller.wifiSsid
-                : "Wi-Fi controls"
+                ? I18n.tr("Wi-Fi đã kết nối ", "Wi-Fi connected to ")
+                    + root.controller.wifiSsid
+                : I18n.tr("Điều khiển Wi-Fi", "Wi-Fi controls")
 
             Row {
                 id: wifiRow
@@ -123,15 +239,16 @@ Item {
                     text: root.wifiIcon()
                     iconSize: 18
                     color: root.controller && root.controller.wifiSsid
-                        ? Theme.primary : Theme.onSurfaceVariant
+                        ? Theme.primary : Theme.textSecondary
                 }
                 Text {
                     visible: root.showLabels
                     anchors.verticalCenter: parent.verticalCenter
                     width: Math.min(92, implicitWidth)
                     text: root.controller && root.controller.wifiSsid
-                        ? root.controller.wifiSsid : "Offline"
-                    color: Theme.onSurfaceVariant
+                        ? root.controller.wifiSsid
+                        : I18n.tr("Ngoại tuyến", "Offline")
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.DemiBold
@@ -139,7 +256,7 @@ Item {
                 }
             }
 
-            onClicked: root.controlCenterRequested()
+            onClicked: root.popupRequested("wifi")
             onSecondaryClicked: {
                 if (root.controller)
                     root.controller.openSettings("network");
@@ -151,16 +268,20 @@ Item {
 
             visible: root.controller && root.controller.bluetoothAvailable
             interactive: true
-            checked: root.panelOpen
+            checked: root.activePopup === "bluetooth"
             horizontalPadding: root.showLabels ? 11 : 0
             minimumWidth: 44
             implicitWidth: Math.max(minimumWidth,
                 bluetoothRow.implicitWidth + horizontalPadding * 2)
-            accessibleName: !root.controller ? "Bluetooth controls"
-                : !root.controller.bluetoothEnabled ? "Bluetooth is off"
+            accessibleName: !root.controller
+                ? I18n.tr("Điều khiển Bluetooth", "Bluetooth controls")
+                : !root.controller.bluetoothEnabled
+                    ? I18n.tr("Bluetooth đang tắt", "Bluetooth is off")
                 : root.controller.bluetoothConnectedCount > 0
-                    ? root.controller.bluetoothConnectedCount + " Bluetooth devices connected"
-                    : "Bluetooth is on"
+                    ? root.controller.bluetoothConnectedCount
+                        + I18n.tr(" thiết bị Bluetooth đã kết nối",
+                            " connected Bluetooth devices")
+                    : I18n.tr("Bluetooth đang bật", "Bluetooth is on")
 
             Row {
                 id: bluetoothRow
@@ -175,22 +296,23 @@ Item {
                             ? "bluetooth_connected" : "bluetooth"
                     iconSize: 18
                     color: root.controller && root.controller.bluetoothConnectedCount > 0
-                        ? Theme.tertiary : Theme.onSurfaceVariant
+                        ? Theme.tertiary : Theme.textSecondary
                 }
                 Text {
                     visible: root.showLabels
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller && root.controller.bluetoothConnectedCount > 0
                         ? root.controller.bluetoothConnectedCount.toString()
-                        : root.controller && root.controller.bluetoothEnabled ? "On" : "Off"
-                    color: Theme.onSurfaceVariant
+                        : root.controller && root.controller.bluetoothEnabled
+                            ? I18n.tr("Bật", "On") : I18n.tr("Tắt", "Off")
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
 
-            onClicked: root.controlCenterRequested()
+            onClicked: root.popupRequested("bluetooth")
             onSecondaryClicked: {
                 if (root.controller)
                     root.controller.openSettings("bluetooth");
@@ -202,6 +324,7 @@ Item {
 
             visible: root.controller && root.controller.batteryAvailable
             interactive: true
+            checked: root.activePopup === "power"
             horizontalPadding: 11
             implicitWidth: batteryRow.implicitWidth + horizontalPadding * 2
             alert: root.controller && root.controller.batteryPercent <= 15
@@ -227,14 +350,14 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller ? root.controller.batteryPercent + "%" : ""
                     color: root.controller && root.controller.batteryPercent <= 20
-                        ? Theme.error : Theme.onSurfaceVariant
+                        ? Theme.error : Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
 
-            onClicked: root.controlCenterRequested()
+            onClicked: root.popupRequested("power")
         }
     }
 }

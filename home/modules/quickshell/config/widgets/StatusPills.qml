@@ -87,7 +87,7 @@ Item {
                     visible: root.showLabels
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller ? root.controller.volume + "%" : "--%"
-                    color: Theme.onSurfaceVariant
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.DemiBold
@@ -133,7 +133,7 @@ Item {
                     text: root.wifiIcon()
                     iconSize: 16
                     color: root.controller && root.controller.wifiSsid
-                        ? Theme.primary : Theme.onSurfaceVariant
+                        ? Theme.primary : Theme.textSecondary
                 }
                 Text {
                     visible: root.showLabels
@@ -141,7 +141,7 @@ Item {
                     width: Math.min(92, implicitWidth)
                     text: root.controller && root.controller.wifiSsid
                         ? root.controller.wifiSsid : "Ngoại tuyến"
-                    color: Theme.onSurfaceVariant
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.DemiBold
@@ -159,7 +159,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "󰅂"
                     iconSize: 13
-                    color: root.panelOpen ? Theme.primary : Theme.onSurfaceVariant
+                    color: root.panelOpen ? Theme.primary : Theme.textSecondary
                     rotation: root.panelOpen ? 90 : 0
 
                     Behavior on rotation {
@@ -209,7 +209,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller ? root.controller.batteryPercent + "%" : ""
                     color: root.controller && root.controller.batteryPercent <= 20
-                        ? Theme.error : Theme.onSurfaceVariant
+                        ? Theme.error : Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.DemiBold

@@ -17,7 +17,7 @@ Rectangle {
     signal moved(real value)
     signal trailingClicked
 
-    implicitHeight: 116
+    implicitHeight: 136
     radius: controlSlider.interacting
         ? Theme.shapeMedium : Theme.shapeLarge
     color: Theme.blend(Theme.surfaceContainerHigh, root.accentColor,
@@ -81,7 +81,7 @@ Rectangle {
 
                 Text {
                     text: root.title
-                    color: Theme.onSurface
+                    color: Theme.textPrimary
                     font.family: Theme.textFont
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
@@ -89,7 +89,7 @@ Rectangle {
 
                 Text {
                     text: root.valueText
-                    color: Theme.onSurfaceVariant
+                    color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 11
                 }
@@ -114,7 +114,12 @@ Rectangle {
             from: root.from
             to: root.to
             value: root.value
-            activeColor: root.accentColor
+            icon: root.icon
+            accessibleName: root.title
+            activeColor: Theme.blend(Theme.surfaceContainerHighest,
+                root.accentColor, 0.30)
+            accentColor: root.accentColor
+            foregroundColor: Theme.textPrimary
             onMoved: value => root.moved(value)
         }
     }

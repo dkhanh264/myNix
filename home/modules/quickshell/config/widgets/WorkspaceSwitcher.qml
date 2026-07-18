@@ -3,16 +3,23 @@ import Quickshell.Hyprland
 import "../components"
 import "../theme"
 
+// Fixed workspace hit targets with one shared active indicator. Keeping every
+// slot the same size prevents hover/active state changes from shifting the
+// bar, while the indicator itself can glide between workspace centres.
 M3BarPill {
     id: root
 
     property var monitor
     property bool compact: false
+    readonly property int workspaceCount: 8
+    readonly property int slotWidth: compact ? 19 : 23
+    readonly property int activeId: monitor && monitor.activeWorkspace
+        ? monitor.activeWorkspace.id : 1
 
     interactive: false
-    horizontalPadding: 6
-    accessibleName: "Workspaces"
-    implicitWidth: workspaceRow.implicitWidth + horizontalPadding * 2
+    horizontalPadding: 8
+    accessibleName: I18n.tr("Không gian làm việc", "Workspaces")
+    implicitWidth: workspaceTrack.width + horizontalPadding * 2
 
     function workspaceFor(workspaceId) {
         const workspaces = Hyprland.workspaces.values;
@@ -23,13 +30,46 @@ M3BarPill {
         return null;
     }
 
-    Row {
-        id: workspaceRow
+    Item {
+        id: workspaceTrack
         anchors.centerIn: parent
-        spacing: 2
+        width: root.slotWidth * root.workspaceCount
+        height: 32
+
+        Rectangle {
+            id: activeIndicator
+            readonly property int safeIndex: Math.max(0,
+                Math.min(root.workspaceCount - 1, root.activeId - 1))
+
+            x: safeIndex * root.slotWidth + (root.slotWidth - width) / 2
+            anchors.verticalCenter: parent.verticalCenter
+            width: root.compact ? 25 : 29
+            height: 12
+            radius: height / 2
+            color: Theme.primary
+            visible: root.activeId >= 1 && root.activeId <= root.workspaceCount
+
+            Behavior on x {
+                enabled: !Theme.reduceMotion
+                NumberAnimation {
+                    duration: Theme.motionMedium2
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Theme.emphasizedDecelerate
+                }
+            }
+
+            Behavior on width {
+                enabled: !Theme.reduceMotion
+                NumberAnimation {
+                    duration: Theme.motionMedium1
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Theme.springCurve
+                }
+            }
+        }
 
         Repeater {
-            model: 8
+            model: root.workspaceCount
 
             delegate: Item {
                 id: workspaceButton
@@ -37,66 +77,67 @@ M3BarPill {
                 required property int index
                 readonly property int workspaceId: index + 1
                 readonly property var workspace: root.workspaceFor(workspaceId)
-                readonly property bool active: root.monitor
-                    && root.monitor.activeWorkspace
-                    && root.monitor.activeWorkspace.id === workspaceId
+                readonly property bool active: root.activeId === workspaceId
                 readonly property bool occupied: workspace
                     && workspace.toplevels
                     && workspace.toplevels.values.length > 0
                 readonly property bool urgent: workspace && workspace.urgent
-                readonly property bool hovered: pointer.containsMouse
 
-                width: active ? (root.compact ? 28 : 34) : (root.compact ? 21 : 26)
-                height: 32
+                x: index * root.slotWidth
+                width: root.slotWidth
+                height: parent.height
                 activeFocusOnTab: true
 
                 Accessible.role: Accessible.Button
-                Accessible.name: "Workspace " + workspaceId
-                Accessible.description: active ? "Active"
-                    : occupied ? "Contains windows" : "Empty"
+                Accessible.name: I18n.tr("Không gian ", "Workspace ") + workspaceId
+                Accessible.description: active
+                    ? I18n.tr("Đang hoạt động", "Active")
+                    : occupied
+                        ? I18n.tr("Có cửa sổ", "Contains windows")
+                        : I18n.tr("Trống", "Empty")
 
                 Rectangle {
-                    anchors.fill: parent
-                    radius: workspaceButton.active
-                        ? Theme.shapeMedium : height / 2
-                    color: workspaceButton.urgent
-                        ? Theme.errorContainer
-                        : workspaceButton.active ? Theme.primary
-                        : workspaceButton.hovered ? Theme.secondaryContainer
-                        : "transparent"
+                    anchors.centerIn: parent
+                    width: 28
+                    height: 28
+                    radius: width / 2
+                    color: pointer.pressed
+                        ? Theme.alpha(Theme.textPrimary, 0.10)
+                        : pointer.containsMouse
+                            ? Theme.alpha(Theme.textPrimary, 0.06)
+                            : "transparent"
 
                     Behavior on color {
-                        ColorAnimation { duration: Theme.motionShort4 }
+                        ColorAnimation { duration: Theme.motionShort3 }
                     }
-                    Behavior on radius {
+                }
+
+                // Inactive workspaces are intentionally label-free hollow
+                // circles. Occupied and urgent states use only colour/weight.
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: workspaceButton.active ? 0 : 10
+                    height: width
+                    radius: width / 2
+                    color: "transparent"
+                    border.width: workspaceButton.occupied ? 2 : 1
+                    border.color: workspaceButton.urgent
+                        ? Theme.error
+                        : workspaceButton.occupied
+                            ? Theme.primary : Theme.textSecondary
+                    opacity: workspaceButton.active ? 0 : 1
+
+                    Behavior on width {
+                        enabled: !Theme.reduceMotion
                         NumberAnimation {
-                            duration: Theme.motionMedium1
+                            duration: Theme.motionShort4
                             easing.type: Easing.BezierSpline
                             easing.bezierCurve: Theme.springCurve
                         }
                     }
-                }
-
-                Text {
-                    anchors.centerIn: parent
-                    text: workspaceButton.workspaceId
-                    color: workspaceButton.urgent ? Theme.onErrorContainer
-                        : workspaceButton.active ? Theme.onPrimary
-                        : Theme.onSurfaceVariant
-                    font.family: Theme.textFont
-                    font.pixelSize: 11
-                    font.weight: workspaceButton.active ? Font.Bold : Font.DemiBold
-                }
-
-                Rectangle {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 2
-                    width: workspaceButton.active ? 10 : 3
-                    height: 2
-                    radius: 1
-                    visible: workspaceButton.occupied && !workspaceButton.urgent
-                    color: workspaceButton.active ? Theme.onPrimary : Theme.primary
+                    Behavior on opacity {
+                        NumberAnimation { duration: Theme.motionShort3 }
+                    }
                 }
 
                 MouseArea {
@@ -105,7 +146,8 @@ M3BarPill {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onPressed: workspaceButton.forceActiveFocus()
-                    onClicked: Hyprland.dispatch("workspace " + workspaceButton.workspaceId)
+                    onClicked: Hyprland.dispatch("workspace "
+                        + workspaceButton.workspaceId)
                 }
 
                 Keys.onPressed: event => {
@@ -116,12 +158,15 @@ M3BarPill {
                     }
                 }
 
-                Behavior on width {
-                    NumberAnimation {
-                        duration: Theme.motionMedium1
-                        easing.type: Easing.BezierSpline
-                        easing.bezierCurve: Theme.springCurve
-                    }
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 30
+                    height: 30
+                    radius: width / 2
+                    color: "transparent"
+                    border.width: 2
+                    border.color: Theme.primary
+                    visible: workspaceButton.activeFocus
                 }
             }
         }

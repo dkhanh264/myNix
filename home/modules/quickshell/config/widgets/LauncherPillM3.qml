@@ -7,12 +7,15 @@ M3BarPill {
     id: root
 
     property bool compact: false
+    signal wallpaperRequested
 
     interactive: true
     horizontalPadding: compact ? 0 : 12
     minimumWidth: 44
     implicitWidth: compact ? 44 : launcherRow.implicitWidth + horizontalPadding * 2
-    accessibleName: "Open app launcher. Right-click to choose a wallpaper."
+    accessibleName: I18n.tr(
+        "Mở trình khởi chạy. Nhấp phải để chọn hình nền.",
+        "Open app launcher. Right-click to choose a wallpaper.")
     containerColor: Theme.primaryContainer
     checkedColor: Theme.primaryContainer
 
@@ -21,19 +24,23 @@ M3BarPill {
         anchors.centerIn: parent
         spacing: 8
 
-        MaterialIcon {
+        Image {
             anchors.verticalCenter: parent.verticalCenter
-            text: "apps"
-            iconSize: 20
-            color: Theme.onPrimaryContainer
-            filled: true
+            width: 22
+            height: 22
+            source: "file:///run/current-system/sw/share/icons/hicolor/scalable/apps/nix-snowflake-white.svg"
+            sourceSize.width: 44
+            sourceSize.height: 44
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
         }
 
         Text {
             visible: !root.compact
             anchors.verticalCenter: parent.verticalCenter
-            text: "Launcher"
-            color: Theme.onPrimaryContainer
+            text: "NixOS"
+            color: Theme.textPrimary
             font.family: Theme.textFont
             font.pixelSize: 12
             font.weight: Font.DemiBold
@@ -41,5 +48,5 @@ M3BarPill {
     }
 
     onClicked: Quickshell.execDetached(["walker-menu", "apps"])
-    onSecondaryClicked: Quickshell.execDetached(["walker-menu", "wallpapers"])
+    onSecondaryClicked: root.wallpaperRequested()
 }

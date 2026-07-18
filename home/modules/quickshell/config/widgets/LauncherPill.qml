@@ -10,25 +10,21 @@ BarPill {
     horizontalPadding: 0
     minimumWidth: 40
     implicitWidth: 40
-    accessibleName: "Mở trình khởi chạy ứng dụng"
+    accessibleName: I18n.tr("Mở trình khởi chạy ứng dụng",
+        "Open app launcher")
     containerColor: Theme.primaryContainer
     hoverColor: Theme.primary
     outlineColor: Theme.alpha(Theme.primary, 0.55)
 
-    MaterialIcon {
+    Image {
         anchors.centerIn: parent
-        text: ""
-        iconSize: 20
-        color: root.hovered ? Theme.onPrimary : Theme.onPrimaryContainer
-
-        Behavior on scale {
-            enabled: !Theme.reduceMotion
-            NumberAnimation {
-                duration: Theme.motionMedium1
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.springCurve
-            }
-        }
+        width: 22
+        height: 22
+        source: "file:///run/current-system/sw/share/icons/hicolor/scalable/apps/nix-snowflake-white.svg"
+        sourceSize.width: 44
+        sourceSize.height: 44
+        fillMode: Image.PreserveAspectFit
+        smooth: true
     }
 
     onClicked: Quickshell.execDetached(["walker-menu", "apps"])

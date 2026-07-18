@@ -8,8 +8,8 @@ Item {
     property int buttonSize: 40
     property int iconSize: 20
     property color fillColor: "transparent"
-    property color hoverColor: Theme.alpha(Theme.onSurface, 0.09)
-    property color foregroundColor: Theme.onSurface
+    property color hoverColor: Theme.alpha(Theme.textPrimary, 0.09)
+    property color foregroundColor: Theme.textPrimary
     property bool checked: false
     property bool enabled: true
     property string accessibleName: ""
@@ -20,7 +20,7 @@ Item {
     implicitWidth: buttonSize
     implicitHeight: buttonSize
     opacity: enabled ? 1 : 0.38
-    scale: pointer.pressed ? 0.88 : 1
+    scale: pointer.pressed ? 0.94 : 1
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.Button
@@ -49,13 +49,17 @@ Item {
         }
 
         Behavior on radius {
-            SpringAnimation { spring: 5; damping: 0.45; mass: 0.8; epsilon: 0.1 }
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
         }
     }
 
     MaterialRipple {
         id: ripple
-        rippleColor: root.checked ? Theme.onPrimaryContainer : root.foregroundColor
+        rippleColor: root.checked ? Theme.textPrimary : root.foregroundColor
         peakOpacity: 0.13
     }
 
@@ -64,11 +68,15 @@ Item {
         anchors.centerIn: parent
         text: root.icon
         iconSize: root.iconSize
-        color: root.checked ? Theme.onPrimaryContainer : root.foregroundColor
-        scale: pointer.pressed ? 0.78 : 1
+        color: root.checked ? Theme.textPrimary : root.foregroundColor
+        scale: pointer.pressed ? 0.90 : 1
 
         Behavior on scale {
-            SpringAnimation { spring: 6; damping: 0.38; mass: 0.65; epsilon: 0.005 }
+            NumberAnimation {
+                duration: Theme.motionShort4
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.standardCurve
+            }
         }
     }
 
@@ -96,6 +104,10 @@ Item {
     }
 
     Behavior on scale {
-        SpringAnimation { spring: 5; damping: 0.42; mass: 0.7; epsilon: 0.002 }
+        NumberAnimation {
+            duration: Theme.motionShort4
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.standardCurve
+        }
     }
 }

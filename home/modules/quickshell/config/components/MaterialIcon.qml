@@ -9,7 +9,7 @@ Item {
 
     property string text: ""
     property int iconSize: 20
-    property color color: Theme.onSurface
+    property color color: Theme.textPrimary
     property bool filled: false
 
     implicitWidth: iconSize

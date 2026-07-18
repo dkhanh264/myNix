@@ -14,15 +14,14 @@ Item {
     property int horizontalPadding: 12
     property int minimumWidth: 44
     property string accessibleName: ""
-    property color containerColor: Theme.surfaceContainerLow
-    property color checkedColor: Theme.primaryContainer
+    property color containerColor: Theme.barSurface
+    property color checkedColor: Theme.barSurfaceActive
     property color alertColor: Theme.errorContainer
     readonly property bool hovered: pointer.containsMouse
     readonly property bool pressed: pointer.pressed
     readonly property color resolvedColor: alert
         ? alertColor
         : checked ? checkedColor
-        : hovered && interactive ? Theme.surfaceContainerHigh
         : containerColor
 
     signal clicked
@@ -51,12 +50,12 @@ Item {
 
     RectangularShadow {
         anchors.fill: surface
-        offset: Qt.vector2d(0, root.elevated || root.hovered ? 2 : 1)
+        offset: Qt.vector2d(0, root.elevated ? 2 : 1)
         radius: surface.radius
-        blur: root.elevated || root.hovered ? 7 : 4
+        blur: root.elevated ? 7 : 4
         spread: -1
         color: Theme.alpha("#000000", Theme.darkPalette ? 0.28 : 0.14)
-        opacity: root.elevated || root.hovered ? 0.9 : 0.55
+        opacity: root.elevated ? 0.9 : 0.55
     }
 
     Rectangle {
@@ -77,6 +76,19 @@ Item {
         }
     }
 
+    Rectangle {
+        anchors.fill: surface
+        radius: surface.radius
+        color: !root.interactive ? "transparent"
+            : root.pressed ? Theme.alpha(Theme.textPrimary, 0.10)
+            : root.hovered ? Theme.alpha(Theme.textPrimary, 0.06)
+            : "transparent"
+
+        Behavior on color {
+            ColorAnimation { duration: Theme.motionShort3 }
+        }
+    }
+
     Item {
         id: content
         anchors.fill: parent
@@ -86,7 +98,7 @@ Item {
 
     MaterialRipple {
         id: ripple
-        rippleColor: root.checked ? Theme.onPrimaryContainer : Theme.onSurface
+        rippleColor: root.checked ? Theme.textPrimary : Theme.textPrimary
         peakOpacity: 0.11
     }
 

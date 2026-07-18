@@ -23,7 +23,11 @@ Rectangle {
     }
 
     Behavior on radius {
-        SpringAnimation { spring: 4; damping: 0.38 }
+        NumberAnimation {
+            duration: Theme.motionMedium1
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
+        }
     }
 
     Behavior on color {
@@ -41,19 +45,24 @@ Rectangle {
 
     function actionLabel(action) {
         if (action === "logout")
-            return "Sign out of this session?";
+            return I18n.tr("Đăng xuất khỏi phiên này?",
+                "Sign out of this session?");
         if (action === "reboot")
-            return "Restart the computer?";
-        return "Shut down the computer?";
+            return I18n.tr("Khởi động lại máy tính?",
+                "Restart the computer?");
+        return I18n.tr("Tắt máy tính?", "Shut down the computer?");
     }
 
-    ListModel {
-        id: actions
-        ListElement { actionKey: "lock"; actionIcon: "lock"; actionLabel: "Lock" }
-        ListElement { actionKey: "logout"; actionIcon: "logout"; actionLabel: "Sign out" }
-        ListElement { actionKey: "reboot"; actionIcon: "restart_alt"; actionLabel: "Restart" }
-        ListElement { actionKey: "shutdown"; actionIcon: "power_settings_new"; actionLabel: "Shut down" }
-    }
+    readonly property var actions: [
+        { "key": "lock", "icon": "lock",
+            "label": I18n.tr("Khóa", "Lock") },
+        { "key": "logout", "icon": "logout",
+            "label": I18n.tr("Đăng xuất", "Sign out") },
+        { "key": "reboot", "icon": "restart_alt",
+            "label": I18n.tr("Khởi động lại", "Restart") },
+        { "key": "shutdown", "icon": "power_settings_new",
+            "label": I18n.tr("Tắt máy", "Shut down") }
+    ]
 
     Row {
         id: actionRow
@@ -92,12 +101,13 @@ Rectangle {
         }
 
         Repeater {
-            model: actions
+            model: root.actions
 
             Item {
-                required property string actionKey
-                required property string actionIcon
-                required property string actionLabel
+                required property var modelData
+                readonly property string actionKey: modelData.key
+                readonly property string actionIcon: modelData.icon
+                readonly property string actionLabel: modelData.label
 
                 width: (actionRow.width - actionRow.spacing * 3) / 4
                 height: actionRow.height
@@ -136,19 +146,23 @@ Rectangle {
                             anchors.centerIn: parent
                             text: actionIcon
                             iconSize: 17
-                            color: actionKey === "shutdown" ? Theme.error : Theme.onSurface
+                            color: actionKey === "shutdown" ? Theme.error : Theme.textPrimary
                         }
 
                         Behavior on color { ColorAnimation { duration: Theme.motionShort } }
                         Behavior on radius {
-                            SpringAnimation { spring: 5; damping: 0.4 }
+                            NumberAnimation {
+                                duration: Theme.motionMedium1
+                                easing.type: Easing.BezierSpline
+                                easing.bezierCurve: Theme.springCurve
+                            }
                         }
                     }
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: actionLabel
-                        color: Theme.onSurfaceVariant
+                        color: Theme.textSecondary
                         font.family: Theme.textFont
                         font.pixelSize: 9
                         font.weight: Font.Medium
@@ -158,7 +172,7 @@ Rectangle {
                 MaterialRipple {
                     id: actionRipple
                     rippleColor: actionKey === "shutdown"
-                        ? Theme.error : Theme.onSurface
+                        ? Theme.error : Theme.textPrimary
                     peakOpacity: 0.11
                 }
 
@@ -185,7 +199,11 @@ Rectangle {
                 }
 
                 Behavior on scale {
-                    SpringAnimation { spring: 5.5; damping: 0.38 }
+                    NumberAnimation {
+                        duration: Theme.motionShort4
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: Theme.standardCurve
+                    }
                 }
             }
         }
@@ -238,7 +256,7 @@ Rectangle {
                 width: parent.width
                 text: root.actionLabel(root.pendingAction.length > 0
                     ? root.pendingAction : root.lastAction)
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 13
                 font.weight: Font.DemiBold
@@ -246,8 +264,9 @@ Rectangle {
             }
 
             Text {
-                text: "This will close all running applications."
-                color: Theme.onSurfaceVariant
+                text: I18n.tr("Thao tác này sẽ đóng mọi ứng dụng đang chạy.",
+                    "This will close all running applications.")
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 9
             }
@@ -262,7 +281,7 @@ Rectangle {
             IconButton {
                 icon: "close"
                 fillColor: Theme.surfaceContainerHighest
-                accessibleName: "Cancel"
+                accessibleName: I18n.tr("Hủy", "Cancel")
                 onClicked: root.pendingAction = ""
             }
 
@@ -270,7 +289,7 @@ Rectangle {
                 icon: "check"
                 fillColor: Theme.errorContainer
                 foregroundColor: Theme.error
-                accessibleName: "Confirm"
+                accessibleName: I18n.tr("Xác nhận", "Confirm")
                 onClicked: {
                     root.controller.sessionAction(root.pendingAction);
                     root.pendingAction = "";

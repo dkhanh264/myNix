@@ -1,10 +1,34 @@
 { pkgs, config, ... }:
 
+let
+  captureScreen = pkgs.writeShellApplication {
+    name = "capture-screen";
+    runtimeInputs = with pkgs; [ coreutils grim slurp wl-clipboard libnotify ];
+    text = ''
+      screenshot_dir="''${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
+      mkdir -p "$screenshot_dir"
+      screenshot_path="$screenshot_dir/screenshot-$(date +%Y-%m-%d_%H-%M-%S).png"
+
+      if [ "''${1:-region}" = "region" ]; then
+        selection="$(slurp)" || exit 0
+        [ -n "$selection" ] || exit 0
+        grim -g "$selection" "$screenshot_path"
+      else
+        grim "$screenshot_path"
+      fi
+
+      wl-copy --type image/png < "$screenshot_path"
+      notify-send -a "Screenshot" -i "$screenshot_path" \
+        "Screenshot copied" "$screenshot_path"
+    '';
+  };
+in
 {
   # Các package chuyên biệt cho Hyprland
   home.packages = with pkgs; [
     hyprlock 
     hypridle
+    captureScreen
   ];
 
   wayland.windowManager.hyprland = {
@@ -57,22 +81,32 @@
       decoration = {
         rounding = 30;
         blur = {
-          enabled           = true;
-          size              = 8;
-          passes            = 3;
-          new_optimizations = true;
-          ignore_opacity = true;
+          enabled            = true;
+          size               = 14;
+          passes             = 4;
+          new_optimizations  = true;
+          ignore_opacity     = true;
+          popups             = true;
+          popups_ignorealpha = 0.08;
+          noise              = 0.018;
+          contrast           = 1.08;
+          brightness         = 0.72;
+          vibrancy           = 0.28;
+          vibrancy_darkness  = 0.20;
         };
       };
 
       animations = {
         enabled = true;
-        bezier   = [ "myBezier, 0.05, 0.9, 0.1, 1.05" ];
+        bezier = [
+          "m3Standard, 0.2, 0.0, 0.0, 1.0"
+          "m3Emphasized, 0.05, 0.7, 0.1, 1.0"
+        ];
         animation = [
-          "windows,    1, 7, myBezier"
-          "windowsOut, 1, 7, default, popin 80%"
-          "fade,       1, 7, default"
-          "workspaces, 1, 6, default"
+          "windows,    1, 6, m3Emphasized"
+          "windowsOut, 1, 5, m3Standard, popin 88%"
+          "fade,       1, 5, m3Standard"
+          "workspaces, 1, 5, m3Emphasized, slide"
         ];
       };
 
@@ -122,7 +156,7 @@
         
         # ── Walker & Hình nền ──────────────────────────────────────────
         "$mainMod, space,     exec, walker-menu apps"
-        "$mainMod SHIFT, space, exec, walker-menu wallpapers"
+        "$mainMod SHIFT, space, exec, quickshell ipc call launcher wallpapers"
         "$mainMod, A,         exec, qs ipc call controlCenter toggle"
         "$mainMod, escape,    exec, walker-menu system"
         "$mainMod CTRL, space, exec, cycle-background"
@@ -165,8 +199,8 @@
         "$mainMod, S,       togglespecialworkspace, magic"
         "$mainMod SHIFT, S, movetoworkspace, special:magic"
         
-        ", Print,      exec, grim -g \"$(slurp)\" - | wl-copy"
-        "SHIFT, Print, exec, grim - | wl-copy"
+        ", Print,      exec, capture-screen region"
+        "SHIFT, Print, exec, capture-screen full"
         
         # ── OSD Âm lượng & Truyền thông ────────────────────────────────
         ", XF86AudioRaiseVolume, exec, volume-osd up"
@@ -193,7 +227,8 @@
         "blur, notifications"
         "ignorezero, notifications"
         "blur, m3-shell"
-        "ignorezero, m3-shell"
+        "blurpopups, m3-shell"
+        "ignorealpha 0.08, m3-shell"
       ];
     };
   };

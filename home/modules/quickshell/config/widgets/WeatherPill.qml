@@ -13,7 +13,8 @@ BarPill {
     accessibleName: controller && controller.weatherAvailable
         ? controller.weatherDescription + ", "
             + controller.weatherTemperature + " độ C"
-        : "Đang tải thời tiết Thành phố Hồ Chí Minh"
+        : I18n.tr("Đang tải thời tiết tại vị trí hiện tại",
+            "Loading weather for your current location")
 
     Row {
         id: weatherRow
@@ -34,7 +35,7 @@ BarPill {
             Text {
                 text: root.controller && root.controller.weatherAvailable
                     ? root.controller.weatherTemperature + "°C" : "--°C"
-                color: Theme.onSurface
+                color: Theme.textPrimary
                 font.family: Theme.textFont
                 font.pixelSize: 12
                 font.weight: Font.Bold
@@ -42,8 +43,9 @@ BarPill {
 
             Text {
                 visible: !root.compact
-                text: root.controller ? root.controller.weatherDescription : "Đang tải"
-                color: Theme.onSurfaceVariant
+                text: root.controller ? root.controller.weatherDescription
+                    : I18n.tr("Đang tải", "Loading")
+                color: Theme.textSecondary
                 font.family: Theme.textFont
                 font.pixelSize: 8
                 font.weight: Font.Medium
