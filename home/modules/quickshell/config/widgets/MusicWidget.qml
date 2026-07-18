@@ -16,7 +16,7 @@ Rectangle {
             "Open a media player to begin")
     property real playbackPosition: 0
 
-    implicitHeight: 276
+    implicitHeight: 232
     radius: Theme.shapeLarge
     color: Theme.alpha(Theme.secondaryContainer, 0.72)
 
@@ -70,72 +70,34 @@ Rectangle {
 
     Item {
         anchors.fill: parent
-        anchors.margins: 16
+        anchors.margins: 14
 
         Item {
             id: record
             anchors.left: parent.left
             anchors.top: parent.top
-            width: 138
-            height: 138
+            width: 112
+            height: 112
             rotation: 0
 
             NumberAnimation on rotation {
                 from: 0
                 to: 360
-                duration: 9000
+                duration: 10000
                 loops: Animation.Infinite
                 running: root.player && root.player.isPlaying && !Theme.reduceMotion
             }
 
-            Rectangle {
+            CircularAlbumArt {
                 anchors.fill: parent
-                radius: width / 2
-                color: Theme.blend("#08090c", Theme.secondary, 0.16)
-                clip: true
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: width / 2
-                    color: Theme.alpha("#000000", 0.08)
-                }
-
-                Repeater {
-                    model: 4
-
-                    Rectangle {
-                        required property int index
-                        anchors.centerIn: parent
-                        width: record.width - 22 - index * 22
-                        height: width
-                        radius: width / 2
-                        color: "transparent"
-                        border.width: 1
-                        border.color: Theme.alpha("#ffffff", 0.10)
-                    }
-                }
-
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: 34
-                    height: 34
-                    radius: width / 2
-                    color: Theme.secondary
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 9
-                        height: 9
-                        radius: width / 2
-                        color: Theme.surfaceDim
-                    }
-                }
+                source: root.player ? root.player.trackArtUrl : ""
+                accentColor: Theme.secondary
             }
         }
 
         Column {
             anchors.left: record.right
-            anchors.leftMargin: 18
+            anchors.leftMargin: 14
             anchors.right: parent.right
             anchors.top: parent.top
             spacing: 4
@@ -169,7 +131,7 @@ Rectangle {
                 text: root.titleText
                 color: Theme.textPrimary
                 font.family: Theme.textFont
-                font.pixelSize: 18
+                font.pixelSize: 16
                 font.weight: Font.Bold
                 elide: Text.ElideRight
             }
@@ -183,7 +145,7 @@ Rectangle {
                 elide: Text.ElideRight
             }
 
-            Item { width: 1; height: 7 }
+            Item { width: 1; height: 3 }
 
             Row {
                 height: 52
@@ -191,8 +153,8 @@ Rectangle {
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 42
-                    iconSize: 22
+                    buttonSize: 38
+                    iconSize: 20
                     icon: "skip_previous"
                     fillColor: Theme.alpha(Theme.textPrimary, 0.08)
                     foregroundColor: Theme.textPrimary
@@ -203,8 +165,8 @@ Rectangle {
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 50
-                    iconSize: 27
+                    buttonSize: 46
+                    iconSize: 25
                     icon: root.player && root.player.isPlaying
                         ? "pause" : "play_arrow"
                     fillColor: Theme.secondary
@@ -219,8 +181,8 @@ Rectangle {
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 42
-                    iconSize: 22
+                    buttonSize: 38
+                    iconSize: 20
                     icon: "skip_next"
                     fillColor: Theme.alpha(Theme.textPrimary, 0.08)
                     foregroundColor: Theme.textPrimary
@@ -236,7 +198,7 @@ Rectangle {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: record.bottom
-            anchors.topMargin: 16
+            anchors.topMargin: 10
             from: 0
             to: root.player && root.player.lengthSupported
                 ? root.player.length : 1

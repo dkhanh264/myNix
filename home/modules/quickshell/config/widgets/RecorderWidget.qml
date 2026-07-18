@@ -45,8 +45,10 @@ Rectangle {
 
                     MaterialIcon {
                         anchors.centerIn: parent
-                        text: root.controller && root.controller.recording
-                            ? "radio_button_checked" : "videocam"
+                        text: root.controller && root.controller.recordingStopping
+                            ? "save"
+                            : root.controller && root.controller.recording
+                                ? "radio_button_checked" : "videocam"
                         iconSize: 25
                         color: Theme.textPrimary
                         filled: true
@@ -59,9 +61,12 @@ Rectangle {
 
                     Text {
                         text: root.controller && root.controller.recording
-                            ? root.controller.recordingPaused
-                                ? I18n.tr("Đang tạm dừng", "Recording paused")
-                                : I18n.tr("Đang ghi màn hình", "Recording screen")
+                            ? root.controller.recordingStopping
+                                ? I18n.tr("Đang hoàn tất bản ghi",
+                                    "Finalizing recording")
+                                : root.controller.recordingPaused
+                                    ? I18n.tr("Đang tạm dừng", "Recording paused")
+                                    : I18n.tr("Đang ghi màn hình", "Recording screen")
                             : "GPU Screen Recorder"
                         color: Theme.textPrimary
                         font.family: Theme.textFont
@@ -196,6 +201,7 @@ Rectangle {
 
             M3Button {
                 visible: root.controller && root.controller.recording
+                enabled: visible && !root.controller.recordingStopping
                 width: visible ? (parent.width - parent.spacing) / 2 : 0
                 height: parent.height
                 tonal: true
@@ -211,12 +217,17 @@ Rectangle {
                 width: root.controller && root.controller.recording
                     ? (parent.width - parent.spacing) / 2 : parent.width
                 height: parent.height
+                enabled: !root.controller || !root.controller.recordingStopping
                 destructive: root.controller && root.controller.recording
-                icon: root.controller && root.controller.recording
-                    ? "stop" : "fiber_manual_record"
-                text: root.controller && root.controller.recording
-                    ? I18n.tr("Dừng và lưu", "Stop and save")
-                    : I18n.tr("Bắt đầu ghi", "Start recording")
+                icon: root.controller && root.controller.recordingStopping
+                    ? "save"
+                    : root.controller && root.controller.recording
+                        ? "stop" : "fiber_manual_record"
+                text: root.controller && root.controller.recordingStopping
+                    ? I18n.tr("Đang lưu…", "Saving…")
+                    : root.controller && root.controller.recording
+                        ? I18n.tr("Dừng và lưu", "Stop and save")
+                        : I18n.tr("Bắt đầu ghi", "Start recording")
                 onClicked: {
                     if (!root.controller)
                         return;

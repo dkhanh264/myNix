@@ -130,91 +130,6 @@ Item {
         }
 
         M3BarPill {
-            id: recorderPill
-
-            visible: root.controller && root.controller.recording
-            interactive: true
-            checked: root.activePopup === "recorder"
-            alert: true
-            horizontalPadding: root.showLabels ? 11 : 0
-            minimumWidth: 44
-            implicitWidth: Math.max(minimumWidth,
-                recorderRow.implicitWidth + horizontalPadding * 2)
-            accessibleName: root.controller && root.controller.recordingPaused
-                ? I18n.tr("Bản ghi màn hình đang tạm dừng",
-                    "Screen recording paused")
-                : I18n.tr("Đang ghi màn hình", "Screen recording active")
-
-            Row {
-                id: recorderRow
-                anchors.centerIn: parent
-                spacing: 6
-
-                MaterialIcon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.controller && root.controller.recordingPaused
-                        ? "pause" : "fiber_manual_record"
-                    iconSize: 18
-                    color: Theme.error
-                    filled: true
-                }
-                Text {
-                    visible: root.showLabels
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.controller && root.controller.recordingPaused
-                        ? I18n.tr("Tạm dừng", "Paused")
-                        : I18n.tr("REC", "REC")
-                    color: Theme.error
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
-                    font.weight: Font.Bold
-                }
-            }
-
-            onClicked: root.popupRequested("recorder")
-        }
-
-        M3BarPill {
-            id: activityPill
-
-            interactive: true
-            checked: root.activePopup === "activity"
-            horizontalPadding: root.showLabels ? 11 : 0
-            minimumWidth: 44
-            implicitWidth: Math.max(minimumWidth,
-                activityRow.implicitWidth + horizontalPadding * 2)
-            accessibleName: I18n.tr("Lịch sử thông báo và ảnh chụp",
-                "Notification and screenshot history")
-
-            Row {
-                id: activityRow
-                anchors.centerIn: parent
-                spacing: 6
-
-                MaterialIcon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "notifications"
-                    iconSize: 18
-                    color: Theme.secondary
-                    filled: root.controller
-                        && root.controller.notificationHistory.count > 0
-                }
-                Text {
-                    visible: root.showLabels
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.controller
-                        ? root.controller.notificationHistory.count.toString() : "0"
-                    color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
-                    font.weight: Font.DemiBold
-                }
-            }
-
-            onClicked: root.popupRequested("activity")
-        }
-
-        M3BarPill {
             id: wifiPill
 
             interactive: true
@@ -358,6 +273,98 @@ Item {
             }
 
             onClicked: root.popupRequested("power")
+        }
+
+        M3BarPill {
+            id: activityPill
+
+            interactive: true
+            checked: root.activePopup === "activity"
+            horizontalPadding: root.showLabels ? 11 : 0
+            minimumWidth: 44
+            implicitWidth: Math.max(minimumWidth,
+                activityRow.implicitWidth + horizontalPadding * 2)
+            accessibleName: I18n.tr("Lịch sử thông báo và ảnh chụp",
+                "Notification and screenshot history")
+
+            Row {
+                id: activityRow
+                anchors.centerIn: parent
+                spacing: 6
+
+                MaterialIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "notifications"
+                    iconSize: 18
+                    color: Theme.secondary
+                    filled: root.controller
+                        && root.controller.notificationHistory.count > 0
+                }
+                Text {
+                    visible: root.showLabels
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.controller
+                        ? root.controller.notificationHistory.count.toString() : "0"
+                    color: Theme.textSecondary
+                    font.family: Theme.textFont
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
+            }
+
+            onClicked: root.popupRequested("activity")
+        }
+
+        M3BarPill {
+            id: recorderPill
+
+            visible: root.controller && root.controller.recording
+            interactive: true
+            checked: root.activePopup === "recorder"
+            alert: true
+            horizontalPadding: root.showLabels ? 11 : 0
+            minimumWidth: 44
+            implicitWidth: Math.max(minimumWidth,
+                recorderRow.implicitWidth + horizontalPadding * 2)
+            accessibleName: root.controller && root.controller.recordingStopping
+                ? I18n.tr("Đang lưu bản ghi màn hình",
+                    "Saving screen recording")
+                : root.controller && root.controller.recordingPaused
+                    ? I18n.tr("Bản ghi màn hình đang tạm dừng",
+                        "Screen recording paused")
+                    : I18n.tr("Đang ghi màn hình", "Screen recording active")
+
+            Row {
+                id: recorderRow
+                anchors.centerIn: parent
+                spacing: 6
+
+                MaterialIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.controller && root.controller.recordingStopping
+                        ? "save"
+                        : root.controller && root.controller.recordingPaused
+                            ? "pause" : "fiber_manual_record"
+                    iconSize: 18
+                    color: Theme.error
+                    filled: true
+                }
+                Text {
+                    visible: root.showLabels
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.controller && root.controller.recordingStopping
+                        ? I18n.tr("Đang lưu", "Saving")
+                        : root.controller && root.controller.recordingPaused
+                            ? I18n.tr("Tạm dừng", "Paused")
+                            : "REC"
+                    color: Theme.error
+                    font.family: Theme.textFont
+                    font.pixelSize: 10
+                    font.weight: Font.Bold
+                }
+            }
+
+            onClicked: root.popupRequested("recorder")
         }
     }
 }

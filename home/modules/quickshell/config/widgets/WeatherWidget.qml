@@ -6,8 +6,45 @@ Rectangle {
     id: root
 
     property var controller
+    property int selectedForecastIndex: 0
+    readonly property int forecastCount: controller
+        ? controller.weatherForecast.count : 0
+    readonly property int safeForecastIndex: Math.max(0,
+        Math.min(forecastCount - 1, selectedForecastIndex))
+    readonly property var selectedForecast: forecastCount > 0
+        ? controller.weatherForecast.get(safeForecastIndex) : null
+    readonly property var detailModel: selectedForecast ? [
+        {
+            "icon": "thermostat",
+            "value": selectedForecast.apparentMaximum + "° / "
+                + selectedForecast.apparentMinimum + "°",
+            "label": I18n.tr("Cảm nhận", "Feels like")
+        },
+        {
+            "icon": "water_drop",
+            "value": selectedForecast.precipitation + "% · "
+                + Number(selectedForecast.precipitationAmount).toFixed(1) + " mm",
+            "label": I18n.tr("Lượng mưa", "Precipitation")
+        },
+        {
+            "icon": "air",
+            "value": selectedForecast.windMaximum + " km/h",
+            "label": I18n.tr("Gió tối đa", "Max wind")
+        },
+        {
+            "icon": "wb_sunny",
+            "value": Number(selectedForecast.uvIndex).toFixed(1),
+            "label": I18n.tr("Chỉ số UV", "UV index")
+        },
+        {
+            "icon": "routine",
+            "value": timeLabel(selectedForecast.sunriseTime) + " · "
+                + timeLabel(selectedForecast.sunsetTime),
+            "label": I18n.tr("Mọc · lặn", "Rise · set")
+        }
+    ] : []
 
-    implicitHeight: 350
+    implicitHeight: 448
     radius: Theme.shapeExtraLarge
     color: Theme.tertiaryContainer
 
@@ -47,27 +84,52 @@ Rectangle {
         return I18n.tr("Đang cập nhật", "Updating");
     }
 
+    function dateFromText(dateText) {
+        const parts = String(dateText || "").split("-");
+        if (parts.length !== 3)
+            return new Date();
+        return new Date(Number(parts[0]), Number(parts[1]) - 1,
+            Number(parts[2]));
+    }
+
     function dayLabel(dateText, index) {
         if (index === 0)
             return I18n.tr("Hôm nay", "Today");
-        const parts = String(dateText).split("-");
-        if (parts.length !== 3)
-            return dateText;
-        const date = new Date(Number(parts[0]), Number(parts[1]) - 1,
-            Number(parts[2]));
+        const date = dateFromText(dateText);
         const viDays = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
         const enDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         return I18n.vietnamese ? viDays[date.getDay()] : enDays[date.getDay()];
     }
 
+    function fullDateLabel(dateText) {
+        return Qt.formatDate(dateFromText(dateText),
+            I18n.vietnamese ? "dddd, d/M" : "dddd, MMM d");
+    }
+
+    function timeLabel(dateTimeText) {
+        const value = String(dateTimeText || "");
+        const separator = value.indexOf("T");
+        return separator >= 0 ? value.slice(separator + 1, separator + 6) : "--:--";
+    }
+
+    onControllerChanged: selectedForecastIndex = 0
+
+    Connections {
+        target: root.controller ? root.controller.weatherForecast : null
+        function onCountChanged() {
+            if (root.selectedForecastIndex >= root.forecastCount)
+                root.selectedForecastIndex = 0;
+        }
+    }
+
     Column {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 10
+        anchors.margins: 14
+        spacing: 8
 
         Item {
             width: parent.width
-            height: 42
+            height: 38
 
             Column {
                 anchors.left: parent.left
@@ -96,7 +158,7 @@ Rectangle {
             IconButton {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                buttonSize: 40
+                buttonSize: 38
                 iconSize: 19
                 icon: "refresh"
                 foregroundColor: Theme.textPrimary
@@ -111,61 +173,111 @@ Rectangle {
 
         Rectangle {
             width: parent.width
-            height: 104
-            radius: Theme.shapeExtraLarge
-            color: Theme.alpha(Theme.surfaceContainerHigh, 0.72)
+            height: 116
+            radius: Theme.shapeLarge
+            color: Theme.alpha(Theme.surfaceContainerHigh, 0.76)
 
             MaterialIcon {
                 anchors.left: parent.left
-                anchors.leftMargin: 20
+                anchors.leftMargin: 18
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.weatherIcon(root.controller
-                    ? root.controller.weatherCode : -1)
-                iconSize: 58
+                text: root.weatherIcon(root.selectedForecast
+                    ? root.selectedForecast.code : -1)
+                iconSize: 56
                 color: Theme.tertiary
                 filled: true
             }
 
             Column {
+                anchors.left: parent.left
+                anchors.leftMargin: 88
+                anchors.right: temperatureSummary.left
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 2
+
+                Text {
+                    width: parent.width
+                    text: root.selectedForecast
+                        ? root.fullDateLabel(root.selectedForecast.dateText)
+                        : I18n.tr("Đang tải dự báo", "Loading forecast")
+                    color: Theme.textPrimary
+                    font.family: Theme.textFont
+                    font.pixelSize: 13
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    width: parent.width
+                    text: root.selectedForecast
+                        ? root.weatherLabel(root.selectedForecast.code)
+                        : I18n.tr("Đang cập nhật", "Updating")
+                    color: Theme.textSecondary
+                    font.family: Theme.textFont
+                    font.pixelSize: 10
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    width: parent.width
+                    text: root.selectedForecast
+                        ? I18n.tr("Khả năng mưa ", "Rain chance ")
+                            + root.selectedForecast.precipitation + "%"
+                        : ""
+                    color: Theme.tertiary
+                    font.family: Theme.textFont
+                    font.pixelSize: 10
+                    font.weight: Font.Medium
+                    elide: Text.ElideRight
+                }
+            }
+
+            Column {
+                id: temperatureSummary
                 anchors.right: parent.right
-                anchors.rightMargin: 20
+                anchors.rightMargin: 18
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: -2
 
                 Text {
                     anchors.right: parent.right
-                    text: root.controller && root.controller.weatherAvailable
-                        ? root.controller.weatherTemperature + "°" : "--°"
+                    text: root.selectedForecast
+                        ? root.selectedForecast.maximum + "°" : "--°"
                     color: Theme.textPrimary
                     font.family: Theme.textFont
-                    font.pixelSize: 42
+                    font.pixelSize: 36
                     font.weight: Font.Bold
                 }
 
                 Text {
                     anchors.right: parent.right
-                    text: root.controller && root.controller.weatherAvailable
-                        ? root.weatherLabel(root.controller.weatherCode)
-                        : I18n.tr("Đang cập nhật", "Updating")
+                    text: root.selectedForecast
+                        ? I18n.tr("Thấp nhất ", "Low ")
+                            + root.selectedForecast.minimum + "°" : ""
                     color: Theme.textSecondary
                     font.family: Theme.textFont
-                    font.pixelSize: 11
+                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
         }
 
         Text {
-            text: I18n.tr("Tuần này", "This week")
+            width: parent.width
+            height: 18
+            text: I18n.tr("Chọn ngày để xem chi tiết",
+                "Choose a day for details")
             color: Theme.textPrimary
             font.family: Theme.textFont
-            font.pixelSize: 12
+            font.pixelSize: 11
             font.weight: Font.DemiBold
+            verticalAlignment: Text.AlignVCenter
         }
 
         Flickable {
             width: parent.width
-            height: 112
+            height: 104
             contentWidth: forecastRow.implicitWidth
             contentHeight: height
             clip: true
@@ -179,29 +291,61 @@ Rectangle {
                 Repeater {
                     model: root.controller ? root.controller.weatherForecast : 0
 
-                    Rectangle {
+                    Item {
+                        id: forecastDay
+
                         required property int index
                         required property string dateText
                         required property int code
                         required property int maximum
                         required property int minimum
                         required property int precipitation
+                        readonly property bool selected:
+                            index === root.selectedForecastIndex
 
                         width: 68
-                        height: 108
-                        radius: index === 0
-                            ? Theme.shapeLarge : Theme.shapeMedium
-                        color: index === 0
-                            ? Theme.secondaryContainer
-                            : Theme.alpha(Theme.surfaceContainerHigh, 0.66)
+                        height: 102
+                        activeFocusOnTab: true
+
+                        Accessible.role: Accessible.Button
+                        Accessible.name: root.fullDateLabel(dateText) + ", "
+                            + root.weatherLabel(code) + ", " + maximum + "° / "
+                            + minimum + "°"
+                        Accessible.focusable: true
+
+                        Rectangle {
+                            id: daySurface
+                            anchors.fill: parent
+                            radius: forecastPointer.pressed
+                                ? Theme.shapeSmall
+                                : forecastDay.selected
+                                    ? Theme.shapeLarge : Theme.shapeMedium
+                            color: forecastDay.selected
+                                ? Theme.secondaryContainer
+                                : forecastPointer.containsMouse
+                                    ? Theme.surfaceContainerHighest
+                                    : Theme.alpha(Theme.surfaceContainerHigh, 0.66)
+
+                            Behavior on color {
+                                ColorAnimation { duration: Theme.motionShort4 }
+                            }
+                            Behavior on radius {
+                                NumberAnimation {
+                                    duration: Theme.motionMedium1
+                                    easing.type: Easing.BezierSpline
+                                    easing.bezierCurve: Theme.springCurve
+                                }
+                            }
+                        }
 
                         Column {
                             anchors.centerIn: parent
-                            spacing: 4
+                            spacing: 3
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: root.dayLabel(dateText, index)
+                                text: root.dayLabel(forecastDay.dateText,
+                                    forecastDay.index)
                                 color: Theme.textPrimary
                                 font.family: Theme.textFont
                                 font.pixelSize: 10
@@ -210,18 +354,20 @@ Rectangle {
 
                             MaterialIcon {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: root.weatherIcon(code)
-                                iconSize: 24
-                                color: index === 0 ? Theme.secondary : Theme.tertiary
+                                text: root.weatherIcon(forecastDay.code)
+                                iconSize: 23
+                                color: forecastDay.selected
+                                    ? Theme.secondary : Theme.tertiary
                                 filled: true
                             }
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: maximum + "°  " + minimum + "°"
+                                text: forecastDay.maximum + "°  "
+                                    + forecastDay.minimum + "°"
                                 color: Theme.textPrimary
                                 font.family: Theme.textFont
-                                font.pixelSize: 10
+                                font.pixelSize: 9
                                 font.weight: Font.DemiBold
                             }
 
@@ -231,16 +377,97 @@ Rectangle {
 
                                 MaterialIcon {
                                     text: "water_drop"
-                                    iconSize: 12
+                                    iconSize: 11
                                     color: Theme.tertiary
                                     filled: true
                                 }
                                 Text {
-                                    text: precipitation + "%"
+                                    text: forecastDay.precipitation + "%"
                                     color: Theme.textSecondary
                                     font.family: Theme.textFont
-                                    font.pixelSize: 9
+                                    font.pixelSize: 8
                                 }
+                            }
+                        }
+
+                        MouseArea {
+                            id: forecastPointer
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onPressed: forecastDay.focus = false
+                            onClicked: root.selectedForecastIndex = forecastDay.index
+                        }
+
+                        Keys.onPressed: event => {
+                            if (event.key === Qt.Key_Return
+                                    || event.key === Qt.Key_Enter
+                                    || event.key === Qt.Key_Space) {
+                                root.selectedForecastIndex = forecastDay.index;
+                                event.accepted = true;
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.fill: daySurface
+                            anchors.margins: 2
+                            radius: Math.max(0, daySurface.radius - 2)
+                            color: "transparent"
+                            border.width: 2
+                            border.color: Theme.primary
+                            visible: forecastDay.activeFocus
+                        }
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 72
+            radius: Theme.shapeMedium
+            color: Theme.alpha(Theme.surfaceContainerHigh, 0.60)
+
+            Row {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+
+                Repeater {
+                    model: root.detailModel
+
+                    Item {
+                        required property var modelData
+                        width: parent.width / Math.max(1, root.detailModel.length)
+                        height: parent.height
+
+                        Column {
+                            anchors.centerIn: parent
+                            spacing: 1
+
+                            MaterialIcon {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: modelData.icon
+                                iconSize: 17
+                                color: Theme.tertiary
+                                filled: true
+                            }
+
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: modelData.value
+                                color: Theme.textPrimary
+                                font.family: Theme.textFont
+                                font.pixelSize: 9
+                                font.weight: Font.DemiBold
+                            }
+
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: modelData.label
+                                color: Theme.textSecondary
+                                font.family: Theme.textFont
+                                font.pixelSize: 8
                             }
                         }
                     }
@@ -251,7 +478,7 @@ Rectangle {
         Item {
             id: footer
             width: parent.width
-            height: 34
+            height: 32
             activeFocusOnTab: true
 
             Rectangle {
@@ -299,9 +526,19 @@ Rectangle {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
+                onPressed: footer.focus = false
                 onClicked: {
                     if (root.controller)
                         root.controller.openWeather();
+                }
+            }
+
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                        || event.key === Qt.Key_Space) {
+                    if (root.controller)
+                        root.controller.openWeather();
+                    event.accepted = true;
                 }
             }
         }

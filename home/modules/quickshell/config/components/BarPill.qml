@@ -114,7 +114,7 @@ Item {
         cursorShape: root.interactive ? Qt.PointingHandCursor : Qt.ArrowCursor
 
         onPressed: mouse => {
-            root.forceActiveFocus();
+            root.focus = false;
             ripple.burst(mouse.x, mouse.y);
         }
         onClicked: mouse => {
@@ -130,9 +130,9 @@ Item {
     }
 
     Rectangle {
-        anchors.fill: parent
-        anchors.margins: -3
-        radius: surface.radius + 3
+        anchors.fill: surface
+        anchors.margins: 2
+        radius: Math.max(0, surface.radius - 2)
         color: "transparent"
         border.width: 2
         border.color: Theme.primary

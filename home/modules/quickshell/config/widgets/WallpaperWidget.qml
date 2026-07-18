@@ -206,7 +206,7 @@ Item {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onPressed: wallpaperRow.forceActiveFocus()
+                onPressed: wallpaperRow.focus = false
                 onClicked: root.controller.setWallpaper(wallpaperRow.filePath)
             }
 

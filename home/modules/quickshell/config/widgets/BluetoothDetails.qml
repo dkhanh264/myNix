@@ -283,7 +283,7 @@ Rectangle {
                     enabled: root.controller && root.controller.bluetoothEnabled
                     hoverEnabled: true
                     cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                    onPressed: deviceRow.forceActiveFocus()
+                    onPressed: deviceRow.focus = false
                     onClicked: root.selectedAddress = selected ? "" : deviceKey
                 }
 

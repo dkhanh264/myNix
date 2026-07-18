@@ -119,7 +119,7 @@ BarPill {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onPressed: trackInfo.forceActiveFocus()
+                onPressed: trackInfo.focus = false
                 onClicked: root.togglePlayback()
             }
 

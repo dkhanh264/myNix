@@ -115,6 +115,7 @@ Rectangle {
             to: root.to
             value: root.value
             icon: root.icon
+            showValue: false
             accessibleName: root.title
             activeColor: Theme.blend(Theme.surfaceContainerHighest,
                 root.accentColor, 0.30)

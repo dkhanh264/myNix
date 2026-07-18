@@ -37,31 +37,48 @@ M3BarPill {
         height: 32
 
         Rectangle {
+            id: movementHalo
+            anchors.verticalCenter: parent.verticalCenter
+            x: activeIndicator.x - 5
+            width: activeIndicator.width + 10
+            height: activeIndicator.height + 8
+            radius: height / 2
+            color: Theme.alpha(Theme.primary, 0.16)
+            opacity: workspaceGlide.running ? 1 : 0
+
+            Behavior on opacity {
+                NumberAnimation { duration: Theme.motionShort4 }
+            }
+        }
+
+        Rectangle {
             id: activeIndicator
             readonly property int safeIndex: Math.max(0,
                 Math.min(root.workspaceCount - 1, root.activeId - 1))
 
             x: safeIndex * root.slotWidth + (root.slotWidth - width) / 2
             anchors.verticalCenter: parent.verticalCenter
-            width: root.compact ? 25 : 29
+            width: root.compact ? 24 : 28
             height: 12
             radius: height / 2
             color: Theme.primary
             visible: root.activeId >= 1 && root.activeId <= root.workspaceCount
+            scale: workspaceGlide.running ? 1.06 : 1
 
             Behavior on x {
                 enabled: !Theme.reduceMotion
-                NumberAnimation {
-                    duration: Theme.motionMedium2
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Theme.emphasizedDecelerate
+                SmoothedAnimation {
+                    id: workspaceGlide
+                    velocity: 620
+                    maximumEasingTime: Theme.motionMedium2
+                    reversingMode: SmoothedAnimation.Sync
                 }
             }
 
-            Behavior on width {
+            Behavior on scale {
                 enabled: !Theme.reduceMotion
                 NumberAnimation {
-                    duration: Theme.motionMedium1
+                    duration: Theme.motionShort4
                     easing.type: Easing.BezierSpline
                     easing.bezierCurve: Theme.springCurve
                 }
@@ -140,14 +157,14 @@ M3BarPill {
                     }
                 }
 
-                MouseArea {
-                    id: pointer
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onPressed: workspaceButton.forceActiveFocus()
-                    onClicked: Hyprland.dispatch("workspace "
-                        + workspaceButton.workspaceId)
+                    MouseArea {
+                        id: pointer
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onPressed: workspaceButton.focus = false
+                        onClicked: Hyprland.dispatch("workspace "
+                            + workspaceButton.workspaceId)
                 }
 
                 Keys.onPressed: event => {
@@ -160,8 +177,8 @@ M3BarPill {
 
                 Rectangle {
                     anchors.centerIn: parent
-                    width: 30
-                    height: 30
+                    width: 26
+                    height: 26
                     radius: width / 2
                     color: "transparent"
                     border.width: 2

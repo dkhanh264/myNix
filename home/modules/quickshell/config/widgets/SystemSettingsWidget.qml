@@ -59,7 +59,7 @@ Item {
         Row {
             id: metrics
             width: parent.width
-            height: 76
+            height: 98
             spacing: 8
 
             Repeater {
@@ -67,6 +67,7 @@ Item {
                     {
                         "icon": "memory",
                         "value": root.controller ? root.controller.cpuUsage + "%" : "--%",
+                        "progress": root.controller ? root.controller.cpuUsage : 0,
                         "label": "CPU",
                         "color": Theme.primary
                     },
@@ -74,6 +75,7 @@ Item {
                         "icon": "storage",
                         "value": root.controller
                             ? root.controller.memoryUsedGib.toFixed(1) + "G" : "--G",
+                        "progress": root.controller ? root.controller.memoryPercent : 0,
                         "label": I18n.tr("Bộ nhớ", "Memory"),
                         "color": Theme.secondary
                     },
@@ -81,6 +83,10 @@ Item {
                         "icon": "device_thermostat",
                         "value": root.controller && root.controller.temperatureAvailable
                             ? root.controller.temperatureC + "°" : "--°",
+                        "progress": root.controller
+                            && root.controller.temperatureAvailable
+                                ? Math.max(0, Math.min(100,
+                                    root.controller.temperatureC)) : 0,
                         "label": I18n.tr("Nhiệt độ", "Temperature"),
                         "color": root.controller && root.controller.temperatureC >= 80
                             ? Theme.error : Theme.tertiary
@@ -95,7 +101,10 @@ Item {
                     color: Theme.surfaceContainerLow
 
                     Row {
-                        anchors.centerIn: parent
+                        anchors.left: parent.left
+                        anchors.leftMargin: 12
+                        anchors.top: parent.top
+                        anchors.topMargin: 12
                         spacing: 8
 
                         MaterialIcon {
@@ -125,6 +134,20 @@ Item {
                                 font.pixelSize: 9
                             }
                         }
+                    }
+
+                    WaveProgress {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 10
+                        height: 22
+                        value: modelData.progress
+                        activeColor: modelData.color
+                        barCount: 15
+                        accessibleName: modelData.label
                     }
                 }
             }

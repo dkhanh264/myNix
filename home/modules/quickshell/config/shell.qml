@@ -41,6 +41,7 @@ ShellRoot {
         case "controls":
             systemService.refreshVolume();
             systemService.refreshBrightness();
+            systemService.refreshAudioDevices();
             break;
         case "wifi":
             systemService.refreshWifi(true);
@@ -220,6 +221,9 @@ ShellRoot {
             color: "transparent"
             exclusiveZone: 58
             WlrLayershell.namespace: "m3-shell"
+            WlrLayershell.keyboardFocus: root.popupVisible
+                    && root.popupScreen === barWindow.modelData.name
+                ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
             anchors {
                 top: true
@@ -244,8 +248,8 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "music"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(454, barWindow.width - 20)
-                popupHeight: Math.min(400,
+                popupWidth: Math.min(420, barWindow.width - 20)
+                popupHeight: Math.min(350,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("music", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("music")
@@ -300,7 +304,7 @@ ShellRoot {
                 requestedVisible: root.popupVisible && root.activePopup === "weather"
                     && root.popupScreen === barWindow.modelData.name
                 popupWidth: Math.min(590, barWindow.width - 20)
-                popupHeight: Math.min(480,
+                popupHeight: Math.min(590,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("weather", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("weather")
@@ -329,7 +333,7 @@ ShellRoot {
                     && root.activePopup === "controls"
                     && root.popupScreen === barWindow.modelData.name
                 popupWidth: Math.min(410, barWindow.width - 20)
-                popupHeight: Math.min(430,
+                popupHeight: Math.min(620,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("controls", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("controls")
@@ -343,12 +347,19 @@ ShellRoot {
                     icon: "tune"
                     onCloseRequested: root.hidePopup()
 
-                    QuickControlsWidget {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        height: implicitHeight
-                        controller: systemService
+                    Flickable {
+                        anchors.fill: parent
+                        contentWidth: width
+                        contentHeight: quickControls.implicitHeight
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+
+                        QuickControlsWidget {
+                            id: quickControls
+                            width: parent.width
+                            height: implicitHeight
+                            controller: systemService
+                        }
                     }
                 }
             }
@@ -626,7 +637,7 @@ ShellRoot {
                 requestedVisible: root.popupVisible && root.activePopup === "settings"
                     && root.popupScreen === barWindow.modelData.name
                 popupWidth: Math.min(510, barWindow.width - 20)
-                popupHeight: Math.min(600,
+                popupHeight: Math.min(640,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("settings", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("settings")

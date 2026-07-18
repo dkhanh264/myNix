@@ -343,7 +343,7 @@ Rectangle {
                     enabled: root.controller && !root.controller.wifiBusy
                     hoverEnabled: true
                     cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                    onPressed: networkRow.forceActiveFocus()
+                    onPressed: networkRow.focus = false
                     onClicked: networkRow.chooseNetwork()
                 }
 

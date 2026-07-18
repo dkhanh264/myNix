@@ -55,4 +55,9 @@ Column {
                 root.controller.setBrightness(value);
         }
     }
+
+    AudioRoutingWidget {
+        width: parent.width
+        controller: root.controller
+    }
 }

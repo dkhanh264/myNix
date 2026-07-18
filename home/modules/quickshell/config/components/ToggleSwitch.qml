@@ -90,7 +90,7 @@ Item {
         enabled: root.enabled
         cursorShape: Qt.PointingHandCursor
         onPressed: mouse => {
-            root.forceActiveFocus();
+            root.focus = false;
             ripple.burst(mouse.x, mouse.y);
         }
         onClicked: root.toggled(!root.checked)
@@ -98,8 +98,8 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        anchors.margins: -3
-        radius: height / 2
+        anchors.margins: 2
+        radius: Math.max(0, height / 2 - 2)
         color: "transparent"
         border.width: 2
         border.color: Theme.primary

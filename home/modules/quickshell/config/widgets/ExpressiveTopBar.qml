@@ -14,10 +14,9 @@ Item {
     readonly property var monitor: screen ? Hyprland.monitorFor(screen) : null
     readonly property bool showClock: width >= 720
     readonly property bool showWeather: width >= 1080
-    readonly property bool showTray: width >= 1320
-    readonly property bool showMedia: width >= 1440
+    readonly property bool showMedia: width >= 1320
     readonly property bool showStatusLabels: width >= 1540
-    readonly property bool showSystemStats: width >= 1780
+    readonly property bool showSystemStats: width >= 1500
     readonly property bool compactWorkspaces: width < 1180
     readonly property bool compactLauncher: width < 1040
 
@@ -86,13 +85,6 @@ Item {
         anchors.rightMargin: 10
         anchors.verticalCenter: parent.verticalCenter
         spacing: 8
-
-        TrayPillM3 {
-            id: trayPill
-            visible: root.showTray && available
-            anchors.verticalCenter: parent.verticalCenter
-            barWindow: root.barWindow
-        }
 
         SystemStatsPillM3 {
             visible: root.showSystemStats

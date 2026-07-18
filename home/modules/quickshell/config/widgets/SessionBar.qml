@@ -182,7 +182,7 @@ Rectangle {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onPressed: mouse => {
-                        parent.forceActiveFocus();
+                        parent.focus = false;
                         actionRipple.burst(mouse.x, mouse.y);
                     }
                     onClicked: root.requestAction(actionKey)

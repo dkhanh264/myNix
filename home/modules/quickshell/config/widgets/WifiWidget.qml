@@ -156,13 +156,13 @@ Rectangle {
             anchors.right: controls.left
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onPressed: summary.forceActiveFocus()
+            onPressed: summary.focus = false
             onClicked: root.expansionRequested(!root.expanded)
         }
 
         Rectangle {
             anchors.fill: parent
-            anchors.margins: -2
+            anchors.margins: 2
             radius: Theme.shapeLarge
             color: "transparent"
             border.width: 2

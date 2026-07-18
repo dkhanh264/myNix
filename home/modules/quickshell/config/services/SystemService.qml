@@ -10,6 +10,12 @@ Scope {
     property int volume: 0
     property bool muted: false
     property int brightness: 0
+    property bool audioDevicesLoading: false
+    property bool audioDevicesBusy: false
+    property string defaultAudioOutput: ""
+    property string defaultAudioInput: ""
+    property string pendingAudioDeviceKind: ""
+    property int pendingAudioDeviceId: -1
 
     property bool wifiEnabled: false
     property string wifiSsid: ""
@@ -47,6 +53,7 @@ Scope {
 
     property bool recording: false
     property bool recordingPaused: false
+    property bool recordingStopping: false
     property bool recordingAudio: true
     property int recordingFps: 60
     property string recordingTarget: "screen"
@@ -66,6 +73,8 @@ Scope {
     property double weatherLocationLastUpdated: 0
 
     property alias wifiNetworks: wifiNetworkModel
+    property alias audioOutputs: audioOutputModel
+    property alias audioInputs: audioInputModel
     property alias wallpapers: wallpaperModel
     property alias weatherForecast: weatherForecastModel
     property alias notificationHistory: notificationHistoryModel
@@ -96,6 +105,14 @@ Scope {
 
     ListModel {
         id: wifiNetworkModel
+    }
+
+    ListModel {
+        id: audioOutputModel
+    }
+
+    ListModel {
+        id: audioInputModel
     }
 
     ListModel {
@@ -135,6 +152,7 @@ Scope {
     function refreshAll() {
         refreshVolume();
         refreshBrightness();
+        refreshAudioDevices();
         refreshWifi(false);
         refreshPowerProfile();
         refreshBattery();
@@ -222,7 +240,10 @@ Scope {
                 + weatherLatitude + "&longitude=" + weatherLongitude
                 + "&current=temperature_2m,weather_code"
                 + "&daily=weather_code,temperature_2m_max,temperature_2m_min,"
-                + "precipitation_probability_max&forecast_days=7&timezone=auto"
+                + "apparent_temperature_max,apparent_temperature_min,"
+                + "precipitation_probability_max,precipitation_sum,"
+                + "wind_speed_10m_max,uv_index_max,sunrise,sunset"
+                + "&forecast_days=7&timezone=auto"
         ]);
     }
 
@@ -285,7 +306,19 @@ Scope {
                         "minimum": Math.round(Number(
                             daily.temperature_2m_min[index])),
                         "precipitation": Math.round(Number(
-                            daily.precipitation_probability_max[index]) || 0)
+                            daily.precipitation_probability_max[index]) || 0),
+                        "precipitationAmount": Math.round(Number(
+                            daily.precipitation_sum[index]) * 10) / 10 || 0,
+                        "apparentMaximum": Math.round(Number(
+                            daily.apparent_temperature_max[index])),
+                        "apparentMinimum": Math.round(Number(
+                            daily.apparent_temperature_min[index])),
+                        "windMaximum": Math.round(Number(
+                            daily.wind_speed_10m_max[index]) || 0),
+                        "uvIndex": Math.round(Number(
+                            daily.uv_index_max[index]) * 10) / 10 || 0,
+                        "sunriseTime": String(daily.sunrise[index] || ""),
+                        "sunsetTime": String(daily.sunset[index] || "")
                     });
                 }
             }
@@ -353,6 +386,88 @@ Scope {
     function refreshVolume() {
         if (!volumeQuery.running)
             volumeQuery.exec(["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]);
+    }
+
+    function refreshAudioDevices() {
+        if (audioDeviceQuery.running)
+            return;
+        audioDevicesLoading = true;
+        audioDeviceQuery.exec(["wpctl", "status"]);
+    }
+
+    function applyAudioDevices(output) {
+        const outputs = [];
+        const inputs = [];
+        let inAudio = false;
+        let section = "";
+        const lines = String(output || "").split("\n");
+
+        for (let index = 0; index < lines.length; ++index) {
+            const clean = lines[index].replace(/[│├└─]/g, " ").trim();
+            if (clean === "Audio") {
+                inAudio = true;
+                section = "";
+                continue;
+            }
+            if (clean === "Video")
+                break;
+            if (!inAudio)
+                continue;
+            if (clean === "Sinks:") {
+                section = "output";
+                continue;
+            }
+            if (clean === "Sources:") {
+                section = "input";
+                continue;
+            }
+            if (clean === "Devices:" || clean === "Filters:"
+                    || clean === "Streams:") {
+                section = "";
+                continue;
+            }
+            if (!section)
+                continue;
+
+            const match = clean.match(/^(\*)?\s*([0-9]+)\.\s+(.+)$/);
+            if (!match)
+                continue;
+            const name = match[3].replace(/\s+\[[^\]]*\]\s*$/, "").trim();
+            const entry = {
+                "deviceId": parseInt(match[2], 10),
+                "deviceName": name,
+                "isDefault": match[1] === "*"
+            };
+            if (section === "output")
+                outputs.push(entry);
+            else
+                inputs.push(entry);
+        }
+
+        audioOutputModel.clear();
+        audioInputModel.clear();
+        defaultAudioOutput = "";
+        defaultAudioInput = "";
+        for (let outputIndex = 0; outputIndex < outputs.length; ++outputIndex) {
+            audioOutputModel.append(outputs[outputIndex]);
+            if (outputs[outputIndex].isDefault)
+                defaultAudioOutput = outputs[outputIndex].deviceName;
+        }
+        for (let inputIndex = 0; inputIndex < inputs.length; ++inputIndex) {
+            audioInputModel.append(inputs[inputIndex]);
+            if (inputs[inputIndex].isDefault)
+                defaultAudioInput = inputs[inputIndex].deviceName;
+        }
+        audioDevicesLoading = false;
+    }
+
+    function setDefaultAudioDevice(kind, deviceId) {
+        if (audioDevicesBusy || deviceId < 0)
+            return;
+        pendingAudioDeviceKind = kind === "input" ? "input" : "output";
+        pendingAudioDeviceId = deviceId;
+        audioDevicesBusy = true;
+        audioDeviceCommand.exec(["wpctl", "set-default", String(deviceId)]);
     }
 
     function setVolume(value) {
@@ -813,6 +928,7 @@ Scope {
                 + "-o \"$4\"";
         recording = true;
         recordingPaused = false;
+        recordingStopping = false;
         recordingProcess.exec([
             "sh", "-c", script, "m3-shell", directory, recordingTarget,
             String(recordingFps), recordingOutput
@@ -820,15 +936,34 @@ Scope {
     }
 
     function toggleRecordingPause() {
-        if (!recordingProcess.running)
+        if (!recordingProcess.running || recordingStopping)
             return;
         recordingProcess.signal(12);
         recordingPaused = !recordingPaused;
     }
 
+    function finalizeRecording() {
+        if (!recordingProcess.running)
+            return;
+        recordingProcess.signal(2);
+        recordingStopWatchdog.restart();
+    }
+
     function stopRecording() {
-        if (recordingProcess.running)
-            recordingProcess.signal(2);
+        if (!recordingProcess.running || recordingStopping)
+            return;
+
+        recordingStopping = true;
+        // GPU Screen Recorder handles SIGINT cleanly, but a paused capture can
+        // take the signal before its muxer resumes. Resume first, then request
+        // finalization on the next event-loop turn so MP4 metadata is written.
+        if (recordingPaused) {
+            recordingProcess.signal(12);
+            recordingPaused = false;
+            recordingFinalizeDelay.restart();
+        } else {
+            finalizeRecording();
+        }
     }
 
     function openSettings(section) {
@@ -962,16 +1097,52 @@ Scope {
 
     Process {
         id: recordingProcess
+        stderr: StdioCollector { id: recordingError }
         onExited: (exitCode, exitStatus) => {
             const output = root.recordingOutput;
+            recordingFinalizeDelay.stop();
+            recordingStopWatchdog.stop();
             root.recording = false;
             root.recordingPaused = false;
+            root.recordingStopping = false;
             if (output) {
-                root.showMessage(exitCode === 0
-                    ? I18n.tr("Đã lưu bản ghi màn hình",
-                        "Screen recording saved")
-                    : I18n.tr("Đã dừng ghi màn hình",
-                        "Screen recording stopped"));
+                recordingVerification.outputPath = output;
+                recordingVerification.errorText = recordingError.text.trim();
+                recordingVerification.exec(["test", "-s", output]);
+            }
+        }
+    }
+
+    Timer {
+        id: recordingFinalizeDelay
+        interval: 140
+        onTriggered: root.finalizeRecording()
+    }
+
+    Timer {
+        id: recordingStopWatchdog
+        interval: 1800
+        onTriggered: {
+            // A second SIGINT is safe and still lets GSR close the container.
+            // Never SIGKILL here: doing so would leave MP4 metadata incomplete.
+            if (recordingProcess.running)
+                recordingProcess.signal(2);
+        }
+    }
+
+    Process {
+        id: recordingVerification
+        property string outputPath: ""
+        property string errorText: ""
+
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode === 0) {
+                root.showMessage(I18n.tr("Đã lưu bản ghi màn hình",
+                    "Screen recording saved"));
+            } else {
+                root.showMessage(errorText || I18n.tr(
+                    "Không thể hoàn tất tệp ghi màn hình",
+                    "Could not finalize the screen recording"));
             }
         }
     }
@@ -1022,6 +1193,46 @@ Scope {
                 root.showMessage(errorText || "Không thể đổi hình nền");
             }
             root.pendingWallpaper = "";
+        }
+    }
+
+    Process {
+        id: audioDeviceQuery
+        stdout: StdioCollector {
+            onStreamFinished: root.applyAudioDevices(this.text)
+        }
+        onExited: root.audioDevicesLoading = false
+    }
+
+    Process {
+        id: audioDeviceCommand
+        stderr: StdioCollector { id: audioDeviceError }
+
+        onExited: (exitCode, exitStatus) => {
+            root.audioDevicesBusy = false;
+            if (exitCode === 0) {
+                root.showMessage(root.pendingAudioDeviceKind === "input"
+                    ? I18n.tr("Đã đổi thiết bị đầu vào",
+                        "Input device changed")
+                    : I18n.tr("Đã đổi thiết bị đầu ra",
+                        "Output device changed"));
+            } else {
+                root.showMessage(audioDeviceError.text.trim() || I18n.tr(
+                    "Không thể đổi thiết bị âm thanh",
+                    "Could not change audio device"));
+            }
+            root.pendingAudioDeviceKind = "";
+            root.pendingAudioDeviceId = -1;
+            audioDeviceRefreshDelay.restart();
+        }
+    }
+
+    Timer {
+        id: audioDeviceRefreshDelay
+        interval: 240
+        onTriggered: {
+            root.refreshAudioDevices();
+            root.refreshVolume();
         }
     }
 
@@ -1225,6 +1436,7 @@ Scope {
             root.refreshWifi(false);
             root.refreshPowerProfile();
             root.refreshBattery();
+            root.refreshAudioDevices();
         }
     }
 

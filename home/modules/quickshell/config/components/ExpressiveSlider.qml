@@ -193,7 +193,7 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onPressed: mouse => {
-            root.forceActiveFocus();
+            root.focus = false;
             root.displayProgress = root.normalizedProgress;
             root.updateFromPosition(mouse.x);
         }
@@ -209,8 +209,8 @@ Item {
 
     Rectangle {
         anchors.fill: track
-        anchors.margins: -3
-        radius: track.radius + 3
+        anchors.margins: 2
+        radius: Math.max(0, track.radius - 2)
         color: "transparent"
         border.width: 2
         border.color: Theme.primary

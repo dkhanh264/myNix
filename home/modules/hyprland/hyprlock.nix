@@ -10,9 +10,10 @@ let
   white = "rgba(255,255,255,1.0)";
   secondary = "rgba(210,213,224,1.0)";
   primary = "rgba(190,194,255,1.0)";
-  primaryContainer = "rgba(42,48,79,0.94)";
-  surface = "rgba(13,17,24,0.72)";
-  surfaceStrong = "rgba(24,29,39,0.88)";
+  primaryContainer = "rgba(48,56,94,0.92)";
+  surface = "rgba(12,16,23,0.70)";
+  surfaceStrong = "rgba(28,34,46,0.94)";
+  outline = "rgba(218,221,232,0.18)";
   error = "rgba(255,180,171,1.0)";
 in
 {
@@ -30,13 +31,13 @@ in
         {
           monitor = "";
           path = "/home/dk/.config/current-wallpaper";
-          blur_passes = 4;
-          blur_size = 12;
-          noise = 0.018;
-          contrast = 1.08;
-          brightness = 0.56;
-          vibrancy = 0.24;
-          vibrancy_darkness = 0.20;
+          blur_passes = 5;
+          blur_size = 10;
+          noise = 0.012;
+          contrast = 1.06;
+          brightness = 0.48;
+          vibrancy = 0.20;
+          vibrancy_darkness = 0.18;
         }
       ];
 
@@ -56,18 +57,39 @@ in
       shape = [
         {
           monitor = "";
-          size = "520, 430";
+          size = "700, 360";
           color = surface;
-          rounding = 32;
-          border_size = 1;
-          border_color = "rgba(255,255,255,0.14)";
+          rounding = 24;
+          border_size = 0;
           position = "0, 0";
           halign = "center";
           valign = "center";
           zindex = 0;
-          shadow_passes = 6;
-          shadow_size = 18;
-          shadow_color = "rgba(0,0,0,0.52)";
+          shadow_passes = 4;
+          shadow_size = 12;
+          shadow_color = "rgba(0,0,0,0.46)";
+        }
+        {
+          monitor = "";
+          size = "104, 104";
+          color = primaryContainer;
+          rounding = 52;
+          border_size = 0;
+          position = "-205, 92";
+          halign = "center";
+          valign = "center";
+          zindex = 1;
+        }
+        {
+          monitor = "";
+          size = "1, 274";
+          color = outline;
+          rounding = 0;
+          border_size = 0;
+          position = "-46, 0";
+          halign = "center";
+          valign = "center";
+          zindex = 1;
         }
       ];
 
@@ -75,10 +97,10 @@ in
         {
           monitor = "";
           path = "${nixLogoPng}";
-          size = 66;
-          rounding = 20;
+          size = 64;
+          rounding = 18;
           border_size = 0;
-          position = "0, 135";
+          position = "-205, 92";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -90,9 +112,9 @@ in
           monitor = "";
           text = "$TIME";
           color = white;
-          font_size = 62;
+          font_size = 54;
           font_family = "Noto Sans";
-          position = "0, 47";
+          position = "-205, 6";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -101,31 +123,53 @@ in
           monitor = "";
           text = "cmd[update:60000] date +\"%A, %d %B %Y\"";
           color = secondary;
-          font_size = 13;
-          font_family = "Noto Sans";
-          position = "0, -2";
-          halign = "center";
-          valign = "center";
-          zindex = 2;
-        }
-        {
-          monitor = "";
-          text = "<b>$USER</b>  ·  NixOS";
-          color = primary;
           font_size = 12;
           font_family = "Noto Sans";
-          position = "0, -148";
+          position = "-205, -44";
           halign = "center";
           valign = "center";
           zindex = 2;
         }
         {
           monitor = "";
-          text = "Enter để mở khóa";
+          text = "<b>$USER</b> · NixOS";
+          color = primary;
+          font_size = 11;
+          font_family = "Noto Sans";
+          position = "-205, -112";
+          halign = "center";
+          valign = "center";
+          zindex = 2;
+        }
+        {
+          monitor = "";
+          text = "<b>Mở khóa phiên làm việc</b>";
+          color = white;
+          font_size = 20;
+          font_family = "Noto Sans";
+          position = "124, 88";
+          halign = "center";
+          valign = "center";
+          zindex = 2;
+        }
+        {
+          monitor = "";
+          text = "Nhập mật khẩu của $USER để tiếp tục";
           color = secondary;
           font_size = 10;
           font_family = "Noto Sans";
-          position = "0, -184";
+          position = "124, 56";
+          halign = "center";
+          valign = "center";
+          zindex = 2;
+        }
+        {
+          monitor = "";
+          text = "Nhấn Enter để xác thực";
+          color = secondary;
+          font_size = 10;
+          font_family = "Noto Sans";
+          position = "124, -62";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -135,8 +179,8 @@ in
       input-field = [
         {
           monitor = "";
-          size = "420, 64";
-          position = "0, -82";
+          size = "350, 60";
+          position = "124, 0";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -150,10 +194,8 @@ in
           placeholder_text = "Mật khẩu";
           check_text = "Đang xác thực…";
           fail_text = "<b>Không đúng</b> · thử lại ($ATTEMPTS)";
-          rounding = 24;
-          shadow_passes = 2;
-          shadow_size = 8;
-          shadow_color = "rgba(0,0,0,0.34)";
+          rounding = 18;
+          shadow_passes = 0;
           fade_on_empty = false;
           dots_size = 0.22;
           dots_spacing = 0.28;

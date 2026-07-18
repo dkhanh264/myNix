@@ -41,21 +41,18 @@ Item {
 
     RectangularShadow {
         anchors.fill: panel
-        offset: Qt.vector2d(0, 9)
+        offset: Qt.vector2d(0, 2)
         radius: panel.radius
-        blur: 14
-        spread: -3
-        color: Theme.alpha("#000000", 0.52)
+        blur: 8
+        spread: -1
+        color: Theme.alpha("#000000", 0.48)
         opacity: root.revealProgress
     }
 
     Rectangle {
         id: panel
         anchors.fill: parent
-        anchors.leftMargin: 4
-        anchors.rightMargin: 4
-        anchors.topMargin: 3
-        anchors.bottomMargin: 12
+        anchors.margins: 10
         radius: Theme.shapeExtraLarge
         color: Theme.popupSurface
         clip: true

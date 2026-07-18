@@ -50,8 +50,8 @@ M3BarPill {
 
         Item {
             id: trackInfo
-            width: record.width + 8 + metadata.width
-            height: 34
+            width: record.width + 7 + metadata.width
+            height: 32
             anchors.verticalCenter: parent.verticalCenter
             activeFocusOnTab: true
 
@@ -63,58 +63,31 @@ M3BarPill {
                 id: record
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                width: 32
-                height: 32
+                width: 30
+                height: 30
 
                 NumberAnimation on rotation {
                     from: 0
                     to: 360
-                    duration: 7000
+                    duration: 9000
                     loops: Animation.Infinite
                     running: root.player && root.player.isPlaying
                         && !Theme.reduceMotion
                 }
 
-                Rectangle {
+                CircularAlbumArt {
                     anchors.fill: parent
-                    radius: width / 2
-                    color: Theme.blend("#07080b", Theme.secondary, 0.18)
-                    clip: true
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 23
-                        height: 23
-                        radius: width / 2
-                        color: "transparent"
-                        border.width: 1
-                        border.color: Theme.alpha("#ffffff", 0.12)
-                    }
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 9
-                        height: 9
-                        radius: width / 2
-                        color: Theme.secondary
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 3
-                            height: 3
-                            radius: width / 2
-                            color: Theme.surfaceDim
-                        }
-                    }
+                    source: root.player ? root.player.trackArtUrl : ""
+                    accentColor: Theme.secondary
                 }
             }
 
             Column {
                 id: metadata
                 anchors.left: record.right
-                anchors.leftMargin: 8
+                anchors.leftMargin: 7
                 anchors.verticalCenter: parent.verticalCenter
-                width: root.compact ? 86 : 132
+                width: root.compact ? 72 : 108
                 spacing: 0
 
                 Text {
@@ -142,7 +115,7 @@ M3BarPill {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onPressed: trackInfo.forceActiveFocus()
+                onPressed: trackInfo.focus = false
                 onClicked: root.popupRequested()
             }
 

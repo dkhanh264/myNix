@@ -85,7 +85,7 @@ M3BarPill {
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     cursorShape: Qt.PointingHandCursor
-                    onPressed: trayButton.forceActiveFocus()
+                    onPressed: trayButton.focus = false
                     onClicked: mouse => {
                         if (mouse.button === Qt.RightButton) {
                             if (trayButton.modelData.hasMenu)

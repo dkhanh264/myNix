@@ -296,7 +296,7 @@ Rectangle {
                         enabled: dateCell.dayNumber > 0
                         hoverEnabled: true
                         cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                        onPressed: dateCell.forceActiveFocus()
+                        onPressed: dateCell.focus = false
                         onClicked: root.selectedDate = dateCell.cellDate
                     }
                 }
