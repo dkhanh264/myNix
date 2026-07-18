@@ -38,8 +38,6 @@
         "quickshell"
         "mako"        # Khởi động trình thông báo
         "hypridle"
-        "nm-applet --indicator"
-        "blueman-applet"
         "wl-paste --type text --watch cliphist store"
         "fcitx5 -d"
         "swww-daemon"  # Daemon cho hình nền có hiệu ứng chuyển cảnh
@@ -124,6 +122,7 @@
         
         # ── Walker & Hình nền ──────────────────────────────────────────
         "$mainMod, space,     exec, walker-menu apps"
+        "$mainMod, A,         exec, qs ipc call controlCenter toggle"
         "$mainMod, escape,    exec, walker-menu system"
         "$mainMod CTRL, space, exec, cycle-background"
         "$mainMod, P, exec, walker-menu profile"
@@ -192,6 +191,8 @@
         "ignorezero, waybar"
         "blur, notifications"
         "ignorezero, notifications"
+        "blur, m3-shell"
+        "ignorezero, m3-shell"
       ];
     };
   };
