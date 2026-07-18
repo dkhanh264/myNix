@@ -15,32 +15,56 @@ Singleton {
     property color wallpaperSecondary: "#c6bfff"
     property color wallpaperTertiary: "#ffb1c8"
 
-    readonly property color background: blend(wallpaperBackground, "#0b0c10", 0.32)
+    // Pywal can legitimately return an almost-black background. Keep the
+    // wallpaper tint, but lift very dark palettes enough for the panel layers
+    // to remain distinct.
+    readonly property bool darkPalette: luminance(wallpaperBackground)
+        < luminance(wallpaperForeground)
+    readonly property color background: darkPalette
+        ? ensureLuminance(wallpaperBackground, 0.12, wallpaperForeground)
+        : blend(wallpaperBackground, wallpaperForeground, 0.04)
     readonly property color onBackground: wallpaperForeground
-    readonly property color surface: blend(background, wallpaperPrimary, 0.035)
-    readonly property color surfaceContainerLow: blend(background, wallpaperPrimary, 0.075)
-    readonly property color surfaceContainer: blend(background, wallpaperPrimary, 0.115)
-    readonly property color surfaceContainerHigh: blend(background, wallpaperPrimary, 0.17)
-    readonly property color surfaceContainerHighest: blend(background, wallpaperPrimary, 0.23)
-    readonly property color surfaceVariant: blend(background, wallpaperSecondary, 0.19)
+    readonly property color surface: blend(background, wallpaperPrimary,
+        darkPalette ? 0.06 : 0.025)
+    readonly property color surfaceContainerLow: blend(background, wallpaperPrimary,
+        darkPalette ? 0.11 : 0.045)
+    readonly property color surfaceContainer: blend(background, wallpaperPrimary,
+        darkPalette ? 0.16 : 0.07)
+    readonly property color surfaceContainerHigh: blend(background, wallpaperPrimary,
+        darkPalette ? 0.23 : 0.10)
+    readonly property color surfaceContainerHighest: blend(background, wallpaperPrimary,
+        darkPalette ? 0.31 : 0.14)
+    readonly property color surfaceVariant: blend(background, wallpaperSecondary,
+        darkPalette ? 0.26 : 0.12)
 
     readonly property color primary: wallpaperPrimary
-    readonly property color onPrimary: isLight(primary) ? "#17182a" : "#ffffff"
-    readonly property color primaryContainer: blend(background, primary, 0.34)
-    readonly property color onPrimaryContainer: blend(onBackground, primary, 0.17)
+    readonly property color onPrimary: contrastText(primary)
+    readonly property color primaryContainer: blend(background, primary,
+        darkPalette ? 0.39 : 0.17)
+    readonly property color onPrimaryContainer: blend(onBackground, primary,
+        darkPalette ? 0.12 : 0.28)
 
     readonly property color secondary: wallpaperSecondary
-    readonly property color secondaryContainer: blend(background, secondary, 0.27)
-    readonly property color onSecondaryContainer: blend(onBackground, secondary, 0.13)
+    readonly property color onSecondary: contrastText(secondary)
+    readonly property color secondaryContainer: blend(background, secondary,
+        darkPalette ? 0.34 : 0.15)
+    readonly property color onSecondaryContainer: blend(onBackground, secondary,
+        darkPalette ? 0.10 : 0.25)
 
     readonly property color tertiary: wallpaperTertiary
-    readonly property color tertiaryContainer: blend(background, tertiary, 0.25)
-    readonly property color onTertiaryContainer: blend(onBackground, tertiary, 0.11)
+    readonly property color onTertiary: contrastText(tertiary)
+    readonly property color tertiaryContainer: blend(background, tertiary,
+        darkPalette ? 0.32 : 0.14)
+    readonly property color onTertiaryContainer: blend(onBackground, tertiary,
+        darkPalette ? 0.09 : 0.24)
 
     readonly property color onSurface: onBackground
-    readonly property color onSurfaceVariant: blend(onBackground, background, 0.31)
-    readonly property color outline: blend(onBackground, background, 0.57)
-    readonly property color outlineVariant: blend(onBackground, background, 0.76)
+    readonly property color onSurfaceVariant: blend(onBackground, background,
+        darkPalette ? 0.21 : 0.32)
+    readonly property color outline: blend(onBackground, background,
+        darkPalette ? 0.46 : 0.56)
+    readonly property color outlineVariant: blend(onBackground, background,
+        darkPalette ? 0.64 : 0.72)
     readonly property color error: "#ffb4ab"
     readonly property color errorContainer: "#57201d"
 
@@ -84,8 +108,54 @@ Singleton {
         return Qt.rgba(color.r, color.g, color.b, opacity);
     }
 
-    function isLight(color) {
-        return (color.r * 0.299 + color.g * 0.587 + color.b * 0.114) > 0.62;
+    // Fast perceived luminance is useful for palette shaping. WCAG relative
+    // luminance below is kept separate for choosing readable foregrounds.
+    function luminance(color) {
+        return color.r * 0.299 + color.g * 0.587 + color.b * 0.114;
+    }
+
+    function ensureLuminance(color, minimum, tint) {
+        const current = luminance(color);
+        if (current >= minimum)
+            return color;
+
+        let target = tint;
+        let targetLuminance = luminance(target);
+        if (targetLuminance <= minimum) {
+            target = "#ffffff";
+            targetLuminance = 1;
+        }
+
+        const amount = (minimum - current)
+            / Math.max(0.001, targetLuminance - current);
+        return blend(color, target, amount);
+    }
+
+    function linearChannel(channel) {
+        return channel <= 0.04045
+            ? channel / 12.92
+            : Math.pow((channel + 0.055) / 1.055, 2.4);
+    }
+
+    function relativeLuminance(color) {
+        return linearChannel(color.r) * 0.2126
+            + linearChannel(color.g) * 0.7152
+            + linearChannel(color.b) * 0.0722;
+    }
+
+    function contrastRatio(first, second) {
+        const firstLuminance = relativeLuminance(first);
+        const secondLuminance = relativeLuminance(second);
+        const lighter = Math.max(firstLuminance, secondLuminance);
+        const darker = Math.min(firstLuminance, secondLuminance);
+        return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    function contrastText(color) {
+        const darkText = "#17130f";
+        const lightText = "#ffffff";
+        return contrastRatio(color, darkText) >= contrastRatio(color, lightText)
+            ? darkText : lightText;
     }
 
     function applyWalPalette() {

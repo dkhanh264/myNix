@@ -153,7 +153,7 @@ Rectangle {
                         anchors.centerIn: parent
                         text: root.signalIcon(networkRow.strength)
                         iconSize: 18
-                        color: networkRow.active ? Theme.onPrimary : Theme.onSurfaceVariant
+                        color: networkRow.active ? Theme.onSecondary : Theme.onSurfaceVariant
                     }
                 }
 

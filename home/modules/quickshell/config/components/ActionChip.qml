@@ -50,7 +50,7 @@ Item {
             anchors.centerIn: parent
             text: root.icon
             iconSize: 17
-            color: root.selected ? Theme.onPrimary : Theme.onSurfaceVariant
+            color: root.selected ? Theme.onSecondary : Theme.onSurfaceVariant
         }
 
         Behavior on radius {

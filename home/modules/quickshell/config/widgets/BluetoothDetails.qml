@@ -156,7 +156,7 @@ Rectangle {
                         text: deviceRow.modelData.icon && deviceRow.modelData.icon.indexOf("head") >= 0
                             ? "󰋋" : "󰂯"
                         iconSize: 18
-                        color: deviceRow.modelData.connected ? Theme.onPrimary : Theme.onSurfaceVariant
+                        color: deviceRow.modelData.connected ? Theme.onTertiary : Theme.onSurfaceVariant
                     }
                 }
 
