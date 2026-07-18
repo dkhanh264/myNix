@@ -18,12 +18,17 @@ Rectangle {
     signal trailingClicked
 
     implicitHeight: 116
-    radius: controlSlider.interacting ? 34 : (controlSlider.hovered ? 32 : 28)
+    radius: controlSlider.interacting
+        ? Theme.shapeMedium : Theme.shapeLarge
     color: Theme.blend(Theme.surfaceContainerHigh, root.accentColor,
         controlSlider.hovered ? 0.055 : 0)
 
     Behavior on radius {
-        SpringAnimation { spring: 4; damping: 0.38; epsilon: 0.1 }
+        NumberAnimation {
+            duration: Theme.motionMedium1
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
+        }
     }
 
     Behavior on color {
@@ -43,16 +48,21 @@ Rectangle {
                 id: iconContainer
                 width: 38
                 height: 38
-                radius: controlSlider.interacting ? 19 : 14
+                radius: controlSlider.interacting
+                    ? width / 2 : Theme.shapeMedium
                 color: Theme.blend(Theme.primaryContainer, root.accentColor, 0.12)
                 scale: controlSlider.interacting ? 1.08 : 1
 
                 Behavior on radius {
-                    SpringAnimation { spring: 4.5; damping: 0.38 }
+                    NumberAnimation {
+                        duration: Theme.motionMedium1
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: Theme.springCurve
+                    }
                 }
 
                 Behavior on scale {
-                    SpringAnimation { spring: 5; damping: 0.4 }
+                    NumberAnimation { duration: Theme.motionShort4 }
                 }
 
                 MaterialIcon {

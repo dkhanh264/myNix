@@ -6,12 +6,27 @@ Item {
 
     property bool checked: false
     property bool enabled: true
+    property string accessibleName: ""
     signal toggled(bool checked)
 
     implicitWidth: 52
     implicitHeight: 32
     opacity: enabled ? 1 : 0.38
     scale: pointer.pressed ? 0.94 : 1
+    activeFocusOnTab: enabled
+
+    Accessible.role: Accessible.CheckBox
+    Accessible.name: accessibleName
+    Accessible.checked: checked
+    Accessible.focusable: enabled
+
+    Keys.onPressed: event => {
+        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                || event.key === Qt.Key_Space) {
+            root.toggled(!root.checked);
+            event.accepted = true;
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -62,8 +77,21 @@ Item {
         anchors.fill: parent
         enabled: root.enabled
         cursorShape: Qt.PointingHandCursor
-        onPressed: mouse => ripple.burst(mouse.x, mouse.y)
+        onPressed: mouse => {
+            root.forceActiveFocus();
+            ripple.burst(mouse.x, mouse.y);
+        }
         onClicked: root.toggled(!root.checked)
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: -3
+        radius: height / 2
+        color: "transparent"
+        border.width: 2
+        border.color: Theme.primary
+        visible: root.activeFocus
     }
 
     Behavior on scale {

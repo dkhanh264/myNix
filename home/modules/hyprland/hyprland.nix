@@ -122,6 +122,7 @@
         
         # ── Walker & Hình nền ──────────────────────────────────────────
         "$mainMod, space,     exec, walker-menu apps"
+        "$mainMod SHIFT, space, exec, walker-menu wallpapers"
         "$mainMod, A,         exec, qs ipc call controlCenter toggle"
         "$mainMod, escape,    exec, walker-menu system"
         "$mainMod CTRL, space, exec, cycle-background"

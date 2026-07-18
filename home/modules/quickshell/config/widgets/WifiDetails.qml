@@ -7,26 +7,24 @@ Rectangle {
 
     property var controller
 
-    implicitHeight: content.implicitHeight + 24
-    radius: 28
-    color: Theme.surfaceContainerLow
-    border.width: 1
-    border.color: Theme.outlineVariant
+    implicitHeight: content.implicitHeight + 16
+    radius: 0
+    color: "transparent"
 
     function signalIcon(strength) {
         if (strength >= 75)
-            return "󰤨";
+            return "wifi";
         if (strength >= 50)
-            return "󰤥";
+            return "network_wifi_3_bar";
         if (strength >= 25)
-            return "󰤢";
-        return "󰤟";
+            return "network_wifi_2_bar";
+        return "network_wifi_1_bar";
     }
 
     Column {
         id: content
         x: 12
-        y: 12
+        y: 8
         width: parent.width - 24
         spacing: 4
 
@@ -40,7 +38,7 @@ Rectangle {
                 spacing: 0
 
                 Text {
-                    text: "Mạng Wi‑Fi"
+                    text: "Available networks"
                     color: Theme.onSurface
                     font.family: Theme.textFont
                     font.pixelSize: 14
@@ -49,8 +47,8 @@ Rectangle {
 
                 Text {
                     text: root.controller && root.controller.wifiSsid
-                        ? "Đang dùng " + root.controller.wifiSsid
-                        : "Chọn một mạng đã lưu"
+                        ? "Connected to " + root.controller.wifiSsid
+                        : "Choose a saved or open network"
                     color: Theme.onSurfaceVariant
                     font.family: Theme.textFont
                     font.pixelSize: 10
@@ -62,8 +60,9 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 buttonSize: 36
                 iconSize: 17
-                icon: "󰑐"
+                icon: "refresh"
                 fillColor: Theme.surfaceContainerHigh
+                accessibleName: "Scan for Wi-Fi networks"
                 enabled: root.controller && root.controller.wifiEnabled && !root.controller.wifiBusy
                 onClicked: root.controller.refreshWifi(true)
             }
@@ -77,8 +76,8 @@ Rectangle {
             Text {
                 anchors.centerIn: parent
                 text: root.controller && !root.controller.wifiEnabled
-                    ? "Bật Wi‑Fi để tìm mạng"
-                    : "Không tìm thấy mạng nào"
+                    ? "Turn on Wi-Fi to find networks"
+                    : "No networks found"
                 color: Theme.onSurfaceVariant
                 font.family: Theme.textFont
                 font.pixelSize: 12
@@ -95,32 +94,39 @@ Rectangle {
                 required property int strength
                 required property string security
                 required property bool active
-                property real entryProgress: 0
+                // Compatibility with the legacy service label while keeping
+                // all user-facing copy in English.
+                readonly property bool openNetwork: security === "\u004d\u1edf"
+                    || security.toLowerCase() === "open"
 
                 width: content.width
                 height: 56
-                opacity: entryProgress
-                scale: entryProgress * (networkPointer.pressed ? 0.985 : 1)
-                transform: Translate {
-                    y: (1 - networkRow.entryProgress) * 10
-                }
+                scale: networkPointer.pressed ? 0.985 : 1
+                activeFocusOnTab: !active && root.controller
+                    && !root.controller.wifiBusy
 
-                Component.onCompleted: Qt.callLater(() => entryReveal.start())
+                Accessible.role: Accessible.Button
+                Accessible.name: active ? ssid + ", connected"
+                    : ssid + ", " + strength + " percent signal"
+                Accessible.focusable: activeFocusOnTab
+
+                Keys.onPressed: event => {
+                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                            || event.key === Qt.Key_Space) {
+                        root.controller.connectWifi(networkRow.ssid);
+                        event.accepted = true;
+                    }
+                }
 
                 Rectangle {
                     anchors.fill: parent
                     radius: networkPointer.pressed
-                        ? 24
-                        : (networkRow.active ? 21
-                            : (networkPointer.containsMouse ? 19 : 14))
+                        ? Theme.shapeSmall : Theme.shapeMedium
                     color: networkRow.active
                         ? Theme.secondaryContainer
                         : (networkPointer.containsMouse ? Theme.surfaceContainerHigh : "transparent")
 
                     Behavior on color { ColorAnimation { duration: Theme.motionShort } }
-                    Behavior on radius {
-                        SpringAnimation { spring: 4.5; damping: 0.4 }
-                    }
                 }
 
                 MaterialRipple {
@@ -134,20 +140,15 @@ Rectangle {
                     id: signalContainer
                     width: 38
                     height: 38
-                    radius: networkRow.active ? 14 : 19
+                    radius: networkRow.active
+                        ? Theme.shapeMedium : width / 2
                     anchors.left: parent.left
                     anchors.leftMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
                     color: networkRow.active ? Theme.secondary : Theme.surfaceContainerHighest
                     scale: networkPointer.pressed ? 0.9 : 1
 
-                    Behavior on radius {
-                        SpringAnimation { spring: 4.8; damping: 0.4 }
-                    }
-
-                    Behavior on scale {
-                        SpringAnimation { spring: 5.5; damping: 0.38 }
-                    }
+                    Behavior on scale { NumberAnimation { duration: Theme.motionShort4 } }
 
                     MaterialIcon {
                         anchors.centerIn: parent
@@ -178,8 +179,9 @@ Rectangle {
                     Text {
                         width: parent.width
                         text: networkRow.active
-                            ? "Đã kết nối · " + networkRow.strength + "%"
-                            : networkRow.security + " · " + networkRow.strength + "%"
+                            ? "Connected · " + networkRow.strength + "%"
+                            : (networkRow.openNetwork ? "Open" : networkRow.security)
+                                + " · " + networkRow.strength + "%"
                         color: Theme.onSurfaceVariant
                         font.family: Theme.textFont
                         font.pixelSize: 10
@@ -192,8 +194,9 @@ Rectangle {
                     anchors.right: parent.right
                     anchors.rightMargin: 12
                     anchors.verticalCenter: parent.verticalCenter
-                    text: networkRow.active ? "󰄬" : (networkRow.security === "Mở" ? "" : "󰌾")
-                    iconSize: 16
+                    text: networkRow.active ? "check_circle"
+                        : networkRow.openNetwork ? "lock_open" : "lock"
+                    iconSize: 18
                     color: networkRow.active ? Theme.secondary : Theme.onSurfaceVariant
                 }
 
@@ -203,26 +206,28 @@ Rectangle {
                     enabled: !networkRow.active && root.controller && !root.controller.wifiBusy
                     hoverEnabled: true
                     cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                    onPressed: mouse => networkRipple.burst(mouse.x, mouse.y)
+                    onPressed: mouse => {
+                        networkRow.forceActiveFocus();
+                        networkRipple.burst(mouse.x, mouse.y);
+                    }
                     onClicked: root.controller.connectWifi(networkRow.ssid)
                 }
 
-                Behavior on scale {
-                    SpringAnimation { spring: 5.5; damping: 0.4 }
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 2
+                    radius: Theme.shapeMedium
+                    color: "transparent"
+                    border.width: 2
+                    border.color: Theme.primary
+                    visible: networkRow.activeFocus
                 }
 
-                SequentialAnimation {
-                    id: entryReveal
-                    PauseAnimation {
-                        duration: Math.max(0, Math.min(networkRow.index, 7)) * 28
-                    }
+                Behavior on scale {
                     NumberAnimation {
-                        target: networkRow
-                        property: "entryProgress"
-                        to: 1
-                        duration: Theme.motionMedium3
+                        duration: Theme.motionShort4
                         easing.type: Easing.BezierSpline
-                        easing.bezierCurve: Theme.emphasizedDecelerate
+                        easing.bezierCurve: Theme.standardCurve
                     }
                 }
             }
@@ -235,7 +240,7 @@ Rectangle {
             Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Mạng mới có mật khẩu?"
+                text: "New secured network?"
                 color: Theme.onSurfaceVariant
                 font.family: Theme.textFont
                 font.pixelSize: 11
@@ -244,7 +249,7 @@ Rectangle {
             Text {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Mở cài đặt  󰅂"
+                text: "Open settings"
                 color: settingsPointer.containsMouse ? Theme.tertiary : Theme.primary
                 font.family: Theme.textFont
                 font.pixelSize: 11

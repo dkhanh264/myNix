@@ -13,7 +13,7 @@ max_entries = 200
 cycle = true
 
 [search]
-placeholder = " Search..."
+placeholder = "Search apps and commands…"
 
 [builtins.hyprland_keybinds]
 path = "~/.config/hypr/hyprland.conf"
@@ -21,7 +21,7 @@ hidden = true
 
 [builtins.applications]
 launch_prefix = ""
-placeholder = " Search..."
+placeholder = "Search applications…"
 prioritize_new = false
 context_aware = false
 show_sub_when_single = false

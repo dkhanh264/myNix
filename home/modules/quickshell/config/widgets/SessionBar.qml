@@ -12,7 +12,7 @@ Rectangle {
     signal closeRequested
 
     implicitHeight: 76
-    radius: confirming ? 20 : 28
+    radius: confirming ? Theme.shapeMedium : Theme.shapeLarge
     color: confirming
         ? Theme.blend(Theme.surfaceContainerHigh, Theme.errorContainer, 0.3)
         : Theme.surfaceContainerHigh
@@ -41,18 +41,18 @@ Rectangle {
 
     function actionLabel(action) {
         if (action === "logout")
-            return "Đăng xuất khỏi phiên hiện tại?";
+            return "Sign out of this session?";
         if (action === "reboot")
-            return "Khởi động lại máy?";
-        return "Tắt máy ngay bây giờ?";
+            return "Restart the computer?";
+        return "Shut down the computer?";
     }
 
     ListModel {
         id: actions
-        ListElement { actionKey: "lock"; actionIcon: "󰌾"; actionLabel: "Khoá" }
-        ListElement { actionKey: "logout"; actionIcon: "󰍃"; actionLabel: "Thoát" }
-        ListElement { actionKey: "reboot"; actionIcon: "󰜉"; actionLabel: "Khởi động" }
-        ListElement { actionKey: "shutdown"; actionIcon: "󰐥"; actionLabel: "Tắt máy" }
+        ListElement { actionKey: "lock"; actionIcon: "lock"; actionLabel: "Lock" }
+        ListElement { actionKey: "logout"; actionIcon: "logout"; actionLabel: "Sign out" }
+        ListElement { actionKey: "reboot"; actionIcon: "restart_alt"; actionLabel: "Restart" }
+        ListElement { actionKey: "shutdown"; actionIcon: "power_settings_new"; actionLabel: "Shut down" }
     }
 
     Row {
@@ -102,6 +102,19 @@ Rectangle {
                 width: (actionRow.width - actionRow.spacing * 3) / 4
                 height: actionRow.height
                 scale: actionPointer.pressed ? 0.93 : 1
+                activeFocusOnTab: true
+
+                Accessible.role: Accessible.Button
+                Accessible.name: actionLabel
+                Accessible.focusable: true
+
+                Keys.onPressed: event => {
+                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                            || event.key === Qt.Key_Space) {
+                        root.requestAction(actionKey);
+                        event.accepted = true;
+                    }
+                }
 
                 Column {
                     anchors.centerIn: parent
@@ -113,7 +126,8 @@ Rectangle {
                         width: 38
                         height: 38
                         radius: actionPointer.pressed
-                            ? 10 : (actionKey === "shutdown" ? 14 : 19)
+                            ? Theme.shapeSmall
+                            : actionKey === "shutdown" ? Theme.shapeMedium : width / 2
                         color: actionPointer.containsMouse
                             ? (actionKey === "shutdown" ? Theme.errorContainer : Theme.primaryContainer)
                             : Theme.surfaceContainerHighest
@@ -153,8 +167,21 @@ Rectangle {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onPressed: mouse => actionRipple.burst(mouse.x, mouse.y)
+                    onPressed: mouse => {
+                        parent.forceActiveFocus();
+                        actionRipple.burst(mouse.x, mouse.y);
+                    }
                     onClicked: root.requestAction(actionKey)
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 2
+                    radius: Theme.shapeMedium
+                    color: "transparent"
+                    border.width: 2
+                    border.color: Theme.primary
+                    visible: parent.activeFocus
                 }
 
                 Behavior on scale {
@@ -219,7 +246,7 @@ Rectangle {
             }
 
             Text {
-                text: "Hành động này sẽ đóng các ứng dụng đang chạy."
+                text: "This will close all running applications."
                 color: Theme.onSurfaceVariant
                 font.family: Theme.textFont
                 font.pixelSize: 9
@@ -233,15 +260,17 @@ Rectangle {
             spacing: 6
 
             IconButton {
-                icon: "󰅖"
+                icon: "close"
                 fillColor: Theme.surfaceContainerHighest
+                accessibleName: "Cancel"
                 onClicked: root.pendingAction = ""
             }
 
             IconButton {
-                icon: "󰄬"
+                icon: "check"
                 fillColor: Theme.errorContainer
                 foregroundColor: Theme.error
+                accessibleName: "Confirm"
                 onClicked: {
                     root.controller.sessionAction(root.pendingAction);
                     root.pendingAction = "";

@@ -1,33 +1,24 @@
-# WINDOW WIDTH
 [ui.window.box]
+width = 460
+min_width = 380
+max_width = 520
+height = 320
+min_height = 220
+max_height = 380
+
+[ui.window.box.scroll.list]
+height = 220
+min_height = 140
+max_height = 280
 width = 420
 min_width = 340
-max_width = 460
-height = 220
-min_height = 160
-max_height = 280
-spacing = 0
+max_width = 480
 
-# Hide search box - try input directly
-# [ui.window.box.input]
-# height = 0
-# min_height = 0
-# max_height = 0
-# visible = false
-
-# WINDOW HEIGHT
-[ui.window.box.scroll.list]
-height = 180
-min_height = 120
-max_height = 220
-width = 380
-min_width = 320
-max_width = 420
 [ui.window.box.scroll.list.item.icon]
-pixel_size = 20
+pixel_size = 24
 
 [ui.window.box.scroll.list.item]
 h_align = "start"
-min_width = 220
-width = 320
-max_width = 380
+min_width = 320
+width = 390
+max_width = 450

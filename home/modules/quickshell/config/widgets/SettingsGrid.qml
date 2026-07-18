@@ -10,25 +10,20 @@ Item {
     implicitHeight: settingsGrid.implicitHeight
 
     function stagedProgress(index) {
-        const delay = index * 0.065;
-        return Math.max(0, Math.min(1,
-            (revealProgress - delay) / Math.max(0.001, 1 - delay)));
+        return Math.max(0, Math.min(1, revealProgress));
     }
 
     ListModel {
         id: settings
-        ListElement { sectionKey: "audio"; sectionIcon: "󰕾"; sectionLabel: "Âm thanh" }
-        ListElement { sectionKey: "network"; sectionIcon: "󰤨"; sectionLabel: "Mạng" }
-        ListElement { sectionKey: "bluetooth"; sectionIcon: "󰂯"; sectionLabel: "Bluetooth" }
-        ListElement { sectionKey: "appearance"; sectionIcon: "󰏘"; sectionLabel: "Giao diện" }
-        ListElement { sectionKey: "monitor"; sectionIcon: "󰍛"; sectionLabel: "Giám sát" }
-        ListElement { sectionKey: "files"; sectionIcon: "󰉋"; sectionLabel: "Tệp" }
+        ListElement { sectionKey: "appearance"; sectionIcon: "palette"; sectionLabel: "Appearance" }
+        ListElement { sectionKey: "monitor"; sectionIcon: "monitoring"; sectionLabel: "System monitor" }
+        ListElement { sectionKey: "files"; sectionIcon: "folder"; sectionLabel: "Files" }
     }
 
     Grid {
         id: settingsGrid
         width: parent.width
-        columns: 2
+        columns: 3
         columnSpacing: 8
         rowSpacing: 8
 
@@ -42,7 +37,7 @@ Item {
                 required property string sectionLabel
                 property real itemProgress: root.stagedProgress(index)
 
-                width: (settingsGrid.width - settingsGrid.columnSpacing) / 2
+                width: (settingsGrid.width - settingsGrid.columnSpacing * 2) / 3
                 icon: sectionIcon
                 label: sectionLabel
                 opacity: itemProgress

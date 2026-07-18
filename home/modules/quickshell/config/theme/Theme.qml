@@ -7,59 +7,63 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    // Fallback Material You palette. These values are replaced by Pywal when
-    // ~/.cache/wal/colors.json is available.
+    // Fallback Material You seeds. Pywal replaces these at runtime whenever
+    // the wallpaper palette changes.
     property color wallpaperBackground: "#111318"
     property color wallpaperForeground: "#e3e2e9"
     property color wallpaperPrimary: "#bec2ff"
     property color wallpaperSecondary: "#c6bfff"
     property color wallpaperTertiary: "#ffb1c8"
 
-    // Pywal can legitimately return an almost-black background. Keep the
-    // wallpaper tint, but lift very dark palettes enough for the panel layers
-    // to remain distinct.
+    // Pywal colors are seeds, not ready-to-use UI colors. Toning them first
+    // keeps Material roles readable across both bright and dark wallpapers.
     readonly property bool darkPalette: luminance(wallpaperBackground)
         < luminance(wallpaperForeground)
-    readonly property color background: darkPalette
-        ? ensureLuminance(wallpaperBackground, 0.12, wallpaperForeground)
-        : blend(wallpaperBackground, wallpaperForeground, 0.04)
+    readonly property color background: tone(wallpaperBackground,
+        darkPalette ? 0.085 : 0.955)
     readonly property color onBackground: ensureContrast(
-        wallpaperForeground, background, 4.5)
-    readonly property color surface: blend(background, wallpaperPrimary,
-        darkPalette ? 0.06 : 0.025)
-    readonly property color surfaceContainerLow: blend(background, wallpaperPrimary,
-        darkPalette ? 0.11 : 0.045)
-    readonly property color surfaceContainer: blend(background, wallpaperPrimary,
-        darkPalette ? 0.16 : 0.07)
-    readonly property color surfaceContainerHigh: blend(background, wallpaperPrimary,
-        darkPalette ? 0.23 : 0.10)
-    readonly property color surfaceContainerHighest: blend(background, wallpaperPrimary,
-        darkPalette ? 0.31 : 0.14)
-    readonly property color surfaceVariant: blend(background, wallpaperSecondary,
-        darkPalette ? 0.26 : 0.12)
+        tone(wallpaperForeground, darkPalette ? 0.91 : 0.13), background, 7)
 
-    readonly property color primary: wallpaperPrimary
+    readonly property color surface: blend(background, wallpaperPrimary,
+        darkPalette ? 0.035 : 0.018)
+    readonly property color surfaceDim: tone(surface, darkPalette ? 0.07 : 0.87)
+    readonly property color surfaceBright: tone(surface, darkPalette ? 0.20 : 0.98)
+    readonly property color surfaceContainerLow: blend(background, wallpaperPrimary,
+        darkPalette ? 0.075 : 0.032)
+    readonly property color surfaceContainer: blend(background, wallpaperPrimary,
+        darkPalette ? 0.12 : 0.052)
+    readonly property color surfaceContainerHigh: blend(background, wallpaperPrimary,
+        darkPalette ? 0.17 : 0.078)
+    readonly property color surfaceContainerHighest: blend(background, wallpaperPrimary,
+        darkPalette ? 0.23 : 0.11)
+    readonly property color surfaceVariant: blend(background, wallpaperSecondary,
+        darkPalette ? 0.18 : 0.085)
+
+    readonly property color primary: tone(wallpaperPrimary,
+        darkPalette ? 0.72 : 0.34)
     readonly property color onPrimary: contrastText(primary)
     readonly property color primaryContainer: blend(background, primary,
-        darkPalette ? 0.39 : 0.17)
+        darkPalette ? 0.30 : 0.15)
     readonly property color onPrimaryContainer: ensureContrast(
-        blend(onBackground, primary, darkPalette ? 0.12 : 0.28),
+        blend(onBackground, primary, darkPalette ? 0.10 : 0.22),
         primaryContainer, 4.5)
 
-    readonly property color secondary: wallpaperSecondary
+    readonly property color secondary: tone(wallpaperSecondary,
+        darkPalette ? 0.68 : 0.33)
     readonly property color onSecondary: contrastText(secondary)
     readonly property color secondaryContainer: blend(background, secondary,
-        darkPalette ? 0.34 : 0.15)
+        darkPalette ? 0.25 : 0.13)
     readonly property color onSecondaryContainer: ensureContrast(
-        blend(onBackground, secondary, darkPalette ? 0.10 : 0.25),
+        blend(onBackground, secondary, darkPalette ? 0.08 : 0.20),
         secondaryContainer, 4.5)
 
-    readonly property color tertiary: wallpaperTertiary
+    readonly property color tertiary: tone(wallpaperTertiary,
+        darkPalette ? 0.70 : 0.35)
     readonly property color onTertiary: contrastText(tertiary)
     readonly property color tertiaryContainer: blend(background, tertiary,
-        darkPalette ? 0.32 : 0.14)
+        darkPalette ? 0.24 : 0.13)
     readonly property color onTertiaryContainer: ensureContrast(
-        blend(onBackground, tertiary, darkPalette ? 0.09 : 0.24),
+        blend(onBackground, tertiary, darkPalette ? 0.08 : 0.20),
         tertiaryContainer, 4.5)
 
     readonly property color onSurface: ensureContrast(onBackground, surface, 4.5)
@@ -67,25 +71,46 @@ Singleton {
         blend(onBackground, background, darkPalette ? 0.21 : 0.32),
         surfaceContainerHighest, 4.5)
     readonly property color outline: blend(onBackground, background,
-        darkPalette ? 0.46 : 0.56)
+        darkPalette ? 0.52 : 0.58)
     readonly property color outlineVariant: blend(onBackground, background,
-        darkPalette ? 0.64 : 0.72)
-    readonly property color error: "#ffb4ab"
-    readonly property color errorContainer: "#57201d"
+        darkPalette ? 0.73 : 0.78)
+
+    readonly property color error: darkPalette ? "#ffb4ab" : "#ba1a1a"
+    readonly property color onError: contrastText(error)
+    readonly property color errorContainer: darkPalette ? "#57201d" : "#ffdad6"
+    readonly property color onErrorContainer: ensureContrast(
+        darkPalette ? "#ffdad6" : "#410002", errorContainer, 4.5)
+    readonly property color success: darkPalette ? "#8bd49c" : "#246b3a"
+    readonly property color successContainer: blend(background, success,
+        darkPalette ? 0.24 : 0.13)
+    readonly property color warning: darkPalette ? "#f6c453" : "#7b5800"
+    readonly property color scrim: alpha("#000000", darkPalette ? 0.52 : 0.34)
 
     readonly property string textFont: "Noto Sans"
-    readonly property string iconFont: "JetBrainsMono Nerd Font"
+    readonly property string iconFont: "Material Symbols Rounded"
 
-    // Set QS_REDUCED_MOTION=1 to disable non-essential movement. Keeping the
-    // preference in one token also makes every existing transition instant.
+    // Material shape and spacing tokens. Only controls use full pills; content
+    // surfaces stay tighter so the dashboard remains calm and task-oriented.
+    readonly property int shapeExtraSmall: 4
+    readonly property int shapeSmall: 8
+    readonly property int shapeMedium: 12
+    readonly property int shapeLarge: 16
+    readonly property int shapeExtraLarge: 24
+    readonly property int space1: 4
+    readonly property int space2: 8
+    readonly property int space3: 12
+    readonly property int space4: 16
+    readonly property int space5: 20
+    readonly property int space6: 24
+
+    // Set QS_REDUCED_MOTION=1 to disable non-essential movement globally.
     readonly property string reducedMotionPreference: String(
         Quickshell.env("QS_REDUCED_MOTION") || "").toLowerCase()
     readonly property bool reduceMotion: reducedMotionPreference === "1"
         || reducedMotionPreference === "true"
         || reducedMotionPreference === "yes"
 
-    // Material 3 motion tokens. Interactive motion stays at or below 400ms.
-    // BezierSpline arrays contain control point 1, point 2, then (1, 1).
+    // Material 3 motion tokens. State changes stay below 400 ms.
     readonly property int motionShort1: reduceMotion ? 0 : 50
     readonly property int motionShort2: reduceMotion ? 0 : 100
     readonly property int motionShort3: reduceMotion ? 0 : 150
@@ -106,26 +131,70 @@ Singleton {
     readonly property var standardAccelerate: [0.3, 0.0, 1.0, 1.0, 1.0, 1.0]
     readonly property var emphasizedDecelerate: [0.05, 0.7, 0.1, 1.0, 1.0, 1.0]
     readonly property var emphasizedAccelerate: [0.3, 0.0, 0.8, 0.15, 1.0, 1.0]
-    readonly property var springCurve: [0.34, 1.56, 0.64, 1.0, 1.0, 1.0]
+    // A non-bouncy expressive ease for compact product UI state changes.
+    readonly property var springCurve: [0.16, 1.0, 0.3, 1.0, 1.0, 1.0]
+
+    function asColor(value) {
+        if (typeof value !== "string")
+            return value;
+
+        let hex = value.charAt(0) === "#" ? value.slice(1) : value;
+        if (hex.length === 3)
+            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        if (hex.length === 6) {
+            return Qt.rgba(
+                parseInt(hex.slice(0, 2), 16) / 255,
+                parseInt(hex.slice(2, 4), 16) / 255,
+                parseInt(hex.slice(4, 6), 16) / 255,
+                1
+            );
+        }
+        if (hex.length === 8) {
+            return Qt.rgba(
+                parseInt(hex.slice(2, 4), 16) / 255,
+                parseInt(hex.slice(4, 6), 16) / 255,
+                parseInt(hex.slice(6, 8), 16) / 255,
+                parseInt(hex.slice(0, 2), 16) / 255
+            );
+        }
+        return Qt.rgba(0, 0, 0, 1);
+    }
 
     function blend(first, second, amount) {
         const a = Math.max(0, Math.min(1, amount));
+        const firstColor = asColor(first);
+        const secondColor = asColor(second);
         return Qt.rgba(
-            first.r * (1 - a) + second.r * a,
-            first.g * (1 - a) + second.g * a,
-            first.b * (1 - a) + second.b * a,
-            first.a * (1 - a) + second.a * a
+            firstColor.r * (1 - a) + secondColor.r * a,
+            firstColor.g * (1 - a) + secondColor.g * a,
+            firstColor.b * (1 - a) + secondColor.b * a,
+            firstColor.a * (1 - a) + secondColor.a * a
         );
     }
 
     function alpha(color, opacity) {
-        return Qt.rgba(color.r, color.g, color.b, opacity);
+        const source = asColor(color);
+        return Qt.rgba(source.r, source.g, source.b, opacity);
     }
 
-    // Fast perceived luminance is useful for palette shaping. WCAG relative
-    // luminance below is kept separate for choosing readable foregrounds.
+    // Fast perceived luminance is used for palette shaping. WCAG relative
+    // luminance below remains separate for contrast verification.
     function luminance(color) {
-        return color.r * 0.299 + color.g * 0.587 + color.b * 0.114;
+        const source = asColor(color);
+        return source.r * 0.299 + source.g * 0.587 + source.b * 0.114;
+    }
+
+    function tone(color, targetLuminance) {
+        const target = Math.max(0, Math.min(1, targetLuminance));
+        const current = luminance(color);
+        if (Math.abs(current - target) < 0.004)
+            return color;
+
+        if (target > current)
+            return blend(color, "#ffffff",
+                (target - current) / Math.max(0.001, 1 - current));
+        return blend(color, "#000000",
+            (current - target) / Math.max(0.001, current));
     }
 
     function ensureLuminance(color, minimum, tint) {
@@ -152,9 +221,10 @@ Singleton {
     }
 
     function relativeLuminance(color) {
-        return linearChannel(color.r) * 0.2126
-            + linearChannel(color.g) * 0.7152
-            + linearChannel(color.b) * 0.0722;
+        const source = asColor(color);
+        return linearChannel(source.r) * 0.2126
+            + linearChannel(source.g) * 0.7152
+            + linearChannel(source.b) * 0.0722;
     }
 
     function contrastRatio(first, second) {
@@ -166,7 +236,7 @@ Singleton {
     }
 
     function contrastText(color) {
-        const darkText = "#17130f";
+        const darkText = "#151218";
         const lightText = "#ffffff";
         return contrastRatio(color, darkText) >= contrastRatio(color, lightText)
             ? darkText : lightText;
@@ -207,7 +277,7 @@ Singleton {
                 wallpaperTertiary = palette.colors.color6 || wallpaperTertiary;
             }
         } catch (error) {
-            console.warn("Không thể đọc bảng màu Pywal:", error);
+            console.warn("Unable to read the Pywal palette:", error);
         }
     }
 

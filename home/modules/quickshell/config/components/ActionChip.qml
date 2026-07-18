@@ -15,10 +15,25 @@ Item {
     implicitHeight: supportingText ? 58 : 50
     opacity: enabled ? 1 : 0.38
     scale: presentationScale * (pointer.pressed ? 0.96 : 1)
+    activeFocusOnTab: enabled
+
+    Accessible.role: Accessible.Button
+    Accessible.name: supportingText.length > 0
+        ? label + ". " + supportingText : label
+    Accessible.focusable: enabled
+
+    Keys.onPressed: event => {
+        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                || event.key === Qt.Key_Space) {
+            root.clicked();
+            event.accepted = true;
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
-        radius: pointer.pressed ? 11 : (root.selected ? 22 : (pointer.containsMouse ? 19 : 16))
+        radius: pointer.pressed ? Theme.shapeSmall
+            : (root.selected ? Theme.shapeLarge : Theme.shapeMedium)
         color: root.selected
             ? Theme.secondaryContainer
             : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow)
@@ -27,7 +42,11 @@ Item {
 
         Behavior on color { ColorAnimation { duration: Theme.motionShort } }
         Behavior on radius {
-            SpringAnimation { spring: 4.8; damping: 0.42; mass: 0.75; epsilon: 0.08 }
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
         }
     }
 
@@ -40,7 +59,8 @@ Item {
         id: iconContainer
         width: 36
         height: 36
-        radius: pointer.pressed ? 10 : (root.selected ? 13 : 18)
+        radius: pointer.pressed ? Theme.shapeSmall
+            : (root.selected ? Theme.shapeMedium : width / 2)
         anchors.left: parent.left
         anchors.leftMargin: 8
         anchors.verticalCenter: parent.verticalCenter
@@ -54,7 +74,11 @@ Item {
         }
 
         Behavior on radius {
-            SpringAnimation { spring: 5; damping: 0.4; mass: 0.7; epsilon: 0.08 }
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
         }
     }
 
@@ -93,11 +117,28 @@ Item {
         enabled: root.enabled
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onPressed: mouse => ripple.burst(mouse.x, mouse.y)
+        onPressed: mouse => {
+            root.forceActiveFocus();
+            ripple.burst(mouse.x, mouse.y);
+        }
         onClicked: root.clicked()
     }
 
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: -3
+        radius: Theme.shapeLarge + 3
+        color: "transparent"
+        border.width: 2
+        border.color: Theme.primary
+        visible: root.activeFocus
+    }
+
     Behavior on scale {
-        SpringAnimation { spring: 5; damping: 0.42; mass: 0.7; epsilon: 0.002 }
+        NumberAnimation {
+            duration: Theme.motionShort4
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.standardCurve
+        }
     }
 }

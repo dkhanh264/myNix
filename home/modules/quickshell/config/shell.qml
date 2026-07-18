@@ -28,9 +28,7 @@ ShellRoot {
 
     function showControlCenter(screenName) {
         const target = screenName && screenName.length > 0
-            ? screenName
-            : focusedScreenName();
-
+            ? screenName : focusedScreenName();
         if (!target)
             return;
 
@@ -51,9 +49,7 @@ ShellRoot {
 
     function toggleControlCenter(screenName) {
         const target = screenName && screenName.length > 0
-            ? screenName
-            : focusedScreenName();
-
+            ? screenName : focusedScreenName();
         if (controlCenterOpen && controlCenterScreen === target)
             hideControlCenter();
         else
@@ -68,7 +64,7 @@ ShellRoot {
 
     Timer {
         id: popupHideTimer
-        interval: Theme.motionMedium2
+        interval: Theme.motionMedium1
         onTriggered: {
             if (!root.controlCenterOpen)
                 root.controlCenterVisible = false;
@@ -78,16 +74,20 @@ ShellRoot {
     IpcHandler {
         target: "controlCenter"
 
-        function toggle(): void {
-            root.toggleControlCenter("");
+        function toggle(): void { root.toggleControlCenter(""); }
+        function show(): void { root.showControlCenter(""); }
+        function hide(): void { root.hideControlCenter(); }
+    }
+
+    IpcHandler {
+        target: "launcher"
+
+        function apps(): void {
+            Quickshell.execDetached(["walker-menu", "apps"]);
         }
 
-        function show(): void {
-            root.showControlCenter("");
-        }
-
-        function hide(): void {
-            root.hideControlCenter();
+        function wallpapers(): void {
+            Quickshell.execDetached(["walker-menu", "wallpapers"]);
         }
     }
 
@@ -99,9 +99,9 @@ ShellRoot {
             required property var modelData
 
             screen: modelData
-            implicitHeight: 52
+            implicitHeight: 58
             color: "transparent"
-            exclusiveZone: 52
+            exclusiveZone: 58
             WlrLayershell.namespace: "m3-shell"
 
             anchors {
@@ -110,14 +110,15 @@ ShellRoot {
                 right: true
             }
 
-            TopBarContent {
+            ExpressiveTopBar {
                 anchors.fill: parent
                 barWindow: barWindow
                 controller: systemService
                 screen: barWindow.modelData
                 panelOpen: root.controlCenterOpen
                     && root.controlCenterScreen === barWindow.modelData.name
-                onControlCenterRequested: screenName => root.toggleControlCenter(screenName)
+                onControlCenterRequested: screenName =>
+                    root.toggleControlCenter(screenName)
             }
 
             PopupWindow {
@@ -126,8 +127,8 @@ ShellRoot {
                 visible: root.controlCenterVisible
                     && root.controlCenterScreen === barWindow.modelData.name
                 color: "transparent"
-                implicitWidth: Math.min(440, barWindow.width - 20)
-                implicitHeight: Math.min(850,
+                implicitWidth: Math.min(620, barWindow.width - 20)
+                implicitHeight: Math.min(930,
                     barWindow.modelData.height - barWindow.implicitHeight - 18)
 
                 anchor.window: barWindow

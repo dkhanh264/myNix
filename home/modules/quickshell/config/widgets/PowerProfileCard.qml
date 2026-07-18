@@ -8,16 +8,14 @@ Rectangle {
     property var controller
 
     implicitHeight: 126
-    radius: 28
+    radius: Theme.shapeLarge
     color: Theme.surfaceContainer
-    border.width: 1
-    border.color: Theme.outlineVariant
 
     ListModel {
         id: profiles
-        ListElement { profileKey: "power-saver"; profileIcon: "󰌪"; profileLabel: "Tiết kiệm" }
-        ListElement { profileKey: "balanced"; profileIcon: "󰾅"; profileLabel: "Cân bằng" }
-        ListElement { profileKey: "performance"; profileIcon: "󰓅"; profileLabel: "Hiệu năng" }
+        ListElement { profileKey: "power-saver"; profileIcon: "energy_savings_leaf"; profileLabel: "Saver" }
+        ListElement { profileKey: "balanced"; profileIcon: "balance"; profileLabel: "Balanced" }
+        ListElement { profileKey: "performance"; profileIcon: "speed"; profileLabel: "Performance" }
     }
 
     Column {
@@ -31,13 +29,13 @@ Rectangle {
             Rectangle {
                 width: 36
                 height: 36
-                radius: 13
+                radius: Theme.shapeMedium
                 color: Theme.tertiaryContainer
 
                 MaterialIcon {
                     anchors.centerIn: parent
-                    text: "󰁹"
-                    iconSize: 18
+                    text: "battery_full"
+                    iconSize: 20
                     color: Theme.tertiary
                 }
             }
@@ -47,7 +45,7 @@ Rectangle {
                 spacing: 0
 
                 Text {
-                    text: "Chế độ năng lượng"
+                    text: "Power mode"
                     color: Theme.onSurface
                     font.family: Theme.textFont
                     font.pixelSize: 14
@@ -56,10 +54,10 @@ Rectangle {
 
                 Text {
                     text: root.controller
-                        ? (root.controller.powerProfile === "power-saver" ? "Ưu tiên thời lượng pin"
-                            : root.controller.powerProfile === "performance" ? "Ưu tiên hiệu suất"
-                            : "Cân bằng hiệu suất và pin")
-                        : "Đang tải…"
+                        ? (root.controller.powerProfile === "power-saver" ? "Extend battery life"
+                            : root.controller.powerProfile === "performance" ? "Prioritize performance"
+                            : "Balance performance and battery")
+                        : "Updating…"
                     color: Theme.onSurfaceVariant
                     font.family: Theme.textFont
                     font.pixelSize: 10

@@ -217,6 +217,7 @@
   fonts.packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
+    material-symbols
     nerd-fonts.jetbrains-mono
     nerd-fonts.fira-code
     font-awesome
