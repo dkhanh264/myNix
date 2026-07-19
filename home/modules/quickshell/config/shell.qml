@@ -572,7 +572,7 @@ ShellRoot {
                     && root.activePopup === "recorder"
                     && root.popupScreen === barWindow.modelData.name
                 popupWidth: Math.min(470, barWindow.width - 20)
-                popupHeight: Math.min(systemService.recording ? 390 : 500,
+                popupHeight: Math.min(systemService.recording ? 390 : 558,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("recorder", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("recorder")

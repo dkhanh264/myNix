@@ -9,8 +9,10 @@ Rectangle {
     property string target: controller ? controller.recordingTarget : "screen"
     property int fps: controller ? controller.recordingFps : 60
     property bool withAudio: controller ? controller.recordingAudio : true
+    property bool withMicrophone: controller
+        ? controller.recordingMicrophone : false
 
-    implicitHeight: controller && controller.recording ? 250 : 350
+    implicitHeight: controller && controller.recording ? 250 : 408
     radius: Theme.shapeExtraLarge
     color: Theme.surfaceContainerLow
 
@@ -188,8 +190,43 @@ Rectangle {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     checked: root.withAudio
-                    accessibleName: I18n.tr("Ghi âm thanh", "Capture audio")
+                    accessibleName: I18n.tr("Ghi âm thanh hệ thống",
+                        "Capture system audio")
                     onToggled: root.withAudio = !root.withAudio
+                }
+            }
+
+            Item {
+                width: parent.width
+                height: 48
+
+                Column {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 0
+                    Text {
+                        text: I18n.tr("Micrô", "Microphone")
+                        color: Theme.textPrimary
+                        font.family: Theme.textFont
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                    }
+                    Text {
+                        text: I18n.tr("Ghi âm thanh đầu vào mặc định",
+                            "Capture the default input")
+                        color: Theme.textSecondary
+                        font.family: Theme.textFont
+                        font.pixelSize: 10
+                    }
+                }
+
+                ToggleSwitch {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    checked: root.withMicrophone
+                    accessibleName: I18n.tr("Ghi âm từ micrô",
+                        "Capture microphone")
+                    onToggled: root.withMicrophone = !root.withMicrophone
                 }
             }
         }
@@ -235,7 +272,7 @@ Rectangle {
                         root.controller.stopRecording();
                     else
                         root.controller.startRecording(root.target,
-                            root.fps, root.withAudio);
+                            root.fps, root.withAudio, root.withMicrophone);
                 }
             }
         }

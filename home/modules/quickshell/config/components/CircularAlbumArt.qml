@@ -7,25 +7,39 @@ Item {
 
     property url source: ""
     property color accentColor: Theme.secondary
+    readonly property int renderScale: width <= 64 ? 4 : 2
     readonly property bool artAvailable: source.toString().length > 0
         && artSource.status === Image.Ready
+
+    // The disc is continuously rotated by its parent. Render the complete
+    // subtree above its display resolution first so circular mask and border
+    // edges stay smooth at every rotation angle.
+    layer.enabled: true
+    layer.smooth: true
+    layer.mipmap: true
+    layer.samples: 4
+    layer.textureSize: Qt.size(
+        Math.max(1, Math.round(width * renderScale)),
+        Math.max(1, Math.round(height * renderScale)))
 
     Rectangle {
         anchors.fill: parent
         radius: width / 2
         color: Theme.blend("#07080b", root.accentColor, 0.18)
+        antialiasing: true
     }
 
     Image {
         id: artSource
         anchors.fill: parent
         source: root.source
-        sourceSize.width: Math.max(64, root.width * 2)
-        sourceSize.height: Math.max(64, root.height * 2)
+        sourceSize.width: Math.max(128, root.width * root.renderScale)
+        sourceSize.height: Math.max(128, root.height * root.renderScale)
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         cache: true
         smooth: true
+        mipmap: true
         visible: false
     }
 
@@ -34,7 +48,13 @@ Item {
         anchors.fill: parent
         radius: width / 2
         color: "white"
+        antialiasing: true
         layer.enabled: true
+        layer.smooth: true
+        layer.samples: 4
+        layer.textureSize: Qt.size(
+            Math.max(1, Math.round(width * root.renderScale)),
+            Math.max(1, Math.round(height * root.renderScale)))
         visible: false
     }
 
@@ -44,6 +64,7 @@ Item {
         maskEnabled: true
         maskSource: circleMask
         autoPaddingEnabled: false
+        antialiasing: true
         visible: root.artAvailable
     }
 
@@ -53,6 +74,7 @@ Item {
         color: "transparent"
         border.width: Math.max(1, Math.round(root.width * 0.025))
         border.color: Theme.alpha("#000000", 0.50)
+        antialiasing: true
     }
 
     Repeater {
@@ -68,6 +90,7 @@ Item {
             border.width: 1
             border.color: Theme.alpha("#000000",
                 root.artAvailable ? 0.22 : 0.34)
+            antialiasing: true
         }
     }
 
@@ -77,6 +100,7 @@ Item {
         height: width
         radius: width / 2
         color: Theme.alpha(root.accentColor, root.artAvailable ? 0.90 : 1)
+        antialiasing: true
 
         Rectangle {
             anchors.centerIn: parent
@@ -84,6 +108,7 @@ Item {
             height: width
             radius: width / 2
             color: Theme.surfaceDim
+            antialiasing: true
         }
     }
 }

@@ -3,24 +3,41 @@ import Quickshell.Hyprland
 import "../components"
 import "../theme"
 
-// Fixed workspace hit targets with one shared active indicator. Keeping every
-// slot the same size prevents hover/active state changes from shifting the
-// bar, while the indicator itself can glide between workspace centres.
+// Variable node widths preserve one visible gap around both circular and
+// active pill states. The total track width remains stable while the wider
+// slot follows the active workspace.
 M3BarPill {
     id: root
 
     property var monitor
     property bool compact: false
     readonly property int workspaceCount: 8
-    readonly property int slotWidth: compact
-        ? Theme.space6 : Theme.space6 + Theme.space1
+    readonly property int dotSize: compact
+        ? Theme.space4 : Theme.space5
+    readonly property int nodeGap: Theme.space3
+    readonly property int activeWidth: dotSize * 2
     readonly property int activeId: monitor && monitor.activeWorkspace
         ? monitor.activeWorkspace.id : 1
+    readonly property int activeIndex: Math.max(0,
+        Math.min(workspaceCount - 1, activeId - 1))
+    readonly property int trackWidth: workspaceCount * dotSize
+        + (activeWidth - dotSize) + workspaceCount * nodeGap
 
     interactive: false
     horizontalPadding: compact ? Theme.space2 : Theme.space3
     accessibleName: I18n.tr("Không gian làm việc", "Workspaces")
     implicitWidth: workspaceTrack.width + horizontalPadding * 2
+
+    function nodeWidth(index) {
+        return index === activeIndex ? activeWidth : dotSize;
+    }
+
+    function nodeLeft(index) {
+        const activeWidthBefore = index > activeIndex
+            ? activeWidth - dotSize : 0;
+        return nodeGap / 2 + index * (dotSize + nodeGap)
+            + activeWidthBefore;
+    }
 
     function workspaceFor(workspaceId) {
         const workspaces = Hyprland.workspaces.values;
@@ -34,7 +51,7 @@ M3BarPill {
     Item {
         id: workspaceTrack
         anchors.centerIn: parent
-        width: root.slotWidth * root.workspaceCount
+        width: root.trackWidth
         height: root.implicitHeight
 
         Rectangle {
@@ -54,13 +71,11 @@ M3BarPill {
 
         Rectangle {
             id: activeIndicator
-            readonly property int safeIndex: Math.max(0,
-                Math.min(root.workspaceCount - 1, root.activeId - 1))
 
-            x: safeIndex * root.slotWidth + (root.slotWidth - width) / 2
+            x: root.nodeLeft(root.activeIndex)
             anchors.verticalCenter: parent.verticalCenter
-            width: root.slotWidth
-            height: Theme.space3
+            width: root.activeWidth
+            height: root.dotSize
             radius: height / 2
             color: Theme.primary
             visible: root.activeId >= 1 && root.activeId <= root.workspaceCount
@@ -101,10 +116,28 @@ M3BarPill {
                     && workspace.toplevels.values.length > 0
                 readonly property bool urgent: workspace && workspace.urgent
 
-                x: index * root.slotWidth
-                width: root.slotWidth
+                x: root.nodeLeft(index) - root.nodeGap / 2
+                width: root.nodeWidth(index) + root.nodeGap
                 height: parent.height
                 activeFocusOnTab: true
+
+                Behavior on x {
+                    enabled: !Theme.reduceMotion
+                    SmoothedAnimation {
+                        velocity: 620
+                        maximumEasingTime: Theme.motionMedium2
+                        reversingMode: SmoothedAnimation.Sync
+                    }
+                }
+
+                Behavior on width {
+                    enabled: !Theme.reduceMotion
+                    NumberAnimation {
+                        duration: Theme.motionMedium2
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: Theme.springCurve
+                    }
+                }
 
                 Accessible.role: Accessible.Button
                 Accessible.name: I18n.tr("Không gian ", "Workspace ") + workspaceId
@@ -114,27 +147,11 @@ M3BarPill {
                         ? I18n.tr("Có cửa sổ", "Contains windows")
                         : I18n.tr("Trống", "Empty")
 
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: root.slotWidth
-                    height: width
-                    radius: width / 2
-                    color: pointer.pressed
-                        ? Theme.alpha(Theme.textPrimary, 0.10)
-                        : pointer.containsMouse
-                            ? Theme.alpha(Theme.textPrimary, 0.06)
-                            : "transparent"
-
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.motionShort3 }
-                    }
-                }
-
                 // Inactive workspaces are intentionally label-free hollow
                 // circles. Occupied and urgent states use only colour/weight.
                 Rectangle {
                     anchors.centerIn: parent
-                    width: workspaceButton.active ? 0 : Theme.space3
+                    width: workspaceButton.active ? 0 : root.dotSize
                     height: width
                     radius: width / 2
                     color: "transparent"
@@ -161,7 +178,6 @@ M3BarPill {
                 MouseArea {
                     id: pointer
                     anchors.fill: parent
-                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onPressed: workspaceButton.focus = false
                     onClicked: Hyprland.dispatch("workspace "
@@ -178,9 +194,10 @@ M3BarPill {
 
                 Rectangle {
                     anchors.centerIn: parent
-                    width: root.slotWidth
-                    height: width
-                    radius: width / 2
+                    width: workspaceButton.active
+                        ? root.activeWidth : root.dotSize
+                    height: root.dotSize
+                    radius: height / 2
                     color: "transparent"
                     border.width: 2
                     border.color: Theme.primary

@@ -55,6 +55,7 @@ Scope {
     property bool recordingPaused: false
     property bool recordingStopping: false
     property bool recordingAudio: true
+    property bool recordingMicrophone: false
     property int recordingFps: 60
     property string recordingTarget: "screen"
     property string recordingOutput: ""
@@ -912,18 +913,25 @@ Scope {
         }
     }
 
-    function startRecording(target, fps, withAudio) {
+    function startRecording(target, fps, withAudio, withMicrophone) {
         if (recordingProcess.running)
             return;
         recordingTarget = target === "portal" ? "portal" : "screen";
         recordingFps = clamp(Math.round(fps || 60), 15, 144);
-        recordingAudio = withAudio;
+        recordingAudio = Boolean(withAudio);
+        recordingMicrophone = Boolean(withMicrophone);
         const directory = Quickshell.env("HOME") + "/Videos/Recordings";
         recordingOutput = directory + "/recording-"
             + Qt.formatDateTime(new Date(), "yyyy-MM-dd_HH-mm-ss") + ".mp4";
-        const script = recordingAudio
+        // Merge both devices into one track so regular players reproduce the
+        // desktop and microphone together without track selection.
+        const audioSource = recordingAudio && recordingMicrophone
+            ? "default_output|default_input"
+            : recordingAudio ? "default_output"
+                : recordingMicrophone ? "default_input" : "";
+        const script = audioSource.length > 0
             ? "mkdir -p \"$1\"; exec gpu-screen-recorder -w \"$2\" -f \"$3\" "
-                + "-a default_output -o \"$4\""
+                + "-a \"$5\" -o \"$4\""
             : "mkdir -p \"$1\"; exec gpu-screen-recorder -w \"$2\" -f \"$3\" "
                 + "-o \"$4\"";
         recording = true;
@@ -931,7 +939,7 @@ Scope {
         recordingStopping = false;
         recordingProcess.exec([
             "sh", "-c", script, "m3-shell", directory, recordingTarget,
-            String(recordingFps), recordingOutput
+            String(recordingFps), recordingOutput, audioSource
         ]);
     }
 
