@@ -12,12 +12,13 @@ M3BarPill {
     property var monitor
     property bool compact: false
     readonly property int workspaceCount: 8
-    readonly property int slotWidth: compact ? 19 : 23
+    readonly property int slotWidth: compact
+        ? Theme.space6 : Theme.space6 + Theme.space1
     readonly property int activeId: monitor && monitor.activeWorkspace
         ? monitor.activeWorkspace.id : 1
 
     interactive: false
-    horizontalPadding: 8
+    horizontalPadding: compact ? Theme.space2 : Theme.space3
     accessibleName: I18n.tr("Không gian làm việc", "Workspaces")
     implicitWidth: workspaceTrack.width + horizontalPadding * 2
 
@@ -34,14 +35,14 @@ M3BarPill {
         id: workspaceTrack
         anchors.centerIn: parent
         width: root.slotWidth * root.workspaceCount
-        height: 32
+        height: root.implicitHeight
 
         Rectangle {
             id: movementHalo
             anchors.verticalCenter: parent.verticalCenter
-            x: activeIndicator.x - 5
-            width: activeIndicator.width + 10
-            height: activeIndicator.height + 8
+            x: activeIndicator.x - Theme.space1
+            width: activeIndicator.width + Theme.space2
+            height: activeIndicator.height + Theme.space2
             radius: height / 2
             color: Theme.alpha(Theme.primary, 0.16)
             opacity: workspaceGlide.running ? 1 : 0
@@ -58,8 +59,8 @@ M3BarPill {
 
             x: safeIndex * root.slotWidth + (root.slotWidth - width) / 2
             anchors.verticalCenter: parent.verticalCenter
-            width: root.compact ? 24 : 28
-            height: 12
+            width: root.slotWidth
+            height: Theme.space3
             radius: height / 2
             color: Theme.primary
             visible: root.activeId >= 1 && root.activeId <= root.workspaceCount
@@ -115,8 +116,8 @@ M3BarPill {
 
                 Rectangle {
                     anchors.centerIn: parent
-                    width: 28
-                    height: 28
+                    width: root.slotWidth
+                    height: width
                     radius: width / 2
                     color: pointer.pressed
                         ? Theme.alpha(Theme.textPrimary, 0.10)
@@ -133,7 +134,7 @@ M3BarPill {
                 // circles. Occupied and urgent states use only colour/weight.
                 Rectangle {
                     anchors.centerIn: parent
-                    width: workspaceButton.active ? 0 : 10
+                    width: workspaceButton.active ? 0 : Theme.space3
                     height: width
                     radius: width / 2
                     color: "transparent"
@@ -157,14 +158,14 @@ M3BarPill {
                     }
                 }
 
-                    MouseArea {
-                        id: pointer
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onPressed: workspaceButton.focus = false
-                        onClicked: Hyprland.dispatch("workspace "
-                            + workspaceButton.workspaceId)
+                MouseArea {
+                    id: pointer
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: workspaceButton.focus = false
+                    onClicked: Hyprland.dispatch("workspace "
+                        + workspaceButton.workspaceId)
                 }
 
                 Keys.onPressed: event => {
@@ -177,8 +178,8 @@ M3BarPill {
 
                 Rectangle {
                     anchors.centerIn: parent
-                    width: 26
-                    height: 26
+                    width: root.slotWidth
+                    height: width
                     radius: width / 2
                     color: "transparent"
                     border.width: 2
