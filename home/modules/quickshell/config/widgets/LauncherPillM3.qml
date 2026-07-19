@@ -50,16 +50,6 @@ M3BarPill {
                 autoPaddingEnabled: false
             }
         }
-
-        Text {
-            visible: !root.compact
-            anchors.verticalCenter: parent.verticalCenter
-            text: "NixOS"
-            color: Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 12
-            font.weight: Font.DemiBold
-        }
     }
 
     onClicked: Quickshell.execDetached(["walker-menu", "apps"])
