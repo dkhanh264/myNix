@@ -7,8 +7,8 @@ Rectangle {
 
     property var controller
 
-    implicitHeight: 142
-    radius: Theme.shapeLarge
+    implicitHeight: 124
+    radius: Theme.cardRadius
     color: Theme.surfaceContainerLow
 
     function volumeIcon() {
@@ -23,8 +23,8 @@ Rectangle {
 
     Column {
         anchors.fill: parent
-        anchors.margins: Theme.space4
-        spacing: 10
+        anchors.margins: Theme.componentPadding
+        spacing: Theme.space2
 
         Item {
             width: parent.width
@@ -117,6 +117,7 @@ Rectangle {
             to: 100
             value: root.controller ? root.controller.volume : 0
             icon: root.volumeIcon()
+            showValue: false
             accessibleName: "Âm lượng hệ thống"
             activeColor: root.controller && root.controller.muted
                 ? Theme.errorContainer : Theme.primaryContainer

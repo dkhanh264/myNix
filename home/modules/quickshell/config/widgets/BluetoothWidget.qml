@@ -11,7 +11,8 @@ Rectangle {
 
     signal expansionRequested(bool expanded)
 
-    implicitHeight: 88 + detailsProgress * (bluetoothDetails.implicitHeight + 8)
+    implicitHeight: Theme.componentPadding * 2 + summary.height
+        + detailsProgress * (Theme.space2 + bluetoothDetails.implicitHeight)
     radius: Theme.shapeLarge
     color: Theme.surfaceContainerLow
     clip: true
@@ -27,9 +28,9 @@ Rectangle {
 
     Item {
         id: summary
-        x: 12
-        y: 12
-        width: parent.width - 24
+        x: Theme.componentPadding
+        y: Theme.componentPadding
+        width: parent.width - Theme.componentPadding * 2
         height: 64
         activeFocusOnTab: true
 
@@ -46,6 +47,7 @@ Rectangle {
                 : I18n.tr("Bluetooth đang bật", "Bluetooth is on")
 
         Rectangle {
+            id: summarySurface
             anchors.fill: parent
             radius: Theme.shapeMedium
             color: summaryPointer.containsMouse
@@ -59,10 +61,9 @@ Rectangle {
         Rectangle {
             id: iconContainer
             anchors.left: parent.left
-            anchors.leftMargin: 4
             anchors.verticalCenter: parent.verticalCenter
-            width: 46
-            height: 46
+            width: 48
+            height: 48
             radius: Theme.shapeMedium
             color: root.controller && root.controller.bluetoothEnabled
                 ? Theme.tertiaryContainer : Theme.surfaceContainerHighest
@@ -82,11 +83,11 @@ Rectangle {
 
         Column {
             anchors.left: iconContainer.right
-            anchors.leftMargin: 12
+            anchors.leftMargin: Theme.space3
             anchors.right: controls.left
-            anchors.rightMargin: 10
+            anchors.rightMargin: Theme.space2
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 2
+            spacing: 0
 
             Text {
                 width: parent.width
@@ -122,7 +123,7 @@ Rectangle {
             id: controls
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 6
+            spacing: Theme.space2
 
             ToggleSwitch {
                 anchors.verticalCenter: parent.verticalCenter
@@ -166,7 +167,7 @@ Rectangle {
         Rectangle {
             anchors.fill: parent
             anchors.margins: 2
-            radius: Theme.shapeLarge
+            radius: Math.max(0, summarySurface.radius - 2)
             color: "transparent"
             border.width: 2
             border.color: Theme.primary
@@ -175,9 +176,9 @@ Rectangle {
     }
 
     Item {
-        x: 12
-        y: 84
-        width: parent.width - 24
+        x: Theme.componentPadding
+        y: summary.y + summary.height + Theme.space2
+        width: parent.width - Theme.componentPadding * 2
         height: bluetoothDetails.implicitHeight * root.detailsProgress
         opacity: root.detailsProgress
         clip: true
@@ -187,7 +188,7 @@ Rectangle {
             width: parent.width
             controller: root.controller
             transform: Translate {
-                y: (1 - root.detailsProgress) * -8
+                y: (1 - root.detailsProgress) * -Theme.space2
             }
         }
     }

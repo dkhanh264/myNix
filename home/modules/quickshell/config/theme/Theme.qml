@@ -22,26 +22,30 @@ Singleton {
     readonly property bool darkPalette: true
     readonly property color background: "#090b10"
     readonly property color onBackground: Qt.rgba(1, 1, 1, 1)
-    readonly property color surface: "#11141b"
-    readonly property color surfaceDim: "#0b0e13"
-    readonly property color surfaceBright: "#252a35"
-    readonly property color surfaceContainerLow: "#151922"
-    readonly property color surfaceContainer: "#1a1f2a"
-    readonly property color surfaceContainerHigh: "#202633"
-    readonly property color surfaceContainerHighest: "#29313f"
+    readonly property color surface: alpha("#11141b", 0.62)
+    readonly property color surfaceDim: alpha("#0b0e13", 0.58)
+    readonly property color surfaceBright: alpha("#252a35", 0.72)
+    readonly property color surfaceContainerLow: alpha("#151922", 0.34)
+    readonly property color surfaceContainer: alpha("#1a1f2a", 0.40)
+    readonly property color surfaceContainerHigh: alpha("#202633", 0.48)
+    readonly property color surfaceContainerHighest: alpha("#29313f", 0.58)
     readonly property color surfaceVariant: blend(surfaceContainerHigh,
         wallpaperSecondary, 0.11)
 
     // Material layers intended to reveal Hyprland's compositor blur.
     readonly property color barSurface: alpha(
-        blend("#0c0f15", wallpaperPrimary, 0.07), 0.66)
+        blend("#0c0f15", wallpaperPrimary, 0.07), 0.46)
     readonly property color barSurfaceHover: alpha(
-        blend("#121722", wallpaperPrimary, 0.11), 0.90)
+        blend("#121722", wallpaperPrimary, 0.11), 0.54)
     readonly property color barSurfaceActive: alpha(
-        blend("#151b27", wallpaperPrimary, 0.23), 0.94)
+        blend("#151b27", wallpaperPrimary, 0.23), 0.68)
+    readonly property color barOutline: alpha(outline, 0.26)
+    readonly property color barOutlineHover: alpha(textPrimary, 0.22)
+    readonly property color barOutlineActive: alpha(primary, 0.48)
+    readonly property color barOutlineAlert: alpha(error, 0.52)
     readonly property color popupSurface: alpha(
-        blend("#0d1118", wallpaperPrimary, 0.08), 0.72)
-    readonly property color popupSurfaceStrong: alpha("#121720", 0.95)
+        blend("#0d1118", wallpaperPrimary, 0.08), 0.30)
+    readonly property color popupSurfaceStrong: alpha("#121720", 0.62)
 
     readonly property color primary: tone(wallpaperPrimary, 0.36)
     readonly property color onPrimary: Qt.rgba(1, 1, 1, 1)
@@ -99,6 +103,29 @@ Singleton {
     readonly property int space5: 20
     readonly property int space6: 24
 
+    // Shell geometry follows the same 4 px rhythm as the component spacing.
+    // Large radii are reserved for popup/dialog surfaces; cards stop at 16 px.
+    readonly property int barHeight: 52
+    readonly property int barItemHeight: 36
+    readonly property int barContentInset: space2
+    readonly property int componentPadding: space3
+    readonly property int cardRadius: shapeLarge
+    readonly property int popupRadius: shapeExtraLarge
+    readonly property int popupEdgeInset: space2
+    readonly property int popupWindowInset: 6
+    readonly property int popupContentPadding: space4
+    readonly property int popupHeaderHeight: 68
+    readonly property int popupVerticalChrome: popupWindowInset * 2
+        + popupHeaderHeight + space3 + popupContentPadding
+    readonly property int barOutlineWidth: 2
+    readonly property int sliderTrackHeight: 20
+    readonly property int sliderHandleHeight: 38
+    readonly property int sliderInnerRadius: shapeExtraSmall
+    // Optical stroke geometry and semantic overlay order are not layout gaps.
+    readonly property int focusRingInset: space1
+    readonly property int focusRingWidth: 2
+    readonly property int layerToast: 10
+
     // Set QS_REDUCED_MOTION=1 to disable non-essential movement globally.
     readonly property string reducedMotionPreference: String(
         Quickshell.env("QS_REDUCED_MOTION") || "").toLowerCase()
@@ -117,6 +144,9 @@ Singleton {
     readonly property int motionMedium4: reduceMotion ? 0 : 400
     readonly property int motionLong1: reduceMotion ? 0 : 400
     readonly property int motionLong2: reduceMotion ? 0 : 400
+    readonly property int popupTransitionDuration: reduceMotion ? 0 : 260
+    readonly property int popupHideDelay: reduceMotion
+        ? 0 : popupTransitionDuration + 40
 
     readonly property int motionShort: motionShort3
     readonly property int motionMedium: motionMedium2

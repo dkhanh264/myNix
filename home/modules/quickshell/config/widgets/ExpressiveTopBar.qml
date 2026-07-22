@@ -12,12 +12,14 @@ Item {
     property string activePopup: ""
 
     readonly property var monitor: screen ? Hyprland.monitorFor(screen) : null
-    readonly property bool showClock: width >= 720
+    // The workspace track deliberately keeps its large node geometry at all
+    // widths. Reveal neighbouring groups only when their anchored rows retain
+    // a real gap instead of overlapping the workspace.
+    readonly property bool showClock: width >= 920
     readonly property bool showWeather: width >= 1080
     readonly property bool showMedia: width >= 1320
     readonly property bool showStatusLabels: width >= 1540
     readonly property bool showSystemStats: width >= 1500
-    readonly property bool compactWorkspaces: width < 1180
     readonly property bool compactLauncher: width < 1040
 
     signal popupRequested(string kind, string screenName)
@@ -29,9 +31,8 @@ Item {
     Row {
         id: leftGroup
         anchors.left: parent.left
-        anchors.leftMargin: 10
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 8
+        spacing: Theme.space2
 
         LauncherPillM3 {
             anchors.verticalCenter: parent.verticalCenter
@@ -42,7 +43,6 @@ Item {
         WorkspaceSwitcher {
             anchors.verticalCenter: parent.verticalCenter
             monitor: root.monitor
-            compact: root.compactWorkspaces
         }
 
         MusicPillM3 {
@@ -59,7 +59,7 @@ Item {
         id: centerGroup
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 8
+        spacing: Theme.space2
 
         ClockPillM3 {
             visible: root.showClock
@@ -82,9 +82,8 @@ Item {
     Row {
         id: rightGroup
         anchors.right: parent.right
-        anchors.rightMargin: 10
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 8
+        spacing: Theme.space2
 
         SystemStatsPillM3 {
             visible: root.showSystemStats
@@ -109,14 +108,15 @@ Item {
         readonly property bool shown: root.controller
             && root.controller.message.length > 0
 
-        z: 100
+        z: Theme.layerToast
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        width: Math.min(460, Math.max(180, toastContent.implicitWidth + 30))
-        height: 42
-        radius: shown ? Theme.shapeSelected : Theme.shapeMedium
+        width: Math.min(460, Math.max(180,
+            toastContent.implicitWidth + Theme.space4 * 2))
+        height: Theme.barItemHeight
+        radius: shown ? height / 2 : Theme.shapeMedium
         color: Theme.popupSurfaceStrong
-        border.width: 1
+        border.width: Theme.barOutlineWidth
         border.color: Theme.alpha(Theme.primary, 0.45)
         opacity: shown ? 1 : 0
         scale: shown ? 1 : 0.96
@@ -125,7 +125,7 @@ Item {
         Row {
             id: toastContent
             anchors.centerIn: parent
-            spacing: 8
+            spacing: Theme.space2
 
             MaterialIcon {
                 anchors.verticalCenter: parent.verticalCenter

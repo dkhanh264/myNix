@@ -9,7 +9,7 @@ Rectangle {
     property int selectedTab: 0
 
     implicitHeight: 480
-    radius: Theme.shapeExtraLarge
+    radius: Theme.cardRadius
     color: Theme.surfaceContainerLow
 
     onSelectedTabChanged: {
@@ -23,7 +23,7 @@ Rectangle {
 
     Column {
         anchors.fill: parent
-        anchors.margins: 14
+        anchors.margins: Theme.componentPadding
         spacing: 10
 
         Item {
@@ -87,14 +87,14 @@ Rectangle {
                 Column {
                     id: notificationColumn
                     width: parent.width
-                    spacing: 7
+                    spacing: Theme.space2
 
                     Rectangle {
                         visible: !root.controller
                             || root.controller.notificationHistory.count === 0
                         width: parent.width
                         height: visible ? 170 : 0
-                        radius: Theme.shapeExtraLarge
+                        radius: Theme.cardRadius
                         color: Theme.surfaceContainer
 
                         Column {
@@ -228,7 +228,7 @@ Rectangle {
                             || root.controller.screenshots.count === 0
                         width: screenshotGrid.width
                         height: visible ? 170 : 0
-                        radius: Theme.shapeExtraLarge
+                        radius: Theme.cardRadius
                         color: Theme.surfaceContainer
 
                         Column {

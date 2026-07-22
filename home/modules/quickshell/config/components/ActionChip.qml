@@ -12,7 +12,7 @@ Item {
     property real presentationScale: 1
     signal clicked
 
-    implicitHeight: supportingText ? 58 : 50
+    implicitHeight: supportingText ? 56 : 48
     opacity: enabled ? 1 : 0.38
     scale: presentationScale * (pointer.pressed ? 0.96 : 1)
     activeFocusOnTab: enabled
@@ -31,9 +31,11 @@ Item {
     }
 
     Rectangle {
+        id: chipSurface
         anchors.fill: parent
         radius: pointer.pressed ? Theme.shapeSmall
-            : (root.selected ? Theme.shapeLarge : Theme.shapeMedium)
+            : (root.selected || root.supportingText.length > 0
+                ? Theme.cardRadius : Theme.shapeMedium)
         color: root.selected
             ? Theme.secondaryContainer
             : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow)
@@ -57,19 +59,19 @@ Item {
 
     Rectangle {
         id: iconContainer
-        width: 36
-        height: 36
+        width: 32
+        height: 32
         radius: pointer.pressed ? Theme.shapeSmall
             : (root.selected ? Theme.shapeMedium : width / 2)
         anchors.left: parent.left
-        anchors.leftMargin: 8
+        anchors.leftMargin: Theme.space2
         anchors.verticalCenter: parent.verticalCenter
         color: root.selected ? Theme.secondary : Theme.surfaceContainerHighest
 
         MaterialIcon {
             anchors.centerIn: parent
             text: root.icon
-            iconSize: 17
+            iconSize: 16
             color: root.selected ? Theme.textPrimary : Theme.textSecondary
         }
 
@@ -84,11 +86,11 @@ Item {
 
     Column {
         anchors.left: iconContainer.right
-        anchors.leftMargin: 10
+        anchors.leftMargin: Theme.space2
         anchors.right: parent.right
-        anchors.rightMargin: 8
+        anchors.rightMargin: Theme.space2
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 1
+        spacing: Theme.space1
 
         Text {
             width: parent.width
@@ -127,7 +129,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         anchors.margins: 2
-        radius: Theme.shapeLarge - 2
+        radius: Math.max(0, chipSurface.radius - 2)
         color: "transparent"
         border.width: 2
         border.color: Theme.primary

@@ -18,15 +18,15 @@ Item {
 
     onActiveChanged: activationPulse.restart()
 
-    implicitHeight: 76
+    implicitHeight: 72
     opacity: enabled ? 1 : 0.42
     scale: primaryPointer.pressed ? 0.975 : 1
 
     Rectangle {
+        id: tileSurface
         anchors.fill: parent
-        radius: primaryPointer.pressed
-            ? 15
-            : (root.active ? 28 : (primaryPointer.containsMouse ? 24 : 20))
+        radius: primaryPointer.pressed ? Theme.shapeSmall
+            : root.active ? Theme.shapeLarge : Theme.shapeMedium
         color: {
             if (root.active)
                 return primaryPointer.containsMouse
@@ -54,18 +54,20 @@ Item {
 
     MaterialRipple {
         id: ripple
-        anchors.rightMargin: root.showDetails ? 44 : 0
+        anchors.rightMargin: root.showDetails
+            ? detailsButton.buttonSize + Theme.componentPadding : 0
         rippleColor: root.active ? Theme.textPrimary : Theme.textPrimary
         peakOpacity: 0.12
     }
 
     Rectangle {
         id: iconContainer
-        width: 46
-        height: 46
-        radius: primaryPointer.pressed ? 11 : (root.active ? 17 : 23)
+        width: 40
+        height: 40
+        radius: primaryPointer.pressed ? Theme.shapeSmall
+            : (root.active ? Theme.shapeLarge : width / 2)
         anchors.left: parent.left
-        anchors.leftMargin: 12
+        anchors.leftMargin: Theme.space3
         anchors.verticalCenter: parent.verticalCenter
         color: root.active ? Theme.primary : Theme.surfaceContainerHighest
         scale: root.iconPulse * (primaryPointer.pressed ? 0.88 : 1)
@@ -100,11 +102,11 @@ Item {
 
     Column {
         anchors.left: iconContainer.right
-        anchors.leftMargin: 12
+        anchors.leftMargin: Theme.space3
         anchors.right: detailsButton.left
         anchors.rightMargin: root.showDetails ? 4 : 12
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 2
+        spacing: Theme.space1
 
         Text {
             width: parent.width
@@ -132,9 +134,9 @@ Item {
         id: detailsButton
         visible: root.showDetails
         anchors.right: parent.right
-        anchors.rightMargin: 8
+        anchors.rightMargin: Theme.componentPadding
         anchors.verticalCenter: parent.verticalCenter
-        buttonSize: 36
+        buttonSize: 40
         iconSize: 16
         icon: "󰅂"
         rotation: root.expanded ? 90 : 0

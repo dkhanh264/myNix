@@ -12,7 +12,7 @@ Item {
     signal popupRequested(string section)
 
     implicitWidth: statusRow.implicitWidth
-    implicitHeight: 44
+    implicitHeight: Theme.barItemHeight
 
     function wifiIcon() {
         if (!controller || !controller.wifiEnabled)
@@ -53,8 +53,8 @@ Item {
             id: controlsPill
 
             interactive: true
-            horizontalPadding: root.showLabels ? 11 : 0
-            minimumWidth: 44
+            horizontalPadding: root.showLabels ? Theme.space3 : 0
+            minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
                 controlsRow.implicitWidth + horizontalPadding * 2)
             alert: root.controller && root.controller.muted
@@ -135,8 +135,8 @@ Item {
             interactive: true
             checked: root.activePopup === "wifi"
             alert: root.controller && !root.controller.wifiEnabled
-            horizontalPadding: root.showLabels ? 11 : 0
-            minimumWidth: 44
+            horizontalPadding: root.showLabels ? Theme.space3 : 0
+            minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
                 wifiRow.implicitWidth + horizontalPadding * 2)
             accessibleName: root.controller && root.controller.wifiSsid
@@ -147,7 +147,7 @@ Item {
             Row {
                 id: wifiRow
                 anchors.centerIn: parent
-                spacing: 7
+                spacing: Theme.space2
 
                 MaterialIcon {
                     anchors.verticalCenter: parent.verticalCenter
@@ -184,8 +184,8 @@ Item {
             visible: root.controller && root.controller.bluetoothAvailable
             interactive: true
             checked: root.activePopup === "bluetooth"
-            horizontalPadding: root.showLabels ? 11 : 0
-            minimumWidth: 44
+            horizontalPadding: root.showLabels ? Theme.space3 : 0
+            minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
                 bluetoothRow.implicitWidth + horizontalPadding * 2)
             accessibleName: !root.controller
@@ -201,7 +201,7 @@ Item {
             Row {
                 id: bluetoothRow
                 anchors.centerIn: parent
-                spacing: 7
+                spacing: Theme.space2
 
                 MaterialIcon {
                     anchors.verticalCenter: parent.verticalCenter
@@ -240,7 +240,7 @@ Item {
             visible: root.controller && root.controller.batteryAvailable
             interactive: true
             checked: root.activePopup === "power"
-            horizontalPadding: 11
+            horizontalPadding: Theme.space3
             implicitWidth: batteryRow.implicitWidth + horizontalPadding * 2
             alert: root.controller && root.controller.batteryPercent <= 15
                 && root.controller.batteryState !== "Charging"
@@ -280,8 +280,8 @@ Item {
 
             interactive: true
             checked: root.activePopup === "activity"
-            horizontalPadding: root.showLabels ? 11 : 0
-            minimumWidth: 44
+            horizontalPadding: root.showLabels ? Theme.space3 : 0
+            minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
                 activityRow.implicitWidth + horizontalPadding * 2)
             accessibleName: I18n.tr("Lịch sử thông báo và ảnh chụp",
@@ -322,8 +322,8 @@ Item {
             interactive: true
             checked: root.activePopup === "recorder"
             alert: true
-            horizontalPadding: root.showLabels ? 11 : 0
-            minimumWidth: 44
+            horizontalPadding: root.showLabels ? Theme.space3 : 0
+            minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
                 recorderRow.implicitWidth + horizontalPadding * 2)
             accessibleName: root.controller && root.controller.recordingStopping

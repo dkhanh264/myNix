@@ -45,8 +45,8 @@ Rectangle {
     ] : []
 
     implicitHeight: 448
-    radius: Theme.shapeExtraLarge
-    color: Theme.tertiaryContainer
+    radius: Theme.cardRadius
+    color: Theme.alpha(Theme.tertiaryContainer, 0.34)
 
     function weatherIcon(code) {
         if (code === 0)
@@ -124,7 +124,7 @@ Rectangle {
 
     Column {
         anchors.fill: parent
-        anchors.margins: 14
+        anchors.margins: Theme.componentPadding
         spacing: 8
 
         Item {
@@ -179,7 +179,7 @@ Rectangle {
 
             MaterialIcon {
                 anchors.left: parent.left
-                anchors.leftMargin: 18
+                anchors.leftMargin: Theme.space4
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.weatherIcon(root.selectedForecast
                     ? root.selectedForecast.code : -1)
@@ -236,7 +236,7 @@ Rectangle {
             Column {
                 id: temperatureSummary
                 anchors.right: parent.right
-                anchors.rightMargin: 18
+                anchors.rightMargin: Theme.space4
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: -2
 

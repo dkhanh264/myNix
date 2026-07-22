@@ -11,18 +11,26 @@ Item {
     property bool checked: false
     property bool alert: false
     property bool elevated: false
-    property int horizontalPadding: 12
-    property int minimumWidth: 44
+    property int horizontalPadding: Theme.componentPadding
+    property int minimumWidth: Theme.barItemHeight
     property string accessibleName: ""
     property color containerColor: Theme.barSurface
     property color checkedColor: Theme.barSurfaceActive
     property color alertColor: Theme.errorContainer
+    property color outlineColor: Theme.barOutline
+    property color checkedOutlineColor: Theme.barOutlineActive
+    property color alertOutlineColor: Theme.barOutlineAlert
     readonly property bool hovered: pointer.containsMouse
     readonly property bool pressed: pointer.pressed
     readonly property color resolvedColor: alert
         ? alertColor
         : checked ? checkedColor
         : containerColor
+    readonly property color resolvedOutlineColor: alert
+        ? alertOutlineColor
+        : checked ? checkedOutlineColor
+        : hovered ? Theme.barOutlineHover
+        : outlineColor
 
     signal clicked
     signal secondaryClicked
@@ -30,7 +38,7 @@ Item {
 
     implicitWidth: Math.max(minimumWidth,
         content.childrenRect.width + horizontalPadding * 2)
-    implicitHeight: 44
+    implicitHeight: Theme.barItemHeight
     activeFocusOnTab: interactive
     scale: pressed ? 0.96 : 1
 
@@ -63,8 +71,13 @@ Item {
         anchors.fill: parent
         radius: root.pressed ? Theme.shapeMedium : height / 2
         color: root.resolvedColor
+        border.width: Theme.barOutlineWidth
+        border.color: root.resolvedOutlineColor
 
         Behavior on color {
+            ColorAnimation { duration: Theme.motionShort4 }
+        }
+        Behavior on border.color {
             ColorAnimation { duration: Theme.motionShort4 }
         }
         Behavior on radius {
@@ -128,10 +141,10 @@ Item {
 
     Rectangle {
         anchors.fill: surface
-        anchors.margins: 2
-        radius: Math.max(0, surface.radius - 2)
+        anchors.margins: Theme.focusRingInset
+        radius: Math.max(0, surface.radius - Theme.focusRingInset)
         color: "transparent"
-        border.width: 2
+        border.width: Theme.focusRingWidth
         border.color: Theme.primary
         visible: root.activeFocus && root.interactive
     }

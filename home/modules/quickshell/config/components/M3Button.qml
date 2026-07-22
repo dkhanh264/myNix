@@ -64,7 +64,7 @@ Item {
     Row {
         id: buttonContent
         anchors.centerIn: parent
-        spacing: 7
+        spacing: Theme.space2
 
         MaterialIcon {
             visible: root.icon.length > 0

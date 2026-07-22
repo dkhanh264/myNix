@@ -270,7 +270,7 @@ Rectangle {
                     Row {
                         width: parent.width
                         height: 44
-                        spacing: 7
+                        spacing: Theme.space2
 
                         M3Button {
                             id: primaryAction

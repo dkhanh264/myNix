@@ -3,40 +3,49 @@ import Quickshell.Hyprland
 import "../components"
 import "../theme"
 
-// Variable node widths preserve one visible gap around both circular and
-// active pill states. The total track width remains stable while the wider
-// slot follows the active workspace.
+// Every workspace owns one fixed slot. The active capsule is a separate
+// compact overlay, so only the indicator moves when Hyprland changes
+// workspace.
 M3BarPill {
     id: root
 
     property var monitor
-    property bool compact: false
     readonly property int workspaceCount: 8
-    readonly property int dotSize: compact
-        ? Theme.space4 : Theme.space5
-    readonly property int nodeGap: Theme.space3
-    readonly property int activeWidth: dotSize * 2
+    // Fixed 20 px nodes sit 8 px from every outer pill edge. The tighter
+    // 16 px gap keeps the topbar dense, while the 32 px active capsule can
+    // align with either endpoint without touching its neighbouring node.
+    readonly property int dotSize: Theme.space5
+    readonly property int nodeGap: Theme.space4
+    readonly property int slotWidth: dotSize + nodeGap
+    readonly property int activeWidth: dotSize + Theme.space3
+    readonly property int edgeInset: (Theme.barItemHeight - dotSize) / 2
     readonly property int activeId: monitor && monitor.activeWorkspace
         ? monitor.activeWorkspace.id : 1
     readonly property int activeIndex: Math.max(0,
         Math.min(workspaceCount - 1, activeId - 1))
-    readonly property int trackWidth: workspaceCount * dotSize
-        + (activeWidth - dotSize) + workspaceCount * nodeGap
+    readonly property int trackWidth: (workspaceCount - 1) * slotWidth
+        + dotSize
 
     interactive: false
-    horizontalPadding: compact ? Theme.space2 : Theme.space3
+    // Derive the horizontal endpoint inset from the vertical pill geometry,
+    // keeping every visible node state equally inset on all four sides.
+    horizontalPadding: edgeInset
     accessibleName: I18n.tr("Không gian làm việc", "Workspaces")
     implicitWidth: workspaceTrack.width + horizontalPadding * 2
 
-    function nodeWidth(index) {
-        return index === activeIndex ? activeWidth : dotSize;
+    function slotLeft(index) {
+        // Hit cells extend into the pill padding, while their visual nodes
+        // remain fixed to the evenly spaced track.
+        return index * slotWidth - (slotWidth - dotSize) / 2;
     }
 
-    function nodeLeft(index) {
-        const activeWidthBefore = index > activeIndex
-            ? activeWidth - dotSize : 0;
-        return nodeGap / 2 + index * (dotSize + nodeGap)
-            + activeWidthBefore;
+    function activeLeft(index) {
+        // Centre the capsule on interior nodes. At workspace 1 and 8, clamp
+        // it to the old passive-node edge so both outer insets stay 8 px.
+        const nodeCenter = index * slotWidth + dotSize / 2;
+        const centered = nodeCenter - activeWidth / 2;
+        return Math.max(0,
+            Math.min(trackWidth - activeWidth, centered));
     }
 
     function workspaceFor(workspaceId) {
@@ -55,49 +64,29 @@ M3BarPill {
         height: root.implicitHeight
 
         Rectangle {
-            id: movementHalo
-            anchors.verticalCenter: parent.verticalCenter
-            x: activeIndicator.x - Theme.space1
-            width: activeIndicator.width + Theme.space2
-            height: activeIndicator.height + Theme.space2
-            radius: height / 2
-            color: Theme.alpha(Theme.primary, 0.16)
-            opacity: workspaceGlide.running ? 1 : 0
-
-            Behavior on opacity {
-                NumberAnimation { duration: Theme.motionShort4 }
-            }
-        }
-
-        Rectangle {
             id: activeIndicator
 
-            x: root.nodeLeft(root.activeIndex)
+            z: 0
+            x: root.activeLeft(root.activeIndex)
             anchors.verticalCenter: parent.verticalCenter
             width: root.activeWidth
             height: root.dotSize
             radius: height / 2
             color: Theme.primary
-            visible: root.activeId >= 1 && root.activeId <= root.workspaceCount
-            scale: workspaceGlide.running ? 1.06 : 1
+            visible: root.activeId >= 1
+                && root.activeId <= root.workspaceCount
 
             Behavior on x {
                 enabled: !Theme.reduceMotion
-                SmoothedAnimation {
-                    id: workspaceGlide
-                    velocity: 620
-                    maximumEasingTime: Theme.motionMedium2
-                    reversingMode: SmoothedAnimation.Sync
+                NumberAnimation {
+                    duration: Theme.motionMedium1
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Theme.emphasizedDecelerate
                 }
             }
 
-            Behavior on scale {
-                enabled: !Theme.reduceMotion
-                NumberAnimation {
-                    duration: Theme.motionShort4
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Theme.springCurve
-                }
+            Behavior on color {
+                ColorAnimation { duration: Theme.motionShort4 }
             }
         }
 
@@ -116,68 +105,67 @@ M3BarPill {
                     && workspace.toplevels.values.length > 0
                 readonly property bool urgent: workspace && workspace.urgent
 
-                x: root.nodeLeft(index) - root.nodeGap / 2
-                width: root.nodeWidth(index) + root.nodeGap
+                z: 1
+                x: root.slotLeft(index)
+                width: root.slotWidth
                 height: parent.height
                 activeFocusOnTab: true
 
-                Behavior on x {
-                    enabled: !Theme.reduceMotion
-                    SmoothedAnimation {
-                        velocity: 620
-                        maximumEasingTime: Theme.motionMedium2
-                        reversingMode: SmoothedAnimation.Sync
-                    }
-                }
-
-                Behavior on width {
-                    enabled: !Theme.reduceMotion
-                    NumberAnimation {
-                        duration: Theme.motionMedium2
-                        easing.type: Easing.BezierSpline
-                        easing.bezierCurve: Theme.springCurve
-                    }
-                }
-
                 Accessible.role: Accessible.Button
-                Accessible.name: I18n.tr("Không gian ", "Workspace ") + workspaceId
+                Accessible.name: I18n.tr("Không gian ", "Workspace ")
+                    + workspaceId
                 Accessible.description: active
                     ? I18n.tr("Đang hoạt động", "Active")
                     : occupied
                         ? I18n.tr("Có cửa sổ", "Contains windows")
                         : I18n.tr("Trống", "Empty")
 
-                // Inactive workspaces are intentionally label-free hollow
-                // circles. Occupied and urgent states use only colour/weight.
+                Rectangle {
+                    x: root.activeLeft(workspaceButton.index)
+                        - workspaceButton.x
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: root.activeWidth
+                    height: root.dotSize
+                    radius: height / 2
+                    color: pointer.pressed
+                        ? Theme.alpha(Theme.textPrimary, 0.10)
+                        : pointer.containsMouse
+                            ? Theme.alpha(Theme.textPrimary, 0.06)
+                            : "transparent"
+
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.motionShort3 }
+                    }
+                }
+
+                // Inactive workspaces are solid, lower-emphasis discs. Their
+                // geometry never changes; the selected disc only fades so the
+                // shared capsule can pass beneath the stationary node row.
                 Rectangle {
                     anchors.centerIn: parent
-                    width: workspaceButton.active ? 0 : root.dotSize
-                    height: width
+                    width: root.dotSize
+                    height: root.dotSize
                     radius: width / 2
-                    color: "transparent"
-                    border.width: workspaceButton.occupied ? 2 : 1
-                    border.color: workspaceButton.urgent
+                    color: workspaceButton.urgent
                         ? Theme.error
                         : workspaceButton.occupied
-                            ? Theme.primary : Theme.textSecondary
+                            ? Theme.alpha(Theme.primary, 0.72)
+                            : Theme.alpha(Theme.textSecondary, 0.48)
+                    border.width: 0
                     opacity: workspaceButton.active ? 0 : 1
 
-                    Behavior on width {
-                        enabled: !Theme.reduceMotion
-                        NumberAnimation {
-                            duration: Theme.motionShort4
-                            easing.type: Easing.BezierSpline
-                            easing.bezierCurve: Theme.springCurve
-                        }
-                    }
                     Behavior on opacity {
                         NumberAnimation { duration: Theme.motionShort3 }
+                    }
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.motionShort3 }
                     }
                 }
 
                 MouseArea {
                     id: pointer
                     anchors.fill: parent
+                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onPressed: workspaceButton.focus = false
                     onClicked: Hyprland.dispatch("workspace "
@@ -185,7 +173,8 @@ M3BarPill {
                 }
 
                 Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                    if (event.key === Qt.Key_Return
+                            || event.key === Qt.Key_Enter
                             || event.key === Qt.Key_Space) {
                         Hyprland.dispatch("workspace " + workspaceId);
                         event.accepted = true;
@@ -193,9 +182,10 @@ M3BarPill {
                 }
 
                 Rectangle {
-                    anchors.centerIn: parent
-                    width: workspaceButton.active
-                        ? root.activeWidth : root.dotSize
+                    x: root.activeLeft(workspaceButton.index)
+                        - workspaceButton.x
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: root.activeWidth
                     height: root.dotSize
                     radius: height / 2
                     color: "transparent"

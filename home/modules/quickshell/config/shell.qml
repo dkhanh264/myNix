@@ -117,16 +117,17 @@ ShellRoot {
     }
 
     function popupAnchor(kind, barWidth, popupWidth) {
-        let desired = barWidth - popupWidth - 10;
+        let desired = barWidth - popupWidth - Theme.popupEdgeInset;
         if (kind === "wallpaper")
-            desired = 10;
+            desired = Theme.popupEdgeInset;
         else if (kind === "music")
             desired = 235;
         else if (kind === "calendar")
             desired = (barWidth - popupWidth) / 2 - 105;
         else if (kind === "weather")
             desired = (barWidth - popupWidth) / 2 + 115;
-        return Math.max(8, Math.min(barWidth - popupWidth - 8, desired));
+        return Math.max(Theme.popupEdgeInset,
+            Math.min(barWidth - popupWidth - Theme.popupEdgeInset, desired));
     }
 
     function batteryIcon() {
@@ -145,13 +146,14 @@ ShellRoot {
 
     Timer {
         id: popupShowTimer
-        interval: 1
+        // Wait for one rendered frame so every popup starts at progress 0.
+        interval: Theme.reduceMotion ? 0 : 16
         onTriggered: root.popupOpen = true
     }
 
     Timer {
         id: popupHideTimer
-        interval: Theme.motionMedium1
+        interval: Theme.popupHideDelay
         onTriggered: {
             if (!root.popupOpen) {
                 root.popupVisible = false;
@@ -217,9 +219,9 @@ ShellRoot {
             required property var modelData
 
             screen: modelData
-            implicitHeight: 58
+            implicitHeight: Theme.barHeight
             color: "transparent"
-            exclusiveZone: 58
+            exclusiveZone: Theme.barHeight
             WlrLayershell.namespace: "m3-shell"
             WlrLayershell.keyboardFocus: root.popupVisible
                     && root.popupScreen === barWindow.modelData.name
@@ -233,6 +235,7 @@ ShellRoot {
 
             ExpressiveTopBar {
                 anchors.fill: parent
+                anchors.margins: Theme.barContentInset
                 barWindow: barWindow
                 controller: systemService
                 screen: barWindow.modelData
@@ -248,7 +251,8 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "music"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(420, barWindow.width - 20)
+                popupWidth: Math.min(420, barWindow.width
+                    - Theme.popupEdgeInset * 2)
                 popupHeight: Math.min(350,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("music", barWindow.width, popupWidth)
@@ -275,7 +279,8 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "calendar"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(440, barWindow.width - 20)
+                popupWidth: Math.min(440, barWindow.width
+                    - Theme.popupEdgeInset * 2)
                 popupHeight: Math.min(680,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("calendar", barWindow.width, popupWidth)
@@ -303,7 +308,8 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "weather"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(590, barWindow.width - 20)
+                popupWidth: Math.min(590, barWindow.width
+                    - Theme.popupEdgeInset * 2)
                 popupHeight: Math.min(590,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("weather", barWindow.width, popupWidth)
@@ -332,8 +338,11 @@ ShellRoot {
                 requestedVisible: root.popupVisible
                     && root.activePopup === "controls"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(410, barWindow.width - 20)
-                popupHeight: Math.min(620,
+                popupWidth: Math.min(410, barWindow.width
+                    - Theme.popupEdgeInset * 2)
+                popupHeight: Math.min(
+                    Math.max(420, quickControls.implicitHeight
+                        + Theme.popupVerticalChrome),
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("controls", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("controls")
@@ -369,9 +378,11 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "wifi"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(430, barWindow.width - 20)
+                popupWidth: Math.min(430, barWindow.width
+                    - Theme.popupEdgeInset * 2)
                 popupHeight: Math.min(610,
-                    Math.max(300, wifiWidget.implicitHeight + 102),
+                    Math.max(300, wifiWidget.implicitHeight
+                        + Theme.popupVerticalChrome),
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("wifi", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("wifi")
@@ -408,9 +419,11 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "bluetooth"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(430, barWindow.width - 20)
+                popupWidth: Math.min(430, barWindow.width
+                    - Theme.popupEdgeInset * 2)
                 popupHeight: Math.min(610,
-                    Math.max(300, bluetoothWidget.implicitHeight + 102),
+                    Math.max(300, bluetoothWidget.implicitHeight
+                        + Theme.popupVerticalChrome),
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("bluetooth", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("bluetooth")
@@ -455,8 +468,11 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "power"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(430, barWindow.width - 20)
-                popupHeight: 468
+                popupWidth: Math.min(430, barWindow.width
+                    - Theme.popupEdgeInset * 2)
+                popupHeight: Math.min(powerContent.implicitHeight
+                    + Theme.popupVerticalChrome,
+                    barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("power", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("power")
 
@@ -476,8 +492,9 @@ ShellRoot {
                     onCloseRequested: root.hidePopup()
 
                     Column {
+                        id: powerContent
                         anchors.fill: parent
-                        spacing: 10
+                        spacing: Theme.space3
 
                         Rectangle {
                             width: parent.width
@@ -485,20 +502,34 @@ ShellRoot {
                             radius: Theme.shapeLarge
                             color: Theme.surfaceContainerLow
 
-                            Row {
-                                anchors.centerIn: parent
-                                spacing: 14
+                            Item {
+                                anchors.fill: parent
+                                anchors.margins: Theme.componentPadding
 
-                                MaterialIcon {
+                                Rectangle {
+                                    id: batteryIconContainer
+                                    anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: root.batteryIcon()
-                                    iconSize: 42
+                                    width: 48
+                                    height: 48
+                                    radius: Theme.shapeMedium
                                     color: systemService.batteryPercent <= 20
-                                        ? Theme.error : Theme.tertiary
-                                    filled: true
+                                        ? Theme.errorContainer
+                                        : Theme.tertiaryContainer
+
+                                    MaterialIcon {
+                                        anchors.centerIn: parent
+                                        text: root.batteryIcon()
+                                        iconSize: 26
+                                        color: systemService.batteryPercent <= 20
+                                            ? Theme.error : Theme.tertiary
+                                        filled: true
+                                    }
                                 }
 
                                 Column {
+                                    anchors.left: batteryIconContainer.right
+                                    anchors.leftMargin: Theme.space3
                                     anchors.verticalCenter: parent.verticalCenter
                                     spacing: 0
 
@@ -541,7 +572,8 @@ ShellRoot {
                 requestedVisible: root.popupVisible
                     && root.activePopup === "activity"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(560, barWindow.width - 20)
+                popupWidth: Math.min(560, barWindow.width
+                    - Theme.popupEdgeInset * 2)
                 popupHeight: Math.min(610,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("activity", barWindow.width, popupWidth)
@@ -571,7 +603,8 @@ ShellRoot {
                 requestedVisible: root.popupVisible
                     && root.activePopup === "recorder"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(470, barWindow.width - 20)
+                popupWidth: Math.min(470, barWindow.width
+                    - Theme.popupEdgeInset * 2)
                 popupHeight: Math.min(systemService.recording ? 390 : 558,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("recorder", barWindow.width, popupWidth)
@@ -608,7 +641,8 @@ ShellRoot {
                 requestedVisible: root.popupVisible
                     && root.activePopup === "language"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(430, barWindow.width - 20)
+                popupWidth: Math.min(430, barWindow.width
+                    - Theme.popupEdgeInset * 2)
                 popupHeight: 350
                 popupX: root.popupAnchor("language", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("language")
@@ -636,8 +670,10 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "settings"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(510, barWindow.width - 20)
-                popupHeight: Math.min(640,
+                popupWidth: Math.min(510, barWindow.width
+                    - Theme.popupEdgeInset * 2)
+                popupHeight: Math.min(systemSettings.implicitHeight
+                    + Theme.popupVerticalChrome,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("settings", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("settings")
@@ -652,6 +688,7 @@ ShellRoot {
                     onCloseRequested: root.hidePopup()
 
                     SystemSettingsWidget {
+                        id: systemSettings
                         anchors.fill: parent
                         controller: systemService
                         onSectionRequested: section =>
@@ -666,7 +703,8 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "wallpaper"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(520, barWindow.width - 20)
+                popupWidth: Math.min(520, barWindow.width
+                    - Theme.popupEdgeInset * 2)
                 popupHeight: Math.min(640,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("wallpaper", barWindow.width, popupWidth)

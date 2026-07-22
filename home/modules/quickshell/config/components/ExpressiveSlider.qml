@@ -1,9 +1,8 @@
 import QtQuick
 import "../theme"
 
-// M3 Expressive system slider: a fixed hit target, tonal track, a deliberate
-// gap around the handle, and a handle that morphs only while interacting.
-// Hover never changes geometry, so the visual state stays aligned to input.
+// M3 Expressive split-track slider. The visual rail stays compact while the
+// full component remains an easy pointer/keyboard target.
 Item {
     id: root
 
@@ -27,7 +26,7 @@ Item {
 
     signal moved(real value)
 
-    implicitHeight: 54
+    implicitHeight: 50
     opacity: enabled ? 1 : 0.38
     activeFocusOnTab: enabled
 
@@ -47,9 +46,9 @@ Item {
     }
 
     function updateFromPosition(position) {
-        const travel = Math.max(1, track.width - track.height);
+        const travel = Math.max(1, track.width - handle.width);
         const normalized = Math.max(0, Math.min(1,
-            (position - track.height / 2) / travel));
+            (position - handle.width / 2) / travel));
         moved(from + normalized * (to - from));
     }
 
@@ -74,59 +73,65 @@ Item {
         }
     }
 
-    Rectangle {
+    Item {
         id: track
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        height: 44
-        radius: root.interacting ? Theme.shapeSelected : height / 2
-        color: root.inactiveColor
-        clip: true
+        height: Theme.sliderTrackHeight
 
-        readonly property real handleCenter: height / 2
-            + root.displayProgress * Math.max(1, width - height)
-
-        Behavior on radius {
-            enabled: !Theme.reduceMotion
-            NumberAnimation {
-                duration: Theme.motionMedium1
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.springCurve
-            }
-        }
+        readonly property real handleCenter: handle.width / 2
+            + root.displayProgress * Math.max(1, width - handle.width)
+        readonly property real handleGap: root.interacting ? 10 : 8
 
         Rectangle {
             id: activeTrack
             anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            width: Math.max(parent.height,
-                Math.min(parent.width, parent.handleCenter + 4))
-            radius: parent.radius
-            color: root.activeColor
+            anchors.verticalCenter: parent.verticalCenter
+            width: Math.max(0, parent.handleCenter - parent.handleGap / 2)
+            height: parent.height
+            radius: height / 2
+            topRightRadius: Theme.sliderInnerRadius
+            bottomRightRadius: Theme.sliderInnerRadius
+            color: root.interacting
+                ? Theme.blend(root.activeColor, Theme.textPrimary, 0.07)
+                : root.hovered
+                    ? Theme.blend(root.activeColor, Theme.textPrimary, 0.035)
+                    : root.activeColor
+
+            Behavior on color {
+                ColorAnimation { duration: Theme.motionShort3 }
+            }
         }
 
-        // State layer follows the exact track geometry instead of growing the
-        // track itself on hover.
         Rectangle {
-            anchors.fill: parent
-            radius: parent.radius
-            color: root.interacting ? Theme.alpha(Theme.textPrimary, 0.08)
-                : root.hovered ? Theme.alpha(Theme.textPrimary, 0.05)
-                : "transparent"
+            id: inactiveTrack
+            anchors.verticalCenter: parent.verticalCenter
+            x: Math.min(parent.width,
+                parent.handleCenter + parent.handleGap / 2)
+            width: Math.max(0, parent.width - x)
+            height: parent.height
+            radius: height / 2
+            topLeftRadius: Theme.sliderInnerRadius
+            bottomLeftRadius: Theme.sliderInnerRadius
+            color: root.interacting
+                ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.07)
+                : root.hovered
+                    ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.035)
+                    : root.inactiveColor
+
             Behavior on color {
                 ColorAnimation { duration: Theme.motionShort3 }
             }
         }
 
         MaterialIcon {
-            visible: root.icon.length > 0
+            visible: root.icon.length > 0 && activeTrack.width >= 30
             anchors.left: parent.left
-            anchors.leftMargin: 13
+            anchors.leftMargin: Theme.space2
             anchors.verticalCenter: parent.verticalCenter
             text: root.icon
-            iconSize: 20
+            iconSize: 14
             color: root.foregroundColor
             filled: true
         }
@@ -134,40 +139,25 @@ Item {
         Text {
             visible: root.showValue
             anchors.right: parent.right
-            anchors.rightMargin: 15
+            anchors.rightMargin: Theme.space2
             anchors.verticalCenter: parent.verticalCenter
             text: Math.round(root.value) + root.valueSuffix
             color: Theme.textPrimary
             font.family: Theme.textFont
-            font.pixelSize: 11
+            font.pixelSize: 9
             font.weight: Font.DemiBold
-        }
-
-        // M3 slider gap: the track separates cleanly from the handle.
-        Rectangle {
-            width: root.interacting ? 12 : 10
-            height: parent.height
-            anchors.verticalCenter: parent.verticalCenter
-            x: parent.handleCenter - width / 2
-            color: root.inactiveColor
-
-            Behavior on width {
-                NumberAnimation {
-                    duration: Theme.motionShort4
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Theme.springCurve
-                }
-            }
         }
 
         Rectangle {
             id: handle
-            width: root.interacting ? 7 : 5
-            height: root.interacting ? 30 : 34
+            width: root.interacting ? 6 : 4
+            height: root.interacting
+                ? Theme.sliderHandleHeight - 4
+                : Theme.sliderHandleHeight
             radius: width / 2
             anchors.verticalCenter: parent.verticalCenter
             x: parent.handleCenter - width / 2
-            color: root.foregroundColor
+            color: root.accentColor
 
             Behavior on width {
                 NumberAnimation {
@@ -208,9 +198,11 @@ Item {
     }
 
     Rectangle {
-        anchors.fill: track
-        anchors.margins: 2
-        radius: Math.max(0, track.radius - 2)
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        height: Theme.sliderHandleHeight + Theme.space1
+        radius: Theme.shapeMedium
         color: "transparent"
         border.width: 2
         border.color: Theme.primary

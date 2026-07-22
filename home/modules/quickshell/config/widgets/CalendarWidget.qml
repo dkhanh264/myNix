@@ -26,7 +26,7 @@ Rectangle {
         "November", "December"]
 
     implicitHeight: 518
-    radius: Theme.shapeExtraLarge
+    radius: Theme.cardRadius
     color: Theme.surfaceContainerLow
 
     function dayForCell(index) {
@@ -104,7 +104,7 @@ Rectangle {
 
     Column {
         anchors.fill: parent
-        anchors.margins: 14
+        anchors.margins: Theme.componentPadding
         spacing: 8
 
         Item {

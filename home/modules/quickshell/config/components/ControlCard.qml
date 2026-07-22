@@ -17,9 +17,9 @@ Rectangle {
     signal moved(real value)
     signal trailingClicked
 
-    implicitHeight: 136
+    implicitHeight: 120
     radius: controlSlider.interacting
-        ? Theme.shapeMedium : Theme.shapeLarge
+        ? Theme.shapeMedium : Theme.cardRadius
     color: Theme.blend(Theme.surfaceContainerHigh, root.accentColor,
         controlSlider.hovered ? 0.055 : 0)
 
@@ -37,8 +37,8 @@ Rectangle {
 
     Column {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 8
+        anchors.margins: Theme.componentPadding
+        spacing: Theme.space2
 
         Item {
             width: parent.width
@@ -46,8 +46,9 @@ Rectangle {
 
             Rectangle {
                 id: iconContainer
-                width: 38
-                height: 38
+                anchors.verticalCenter: parent.verticalCenter
+                width: 36
+                height: 36
                 radius: controlSlider.interacting
                     ? width / 2 : Theme.shapeMedium
                 color: Theme.blend(Theme.primaryContainer, root.accentColor, 0.12)
@@ -75,7 +76,7 @@ Rectangle {
 
             Column {
                 anchors.left: iconContainer.right
-                anchors.leftMargin: 10
+                anchors.leftMargin: Theme.space2
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 0
 

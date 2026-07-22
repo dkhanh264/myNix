@@ -38,8 +38,10 @@ Item {
     }
 
     Rectangle {
+        id: buttonSurface
         anchors.fill: parent
-        radius: pointer.pressed ? 12 : (root.checked ? 14 : width / 2)
+        radius: pointer.pressed ? Theme.shapeMedium
+            : (root.checked ? Theme.shapeLarge : width / 2)
         color: root.checked
             ? Theme.primaryContainer
             : (pointer.containsMouse ? root.hoverColor : root.fillColor)
@@ -96,7 +98,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         anchors.margins: 2
-        radius: Math.max(0, width / 2 - 2)
+        radius: Math.max(0, buttonSurface.radius - 2)
         color: "transparent"
         border.width: 2
         border.color: Theme.primary

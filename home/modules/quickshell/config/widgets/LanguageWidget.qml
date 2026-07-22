@@ -6,13 +6,13 @@ Rectangle {
     id: root
 
     implicitHeight: 220
-    radius: Theme.shapeExtraLarge
+    radius: Theme.cardRadius
     color: Theme.surfaceContainerLow
 
     Column {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 12
+        anchors.margins: Theme.componentPadding
+        spacing: Theme.space3
 
         Rectangle {
             width: parent.width
@@ -22,11 +22,11 @@ Rectangle {
 
             Row {
                 anchors.left: parent.left
-                anchors.leftMargin: 14
+                anchors.leftMargin: Theme.componentPadding
                 anchors.right: parent.right
-                anchors.rightMargin: 14
+                anchors.rightMargin: Theme.componentPadding
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 12
+                spacing: Theme.space3
 
                 Rectangle {
                     width: 44

@@ -8,19 +8,17 @@ Rectangle {
     property var controller
     property string selectedAddress: ""
 
-    implicitHeight: content.implicitHeight + 16
+    implicitHeight: content.implicitHeight
     color: "transparent"
 
     Column {
         id: content
-        x: 12
-        y: 8
-        width: parent.width - 24
-        spacing: 4
+        width: parent.width
+        spacing: Theme.space1
 
         Item {
             width: parent.width
-            height: 42
+            height: 40
 
             Column {
                 anchors.left: parent.left
@@ -31,7 +29,7 @@ Rectangle {
                     text: I18n.tr("Thiết bị Bluetooth", "Bluetooth devices")
                     color: Theme.textPrimary
                     font.family: Theme.textFont
-                    font.pixelSize: 14
+                    font.pixelSize: 13
                     font.weight: Font.DemiBold
                 }
 
@@ -50,7 +48,7 @@ Rectangle {
             IconButton {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                buttonSize: 38
+                buttonSize: 40
                 iconSize: 18
                 icon: root.controller && root.controller.bluetoothDiscovering
                     ? "progress_activity" : "radar"
@@ -108,7 +106,7 @@ Rectangle {
 
                 visible: shouldShow
                 width: content.width
-                height: visible ? 58 + (selected ? 52 : 0) : 0
+                height: visible ? 64 + (selected ? 52 : 0) : 0
                 activeFocusOnTab: visible && root.controller
                     && root.controller.bluetoothEnabled
 
@@ -129,16 +127,18 @@ Rectangle {
                 }
 
                 Rectangle {
+                    id: deviceSurface
                     anchors.fill: parent
                     radius: devicePointer.pressed ? Theme.shapeSmall
-                        : selected || modelData.connected
-                            ? Theme.shapeLarge : Theme.shapeMedium
+                        : Theme.shapeMedium
                     color: modelData.connected
                         ? Theme.tertiaryContainer
                         : selected ? Theme.surfaceContainerHigh
                         : devicePointer.containsMouse
-                            ? Theme.alpha(Theme.textPrimary, 0.06)
-                            : "transparent"
+                            ? Theme.surfaceContainerHighest
+                            : Theme.surfaceContainerHigh
+                    border.width: selected || modelData.connected ? 0 : 1
+                    border.color: Theme.outlineVariant
 
                     Behavior on color {
                         ColorAnimation { duration: Theme.motionShort3 }
@@ -155,16 +155,16 @@ Rectangle {
                 Item {
                     id: deviceSummary
                     width: parent.width
-                    height: 58
+                    height: 64
 
                     Rectangle {
                         id: deviceIcon
-                        width: 38
-                        height: 38
+                        width: 40
+                        height: 40
                         radius: modelData.connected
                             ? Theme.shapeMedium : width / 2
                         anchors.left: parent.left
-                        anchors.leftMargin: 8
+                        anchors.leftMargin: Theme.space2
                         anchors.verticalCenter: parent.verticalCenter
                         color: modelData.connected
                             ? Theme.tertiary : Theme.surfaceContainerHighest
@@ -183,11 +183,11 @@ Rectangle {
 
                     Column {
                         anchors.left: deviceIcon.right
-                        anchors.leftMargin: 10
+                        anchors.leftMargin: Theme.space2
                         anchors.right: connectionIcon.left
-                        anchors.rightMargin: 8
+                        anchors.rightMargin: Theme.space2
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: 1
+                        spacing: Theme.space1
 
                         Text {
                             width: parent.width
@@ -227,7 +227,7 @@ Rectangle {
                     MaterialIcon {
                         id: connectionIcon
                         anchors.right: parent.right
-                        anchors.rightMargin: 12
+                        anchors.rightMargin: Theme.space2
                         anchors.verticalCenter: parent.verticalCenter
                         text: selected ? "expand_less"
                             : modelData.connected ? "check_circle" : "link"
@@ -239,12 +239,12 @@ Rectangle {
 
                 Row {
                     anchors.left: parent.left
-                    anchors.leftMargin: 8
+                    anchors.leftMargin: Theme.space2
                     anchors.right: parent.right
-                    anchors.rightMargin: 8
+                    anchors.rightMargin: Theme.space2
                     anchors.top: deviceSummary.bottom
                     height: 44
-                    spacing: 8
+                    spacing: Theme.space2
                     opacity: selected ? 1 : 0
 
                     M3Button {
@@ -290,7 +290,7 @@ Rectangle {
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: 2
-                    radius: Theme.shapeLarge
+                    radius: Math.max(0, deviceSurface.radius - 2)
                     color: "transparent"
                     border.width: 2
                     border.color: Theme.primary
@@ -312,7 +312,7 @@ Rectangle {
 
         Item {
             width: parent.width
-            height: 44
+            height: 48
 
             Text {
                 anchors.left: parent.left

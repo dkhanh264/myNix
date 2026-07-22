@@ -29,8 +29,9 @@ Item {
     }
 
     Rectangle {
+        id: switchSurface
         anchors.fill: parent
-        radius: pointer.pressed ? 11 : height / 2
+        radius: pointer.pressed ? Theme.shapeMedium : height / 2
         color: root.checked ? Theme.primary : Theme.surfaceContainerHighest
         border.width: root.checked ? 0 : 2
         border.color: Theme.outline
@@ -99,7 +100,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         anchors.margins: 2
-        radius: Math.max(0, height / 2 - 2)
+        radius: Math.max(0, switchSurface.radius - 2)
         color: "transparent"
         border.width: 2
         border.color: Theme.primary

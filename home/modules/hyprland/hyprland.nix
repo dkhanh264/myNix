@@ -82,17 +82,17 @@ in
         rounding = 30;
         blur = {
           enabled            = true;
-          size               = 14;
+          size               = 18;
           passes             = 4;
           new_optimizations  = true;
           ignore_opacity     = true;
           popups             = true;
           popups_ignorealpha = 0.08;
-          noise              = 0.018;
-          contrast           = 1.08;
-          brightness         = 0.72;
-          vibrancy           = 0.28;
-          vibrancy_darkness  = 0.20;
+          noise              = 0.012;
+          contrast           = 0.92;
+          brightness         = 0.82;
+          vibrancy           = 0.24;
+          vibrancy_darkness  = 0.10;
         };
       };
 

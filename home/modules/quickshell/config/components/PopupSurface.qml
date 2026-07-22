@@ -23,19 +23,17 @@ Item {
 
     enabled: shown
     opacity: revealProgress
-    scale: 0.965 + revealProgress * 0.035
-    transformOrigin: Item.TopRight
+    scale: 0.985 + revealProgress * 0.015
+    transformOrigin: Item.Top
     transform: Translate {
-        x: (1 - root.revealProgress) * 10
-        y: (1 - root.revealProgress) * -8
+        y: (1 - root.revealProgress) * -6
     }
 
     Behavior on revealProgress {
         NumberAnimation {
-            duration: root.shown ? Theme.motionMedium2 : Theme.motionShort4
+            duration: Theme.popupTransitionDuration
             easing.type: Easing.BezierSpline
-            easing.bezierCurve: root.shown
-                ? Theme.emphasizedDecelerate : Theme.emphasizedAccelerate
+            easing.bezierCurve: Theme.standardCurve
         }
     }
 
@@ -43,7 +41,7 @@ Item {
         anchors.fill: panel
         offset: Qt.vector2d(0, 2)
         radius: panel.radius
-        blur: 8
+        blur: 7
         spread: -1
         color: Theme.alpha("#000000", 0.48)
         opacity: root.revealProgress
@@ -52,8 +50,8 @@ Item {
     Rectangle {
         id: panel
         anchors.fill: parent
-        anchors.margins: 10
-        radius: Theme.shapeExtraLarge
+        anchors.margins: Theme.popupWindowInset
+        radius: Theme.popupRadius
         color: Theme.popupSurface
         clip: true
 
@@ -75,15 +73,15 @@ Item {
         anchors.left: panel.left
         anchors.right: panel.right
         anchors.top: panel.top
-        height: 74
+        height: Theme.popupHeaderHeight
 
         Rectangle {
             id: headerIcon
             anchors.left: parent.left
-            anchors.leftMargin: 18
+            anchors.leftMargin: Theme.popupContentPadding
             anchors.verticalCenter: parent.verticalCenter
-            width: 44
-            height: 44
+            width: 40
+            height: 40
             radius: Theme.shapeMedium
             color: root.accentContainer
 
@@ -98,18 +96,18 @@ Item {
 
         Column {
             anchors.left: headerIcon.right
-            anchors.leftMargin: 12
+            anchors.leftMargin: Theme.space3
             anchors.right: closeButton.left
-            anchors.rightMargin: 10
+            anchors.rightMargin: Theme.space2
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 1
+            spacing: 0
 
             Text {
                 width: parent.width
                 text: root.title
                 color: Theme.textPrimary
                 font.family: Theme.textFont
-                font.pixelSize: 18
+                font.pixelSize: 17
                 font.weight: Font.Bold
                 elide: Text.ElideRight
             }
@@ -130,7 +128,7 @@ Item {
             id: closeButton
             visible: root.closeButtonVisible
             anchors.right: parent.right
-            anchors.rightMargin: 14
+            anchors.rightMargin: Theme.space3
             anchors.verticalCenter: parent.verticalCenter
             icon: "close"
             fillColor: Theme.surfaceContainerHigh
@@ -145,8 +143,8 @@ Item {
         anchors.left: panel.left
         anchors.right: panel.right
         anchors.top: header.bottom
-        anchors.leftMargin: 18
-        anchors.rightMargin: 18
+        anchors.leftMargin: Theme.popupContentPadding
+        anchors.rightMargin: Theme.popupContentPadding
         height: 1
         color: Theme.alpha(Theme.outlineVariant, 0.72)
     }
@@ -157,9 +155,9 @@ Item {
         anchors.right: panel.right
         anchors.top: header.bottom
         anchors.bottom: panel.bottom
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
-        anchors.topMargin: 12
-        anchors.bottomMargin: 16
+        anchors.leftMargin: Theme.popupContentPadding
+        anchors.rightMargin: Theme.popupContentPadding
+        anchors.topMargin: Theme.space3
+        anchors.bottomMargin: Theme.popupContentPadding
     }
 }

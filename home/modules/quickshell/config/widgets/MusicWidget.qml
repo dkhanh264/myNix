@@ -18,7 +18,7 @@ Rectangle {
 
     implicitHeight: 232
     radius: Theme.shapeLarge
-    color: Theme.alpha(Theme.secondaryContainer, 0.72)
+    color: Theme.alpha(Theme.secondaryContainer, 0.30)
 
     function selectPlayer() {
         const players = Mpris.players.values;
@@ -70,7 +70,7 @@ Rectangle {
 
     Item {
         anchors.fill: parent
-        anchors.margins: 14
+        anchors.margins: Theme.componentPadding
 
         Item {
             id: record
@@ -97,7 +97,7 @@ Rectangle {
 
         Column {
             anchors.left: record.right
-            anchors.leftMargin: 14
+            anchors.leftMargin: Theme.componentPadding
             anchors.right: parent.right
             anchors.top: parent.top
             spacing: 4
@@ -205,6 +205,7 @@ Rectangle {
             value: root.playbackPosition
             enabled: root.player && root.player.canSeek
                 && root.player.lengthSupported && root.player.length > 0
+            animated: root.player && root.player.isPlaying
             activeColor: Theme.secondary
             onMoved: value => root.seekTo(value)
         }

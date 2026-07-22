@@ -110,7 +110,7 @@ Item {
             Rectangle {
                 id: preview
                 anchors.left: parent.left
-                anchors.leftMargin: 9
+                anchors.leftMargin: Theme.space2
                 anchors.verticalCenter: parent.verticalCenter
                 width: 104
                 height: 64
@@ -160,9 +160,9 @@ Item {
 
             Column {
                 anchors.left: preview.right
-                anchors.leftMargin: 12
+                anchors.leftMargin: Theme.space3
                 anchors.right: stateIcon.left
-                anchors.rightMargin: 10
+                anchors.rightMargin: Theme.space2
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 3
 
@@ -193,7 +193,7 @@ Item {
             MaterialIcon {
                 id: stateIcon
                 anchors.right: parent.right
-                anchors.rightMargin: 14
+                anchors.rightMargin: Theme.space3
                 anchors.verticalCenter: parent.verticalCenter
                 text: wallpaperRow.selected ? "check_circle" : "chevron_right"
                 iconSize: wallpaperRow.selected ? 21 : 19

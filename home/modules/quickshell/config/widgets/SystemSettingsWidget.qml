@@ -8,6 +8,7 @@ Item {
     property var controller
     signal sectionRequested(string section)
     signal closeRequested
+    implicitHeight: settingsContent.implicitHeight
 
     readonly property var settingsModel: [
         {
@@ -53,14 +54,17 @@ Item {
     ]
 
     Column {
-        anchors.fill: parent
-        spacing: 12
+        id: settingsContent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        spacing: Theme.space3
 
         Row {
             id: metrics
             width: parent.width
-            height: 98
-            spacing: 8
+            height: 108
+            spacing: Theme.space2
 
             Repeater {
                 model: [
@@ -97,57 +101,43 @@ Item {
                     required property var modelData
                     width: (metrics.width - metrics.spacing * 2) / 3
                     height: metrics.height
-                    radius: Theme.shapeLarge
+                    radius: Theme.cardRadius
                     color: Theme.surfaceContainerLow
 
-                    Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 12
+                    LiquidGauge {
+                        id: metricGauge
+                        anchors.horizontalCenter: parent.horizontalCenter
                         anchors.top: parent.top
-                        anchors.topMargin: 12
-                        spacing: 8
+                        anchors.topMargin: Theme.space2
+                        diameter: 64
+                        value: modelData.progress
+                        valueText: modelData.value
+                        liquidColor: modelData.color
+                        accessibleName: modelData.label
+                    }
+
+                    Row {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: Theme.space2
+                        spacing: Theme.space1
 
                         MaterialIcon {
                             anchors.verticalCenter: parent.verticalCenter
                             text: modelData.icon
-                            iconSize: 20
+                            iconSize: 13
                             color: modelData.color
                             filled: true
                         }
 
-                        Column {
+                        Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            spacing: 0
-
-                            Text {
-                                text: modelData.value
-                                color: Theme.textPrimary
-                                font.family: Theme.textFont
-                                font.pixelSize: 13
-                                font.weight: Font.Bold
-                            }
-
-                            Text {
-                                text: modelData.label
-                                color: Theme.textSecondary
-                                font.family: Theme.textFont
-                                font.pixelSize: 9
-                            }
+                            text: modelData.label
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 9
+                            font.weight: Font.Medium
                         }
-                    }
-
-                    WaveProgress {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 12
-                        anchors.bottom: parent.bottom
-                        anchors.bottomMargin: 10
-                        height: 22
-                        value: modelData.progress
-                        activeColor: modelData.color
-                        barCount: 15
-                        accessibleName: modelData.label
                     }
                 }
             }
@@ -157,8 +147,8 @@ Item {
             id: settingsGrid
             width: parent.width
             columns: 2
-            columnSpacing: 8
-            rowSpacing: 8
+            columnSpacing: Theme.space2
+            rowSpacing: Theme.space2
 
             Repeater {
                 model: root.settingsModel
@@ -167,7 +157,7 @@ Item {
                     required property var modelData
 
                     width: (settingsGrid.width - settingsGrid.columnSpacing) / 2
-                    height: 62
+                    height: 56
                     icon: modelData.sectionIcon
                     label: modelData.sectionLabel
                     supportingText: modelData.sectionHint
@@ -176,12 +166,18 @@ Item {
             }
         }
 
-        Item { width: 1; height: 2 }
-
-        SessionBar {
+        Item {
             width: parent.width
-            controller: root.controller
-            onCloseRequested: root.closeRequested()
+            height: settingsSessionBar.implicitHeight + Theme.space3
+
+            SessionBar {
+                id: settingsSessionBar
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                controller: root.controller
+                onCloseRequested: root.closeRequested()
+            }
         }
     }
 }

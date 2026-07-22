@@ -7,8 +7,8 @@ Rectangle {
 
     property var controller
 
-    implicitHeight: root.controller && root.controller.powerProfileError ? 146 : 126
-    radius: Theme.shapeLarge
+    implicitHeight: root.controller && root.controller.powerProfileError ? 144 : 120
+    radius: Theme.cardRadius
     color: Theme.surfaceContainer
 
     ListModel {
@@ -20,11 +20,11 @@ Rectangle {
 
     Column {
         anchors.fill: parent
-        anchors.margins: 14
-        spacing: 10
+        anchors.margins: Theme.componentPadding
+        spacing: Theme.space3
 
         Row {
-            spacing: 9
+            spacing: Theme.space2
 
             Rectangle {
                 width: 36
@@ -76,7 +76,7 @@ Rectangle {
             id: profileRow
             width: parent.width
             height: 48
-            spacing: 7
+            spacing: Theme.space2
 
             Repeater {
                 model: profiles

@@ -69,9 +69,8 @@ Rectangle {
         visible: opacity > 0.001
         enabled: !root.confirming
         anchors.fill: parent
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
-        spacing: 4
+        anchors.margins: Theme.componentPadding
+        spacing: Theme.space1
         opacity: root.confirming ? 0 : 1
         scale: root.confirming ? 0.95 : 1
         transform: Translate {
@@ -128,13 +127,13 @@ Rectangle {
 
                 Column {
                     anchors.centerIn: parent
-                    spacing: 2
+                    spacing: Theme.space1
 
                     Rectangle {
                         id: actionIconContainer
                         anchors.horizontalCenter: parent.horizontalCenter
-                        width: 38
-                        height: 38
+                        width: 36
+                        height: 36
                         radius: actionPointer.pressed
                             ? Theme.shapeSmall
                             : actionKey === "shutdown" ? Theme.shapeMedium : width / 2
@@ -214,8 +213,7 @@ Rectangle {
         visible: opacity > 0.001
         enabled: root.confirming
         anchors.fill: parent
-        anchors.leftMargin: 16
-        anchors.rightMargin: 12
+        anchors.margins: Theme.componentPadding
         opacity: root.confirming ? 1 : 0
         scale: root.confirming ? 1 : 0.94
         transformOrigin: Item.Right
@@ -248,9 +246,9 @@ Rectangle {
         Column {
             anchors.left: parent.left
             anchors.right: confirmButtons.left
-            anchors.rightMargin: 8
+            anchors.rightMargin: Theme.space2
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 1
+            spacing: Theme.space1
 
             Text {
                 width: parent.width
@@ -276,7 +274,7 @@ Rectangle {
             id: confirmButtons
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 6
+            spacing: Theme.space2
 
             IconButton {
                 icon: "close"
