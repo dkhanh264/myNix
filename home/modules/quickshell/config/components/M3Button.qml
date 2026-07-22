@@ -10,6 +10,10 @@ Item {
     property bool tonal: false
     property bool destructive: false
     property bool compact: false
+    // Selection controls use MD3 Expressive shape morphing: the available
+    // choices stay pill-shaped while the current choice becomes a tighter
+    // rounded square. Regular action buttons leave this false.
+    property bool selected: false
     readonly property bool hovered: pointer.containsMouse
     signal clicked
 
@@ -22,6 +26,7 @@ Item {
 
     Accessible.role: Accessible.Button
     Accessible.name: text
+    Accessible.checked: selected
     Accessible.focusable: enabled
 
     Keys.onPressed: event => {
@@ -35,7 +40,8 @@ Item {
     Rectangle {
         id: container
         anchors.fill: parent
-        radius: pointer.pressed ? Theme.shapeMedium : height / 2
+        radius: pointer.pressed ? Theme.shapeSmall
+            : root.selected ? Theme.shapeMedium : height / 2
         color: root.destructive
             ? Theme.errorContainer
             : root.tonal ? Theme.secondaryContainer

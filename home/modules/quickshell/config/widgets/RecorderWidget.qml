@@ -152,6 +152,7 @@ Rectangle {
                             width: 62
                             height: 40
                             compact: true
+                            selected: root.fps === modelData
                             tonal: root.fps !== modelData
                             icon: root.fps === modelData ? "check" : ""
                             text: modelData.toString()

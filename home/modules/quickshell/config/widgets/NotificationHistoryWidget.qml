@@ -305,16 +305,41 @@ Rectangle {
 
                             IconButton {
                                 id: copyButton
+                                anchors.right: deleteButton.left
+                                anchors.bottom: parent.bottom
+                                anchors.bottomMargin: 3
+                                buttonSize: 40
+                                iconSize: 18
+                                icon: "content_copy"
+                                enabled: root.controller
+                                    && root.controller.screenshotTrashPath
+                                        !== parent.filePath
+                                accessibleName: I18n.tr("Sao chép ảnh",
+                                    "Copy screenshot")
+                                onClicked: root.controller.copyScreenshot(
+                                    parent.filePath)
+                            }
+
+                            IconButton {
+                                id: deleteButton
                                 anchors.right: parent.right
                                 anchors.rightMargin: 4
                                 anchors.bottom: parent.bottom
                                 anchors.bottomMargin: 3
                                 buttonSize: 40
                                 iconSize: 18
-                                icon: "content_copy"
-                                accessibleName: I18n.tr("Sao chép ảnh",
-                                    "Copy screenshot")
-                                onClicked: root.controller.copyScreenshot(
+                                icon: root.controller
+                                    && root.controller.screenshotTrashBusy
+                                    && root.controller.screenshotTrashPath
+                                        === parent.filePath
+                                    ? "hourglass_top" : "delete"
+                                foregroundColor: Theme.error
+                                hoverColor: Theme.alpha(Theme.error, 0.12)
+                                enabled: root.controller
+                                    && !root.controller.screenshotTrashBusy
+                                accessibleName: I18n.tr("Xóa ảnh chụp",
+                                    "Delete screenshot")
+                                onClicked: root.controller.deleteScreenshot(
                                     parent.filePath)
                             }
                         }

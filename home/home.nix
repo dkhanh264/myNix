@@ -3,6 +3,9 @@
   
   programs.home-manager.enable = true;
 
+  # Screenshot history uses trash-put so deletions remain recoverable.
+  home.packages = [ pkgs.trash-cli ];
+
   imports = [
     ./core
     ./modules/shell

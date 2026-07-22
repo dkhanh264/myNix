@@ -10,6 +10,85 @@ Item {
     signal closeRequested
     implicitHeight: settingsContent.implicitHeight
 
+    function sectionIsActive(sectionKey) {
+        if (!root.controller)
+            return false;
+
+        switch (sectionKey) {
+        case "wifi":
+            return root.controller.wifiEnabled;
+        case "bluetooth":
+            return root.controller.bluetoothAvailable
+                && root.controller.bluetoothEnabled;
+        case "recorder":
+            return root.controller.recording;
+        default:
+            return false;
+        }
+    }
+
+    function sectionSupportingText(section) {
+        if (!root.controller)
+            return section.sectionHint;
+
+        switch (section.sectionKey) {
+        case "wifi":
+            if (!root.controller.wifiEnabled)
+                return I18n.tr("Đang tắt", "Off");
+            if (root.controller.wifiSsid.length > 0)
+                return I18n.tr("Đã bật · ", "On · ")
+                    + root.controller.wifiSsid;
+            return I18n.tr("Đã bật · Chưa kết nối",
+                "On · Not connected");
+        case "bluetooth":
+            if (!root.controller.bluetoothAvailable)
+                return I18n.tr("Không khả dụng", "Unavailable");
+            if (!root.controller.bluetoothEnabled)
+                return I18n.tr("Đang tắt", "Off");
+            if (root.controller.bluetoothConnectedCount > 0)
+                return I18n.tr("Đã bật · ", "On · ")
+                    + root.controller.bluetoothConnectedCount
+                    + I18n.tr(" thiết bị", " connected");
+            return I18n.tr("Đã bật · Chưa kết nối",
+                "On · Not connected");
+        case "controls":
+            return (root.controller.muted
+                ? I18n.tr("Đã tắt tiếng", "Muted")
+                : I18n.tr("Âm lượng ", "Volume ")
+                    + root.controller.volume + "%")
+                + " · " + I18n.tr("Độ sáng ", "Brightness ")
+                + root.controller.brightness + "%";
+        case "power":
+            if (!root.controller.batteryAvailable)
+                return section.sectionHint;
+            return root.controller.batteryPercent + "% · "
+                + (root.controller.powerProfile === "power-saver"
+                    ? I18n.tr("Tiết kiệm", "Saver")
+                    : root.controller.powerProfile === "performance"
+                        ? I18n.tr("Hiệu năng", "Performance")
+                        : I18n.tr("Cân bằng", "Balanced"));
+        case "activity":
+            return root.controller.notificationHistory.count
+                + I18n.tr(" thông báo · ", " notifications · ")
+                + root.controller.screenshots.count
+                + I18n.tr(" ảnh chụp", " screenshots");
+        case "recorder":
+            if (root.controller.recordingStopping)
+                return I18n.tr("Đang lưu bản ghi…", "Saving recording…");
+            if (root.controller.recordingPaused)
+                return I18n.tr("Đang bật · Tạm dừng", "On · Paused");
+            if (root.controller.recording)
+                return I18n.tr("Đang ghi · ", "Recording · ")
+                    + root.controller.recordingFps + " FPS";
+            return I18n.tr("Sẵn sàng · ", "Ready · ")
+                + root.controller.recordingFps + " FPS";
+        case "language":
+            return I18n.language === "vi" ? "Tiếng Việt" : "English";
+        default:
+            return section.sectionHint;
+        }
+    }
+
     readonly property var settingsModel: [
         {
             "sectionKey": "wifi", "sectionIcon": "wifi",
@@ -160,7 +239,8 @@ Item {
                     height: 56
                     icon: modelData.sectionIcon
                     label: modelData.sectionLabel
-                    supportingText: modelData.sectionHint
+                    supportingText: root.sectionSupportingText(modelData)
+                    selected: root.sectionIsActive(modelData.sectionKey)
                     onClicked: root.sectionRequested(modelData.sectionKey)
                 }
             }

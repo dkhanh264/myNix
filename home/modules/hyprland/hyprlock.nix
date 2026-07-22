@@ -8,12 +8,13 @@ let
       ${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake-white.svg
   '';
   white = "rgba(255,255,255,1.0)";
-  secondary = "rgba(210,213,224,1.0)";
+  onSurfaceVariant = "rgba(208,211,222,1.0)";
   primary = "rgba(190,194,255,1.0)";
-  primaryContainer = "rgba(48,56,94,0.92)";
-  surface = "rgba(12,16,23,0.70)";
-  surfaceStrong = "rgba(28,34,46,0.94)";
-  outline = "rgba(218,221,232,0.18)";
+  primaryContainer = "rgba(48,56,94,0.90)";
+  surface = "rgba(10,13,19,0.76)";
+  surfaceContainer = "rgba(27,32,43,0.88)";
+  surfaceStrong = "rgba(31,37,49,0.96)";
+  outline = "rgba(218,221,232,0.22)";
   error = "rgba(255,180,171,1.0)";
 in
 {
@@ -31,13 +32,13 @@ in
         {
           monitor = "";
           path = "/home/dk/.config/current-wallpaper";
-          blur_passes = 5;
-          blur_size = 10;
-          noise = 0.012;
+          blur_passes = 6;
+          blur_size = 12;
+          noise = 0.010;
           contrast = 1.06;
-          brightness = 0.48;
-          vibrancy = 0.20;
-          vibrancy_darkness = 0.18;
+          brightness = 0.44;
+          vibrancy = 0.24;
+          vibrancy_darkness = 0.20;
         }
       ];
 
@@ -48,8 +49,8 @@ in
           "m3Emphasized, 0.05, 0.7, 0.1, 1.0"
         ];
         animation = [
-          "fadeIn, 1, 5, m3Emphasized"
-          "fadeOut, 1, 4, m3Standard"
+          "fadeIn, 1, 4, m3Emphasized"
+          "fadeOut, 1, 3, m3Standard"
           "inputFieldDots, 1, 3, m3Emphasized"
         ];
       };
@@ -57,36 +58,72 @@ in
       shape = [
         {
           monitor = "";
-          size = "700, 360";
+          size = "792, 432";
           color = surface;
-          rounding = 24;
-          border_size = 0;
-          position = "0, 0";
+          rounding = 28;
+          border_size = 1;
+          border_color = outline;
+          position = "0, -4";
           halign = "center";
           valign = "center";
           zindex = 0;
           shadow_passes = 4;
-          shadow_size = 12;
-          shadow_color = "rgba(0,0,0,0.46)";
+          shadow_size = 14;
+          shadow_color = "rgba(0,0,0,0.52)";
         }
         {
           monitor = "";
-          size = "104, 104";
+          size = "282, 400";
           color = primaryContainer;
-          rounding = 52;
+          rounding = 48;
           border_size = 0;
-          position = "-205, 92";
+          position = "-239, -4";
           halign = "center";
           valign = "center";
           zindex = 1;
         }
         {
           monitor = "";
-          size = "1, 274";
-          color = outline;
-          rounding = 0;
+          size = "72, 72";
+          color = surfaceContainer;
+          rounding = 20;
           border_size = 0;
-          position = "-46, 0";
+          position = "-239, 128";
+          halign = "center";
+          valign = "center";
+          zindex = 1;
+        }
+        {
+          monitor = "";
+          size = "218, 40";
+          color = surfaceContainer;
+          rounding = 20;
+          border_size = 1;
+          border_color = outline;
+          position = "-239, -157";
+          halign = "center";
+          valign = "center";
+          zindex = 2;
+        }
+        {
+          monitor = "";
+          size = "56, 56";
+          color = primaryContainer;
+          rounding = 16;
+          border_size = 0;
+          position = "142, 128";
+          halign = "center";
+          valign = "center";
+          zindex = 1;
+        }
+        {
+          monitor = "";
+          size = "300, 40";
+          color = surfaceContainer;
+          rounding = 20;
+          border_size = 1;
+          border_color = outline;
+          position = "142, -154";
           halign = "center";
           valign = "center";
           zindex = 1;
@@ -97,10 +134,10 @@ in
         {
           monitor = "";
           path = "${nixLogoPng}";
-          size = 64;
-          rounding = 18;
+          size = 46;
+          rounding = 12;
           border_size = 0;
-          position = "-205, 92";
+          position = "-239, 128";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -112,9 +149,9 @@ in
           monitor = "";
           text = "$TIME";
           color = white;
-          font_size = 54;
+          font_size = 64;
           font_family = "Noto Sans";
-          position = "-205, 6";
+          position = "-239, 34";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -122,10 +159,10 @@ in
         {
           monitor = "";
           text = "cmd[update:60000] date +\"%A, %d %B %Y\"";
-          color = secondary;
+          color = onSurfaceVariant;
           font_size = 12;
           font_family = "Noto Sans";
-          position = "-205, -44";
+          position = "-239, -31";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -133,10 +170,21 @@ in
         {
           monitor = "";
           text = "<b>$USER</b> · NixOS";
-          color = primary;
+          color = white;
           font_size = 11;
           font_family = "Noto Sans";
-          position = "-205, -112";
+          position = "-239, -157";
+          halign = "center";
+          valign = "center";
+          zindex = 2;
+        }
+        {
+          monitor = "";
+          text = "lock";
+          color = primary;
+          font_size = 27;
+          font_family = "Material Symbols Rounded";
+          position = "142, 128";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -145,9 +193,9 @@ in
           monitor = "";
           text = "<b>Mở khóa phiên làm việc</b>";
           color = white;
-          font_size = 20;
+          font_size = 22;
           font_family = "Noto Sans";
-          position = "124, 88";
+          position = "142, 78";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -155,21 +203,32 @@ in
         {
           monitor = "";
           text = "Nhập mật khẩu của $USER để tiếp tục";
-          color = secondary;
+          color = onSurfaceVariant;
           font_size = 10;
           font_family = "Noto Sans";
-          position = "124, 56";
+          position = "142, 47";
           halign = "center";
           valign = "center";
           zindex = 2;
         }
         {
           monitor = "";
-          text = "Nhấn Enter để xác thực";
-          color = secondary;
+          text = "Nhập mật khẩu rồi nhấn Enter";
+          color = onSurfaceVariant;
           font_size = 10;
           font_family = "Noto Sans";
-          position = "124, -62";
+          position = "142, -82";
+          halign = "center";
+          valign = "center";
+          zindex = 2;
+        }
+        {
+          monitor = "";
+          text = "Enter  ·  Xác thực an toàn";
+          color = onSurfaceVariant;
+          font_size = 10;
+          font_family = "Noto Sans";
+          position = "142, -154";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -179,14 +238,14 @@ in
       input-field = [
         {
           monitor = "";
-          size = "350, 60";
-          position = "124, 0";
+          size = "382, 64";
+          position = "142, -20";
           halign = "center";
           valign = "center";
           zindex = 2;
           outline_thickness = 2;
           inner_color = surfaceStrong;
-          outer_color = primaryContainer;
+          outer_color = primary;
           check_color = primary;
           fail_color = error;
           font_family = "Noto Sans";
@@ -194,7 +253,7 @@ in
           placeholder_text = "Mật khẩu";
           check_text = "Đang xác thực…";
           fail_text = "<b>Không đúng</b> · thử lại ($ATTEMPTS)";
-          rounding = 18;
+          rounding = 16;
           shadow_passes = 0;
           fade_on_empty = false;
           dots_size = 0.22;

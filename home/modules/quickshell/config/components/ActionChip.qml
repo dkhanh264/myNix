@@ -20,6 +20,7 @@ Item {
     Accessible.role: Accessible.Button
     Accessible.name: supportingText.length > 0
         ? label + ". " + supportingText : label
+    Accessible.checked: selected
     Accessible.focusable: enabled
 
     Keys.onPressed: event => {
@@ -34,8 +35,7 @@ Item {
         id: chipSurface
         anchors.fill: parent
         radius: pointer.pressed ? Theme.shapeSmall
-            : (root.selected || root.supportingText.length > 0
-                ? Theme.cardRadius : Theme.shapeMedium)
+            : root.selected ? Theme.shapeMedium : height / 2
         color: root.selected
             ? Theme.secondaryContainer
             : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow)
@@ -62,7 +62,7 @@ Item {
         width: 32
         height: 32
         radius: pointer.pressed ? Theme.shapeSmall
-            : (root.selected ? Theme.shapeMedium : width / 2)
+            : (root.selected ? Theme.shapeSmall : width / 2)
         anchors.left: parent.left
         anchors.leftMargin: Theme.space2
         anchors.verticalCenter: parent.verticalCenter

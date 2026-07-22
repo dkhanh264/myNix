@@ -50,6 +50,10 @@ Scope {
 
     property bool notificationHistoryLoading: false
     property bool screenshotsLoading: false
+    property bool screenshotTrashBusy: false
+    property string screenshotTrashPath: ""
+    readonly property string screenshotDirectory:
+        Quickshell.env("HOME") + "/Pictures/Screenshots"
 
     property bool recording: false
     property bool recordingPaused: false
@@ -806,7 +810,7 @@ Scope {
             return;
         screenshotsLoading = true;
         screenshotQuery.exec([
-            "find", Quickshell.env("HOME") + "/Pictures/Screenshots",
+            "find", screenshotDirectory,
             "-maxdepth", "1", "-type", "f", "(",
             "-iname", "*.png", "-o", "-iname", "*.jpg", "-o",
             "-iname", "*.jpeg", "-o", "-iname", "*.webp", ")",
@@ -856,6 +860,23 @@ Scope {
     function openScreenshot(path) {
         if (path)
             Quickshell.execDetached(["xdg-open", path]);
+    }
+
+    function deleteScreenshot(path) {
+        if (!path || screenshotTrash.running)
+            return;
+
+        // Only files discovered inside the configured screenshot directory
+        // may be moved. trash-put keeps this destructive action recoverable.
+        if (!path.startsWith(screenshotDirectory + "/")) {
+            showMessage(I18n.tr("Không thể xóa ảnh này",
+                "Could not delete this screenshot"));
+            return;
+        }
+
+        screenshotTrashPath = path;
+        screenshotTrashBusy = true;
+        screenshotTrash.exec(["trash-put", path]);
     }
 
     function loadCalendarEvents() {
@@ -1100,6 +1121,32 @@ Scope {
                 ? I18n.tr("Đã sao chép ảnh", "Screenshot copied")
                 : I18n.tr("Không thể sao chép ảnh",
                     "Could not copy screenshot"));
+        }
+    }
+
+    Process {
+        id: screenshotTrash
+        onExited: (exitCode, exitStatus) => {
+            const removedPath = root.screenshotTrashPath;
+            root.screenshotTrashBusy = false;
+            root.screenshotTrashPath = "";
+
+            if (exitCode === 0) {
+                for (let index = screenshotModel.count - 1;
+                        index >= 0; --index) {
+                    if (screenshotModel.get(index).filePath
+                            === removedPath) {
+                        screenshotModel.remove(index);
+                        break;
+                    }
+                }
+                root.showMessage(I18n.tr(
+                    "Đã chuyển ảnh vào Thùng rác",
+                    "Screenshot moved to Trash"));
+            } else {
+                root.showMessage(I18n.tr("Không thể xóa ảnh chụp",
+                    "Could not delete screenshot"));
+            }
         }
     }
 
