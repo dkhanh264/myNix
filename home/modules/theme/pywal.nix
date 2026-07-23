@@ -11,30 +11,6 @@ let
     gradient_color_5 = '#9DDBD4'
   '';
 
-  fallbackMakoTheme = pkgs.writeText "mako-wal-fallback" ''
-    background-color=#1b1b1fe6
-    text-color=#e5e1e6
-    border-color=#bec2ff
-    progress-color=over #bec2ffaa
-
-    [urgency=low]
-    background-color=#1b1b1fcc
-    text-color=#e5e1e6
-    border-color=#938f9966
-    progress-color=over #938f9966
-
-    [urgency=normal]
-    background-color=#1b1b1fe6
-    text-color=#e5e1e6
-    border-color=#bec2ff
-    progress-color=over #bec2ffaa
-
-    [urgency=critical]
-    background-color=#2b0b0ef2
-    text-color=#ffdad6
-    border-color=#ffb4ab
-    progress-color=over #ffb4abaa
-  '';
 
   fallbackBtopTheme = pkgs.writeText "btop-wal-fallback" ''
     theme[main_bg]="#1b1b1f"
@@ -102,7 +78,6 @@ let
       jq
       kitty
       libnotify
-      mako
       procps
     ];
     text = ''
@@ -224,7 +199,9 @@ let
       BG_HEX="''${BG#\#}"
       FG_HEX="''${FG#\#}"
       PRIMARY_HEX="''${PRIMARY#\#}"
+      PRIMARY_BRIGHT_HEX="''${PRIMARY_BRIGHT#\#}"
       SECONDARY_HEX="''${SECONDARY#\#}"
+      TERTIARY_HEX="''${TERTIARY#\#}"
       MUTED_HEX="''${MUTED#\#}"
       ON_PRIMARY_HEX=$(readable_on_color "$PRIMARY")
       ON_SECONDARY_HEX=$(readable_on_color "$SECONDARY")
@@ -388,36 +365,6 @@ let
         cava_changed=1
       fi
 
-      # Critical notifications use a stable semantic error palette instead of
-      # assuming that Pywal's color1 is always a legible red.
-      if atomic_write "$MAKO_COLORS" <<EOF
-      background-color=''${BG}E6
-      text-color=$FG
-      border-color=$PRIMARY
-      progress-color=over ''${PRIMARY}AA
-
-      [urgency=low]
-      background-color=''${BG}CC
-      text-color=$FG
-      border-color=''${MUTED}66
-      progress-color=over ''${MUTED}66
-
-      [urgency=normal]
-      background-color=''${BG}E6
-      text-color=$FG
-      border-color=$PRIMARY
-      progress-color=over ''${PRIMARY}AA
-
-      [urgency=critical]
-      background-color=#2b0b0ef2
-      text-color=#ffdad6
-      border-color=$ERROR
-      progress-color=over #ffb4abaa
-      EOF
-      then
-        changed_any=1
-        mako_changed=1
-      fi
 
       # Hyprland sources this file after its static fallbacks. Full option paths
       # make the generated contract independent of the Nix attribute layout.
@@ -437,6 +384,12 @@ let
       group:groupbar:text_color_inactive = rgba(''${FG_HEX}cc)
       group:groupbar:text_color_locked_active = rgba(''${ON_SECONDARY_HEX}ff)
       group:groupbar:text_color_locked_inactive = rgba(''${FG_HEX}b3)
+EOF
+      then
+        changed_any=1
+        hypr_changed=1
+      fi
+
       if atomic_write "$HYPRLOCK_COLORS" <<EOF
       \$bg = rgba(''${BG_HEX}ff)
       \$fg = rgba(''${FG_HEX}ff)
@@ -448,15 +401,15 @@ let
       \$surface_container = rgba(''${BG_HEX}dd)
       \$on_primary = rgba(''${ON_PRIMARY_HEX}ff)
       \$error = rgba(ffb4abff)
-      EOF
+EOF
       then
         changed_any=1
       fi
 
       # Notify immediately as soon as colors are updated so user feedback is instant
       if (( changed_any )); then
-        notify-send -a "System Theme" -i preferences-desktop-theme -t 2000 \
-          "Theme updated" "System colors now match your wallpaper." || true
+        notify-send -a "System Theme" -i preferences-desktop-theme -t 3000 \
+          "Đã cập nhật giao diện" "Màu hệ thống đã đồng bộ theo hình nền mới." || true
       fi
 
       # Reload consumers whose generated files changed
@@ -469,9 +422,6 @@ let
       fi
       if (( cava_changed )); then
         pkill -USR2 -x cava >/dev/null 2>&1 || true
-      fi
-      if (( mako_changed )); then
-        makoctl reload >/dev/null 2>&1 || true
       fi
       if (( hypr_changed )); then
         hyprctl reload config-only >/dev/null 2>&1 || true
@@ -730,11 +680,7 @@ in
       run install -m 0644 ${fallbackCavaTheme} "$cava_theme"
     fi
 
-    mako_theme="$HOME/.cache/wal/mako-colors.conf"
-    if [[ ! -e "$mako_theme" ]]; then
-      run mkdir -p "$(dirname "$mako_theme")"
-      run install -m 0644 ${fallbackMakoTheme} "$mako_theme"
-    fi
+
   '';
 
   # Re-export an existing Pywal cache during activation so newly added

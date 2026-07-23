@@ -810,61 +810,23 @@ Scope {
             + (device.name || I18n.tr("thiết bị", "device")) + "”");
     }
 
-    function refreshNotificationHistory() {
-        if (notificationHistoryQuery.running)
-            return;
-        notificationHistoryLoading = true;
-        notificationHistoryQuery.exec(["makoctl", "history"]);
+    function addNotificationToHistory(summary, appName, body) {
+        notificationHistoryModel.insert(0, {
+            "notificationId": Date.now(),
+            "summary": summary || I18n.tr("Thông báo", "Notification"),
+            "appName": appName || I18n.tr("Hệ thống", "System"),
+            "body": body || ""
+        });
+        if (notificationHistoryModel.count > 50) {
+            notificationHistoryModel.remove(50, notificationHistoryModel.count - 50);
+        }
     }
 
-    function applyNotificationHistory(output) {
-        notificationHistoryModel.clear();
-        let current = null;
-        const lines = output.split("\n");
-
-        function appendCurrent() {
-            if (!current)
-                return;
-            notificationHistoryModel.append({
-                "notificationId": current.notificationId,
-                "summary": current.summary || I18n.tr("Thông báo", "Notification"),
-                "appName": current.appName || I18n.tr("Hệ thống", "System"),
-                "body": current.body || ""
-            });
-        }
-
-        for (let index = 0; index < lines.length; ++index) {
-            const header = lines[index].match(/^Notification\s+(\d+):\s*(.*)$/);
-            if (header) {
-                appendCurrent();
-                current = {
-                    "notificationId": parseInt(header[1]) || 0,
-                    "summary": header[2].trim(),
-                    "appName": "",
-                    "body": ""
-                };
-                continue;
-            }
-            if (!current)
-                continue;
-            const app = lines[index].match(/^\s+App name:\s*(.*)$/);
-            if (app) {
-                current.appName = app[1].trim();
-                continue;
-            }
-            const body = lines[index].match(/^\s+Body:\s*(.*)$/);
-            if (body)
-                current.body = body[1].trim();
-        }
-        appendCurrent();
+    function refreshNotificationHistory() {
         notificationHistoryLoading = false;
     }
 
     function restoreNotification(notificationId) {
-        if (notificationAction.running)
-            return;
-        // Mako exposes restore-latest rather than restore-by-id.
-        notificationAction.exec(["makoctl", "restore"]);
     }
 
     function refreshScreenshots() {

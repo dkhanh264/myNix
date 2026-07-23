@@ -3,6 +3,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
+import Quickshell.Services.Notifications
+import Quickshell.Services.Mpris
 import "./components"
 import "./services"
 import "./theme"
@@ -16,8 +18,79 @@ ShellRoot {
     property bool popupOpen: false
     property bool popupVisible: false
 
+    property string volumeOsdScreen: ""
+    property bool volumeOsdVisible: false
+
+    property string toastScreen: ""
+    property bool toastVisible: false
+    property string toastTitle: ""
+    property string toastBody: ""
+    property string toastIcon: "notifications"
+    property string toastImage: ""
+
     SystemService {
         id: systemService
+    }
+
+    NotificationServer {
+        id: notifServer
+        onNotification: notification => {
+            systemService.addNotificationToHistory(notification.summary, notification.appName, notification.body);
+            root.showToast(notification.summary, notification.body, notification.appName || "notifications", "");
+        }
+    }
+
+    Instantiator {
+        model: Mpris.players.values
+        delegate: Item {
+            required property var modelData
+            property string lastTrack: ""
+            Connections {
+                target: modelData
+                function onTrackTitleChanged() {
+                    const title = modelData.trackTitle || "";
+                    if (title.length > 0 && title !== lastTrack) {
+                        lastTrack = title;
+                        const artist = modelData.trackArtist || "";
+                        root.showToast("Đang phát", title + (artist ? " · " + artist : ""), "music", modelData.trackArtUrl || "");
+                    }
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: volumeOsdTimer
+        interval: 2000
+        onTriggered: root.volumeOsdVisible = false
+    }
+
+    function triggerVolumeOsd() {
+        systemService.refreshVolume();
+        volumeOsdScreen = focusedScreenName();
+        volumeOsdVisible = true;
+        volumeOsdTimer.restart();
+    }
+
+    Timer {
+        id: toastTimer
+        interval: 3500
+        onTriggered: root.toastVisible = false
+    }
+
+    function showToast(title, body, icon, image) {
+        toastTitle = title || "";
+        toastBody = body || "";
+        toastIcon = icon || "notifications";
+        toastImage = image || "";
+        toastScreen = focusedScreenName();
+        toastVisible = true;
+        toastTimer.restart();
+    }
+
+    function hideToast() {
+        toastTimer.stop();
+        toastVisible = false;
     }
 
     function focusedScreenName() {
@@ -209,6 +282,16 @@ ShellRoot {
         function wallpapers(): void {
             root.showPopup("wallpaper", "");
         }
+    }
+
+    IpcHandler {
+        target: "volumeOsd"
+
+        function trigger(): void { root.triggerVolumeOsd(); }
+        function show(): void { root.triggerVolumeOsd(); }
+        function up(): void { systemService.nudgeVolume(5); root.triggerVolumeOsd(); }
+        function down(): void { systemService.nudgeVolume(-5); root.triggerVolumeOsd(); }
+        function mute(): void { systemService.toggleMute(); root.triggerVolumeOsd(); }
     }
 
     Variants {
@@ -727,6 +810,63 @@ ShellRoot {
                         anchors.fill: parent
                         controller: systemService
                     }
+                }
+            }
+
+            PanelWindow {
+                id: volumeOsdWindow
+                screen: barWindow.modelData
+                visible: root.volumeOsdVisible && root.volumeOsdScreen === barWindow.modelData.name
+                color: "transparent"
+                WlrLayershell.namespace: "volume-osd"
+                WlrLayershell.layer: WlrLayer.Overlay
+                exclusiveZone: 0
+                anchors {
+                    right: true
+                }
+                margins {
+                    right: 24
+                }
+
+                implicitWidth: volumeOsdWidget.implicitWidth
+                implicitHeight: volumeOsdWidget.implicitHeight
+
+                AndroidVolumeOsd {
+                    id: volumeOsdWidget
+                    controller: systemService
+                    shown: root.volumeOsdVisible
+                    onInteractionOccurred: root.triggerVolumeOsd()
+                }
+            }
+
+            PanelWindow {
+                id: toastWindow
+                screen: barWindow.modelData
+                visible: root.toastVisible && root.toastScreen === barWindow.modelData.name
+                color: "transparent"
+                WlrLayershell.namespace: "toast-notification"
+                WlrLayershell.layer: WlrLayer.Overlay
+                exclusiveZone: 0
+                anchors {
+                    top: true
+                    right: true
+                }
+                margins {
+                    top: Theme.barHeight + 12
+                    right: 24
+                }
+
+                implicitWidth: toastWidget.implicitWidth
+                implicitHeight: toastWidget.implicitHeight
+
+                ToastNotification {
+                    id: toastWidget
+                    title: root.toastTitle
+                    bodyText: root.toastBody
+                    iconName: root.toastIcon
+                    imageSource: root.toastImage
+                    shown: root.toastVisible
+                    onDismissed: root.hideToast()
                 }
             }
         }

@@ -36,9 +36,7 @@ let
         title="Âm lượng · ''${volume_percent}%"
       fi
 
-      notify-send -a "System controls" -u low -t 1600 -i "$icon" \
-        -h string:x-canonical-private-synchronous:volume \
-        -h int:value:"$volume_percent" "$title" || true
+      quickshell ipc call volumeOsd trigger >/dev/null 2>&1 || true
     '';
   };
 

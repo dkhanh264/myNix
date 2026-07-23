@@ -183,15 +183,16 @@ Item {
                     radius: Theme.cardRadius
                     color: Theme.surfaceContainerLow
 
-                    LiquidGauge {
+                    Md3CircularProgress {
                         id: metricGauge
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.top: parent.top
                         anchors.topMargin: Theme.space2
-                        diameter: 64
+                        diameter: 62
+                        strokeWidth: 5
                         value: modelData.progress
                         valueText: modelData.value
-                        liquidColor: modelData.color
+                        progressColor: modelData.color
                         accessibleName: modelData.label
                     }
 

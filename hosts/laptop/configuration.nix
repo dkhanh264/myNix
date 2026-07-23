@@ -245,6 +245,7 @@
     pciutils
     libimobiledevice
     usbmuxd
+    libsForQt5.sddm-sugar-candy
   ];
 
   environment.sessionVariables = {
