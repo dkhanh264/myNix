@@ -2,7 +2,7 @@
 let
   volumeOsd = pkgs.writeShellApplication {
     name = "volume-osd";
-    runtimeInputs = with pkgs; [ wireplumber libnotify gawk ];
+    runtimeInputs = with pkgs; [ wireplumber ];
     text = ''
       case "''${1:-}" in
         up) wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+ ;;
@@ -13,28 +13,6 @@ let
           exit 2
           ;;
       esac
-
-      state="$(LC_ALL=C wpctl get-volume @DEFAULT_AUDIO_SINK@)"
-      volume_percent="$(awk '{
-        value = int($2 * 100 + 0.5)
-        if (value < 0) value = 0
-        if (value > 100) value = 100
-        print value
-      }' <<< "$state")"
-
-      if [[ "$state" == *"[MUTED]"* ]]; then
-        icon="audio-volume-muted-symbolic"
-        title="Đã tắt tiếng"
-      elif (( volume_percent < 34 )); then
-        icon="audio-volume-low-symbolic"
-        title="Âm lượng · ''${volume_percent}%"
-      elif (( volume_percent < 67 )); then
-        icon="audio-volume-medium-symbolic"
-        title="Âm lượng · ''${volume_percent}%"
-      else
-        icon="audio-volume-high-symbolic"
-        title="Âm lượng · ''${volume_percent}%"
-      fi
 
       quickshell ipc call volumeOsd trigger >/dev/null 2>&1 || true
     '';

@@ -90,7 +90,6 @@ let
       KITTY_COLORS="$HOME/.config/kitty/wal-theme.conf"
       BTOP_COLORS="$HOME/.config/btop/themes/wal.theme"
       CAVA_COLORS="$HOME/.config/cava/themes/wal"
-      MAKO_COLORS="$HOME/.cache/wal/mako-colors.conf"
       HYPR_COLORS="$HOME/.config/hypr/wal-colors.conf"
       HYPRLOCK_COLORS="$HOME/.config/hypr/hyprlock-colors.conf"
 
@@ -210,7 +209,6 @@ let
       css_changed=0
       kitty_changed=0
       cava_changed=0
-      mako_changed=0
       hypr_changed=0
 
       if atomic_write "$SEMANTIC_PALETTE" <<EOF
@@ -231,7 +229,7 @@ let
         "errorContainer": "$ERROR_CONTAINER",
         "onError": "$ON_ERROR"
       }
-      EOF
+EOF
       then
         changed_any=1
       fi
@@ -255,7 +253,7 @@ let
       @define-color success $SUCCESS;
       @define-color warning $WARNING;
       @define-color error $ERROR;
-      EOF
+EOF
       then
         changed_any=1
         css_changed=1
@@ -293,7 +291,7 @@ let
       color13 $C13
       color14 $C14
       color15 $C15
-      EOF
+EOF
       then
         changed_any=1
         kitty_changed=1
@@ -342,7 +340,7 @@ let
       theme[process_start]="$SUCCESS"
       theme[process_mid]="$WARNING"
       theme[process_end]="$C1"
-      EOF
+EOF
       then
         changed_any=1
       fi
@@ -359,7 +357,7 @@ let
       gradient_color_4 = '$SECONDARY_BRIGHT'
       gradient_color_5 = '$TERTIARY'
       gradient_color_6 = '$TERTIARY_BRIGHT'
-      EOF
+EOF
       then
         changed_any=1
         cava_changed=1
