@@ -6,7 +6,7 @@ let
     pname = "frierenblz-cursor-theme";
     version = "local";
 
-    src = ../../../assets/cursors/FrierenBLZ;
+    src = ../../assets/cursors/FrierenBLZ;
 
     dontUnpack = true;
     dontBuild = true;
