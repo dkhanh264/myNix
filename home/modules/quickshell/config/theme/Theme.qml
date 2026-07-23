@@ -96,17 +96,18 @@ Singleton {
     readonly property string textFont: "Noto Sans"
     readonly property string iconFont: "Material Symbols Rounded"
 
-    // Material 3 Expressive shape scale tokens & corner morphing values.
+    // Material 3 Expressive shape scale tokens & corner morphing values (Android 17 specs).
     readonly property int shapeNone: 0
     readonly property int shapeExtraSmall: 4
     readonly property int shapeSmall: 8
     readonly property int shapeMedium: 12
     readonly property int shapeLarge: 16
-    readonly property int shapeExtraLarge: 24
+    readonly property int shapeExtraLarge: 28
+    readonly property int shapeExpressiveContainer: 28
     readonly property int shapeFull: 9999
-    readonly property int shapePressed: 8
-    readonly property int shapeHovered: 16
-    readonly property int shapeSelected: 20
+    readonly property int shapePressed: 10
+    readonly property int shapeHovered: 18
+    readonly property int shapeSelected: 24
 
     readonly property int space1: 4
     readonly property int space2: 8

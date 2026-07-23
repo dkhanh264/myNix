@@ -155,17 +155,17 @@ in
         };
         blur = {
           enabled            = true;
-          size               = 12;
-          passes             = 3;
+          size               = 18;
+          passes             = 4;
           new_optimizations  = true;
           ignore_opacity     = true;
           popups             = true;
-          popups_ignorealpha = 0.08;
-          noise              = 0.012;
-          contrast           = 0.94;
-          brightness         = 0.88;
-          vibrancy           = 0.18;
-          vibrancy_darkness  = 0.08;
+          popups_ignorealpha = 0.05;
+          noise              = 0.015;
+          contrast           = 1.08;
+          brightness         = 0.92;
+          vibrancy           = 0.28;
+          vibrancy_darkness  = 0.12;
         };
       };
 
@@ -337,7 +337,7 @@ in
         "$mainMod, mouse:272, movewindow"
         "$mainMod, mouse:273, resizewindow"
       ];
-      # ── Blur cho các giao diện nổi ───────────────────────────────────
+      # ── Blur cho các giao diện nổi (Android 17 Glassmorphic Backdrop) ────
       layerrule = [
         "blur, walker"
         "ignorezero, walker"
@@ -347,7 +347,10 @@ in
         "ignorezero, notifications"
         "blur, m3-shell"
         "blurpopups, m3-shell"
-        "ignorealpha 0.08, m3-shell"
+        "ignorealpha 0.05, m3-shell"
+        "blur, quickshell"
+        "blurpopups, quickshell"
+        "ignorealpha 0.05, quickshell"
       ];
     };
 
