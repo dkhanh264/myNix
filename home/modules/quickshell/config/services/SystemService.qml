@@ -189,6 +189,13 @@ Scope {
         messageTimeout.restart();
     }
 
+    Timer {
+        id: messageTimeout
+        interval: 3500
+        repeat: false
+        onTriggered: root.message = ""
+    }
+
     function refreshAll() {
         refreshVolume();
         refreshBrightness();
@@ -911,9 +918,19 @@ Scope {
         ]);
     }
 
+    Process {
+        id: detachedProcess
+    }
+
+    function execDetached(command) {
+        if (!command || command.length === 0)
+            return;
+        detachedProcess.exec(command);
+    }
+
     function openScreenshot(path) {
         if (path)
-            Quickshell.execDetached(["xdg-open", path]);
+            execDetached(["xdg-open", path]);
     }
 
     function deleteScreenshot(path) {
@@ -1073,13 +1090,13 @@ Scope {
         default:
             return;
         }
-        Quickshell.execDetached(command);
+        execDetached(command);
     }
 
     function openWeather() {
         const query = weatherLocationAvailable
             ? "thời tiết " + weatherLocation : "thời tiết vị trí hiện tại";
-        Quickshell.execDetached([
+        execDetached([
             "xdg-open",
             "https://www.google.com/search?q=" + encodeURIComponent(query)
         ]);
@@ -1088,16 +1105,16 @@ Scope {
     function sessionAction(action) {
         switch (action) {
         case "lock":
-            Quickshell.execDetached(["hyprlock"]);
+            execDetached(["hyprlock"]);
             break;
         case "logout":
-            Quickshell.execDetached(["hyprctl", "dispatch", "exit"]);
+            execDetached(["hyprctl", "dispatch", "exit"]);
             break;
         case "reboot":
-            Quickshell.execDetached(["systemctl", "reboot"]);
+            execDetached(["systemctl", "reboot"]);
             break;
         case "shutdown":
-            Quickshell.execDetached(["systemctl", "poweroff"]);
+            execDetached(["systemctl", "poweroff"]);
             break;
         }
     }

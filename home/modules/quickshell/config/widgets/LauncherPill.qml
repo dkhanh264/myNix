@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import "../components"
 import "../theme"
 
@@ -16,6 +17,10 @@ BarPill {
     hoverColor: Theme.primary
     outlineColor: Theme.alpha(Theme.primary, 0.55)
 
+    Process {
+        id: launcherProc
+    }
+
     Image {
         anchors.centerIn: parent
         width: 22
@@ -27,5 +32,5 @@ BarPill {
         smooth: true
     }
 
-    onClicked: Quickshell.execDetached(["walker-menu", "apps"])
+    onClicked: launcherProc.exec(["walker-menu", "apps"])
 }

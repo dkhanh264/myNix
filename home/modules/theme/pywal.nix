@@ -36,6 +36,64 @@ let
     progress-color=over #ffb4abaa
   '';
 
+  fallbackBtopTheme = pkgs.writeText "btop-wal-fallback" ''
+    theme[main_bg]="#1b1b1f"
+    theme[main_fg]="#e5e1e6"
+    theme[title]="#c0c1ff"
+    theme[hi_fg]="#a9c7ff"
+    theme[selected_bg]="#a9c7ff"
+    theme[selected_fg]="#1b1b1f"
+    theme[inactive_fg]="#938f99"
+    theme[graph_text]="#d7b9ff"
+    theme[meter_bg]="#1b1b1f"
+    theme[proc_misc]="#f3b7dd"
+    theme[cpu_box]="#a9c7ff"
+    theme[mem_box]="#d7b9ff"
+    theme[net_box]="#9ddbd4"
+    theme[proc_box]="#c0c1ff"
+    theme[div_line]="#938f99"
+    theme[temp_start]="#9ddbd4"
+    theme[temp_mid]="#f3b7dd"
+    theme[temp_end]="#ffb4ab"
+    theme[cpu_start]="#9ddbd4"
+    theme[cpu_mid]="#f3b7dd"
+    theme[cpu_end]="#ffb4ab"
+    theme[free_start]="#ffb4ab"
+    theme[free_mid]="#f3b7dd"
+    theme[free_end]="#9ddbd4"
+    theme[cached_start]="#d7b9ff"
+    theme[cached_mid]="#a9c7ff"
+    theme[cached_end]="#f3b7dd"
+    theme[available_start]="#d7b9ff"
+    theme[available_mid]="#a9c7ff"
+    theme[available_end]="#f3b7dd"
+    theme[used_start]="#9ddbd4"
+    theme[used_mid]="#f3b7dd"
+    theme[used_end]="#ffb4ab"
+    theme[download_start]="#9ddbd4"
+    theme[download_mid]="#d7b9ff"
+    theme[download_end]="#a9c7ff"
+    theme[upload_start]="#a9c7ff"
+    theme[upload_mid]="#f3b7dd"
+    theme[upload_end]="#d7b9ff"
+    theme[process_start]="#9ddbd4"
+    theme[process_mid]="#f3b7dd"
+    theme[process_end]="#ffb4ab"
+  '';
+
+  fallbackHyprlockTheme = pkgs.writeText "hyprlock-wal-fallback" ''
+    $bg = rgba(27, 27, 31, 1.0)
+    $fg = rgba(229, 225, 230, 1.0)
+    $primary = rgba(169, 199, 255, 1.0)
+    $primary_bright = rgba(192, 193, 255, 1.0)
+    $secondary = rgba(243, 183, 221, 1.0)
+    $tertiary = rgba(215, 185, 255, 1.0)
+    $surface = rgba(27, 27, 31, 0.70)
+    $surface_container = rgba(35, 36, 42, 0.85)
+    $on_primary = rgba(17, 19, 24, 1.0)
+    $error = rgba(255, 180, 171, 1.0)
+  '';
+
   walColorExport = pkgs.writeShellApplication {
     name = "wal-color-export";
     runtimeInputs = with pkgs; [
@@ -59,6 +117,7 @@ let
       CAVA_COLORS="$HOME/.config/cava/themes/wal"
       MAKO_COLORS="$HOME/.cache/wal/mako-colors.conf"
       HYPR_COLORS="$HOME/.config/hypr/wal-colors.conf"
+      HYPRLOCK_COLORS="$HOME/.config/hypr/hyprlock-colors.conf"
 
       declare -a TEMP_FILES=()
       cleanup() {
@@ -378,15 +437,29 @@ let
       group:groupbar:text_color_inactive = rgba(''${FG_HEX}cc)
       group:groupbar:text_color_locked_active = rgba(''${ON_SECONDARY_HEX}ff)
       group:groupbar:text_color_locked_inactive = rgba(''${FG_HEX}b3)
-      decoration:shadow:color = rgba(''${BG_HEX}b3)
-      decoration:shadow:color_inactive = rgba(''${BG_HEX}73)
+      if atomic_write "$HYPRLOCK_COLORS" <<EOF
+      \$bg = rgba(''${BG_HEX}ff)
+      \$fg = rgba(''${FG_HEX}ff)
+      \$primary = rgba(''${PRIMARY_HEX}ff)
+      \$primary_bright = rgba(''${PRIMARY_BRIGHT_HEX}ff)
+      \$secondary = rgba(''${SECONDARY_HEX}ff)
+      \$tertiary = rgba(''${TERTIARY_HEX}ff)
+      \$surface = rgba(''${BG_HEX}aa)
+      \$surface_container = rgba(''${BG_HEX}dd)
+      \$on_primary = rgba(''${ON_PRIMARY_HEX}ff)
+      \$error = rgba(ffb4abff)
       EOF
       then
         changed_any=1
-        hypr_changed=1
       fi
 
-      # Reload only consumers whose generated file actually changed.
+      # Notify immediately as soon as colors are updated so user feedback is instant
+      if (( changed_any )); then
+        notify-send -a "System Theme" -i preferences-desktop-theme -t 2000 \
+          "Theme updated" "System colors now match your wallpaper." || true
+      fi
+
+      # Reload consumers whose generated files changed
       if (( css_changed )); then
         pkill -USR2 -x waybar >/dev/null 2>&1 || true
         pkill -x walker >/dev/null 2>&1 || true
@@ -404,10 +477,7 @@ let
         hyprctl reload config-only >/dev/null 2>&1 || true
       fi
 
-      if (( changed_any )); then
-        notify-send -a "System Theme" -i preferences-desktop-theme -t 2200 \
-          "Theme updated" "System colors now match your wallpaper." || true
-      fi
+      pkill -x btop >/dev/null 2>&1 || true
     '';
   };
 
@@ -416,6 +486,7 @@ let
     runtimeInputs = with pkgs; [
       coreutils
       ffmpeg
+      imagemagick
       libnotify
       mpvpaper
       procps
@@ -429,10 +500,14 @@ let
       CURRENT_BACKGROUND_LINK="$HOME/.config/current-wallpaper"
       TEMP_FRAME=""
       TEMP_LINK_DIR=""
+      declare -a TEMP_FILES=()
 
       cleanup() {
         [[ -z "$TEMP_FRAME" ]] || rm -f -- "$TEMP_FRAME"
         [[ -z "$TEMP_LINK_DIR" ]] || rm -rf -- "$TEMP_LINK_DIR"
+        if (( ''${#TEMP_FILES[@]} > 0 )); then
+          rm -f -- "''${TEMP_FILES[@]}"
+        fi
       }
       trap cleanup EXIT
 
@@ -533,7 +608,11 @@ let
           --transition-fps 60 \
           >/dev/null 2>&1
 
-        wal -i "$NEW_BACKGROUND" -n --saturate 0.7 -q \
+        WAL_SAMPLE=$(mktemp --suffix=.png /tmp/wallpaper-sample-XXXXXX)
+        TEMP_FILES+=("$WAL_SAMPLE")
+        convert "$NEW_BACKGROUND" -resize 360x360^ "$WAL_SAMPLE" 2>/dev/null || cp -- "$NEW_BACKGROUND" "$WAL_SAMPLE"
+
+        wal -i "$WAL_SAMPLE" -n --saturate 0.7 -q \
           -o ${walColorExport}/bin/wal-color-export
       fi
 
@@ -633,6 +712,18 @@ in
   # Runtime includes must exist even on a fresh install or after the Pywal
   # cache is cleared. The exporter replaces these fallbacks atomically.
   home.activation.ensureRuntimePaletteFiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    btop_theme="$HOME/.config/btop/themes/wal.theme"
+    if [[ ! -e "$btop_theme" ]]; then
+      run mkdir -p "$(dirname "$btop_theme")"
+      run install -m 0644 ${fallbackBtopTheme} "$btop_theme"
+    fi
+
+    hyprlock_theme="$HOME/.config/hypr/hyprlock-colors.conf"
+    if [[ ! -e "$hyprlock_theme" ]]; then
+      run mkdir -p "$(dirname "$hyprlock_theme")"
+      run install -m 0644 ${fallbackHyprlockTheme} "$hyprlock_theme"
+    fi
+
     cava_theme="$HOME/.config/cava/themes/wal"
     if [[ ! -e "$cava_theme" ]]; then
       run mkdir -p "$(dirname "$cava_theme")"

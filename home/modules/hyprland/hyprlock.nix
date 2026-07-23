@@ -7,15 +7,6 @@ let
       --output "$out" \
       ${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake-white.svg
   '';
-  white = "rgba(255, 255, 255, 1.0)";
-  onSurfaceVariant = "rgba(208, 211, 222, 1.0)";
-  primary = "rgba(190, 194, 255, 1.0)";
-  primaryContainer = "rgba(48, 56, 94, 0.85)";
-  surface = "rgba(10, 13, 20, 0.65)";
-  surfaceContainer = "rgba(22, 27, 38, 0.75)";
-  surfaceStrong = "rgba(26, 32, 45, 0.85)";
-  outline = "rgba(255, 255, 255, 0.16)";
-  error = "rgba(255, 180, 171, 1.0)";
 in
 {
   programs.hyprlock = {
@@ -36,8 +27,8 @@ in
           blur_size = 10;
           noise = 0.012;
           contrast = 1.05;
-          brightness = 0.50;
-          vibrancy = 0.30;
+          brightness = 0.55;
+          vibrancy = 0.35;
           vibrancy_darkness = 0.20;
         }
       ];
@@ -47,80 +38,89 @@ in
         bezier = [
           "m3Standard, 0.2, 0.0, 0.0, 1.0"
           "m3Emphasized, 0.05, 0.7, 0.1, 1.0"
+          "expressive, 0.175, 0.885, 0.32, 1.275"
         ];
         animation = [
-          "fadeIn, 1, 4, m3Emphasized"
+          "fadeIn, 1, 4, expressive"
           "fadeOut, 1, 3, m3Standard"
           "inputFieldDots, 1, 3, m3Emphasized"
         ];
       };
 
       shape = [
+        # Main Hero Expressive Card Container
         {
           monitor = "";
-          size = "792, 432";
-          color = surface;
-          rounding = 24;
-          border_size = 1;
-          border_color = outline;
-          position = "0, -4";
+          size = "820, 480";
+          color = "$surface";
+          rounding = 32;
+          border_size = 2;
+          border_color = "$primary";
+          position = "0, 0";
           halign = "center";
           valign = "center";
           zindex = 0;
         }
+        # Left Accent Hero Section (Clock & Date Card)
         {
           monitor = "";
-          size = "282, 400";
-          color = primaryContainer;
-          rounding = 20;
-          border_size = 0;
-          position = "-239, -4";
-          halign = "center";
-          valign = "center";
-          zindex = 1;
-        }
-        {
-          monitor = "";
-          size = "72, 72";
-          color = surfaceContainer;
-          rounding = 20;
-          border_size = 0;
-          position = "-239, 128";
-          halign = "center";
-          valign = "center";
-          zindex = 1;
-        }
-        {
-          monitor = "";
-          size = "218, 40";
-          color = surfaceContainer;
-          rounding = 20;
+          size = "320, 436";
+          color = "$surface_container";
+          rounding = 24;
           border_size = 1;
-          border_color = outline;
-          position = "-239, -157";
+          border_color = "$primary";
+          position = "-224, 0";
+          halign = "center";
+          valign = "center";
+          zindex = 1;
+        }
+        # User Avatar Capsule Badge
+        {
+          monitor = "";
+          size = "80, 80";
+          color = "$surface";
+          rounding = 24;
+          border_size = 2;
+          border_color = "$primary";
+          position = "-224, 135";
           halign = "center";
           valign = "center";
           zindex = 2;
         }
+        # Expressive Lock Status Indicator Badge
         {
           monitor = "";
-          size = "56, 56";
-          color = primaryContainer;
-          rounding = 16;
+          size = "64, 64";
+          color = "$primary";
+          rounding = 20;
           border_size = 0;
-          position = "142, 128";
+          position = "170, 140";
           halign = "center";
           valign = "center";
           zindex = 1;
         }
+        # MD3 System Info Pill (User Badge)
         {
           monitor = "";
-          size = "300, 40";
-          color = surfaceContainer;
-          rounding = 20;
+          size = "236, 42";
+          color = "$surface";
+          rounding = 21;
           border_size = 1;
-          border_color = outline;
-          position = "142, -154";
+          border_color = "$primary";
+          position = "-224, -165";
+          halign = "center";
+          valign = "center";
+          zindex = 2;
+        }
+        # Security Footer Pill
+        {
+          monitor = "";
+          size = "320, 42";
+          color = "$surface_container";
+          rounding = 21;
+          border_size = 1;
+          border_color = "$primary";
+          position = "170, -165";
           halign = "center";
           valign = "center";
           zindex = 1;
@@ -131,101 +131,109 @@ in
         {
           monitor = "";
           path = "${nixLogoPng}";
-          size = 46;
-          rounding = 12;
+          size = 52;
+          rounding = 16;
           border_size = 0;
-          position = "-239, 128";
+          position = "-224, 135";
           halign = "center";
           valign = "center";
-          zindex = 2;
+          zindex = 3;
         }
       ];
 
       label = [
+        # Large Expressive Hero Clock Digit ($TIME)
         {
           monitor = "";
           text = "$TIME";
-          color = white;
-          font_size = 64;
-          font_family = "Noto Sans";
-          position = "-239, 34";
+          color = "$primary";
+          font_size = 68;
+          font_family = "Noto Sans Bold";
+          position = "-224, 32";
           halign = "center";
           valign = "center";
-          zindex = 2;
+          zindex = 3;
         }
+        # Formatted Date Label
         {
           monitor = "";
           text = "cmd[update:60000] date +\"%A, %d %B %Y\"";
-          color = onSurfaceVariant;
-          font_size = 12;
+          color = "$fg";
+          font_size = 13;
           font_family = "Noto Sans";
-          position = "-239, -31";
+          position = "-224, -36";
           halign = "center";
           valign = "center";
-          zindex = 2;
+          zindex = 3;
         }
+        # User Pill Label
         {
           monitor = "";
-          text = "<b>$USER</b> · NixOS";
-          color = white;
-          font_size = 11;
+          text = "<b>$USER</b> · NixOS Expressive";
+          color = "$fg";
+          font_size = 12;
           font_family = "Noto Sans";
-          position = "-239, -157";
+          position = "-224, -165";
           halign = "center";
           valign = "center";
-          zindex = 2;
+          zindex = 3;
         }
+        # Lock Icon inside Badge
         {
           monitor = "";
           text = "lock";
-          color = primary;
-          font_size = 27;
+          color = "$on_primary";
+          font_size = 30;
           font_family = "Material Symbols Rounded";
-          position = "142, 128";
+          position = "170, 140";
           halign = "center";
           valign = "center";
-          zindex = 2;
+          zindex = 3;
         }
+        # Main Title Header
         {
           monitor = "";
-          text = "<b>Mở khóa phiên làm việc</b>";
-          color = white;
-          font_size = 22;
-          font_family = "Noto Sans";
-          position = "142, 78";
+          text = "<b>Mở khóa hệ thống</b>";
+          color = "$fg";
+          font_size = 24;
+          font_family = "Noto Sans Bold";
+          position = "170, 82";
           halign = "center";
           valign = "center";
           zindex = 2;
         }
+        # Subtitle Prompt
         {
           monitor = "";
           text = "Nhập mật khẩu của $USER để tiếp tục";
-          color = onSurfaceVariant;
-          font_size = 10;
+          color = "$fg";
+          font_size = 11;
           font_family = "Noto Sans";
-          position = "142, 47";
+          position = "170, 48";
           halign = "center";
           valign = "center";
           zindex = 2;
         }
+        # Instruction Label
         {
           monitor = "";
           text = "Nhập mật khẩu rồi nhấn Enter";
-          color = onSurfaceVariant;
+          color = "$fg";
           font_size = 10;
           font_family = "Noto Sans";
-          position = "142, -82";
+          position = "170, -88";
           halign = "center";
           valign = "center";
           zindex = 2;
         }
+        # Footer Action Label
         {
           monitor = "";
-          text = "Enter  ·  Xác thực an toàn";
-          color = onSurfaceVariant;
-          font_size = 10;
+          text = "Enter  ·  Xác thực an toàn MD3";
+          color = "$fg";
+          font_size = 11;
           font_family = "Noto Sans";
-          position = "142, -154";
+          position = "170, -165";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -235,26 +243,26 @@ in
       input-field = [
         {
           monitor = "";
-          size = "382, 64";
-          position = "142, -20";
+          size = "360, 64";
+          position = "170, -20";
           halign = "center";
           valign = "center";
-          zindex = 2;
+          zindex = 3;
           outline_thickness = 2;
-          inner_color = surfaceStrong;
-          outer_color = primary;
-          check_color = primary;
-          fail_color = error;
+          inner_color = "$surface";
+          outer_color = "$primary";
+          check_color = "$primary";
+          fail_color = "$error";
           font_family = "Noto Sans";
-          font_color = white;
+          font_color = "$fg";
           placeholder_text = "Mật khẩu";
           check_text = "Đang xác thực…";
-          fail_text = "<b>Không đúng</b> · thử lại ($ATTEMPTS)";
-          rounding = 20;
+          fail_text = "<b>Không đúng</b> · Thử lại ($ATTEMPTS)";
+          rounding = 28;
           shadow_passes = 0;
           fade_on_empty = false;
-          dots_size = 0.22;
-          dots_spacing = 0.28;
+          dots_size = 0.24;
+          dots_spacing = 0.30;
           dots_center = true;
         }
       ];
@@ -263,5 +271,9 @@ in
         "fingerprint:enabled" = false;
       };
     };
+
+    extraConfig = ''
+      source = ~/.config/hypr/hyprlock-colors.conf
+    '';
   };
 }

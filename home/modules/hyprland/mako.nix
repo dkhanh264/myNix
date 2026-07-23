@@ -64,6 +64,9 @@
       [actionable=true]
       border-radius=12
 
+      [body-empty=true]
+      format=<b>%s</b>
+
       [grouped]
       format=<b>%s</b> <small>· %g</small>\n<span size="small">%b</span>
 

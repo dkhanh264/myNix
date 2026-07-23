@@ -23,7 +23,7 @@ slider,
 
 * {
   font-family: "Noto Sans", sans-serif;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 #window {
@@ -32,22 +32,26 @@ slider,
 }
 
 #box {
-  background: alpha(@background, 0.97);
-  padding: 20px;
-  border-radius: 24px;
-  box-shadow: 0 8px 12px alpha(black, 0.28);
+  background: alpha(@background, 0.95);
+  padding: 24px;
+  border-radius: 32px;
+  border: 2px solid alpha(@primary, 0.45);
+  box-shadow: 0 20px 40px alpha(black, 0.45);
 }
 
 #search {
-  background: alpha(@foreground, 0.09);
-  padding: 13px 15px;
-  margin-bottom: 12px;
-  border-radius: 16px;
+  background: alpha(@primary, 0.14);
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  border-radius: 28px;
+  border: 1px solid alpha(@primary, 0.40);
 }
 
 #prompt {
-  color: @selected-text;
-  margin-right: 10px;
+  color: @primary;
+  font-weight: 700;
+  margin-right: 12px;
+  font-size: 15px;
 }
 
 #clear {
@@ -57,17 +61,19 @@ slider,
 
 #input {
   color: @text;
-  caret-color: @selected-text;
+  caret-color: @primary;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 #input placeholder {
-  color: @text;
-  opacity: 0.78;
+  color: alpha(@text, 0.65);
+  font-size: 15px;
 }
 
 #typeahead {
-  color: @text;
-  opacity: 0.58;
+  color: alpha(@text, 0.45);
+  font-size: 15px;
 }
 
 #list {
@@ -75,15 +81,17 @@ slider,
 }
 
 child {
-  padding: 9px 11px;
-  margin: 2px 0;
+  padding: 10px 16px;
+  margin: 3px 0;
   background: transparent;
-  border-radius: 14px;
+  border-radius: 20px;
+  border: 1px solid transparent;
 }
 
 child:selected,
 child:hover {
-  background: alpha(@selected-text, 0.18);
+  background: alpha(@primary, 0.24);
+  border: 1px solid alpha(@primary, 0.50);
 }
 
 #item {
@@ -91,51 +99,58 @@ child:hover {
 }
 
 #icon {
-  margin-right: 12px;
-  -gtk-icon-transform: scale(0.92);
+  margin-right: 14px;
+  -gtk-icon-transform: scale(0.95);
 }
 
 #text {
   color: @text;
-  padding: 4px 0;
+  padding: 2px 0;
 }
 
 #label {
   color: @text;
   font-weight: 600;
+  font-size: 14px;
 }
 
 #sub {
-  color: @text;
+  color: alpha(@text, 0.72);
   font-size: 11px;
-  opacity: 0.74;
+  margin-top: 2px;
 }
 
 child:selected #label,
 child:selected #text,
 child:hover #label,
 child:hover #text {
-  color: @selected-text;
+  color: @primary;
+  font-weight: 700;
+}
+
+child:selected #sub,
+child:hover #sub {
+  color: alpha(@primary, 0.85);
 }
 
 #activationlabel {
-  color: @text;
+  color: alpha(@text, 0.60);
   font-size: 11px;
-  opacity: 0.66;
+  font-weight: 700;
 }
 
 scrollbar {
-  margin-left: 6px;
+  margin-left: 8px;
 }
 
 scrollbar slider {
-  min-width: 3px;
-  background: alpha(@selected-text, 0.55);
+  min-width: 4px;
+  background: alpha(@primary, 0.60);
   border-radius: 999px;
 }
 
 #spinner {
-  color: @selected-text;
+  color: @primary;
 }
 
 #aiScroll,

@@ -55,11 +55,44 @@ Item {
         }
     }
 
+    readonly property bool hasNotification: root.controller
+        && root.controller.message.length > 0
+
     Row {
         id: centerGroup
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         spacing: Theme.space2
+        opacity: root.hasNotification ? 0 : 1
+        scale: root.hasNotification ? 0.88 : 1
+        visible: opacity > 0.001
+        enabled: !root.hasNotification
+
+        transform: Translate {
+            y: root.hasNotification ? -10 : 0
+
+            Behavior on y {
+                NumberAnimation {
+                    duration: Theme.motionMedium1
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: root.hasNotification
+                        ? Theme.emphasizedAccelerate : Theme.emphasizedDecelerate
+                }
+            }
+        }
+
+        Behavior on opacity {
+            NumberAnimation { duration: Theme.motionShort4 }
+        }
+
+        Behavior on scale {
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: root.hasNotification
+                    ? Theme.emphasizedAccelerate : Theme.emphasizedDecelerate
+            }
+        }
 
         ClockPillM3 {
             visible: root.showClock
@@ -105,22 +138,34 @@ Item {
     Rectangle {
         id: messageToast
 
-        readonly property bool shown: root.controller
-            && root.controller.message.length > 0
+        readonly property bool shown: root.hasNotification
 
         z: Theme.layerToast
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        width: Math.min(460, Math.max(180,
+        width: Math.min(480, Math.max(200,
             toastContent.implicitWidth + Theme.space4 * 2))
         height: Theme.barItemHeight
-        radius: shown ? height / 2 : Theme.shapeMedium
-        color: Theme.popupSurfaceStrong
+        radius: height / 2
+        color: Theme.primaryContainer
         border.width: Theme.barOutlineWidth
-        border.color: Theme.alpha(Theme.primary, 0.45)
+        border.color: Theme.primary
         opacity: shown ? 1 : 0
-        scale: shown ? 1 : 0.96
+        scale: shown ? 1 : 0.88
         visible: opacity > 0.001
+
+        transform: Translate {
+            y: messageToast.shown ? 0 : 10
+
+            Behavior on y {
+                NumberAnimation {
+                    duration: Theme.motionMedium1
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: messageToast.shown
+                        ? Theme.emphasizedDecelerate : Theme.emphasizedAccelerate
+                }
+            }
+        }
 
         Row {
             id: toastContent
@@ -129,7 +174,7 @@ Item {
 
             MaterialIcon {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "info"
+                text: "notifications_active"
                 iconSize: 18
                 color: Theme.primary
                 filled: true
@@ -137,12 +182,12 @@ Item {
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                width: Math.min(390, implicitWidth)
+                width: Math.min(410, implicitWidth)
                 text: root.controller ? root.controller.message : ""
                 color: Theme.textPrimary
                 font.family: Theme.textFont
-                font.pixelSize: 11
-                font.weight: Font.DemiBold
+                font.pixelSize: 12
+                font.weight: Font.Bold
                 elide: Text.ElideRight
             }
         }
@@ -156,13 +201,6 @@ Item {
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: messageToast.shown
                     ? Theme.emphasizedDecelerate : Theme.emphasizedAccelerate
-            }
-        }
-        Behavior on radius {
-            NumberAnimation {
-                duration: Theme.motionMedium1
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.springCurve
             }
         }
     }

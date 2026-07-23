@@ -1,11 +1,20 @@
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import "../components"
 
 Item {
     id: root
 
     implicitHeight: 62
+
+    Process {
+        id: launcherProc
+    }
+
+    Process {
+        id: wallpaperProc
+    }
 
     Row {
         anchors.fill: parent
@@ -17,7 +26,7 @@ Item {
             icon: "apps"
             label: "Applications"
             supportingText: "Search and launch"
-            onClicked: Quickshell.execDetached(["walker-menu", "apps"])
+            onClicked: launcherProc.exec(["walker-menu", "apps"])
         }
 
         ActionChip {
@@ -26,7 +35,7 @@ Item {
             icon: "wallpaper"
             label: "Wallpapers"
             supportingText: "Choose your backdrop"
-            onClicked: Quickshell.execDetached(["walker-menu", "wallpapers"])
+            onClicked: wallpaperProc.exec(["walker-menu", "wallpapers"])
         }
     }
 }

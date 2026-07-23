@@ -42,16 +42,16 @@ let
 
       system_menu() {
         local selection
-        selection="$(menu "System" \
-          "Lock\nSuspend\nRestart\nShut down\nSign out" \
+        selection="$(menu "Tùy chọn Nguồn" \
+          "Khóa màn hình (Lock)\nTạm dừng (Suspend)\nKhởi động lại (Restart)\nTắt máy (Shut down)\nĐăng xuất (Sign out)" \
           "$system_theme")" || return 0
 
         case "$selection" in
-          "Lock") hyprlock ;;
-          "Suspend") systemctl suspend ;;
-          "Restart") systemctl reboot ;;
-          "Shut down") systemctl poweroff ;;
-          "Sign out") hyprctl dispatch exit ;;
+          *"Khóa"*|*"Lock"*) hyprlock ;;
+          *"Tạm dừng"*|*"Suspend"*) systemctl suspend ;;
+          *"Khởi động"*|*"Restart"*) systemctl reboot ;;
+          *"Tắt máy"*|*"Shut down"*) systemctl poweroff ;;
+          *"Đăng xuất"*|*"Sign out"*) hyprctl dispatch exit ;;
           "") return 0 ;;
         esac
       }
@@ -105,20 +105,20 @@ let
 
       profile_menu() {
         local selection
-        selection="$(menu "Power mode" \
-          "Performance\nBalanced\nPower saver" "$system_theme")" \
+        selection="$(menu "Chế độ Nguồn" \
+          "Hiệu năng cao (Performance)\nCân bằng (Balanced)\nTiết kiệm pin (Power Saver)" "$system_theme")" \
           || return 0
 
         case "$selection" in
-          "Performance")
+          *"Performance"*|*"Hiệu năng"*)
             set_profile "performance" 144 "Performance" \
               "144 Hz · Full brightness control"
             ;;
-          "Balanced")
+          *"Balanced"*|*"Cân bằng"*)
             set_profile "balanced" 144 "Balanced" \
               "144 Hz · Balanced power use"
             ;;
-          "Power saver")
+          *"Power Saver"*|*"Tiết kiệm"*)
             set_profile "power-saver" 60 "Power saver" \
               "60 Hz · Brightness limited to 40%"
             ;;
@@ -133,7 +133,7 @@ let
           notify-send -a "Wallpaper" -u normal \
             -i "preferences-desktop-wallpaper-symbolic" \
             "Wallpaper" \
-            "Create ~/Pictures/wallpapers and add an image first" || true
+            "Tạo thư mục ~/Pictures/wallpapers và thêm hình ảnh" || true
           return 1
         fi
 
@@ -144,7 +144,7 @@ let
           -iname "*.webm" -o -iname "*.avi" -o \
           -iname "*.mov" \) -printf '%P\n' \
           | sort | walker --dmenu --theme "$app_theme" \
-            -p "Choose wallpaper…")" || return 0
+            -p "Chọn hình nền…")" || return 0
 
         if [[ -n "$selection" ]]; then
           set-background "$selection"
@@ -153,11 +153,12 @@ let
 
       launcher_menu() {
         local selection
-        selection="$(menu "Launcher" "Applications\nWallpapers" \
+        selection="$(menu "Trình khởi chạy" "Ứng dụng (Applications)\nHình nền (Wallpapers)\nTùy chọn nguồn (System Controls)" \
           "$system_theme")" || return 0
         case "$selection" in
-          "Applications") walker --theme "$app_theme" ;;
-          "Wallpapers") wallpaper_menu ;;
+          *"Applications"*|*"Ứng dụng"*) walker --theme "$app_theme" ;;
+          *"Wallpapers"*|*"Hình nền"*) wallpaper_menu ;;
+          *"System Controls"*|*"Tùy chọn"*) system_menu ;;
           "") return 0 ;;
         esac
       }

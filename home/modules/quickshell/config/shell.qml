@@ -203,7 +203,7 @@ ShellRoot {
         target: "launcher"
 
         function apps(): void {
-            Quickshell.execDetached(["walker-menu", "apps"]);
+            systemService.execDetached(["walker-menu", "apps"]);
         }
 
         function wallpapers(): void {
