@@ -35,8 +35,9 @@ ShellRoot {
     NotificationServer {
         id: notifServer
         onNotification: notification => {
+            const notifImg = notification.image || (notification.appIcon && (notification.appIcon.startsWith("/") || notification.appIcon.startsWith("file://") || notification.appIcon.startsWith("http")) ? notification.appIcon : "");
             systemService.addNotificationToHistory(notification.summary, notification.appName, notification.body);
-            root.showToast(notification.summary, notification.body, notification.appName || "notifications", "");
+            root.showToast(notification.summary, notification.body, notification.appName || "notifications", notifImg);
         }
     }
 

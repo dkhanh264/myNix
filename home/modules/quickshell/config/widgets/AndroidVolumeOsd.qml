@@ -12,9 +12,9 @@ Rectangle {
 
     signal interactionOccurred
 
-    implicitWidth: 60
+    implicitWidth: 56
     implicitHeight: 220
-    radius: 30
+    radius: 28
     color: Theme.popupSurface
     border.width: 1
     border.color: Theme.barOutline
@@ -36,12 +36,14 @@ Rectangle {
     }
 
     Column {
+        id: containerColumn
         anchors.fill: parent
-        anchors.margins: 6
+        anchors.margins: 8
         spacing: 8
 
         // Volume percentage badge at top
         Text {
+            id: badgeText
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.controller && root.controller.muted ? "MUTE" : (root.controller ? root.controller.volume + "%" : "--%")
             color: root.controller && root.controller.muted ? Theme.error : Theme.textPrimary
@@ -52,8 +54,9 @@ Rectangle {
 
         // Vertical MD3 Expressive Track Container
         Item {
+            id: trackItem
             width: parent.width
-            height: parent.height - 30
+            height: Math.max(100, parent.height - badgeText.implicitHeight - parent.spacing)
 
             readonly property real normVal: root.controller && !root.controller.muted
                 ? Math.max(0, Math.min(1, root.controller.volume / 100)) : 0
@@ -82,7 +85,7 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
-                height: Math.max(width, parent.height * parent.displayVal)
+                height: Math.max(width, Math.min(parent.height, parent.height * parent.displayVal))
                 radius: width / 2
                 color: root.controller && root.controller.muted
                     ? Theme.error : Theme.primary
@@ -92,18 +95,18 @@ Rectangle {
                 }
             }
 
-            // Speaker icon at the bottom of the track
+            // Speaker icon at the bottom of the track (perfectly centered in lower cap)
             MaterialIcon {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 10
+                anchors.bottomMargin: Math.max(4, Math.round((parent.width - iconSize) / 2))
                 text: {
                     if (!root.controller || root.controller.muted) return "volume_off";
                     if (root.controller.volume >= 60) return "volume_up";
                     if (root.controller.volume > 0) return "volume_down";
                     return "volume_mute";
                 }
-                iconSize: 22
+                iconSize: 20
                 color: root.controller && root.controller.muted ? Theme.onError : Theme.onPrimary
                 filled: true
             }
@@ -139,3 +142,4 @@ Rectangle {
         }
     }
 }
+

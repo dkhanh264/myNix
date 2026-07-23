@@ -17,8 +17,16 @@ Rectangle {
 
     signal dismissed
 
+    function formatSourceUrl(rawUrl) {
+        if (!rawUrl || rawUrl.length === 0)
+            return "";
+        if (rawUrl.startsWith("/") && !rawUrl.startsWith("//"))
+            return "file://" + rawUrl;
+        return rawUrl;
+    }
+
     implicitWidth: 380
-    implicitHeight: Math.max(68, contentRow.implicitHeight + 20)
+    implicitHeight: Math.max(72, contentRow.implicitHeight + 24)
     radius: 20
     color: Theme.popupSurface
     border.width: 1
@@ -48,29 +56,30 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        anchors.margins: 12
+        anchors.margins: 14
         spacing: 12
 
         // Left Icon / Image container
         Rectangle {
             id: iconBox
-            width: 44
-            height: 44
+            width: 46
+            height: 46
             radius: 14
             color: Theme.alpha(root.accentColor, 0.18)
             anchors.verticalCenter: parent.verticalCenter
             clip: true
 
             Image {
-                visible: root.imageSource.length > 0
+                id: notifImg
                 anchors.fill: parent
-                source: root.imageSource
+                source: root.formatSourceUrl(root.imageSource)
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
+                visible: root.imageSource.length > 0 && status === Image.Ready
             }
 
             MaterialIcon {
-                visible: root.imageSource.length === 0
+                visible: !notifImg.visible
                 anchors.centerIn: parent
                 text: root.iconName
                 iconSize: 22
@@ -83,7 +92,7 @@ Rectangle {
         Column {
             width: parent.width - iconBox.width - closeBtn.width - parent.spacing * 2
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 2
+            spacing: 3
 
             Text {
                 width: parent.width
@@ -119,3 +128,4 @@ Rectangle {
         }
     }
 }
+

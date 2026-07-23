@@ -425,7 +425,7 @@ EOF
         hyprctl reload config-only >/dev/null 2>&1 || true
       fi
 
-      pkill -x btop >/dev/null 2>&1 || true
+      pkill -USR2 -x btop >/dev/null 2>&1 || true
     '';
   };
 

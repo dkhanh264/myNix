@@ -56,9 +56,8 @@ Item {
     }
 
     function updateFromPosition(position) {
-        const travel = Math.max(1, track.width - handle.width);
-        const normalized = Math.max(0, Math.min(1,
-            (position - handle.width / 2) / travel));
+        if (width <= 0) return;
+        const normalized = Math.max(0, Math.min(1, position / width));
         moved(from + normalized * (to - from));
     }
 
@@ -90,9 +89,8 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         height: 24
 
-        readonly property real handleCenter: handle.width / 2
-            + root.displayProgress * Math.max(1, width - handle.width)
-        readonly property real handleGap: root.interacting ? 10 : (root.hovered ? 8 : 6)
+        readonly property real handleCenter: root.displayProgress * width
+        readonly property real handleGap: root.interacting ? 8 : (root.hovered ? 6 : 4)
 
         // M3 Expressive Active Track
         Rectangle {
@@ -119,8 +117,7 @@ Item {
         Rectangle {
             id: inactiveTrack
             anchors.verticalCenter: parent.verticalCenter
-            x: Math.min(parent.width,
-                parent.handleCenter + parent.handleGap / 2)
+            x: Math.min(parent.width, parent.handleCenter + parent.handleGap / 2)
             width: Math.max(0, parent.width - x)
             height: parent.height
             radius: height / 2
@@ -163,13 +160,11 @@ Item {
         // M3 Expressive Morphing Handle Capsule
         Rectangle {
             id: handle
-            width: root.interacting ? 10 : (root.hovered ? 6 : 4)
-            height: root.interacting
-                ? 38
-                : (root.hovered ? 34 : 30)
+            width: root.interacting ? 8 : (root.hovered ? 6 : 4)
+            height: root.interacting ? 36 : (root.hovered ? 32 : 28)
             radius: root.interacting ? Theme.shapeExtraSmall : width / 2
             anchors.verticalCenter: parent.verticalCenter
-            x: parent.handleCenter - width / 2
+            x: Math.max(0, Math.min(parent.width - width, parent.handleCenter - width / 2))
             color: root.interacting ? Theme.blend(root.accentColor, "#ffffff", 0.18) : root.accentColor
 
             Behavior on width {
@@ -232,3 +227,4 @@ Item {
         visible: root.activeFocus
     }
 }
+
