@@ -732,29 +732,30 @@ Scope {
     }
 
     function setPowerProfile(profile) {
-        if (powerProfileCommand.running || profile === powerProfile)
+        if (!profile || powerProfileCommand.running)
             return;
+
+        let cleanProfile = "balanced";
+        if (profile === "performance" || profile === "perf") {
+            cleanProfile = "performance";
+        } else if (profile === "power-saver" || profile === "powersave" || profile === "saver" || profile === "save") {
+            cleanProfile = "power-saver";
+        }
 
         powerProfileBusy = true;
         powerProfileError = "";
-        powerProfile = profile;
+        powerProfile = cleanProfile;
 
         let script = "";
-        if (profile === "power-saver" || profile === "powersave") {
+        if (cleanProfile === "power-saver") {
             script = "powerprofilesctl set power-saver 2>/dev/null || powerprofilesctl set powersave 2>/dev/null; "
-                + "for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$g\" ] && echo powersave > \"$g\"; done; "
-                + "for e in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do [ -w \"$e\" ] && echo power > \"$e\"; done; "
-                + "hyprctl keyword monitor \",60Hz,auto,1\" 2>/dev/null || true";
-        } else if (profile === "performance") {
+                + "hyprctl keyword monitor \"eDP-1, 1920x1080@60, auto, 1\" 2>/dev/null || true";
+        } else if (cleanProfile === "performance") {
             script = "powerprofilesctl set performance 2>/dev/null; "
-                + "for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$g\" ] && echo performance > \"$g\"; done; "
-                + "for e in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do [ -w \"$e\" ] && echo performance > \"$e\"; done; "
-                + "hyprctl keyword monitor \",preferred,auto,1\" 2>/dev/null || true";
+                + "hyprctl keyword monitor \"eDP-1, 1920x1080@144, auto, 1\" 2>/dev/null || true";
         } else {
             script = "powerprofilesctl set balanced 2>/dev/null; "
-                + "for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$g\" ] && echo schedutil > \"$g\" 2>/dev/null || echo balance_performance > \"$g\"; done; "
-                + "for e in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do [ -w \"$e\" ] && echo balance_performance > \"$e\"; done; "
-                + "hyprctl keyword monitor \",preferred,auto,1\" 2>/dev/null || true";
+                + "hyprctl keyword monitor \"eDP-1, 1920x1080@144, auto, 1\" 2>/dev/null || true";
         }
 
         powerProfileCommand.exec(["sh", "-c", script]);

@@ -704,11 +704,12 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "wallpaper"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(520, barWindow.width
+                popupWidth: Math.min(560, barWindow.width
                     - Theme.popupEdgeInset * 2)
                 popupHeight: Math.min(640,
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("wallpaper", barWindow.width, popupWidth)
+                    barWindow.modelData.height - barWindow.implicitHeight - 32)
+                popupX: Math.round((barWindow.width - popupWidth) / 2)
+                popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
                 onDismissed: root.popupDismissed("wallpaper")
 
                 PopupSurface {
