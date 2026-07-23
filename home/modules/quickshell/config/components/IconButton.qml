@@ -41,7 +41,8 @@ Item {
         id: buttonSurface
         anchors.fill: parent
         radius: pointer.pressed ? Theme.shapeMedium
-            : (root.checked ? Theme.shapeLarge : width / 2)
+            : root.checked ? Theme.shapeMedium
+            : pointer.containsMouse ? Theme.shapeLarge : width / 2
         color: root.checked
             ? Theme.primaryContainer
             : (pointer.containsMouse ? root.hoverColor : root.fillColor)

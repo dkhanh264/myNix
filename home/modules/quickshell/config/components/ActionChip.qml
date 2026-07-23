@@ -14,7 +14,7 @@ Item {
 
     implicitHeight: supportingText ? 56 : 48
     opacity: enabled ? 1 : 0.38
-    scale: presentationScale * (pointer.pressed ? 0.96 : 1)
+    scale: presentationScale * (pointer.pressed ? 0.96 : (pointer.containsMouse ? 1.015 : 1))
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.Button
@@ -35,12 +35,13 @@ Item {
         id: chipSurface
         anchors.fill: parent
         radius: pointer.pressed ? Theme.shapeSmall
-            : root.selected ? Theme.shapeMedium : height / 2
+            : root.selected ? Theme.shapeMedium
+            : pointer.containsMouse ? Theme.shapeLarge : height / 2
         color: root.selected
             ? Theme.secondaryContainer
             : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow)
         border.width: root.selected ? 0 : 1
-        border.color: Theme.outlineVariant
+        border.color: pointer.containsMouse ? Theme.outline : Theme.outlineVariant
 
         Behavior on color { ColorAnimation { duration: Theme.motionShort } }
         Behavior on radius {

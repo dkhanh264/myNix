@@ -20,24 +20,25 @@ Item {
 
     implicitHeight: 72
     opacity: enabled ? 1 : 0.42
-    scale: primaryPointer.pressed ? 0.975 : 1
+    scale: primaryPointer.pressed ? 0.96 : (primaryPointer.containsMouse ? 1.015 : 1)
 
     Rectangle {
         id: tileSurface
         anchors.fill: parent
         radius: primaryPointer.pressed ? Theme.shapeSmall
-            : root.active ? Theme.shapeLarge : Theme.shapeMedium
+            : root.active ? Theme.shapeLarge
+            : primaryPointer.containsMouse ? Theme.shapeExtraLarge : Theme.shapeMedium
         color: {
             if (root.active)
                 return primaryPointer.containsMouse
-                    ? Theme.blend(Theme.primaryContainer, Theme.primary, 0.10)
+                    ? Theme.blend(Theme.primaryContainer, Theme.primary, 0.14)
                     : Theme.primaryContainer;
             return primaryPointer.containsMouse
                 ? Theme.surfaceContainerHigh
                 : Theme.surfaceContainer;
         }
         border.width: root.active ? 0 : 1
-        border.color: Theme.outlineVariant
+        border.color: primaryPointer.containsMouse ? Theme.outline : Theme.outlineVariant
 
         Behavior on radius {
             NumberAnimation {

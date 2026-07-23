@@ -124,7 +124,7 @@
         Current = "sugar-candy";
         CursorTheme = "Adwaita";
         CursorSize = 24;
-        Font = "JetBrains Mono Nerd Font";
+        Font = "Noto Sans";
       };
     };
   };
@@ -222,11 +222,19 @@
   fonts.packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
+    noto-fonts-color-emoji
     material-symbols
     nerd-fonts.jetbrains-mono
     nerd-fonts.fira-code
     font-awesome
   ];
+
+  fonts.fontconfig.defaultFonts = {
+    sansSerif = [ "Noto Sans" ];
+    serif = [ "Noto Serif" ];
+    monospace = [ "JetBrainsMono Nerd Font Mono" "Noto Sans Mono" ];
+    emoji = [ "Noto Color Emoji" ];
+  };
 
   # ── System Packages ────────────────────────────────────────────────────
   environment.systemPackages = with pkgs; [

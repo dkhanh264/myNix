@@ -68,6 +68,41 @@ Scope {
     property string pendingWallpaper: ""
     property bool wallpapersLoading: false
 
+    property var cavaBars: [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0]
+    property bool cavaActive: false
+
+    function applyCavaData(line) {
+        if (!line || line.trim().length === 0)
+            return;
+        const parts = line.trim().split(";");
+        const bars = [];
+        for (let i = 0; i < Math.min(16, parts.length); ++i) {
+            const val = parseInt(parts[i], 10);
+            bars.push(isNaN(val) ? 0 : Math.max(0, Math.min(100, val)));
+        }
+        while (bars.length < 16)
+            bars.push(0);
+        cavaBars = bars;
+    }
+
+    function setCavaActive(active) {
+        if (cavaActive === active)
+            return;
+        cavaActive = active;
+        if (active) {
+            cavaInitProcess.exec([
+                "sh", "-c",
+                "mkdir -p /tmp/cava_qs && cat << 'EOF' > /tmp/cava_qs/config\n"
+                    + "[general]\nbars = 16\nframerate = 30\n"
+                    + "[output]\nmethod = raw\nraw_target = /dev/stdout\ndata_format = ascii\nascii_max_range = 100\nbar_delimiter = 59\n"
+                    + "EOF"
+            ]);
+        } else {
+            cavaProcess.running = false;
+            cavaBars = [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
+        }
+    }
+
     property string message: ""
     property int pendingVolume: 0
     property int pendingBrightness: 0
@@ -696,7 +731,26 @@ Scope {
         powerProfileBusy = true;
         powerProfileError = "";
         powerProfile = profile;
-        powerProfileCommand.exec(["powerprofilesctl", "set", profile]);
+
+        let script = "";
+        if (profile === "power-saver" || profile === "powersave") {
+            script = "powerprofilesctl set power-saver 2>/dev/null || powerprofilesctl set powersave 2>/dev/null; "
+                + "for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$g\" ] && echo powersave > \"$g\"; done; "
+                + "for e in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do [ -w \"$e\" ] && echo power > \"$e\"; done; "
+                + "hyprctl keyword monitor \",60Hz,auto,1\" 2>/dev/null || true";
+        } else if (profile === "performance") {
+            script = "powerprofilesctl set performance 2>/dev/null; "
+                + "for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$g\" ] && echo performance > \"$g\"; done; "
+                + "for e in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do [ -w \"$e\" ] && echo performance > \"$e\"; done; "
+                + "hyprctl keyword monitor \",preferred,auto,1\" 2>/dev/null || true";
+        } else {
+            script = "powerprofilesctl set balanced 2>/dev/null; "
+                + "for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$g\" ] && echo schedutil > \"$g\" 2>/dev/null || echo balance_performance > \"$g\"; done; "
+                + "for e in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do [ -w \"$e\" ] && echo balance_performance > \"$e\"; done; "
+                + "hyprctl keyword monitor \",preferred,auto,1\" 2>/dev/null || true";
+        }
+
+        powerProfileCommand.exec(["sh", "-c", script]);
     }
 
     function refreshBattery() {
@@ -1052,15 +1106,11 @@ Scope {
         id: systemStatsQuery
         command: [
             "sh", "-c",
-            "sed -n '1p' /proc/stat; "
-                + "awk '/MemTotal:/ { total=$2 } /MemAvailable:/ { available=$2 } "
-                + "END { printf \"%s %s\\n\", total, available }' /proc/meminfo; "
-                + "maximum=0; for input in /sys/class/hwmon/hwmon*/temp*_input; do "
-                + "[ -r \"$input\" ] || continue; IFS= read -r value < \"$input\"; "
-                + "case \"$value\" in ''|*[!0-9]*) continue ;; esac; "
-                + "if [ \"$value\" -ge 10000 ] && [ \"$value\" -le 120000 ] "
-                + "&& [ \"$value\" -gt \"$maximum\" ]; then maximum=$value; fi; "
-                + "done; printf '%s\\n' \"$maximum\""
+            "awk 'NR==1 { print }' /proc/stat; "
+                + "awk '/MemTotal:/ { t=$2 } /MemAvailable:/ { a=$2 } END { print t, a }' /proc/meminfo; "
+                + "max=0; for f in /sys/class/hwmon/hwmon*/temp*_input; do "
+                + "[ -r \"$f\" ] && read -r v < \"$f\" 2>/dev/null && [ \"$v\" -ge 10000 2>/dev/null ] && [ \"$v\" -le 120000 ] && [ \"$v\" -gt \"$max\" ] && max=$v; "
+                + "done; echo \"$max\""
         ]
         stdout: StdioCollector {
             onStreamFinished: root.applySystemStats(this.text)
@@ -1511,10 +1561,20 @@ Scope {
         }
     }
 
-    Timer {
-        id: messageTimeout
-        interval: 4200
-        onTriggered: root.message = ""
+    Process {
+        id: cavaInitProcess
+        onExited: {
+            if (root.cavaActive && !cavaProcess.running)
+                cavaProcess.running = true;
+        }
+    }
+
+    Process {
+        id: cavaProcess
+        command: ["cava", "-p", "/tmp/cava_qs/config"]
+        stdout: SplitParser {
+            onRead: data => root.applyCavaData(data)
+        }
     }
 
     Component.onCompleted: refreshAll()

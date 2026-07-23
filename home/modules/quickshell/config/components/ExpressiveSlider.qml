@@ -1,8 +1,9 @@
 import QtQuick
 import "../theme"
 
-// M3 Expressive split-track slider. The visual rail stays compact while the
-// full component remains an easy pointer/keyboard target.
+// Google Material Design 3 Expressive Slider.
+// Features dynamic split tracks, morphing handle capsule with spring physics,
+// inner corner smoothing, and integrated icons and value badges.
 Item {
     id: root
 
@@ -26,8 +27,9 @@ Item {
 
     signal moved(real value)
 
-    implicitHeight: 50
+    implicitHeight: 52
     opacity: enabled ? 1 : 0.38
+    scale: interacting ? 0.985 : (hovered && enabled ? 1.01 : 1.0)
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.Slider
@@ -42,6 +44,14 @@ Item {
             duration: Theme.motionMedium2
             easing.type: Easing.BezierSpline
             easing.bezierCurve: Theme.emphasizedDecelerate
+        }
+    }
+
+    Behavior on scale {
+        NumberAnimation {
+            duration: Theme.motionShort4
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
         }
     }
 
@@ -78,12 +88,13 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        height: Theme.sliderTrackHeight
+        height: 24
 
         readonly property real handleCenter: handle.width / 2
             + root.displayProgress * Math.max(1, width - handle.width)
-        readonly property real handleGap: root.interacting ? 10 : 8
+        readonly property real handleGap: root.interacting ? 10 : (root.hovered ? 8 : 6)
 
+        // M3 Expressive Active Track
         Rectangle {
             id: activeTrack
             anchors.left: parent.left
@@ -91,12 +102,12 @@ Item {
             width: Math.max(0, parent.handleCenter - parent.handleGap / 2)
             height: parent.height
             radius: height / 2
-            topRightRadius: Theme.sliderInnerRadius
-            bottomRightRadius: Theme.sliderInnerRadius
+            topRightRadius: Theme.shapeExtraSmall
+            bottomRightRadius: Theme.shapeExtraSmall
             color: root.interacting
-                ? Theme.blend(root.activeColor, Theme.textPrimary, 0.07)
+                ? Theme.blend(root.activeColor, Theme.primary, 0.25)
                 : root.hovered
-                    ? Theme.blend(root.activeColor, Theme.textPrimary, 0.035)
+                    ? Theme.blend(root.activeColor, Theme.primary, 0.12)
                     : root.activeColor
 
             Behavior on color {
@@ -104,6 +115,7 @@ Item {
             }
         }
 
+        // M3 Expressive Inactive Track
         Rectangle {
             id: inactiveTrack
             anchors.verticalCenter: parent.verticalCenter
@@ -112,12 +124,12 @@ Item {
             width: Math.max(0, parent.width - x)
             height: parent.height
             radius: height / 2
-            topLeftRadius: Theme.sliderInnerRadius
-            bottomLeftRadius: Theme.sliderInnerRadius
+            topLeftRadius: Theme.shapeExtraSmall
+            bottomLeftRadius: Theme.shapeExtraSmall
             color: root.interacting
-                ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.07)
+                ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.08)
                 : root.hovered
-                    ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.035)
+                    ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.04)
                     : root.inactiveColor
 
             Behavior on color {
@@ -126,12 +138,12 @@ Item {
         }
 
         MaterialIcon {
-            visible: root.icon.length > 0 && activeTrack.width >= 30
+            visible: root.icon.length > 0 && activeTrack.width >= 32
             anchors.left: parent.left
-            anchors.leftMargin: Theme.space2
+            anchors.leftMargin: Theme.space3
             anchors.verticalCenter: parent.verticalCenter
             text: root.icon
-            iconSize: 14
+            iconSize: 15
             color: root.foregroundColor
             filled: true
         }
@@ -139,25 +151,26 @@ Item {
         Text {
             visible: root.showValue
             anchors.right: parent.right
-            anchors.rightMargin: Theme.space2
+            anchors.rightMargin: Theme.space3
             anchors.verticalCenter: parent.verticalCenter
             text: Math.round(root.value) + root.valueSuffix
             color: Theme.textPrimary
             font.family: Theme.textFont
-            font.pixelSize: 9
+            font.pixelSize: 10
             font.weight: Font.DemiBold
         }
 
+        // M3 Expressive Morphing Handle Capsule
         Rectangle {
             id: handle
-            width: root.interacting ? 6 : 4
+            width: root.interacting ? 10 : (root.hovered ? 6 : 4)
             height: root.interacting
-                ? Theme.sliderHandleHeight - 4
-                : Theme.sliderHandleHeight
-            radius: width / 2
+                ? 38
+                : (root.hovered ? 34 : 30)
+            radius: root.interacting ? Theme.shapeExtraSmall : width / 2
             anchors.verticalCenter: parent.verticalCenter
             x: parent.handleCenter - width / 2
-            color: root.accentColor
+            color: root.interacting ? Theme.blend(root.accentColor, "#ffffff", 0.18) : root.accentColor
 
             Behavior on width {
                 NumberAnimation {
@@ -172,6 +185,16 @@ Item {
                     easing.type: Easing.BezierSpline
                     easing.bezierCurve: Theme.springCurve
                 }
+            }
+            Behavior on radius {
+                NumberAnimation {
+                    duration: Theme.motionShort4
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Theme.springCurve
+                }
+            }
+            Behavior on color {
+                ColorAnimation { duration: Theme.motionShort3 }
             }
         }
     }
@@ -201,7 +224,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        height: Theme.sliderHandleHeight + Theme.space1
+        height: 42
         radius: Theme.shapeMedium
         color: "transparent"
         border.width: 2

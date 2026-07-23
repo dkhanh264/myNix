@@ -270,6 +270,7 @@ ShellRoot {
 
                     MusicWidget {
                         anchors.fill: parent
+                        controller: systemService
                     }
                 }
             }

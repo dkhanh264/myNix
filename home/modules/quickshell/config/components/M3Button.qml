@@ -21,7 +21,7 @@ Item {
         buttonContent.implicitWidth + (compact ? 18 : 28))
     implicitHeight: compact ? 40 : 44
     opacity: enabled ? 1 : 0.38
-    scale: pointer.pressed ? 0.97 : 1
+    scale: pointer.pressed ? 0.95 : (hovered && enabled ? 1.02 : 1)
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.Button
@@ -41,7 +41,8 @@ Item {
         id: container
         anchors.fill: parent
         radius: pointer.pressed ? Theme.shapeSmall
-            : root.selected ? Theme.shapeMedium : height / 2
+            : root.selected ? Theme.shapeMedium
+            : pointer.containsMouse ? Theme.shapeLarge : height / 2
         color: root.destructive
             ? Theme.errorContainer
             : root.tonal ? Theme.secondaryContainer

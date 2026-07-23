@@ -32,9 +32,9 @@ Item {
         id: switchSurface
         anchors.fill: parent
         radius: pointer.pressed ? Theme.shapeMedium : height / 2
-        color: root.checked ? Theme.primary : Theme.surfaceContainerHighest
+        color: root.checked ? Theme.primary : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerHighest)
         border.width: root.checked ? 0 : 2
-        border.color: Theme.outline
+        border.color: pointer.containsMouse ? Theme.outlineVariant : Theme.outline
 
         Behavior on color {
             ColorAnimation { duration: Theme.motionMedium }
@@ -57,10 +57,10 @@ Item {
 
     Rectangle {
         id: handle
-        width: root.checked ? 24 : 16
-        height: width
-        radius: width / 2
-        x: root.checked ? root.width - width - 4 : 8
+        width: pointer.pressed ? 28 : (root.checked ? 24 : 16)
+        height: pointer.pressed ? 20 : width
+        radius: pointer.pressed ? Theme.shapeSmall : width / 2
+        x: root.checked ? root.width - width - (pointer.pressed ? 2 : 4) : (pointer.pressed ? 4 : 8)
         anchors.verticalCenter: parent.verticalCenter
         color: root.checked ? Theme.textPrimary : Theme.outline
 
@@ -68,11 +68,27 @@ Item {
             NumberAnimation {
                 duration: Theme.motionMedium1
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.emphasizedDecelerate
+                easing.bezierCurve: Theme.springCurve
             }
         }
 
         Behavior on width {
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
+        }
+
+        Behavior on height {
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
+        }
+
+        Behavior on radius {
             NumberAnimation {
                 duration: Theme.motionMedium1
                 easing.type: Easing.BezierSpline

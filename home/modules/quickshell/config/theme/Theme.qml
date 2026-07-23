@@ -17,52 +17,55 @@ Singleton {
     property color wallpaperSecondary: "#c6bfff"
     property color wallpaperTertiary: "#ffb1c8"
 
-    // Restrained dark M3 roles. Wallpaper colors are used as accents, never as
-    // raw text or large surfaces, so the palette remains legible and calm.
+    // Set QS_AMOLED=1 to enable Pure Black (AMOLED) mode globally.
+    readonly property string amoledPreference: String(
+        Quickshell.env("QS_AMOLED") || "").toLowerCase()
+    readonly property bool pureBlackMode: amoledPreference === "1"
+        || amoledPreference === "true"
+        || amoledPreference === "yes"
+
+    // Material 3 Expressive dark & dynamic color roles.
     readonly property bool darkPalette: true
-    readonly property color background: "#090b10"
+    readonly property color background: pureBlackMode ? "#000000" : "#090b10"
     readonly property color onBackground: Qt.rgba(1, 1, 1, 1)
-    readonly property color surface: alpha("#11141b", 0.62)
-    readonly property color surfaceDim: alpha("#0b0e13", 0.58)
-    readonly property color surfaceBright: alpha("#252a35", 0.72)
-    readonly property color surfaceContainerLow: alpha("#151922", 0.34)
-    readonly property color surfaceContainer: alpha("#1a1f2a", 0.40)
-    readonly property color surfaceContainerHigh: alpha("#202633", 0.48)
-    readonly property color surfaceContainerHighest: alpha("#29313f", 0.58)
-    readonly property color surfaceVariant: blend(surfaceContainerHigh,
-        wallpaperSecondary, 0.11)
+    readonly property color surface: pureBlackMode ? alpha("#08080c", 0.85) : alpha("#11141b", 0.62)
+    readonly property color surfaceDim: pureBlackMode ? "#000000" : alpha("#0b0e13", 0.58)
+    readonly property color surfaceBright: pureBlackMode ? alpha("#181b24", 0.88) : alpha("#252a35", 0.72)
+    readonly property color surfaceContainerLowest: pureBlackMode ? "#000000" : alpha("#0f1218", 0.30)
+    readonly property color surfaceContainerLow: pureBlackMode ? alpha("#0c0f16", 0.45) : alpha("#151922", 0.34)
+    readonly property color surfaceContainer: pureBlackMode ? alpha("#121620", 0.55) : alpha("#1a1f2a", 0.40)
+    readonly property color surfaceContainerHigh: pureBlackMode ? alpha("#1a202c", 0.68) : alpha("#202633", 0.48)
+    readonly property color surfaceContainerHighest: pureBlackMode ? alpha("#242c3d", 0.80) : alpha("#29313f", 0.58)
+    readonly property color surfaceVariant: blend(surfaceContainerHigh, wallpaperSecondary, 0.11)
 
     // Material layers intended to reveal Hyprland's compositor blur.
     readonly property color barSurface: alpha(
-        blend("#0c0f15", wallpaperPrimary, 0.07), 0.46)
+        blend(pureBlackMode ? "#05070a" : "#0c0f15", wallpaperPrimary, 0.08), 0.48)
     readonly property color barSurfaceHover: alpha(
-        blend("#121722", wallpaperPrimary, 0.11), 0.54)
+        blend(pureBlackMode ? "#0d1017" : "#121722", wallpaperPrimary, 0.13), 0.58)
     readonly property color barSurfaceActive: alpha(
-        blend("#151b27", wallpaperPrimary, 0.23), 0.68)
-    readonly property color barOutline: alpha(outline, 0.26)
-    readonly property color barOutlineHover: alpha(textPrimary, 0.22)
-    readonly property color barOutlineActive: alpha(primary, 0.48)
-    readonly property color barOutlineAlert: alpha(error, 0.52)
+        blend(pureBlackMode ? "#141a27" : "#151b27", wallpaperPrimary, 0.25), 0.72)
+    readonly property color barOutline: alpha(outline, 0.28)
+    readonly property color barOutlineHover: alpha(textPrimary, 0.24)
+    readonly property color barOutlineActive: alpha(primary, 0.52)
+    readonly property color barOutlineAlert: alpha(error, 0.55)
     readonly property color popupSurface: alpha(
-        blend("#0d1118", wallpaperPrimary, 0.08), 0.30)
-    readonly property color popupSurfaceStrong: alpha("#121720", 0.62)
+        blend(pureBlackMode ? "#07090e" : "#0d1118", wallpaperPrimary, 0.09), 0.35)
+    readonly property color popupSurfaceStrong: alpha(pureBlackMode ? "#0a0e14" : "#121720", 0.70)
 
-    readonly property color primary: tone(wallpaperPrimary, 0.36)
+    readonly property color primary: tone(wallpaperPrimary, 0.38)
     readonly property color onPrimary: Qt.rgba(1, 1, 1, 1)
-    readonly property color primaryContainer: blend(surfaceContainerHigh,
-        primary, 0.34)
+    readonly property color primaryContainer: blend(surfaceContainerHigh, primary, 0.36)
     readonly property color onPrimaryContainer: Qt.rgba(1, 1, 1, 1)
 
-    readonly property color secondary: tone(wallpaperSecondary, 0.38)
+    readonly property color secondary: tone(wallpaperSecondary, 0.40)
     readonly property color onSecondary: Qt.rgba(1, 1, 1, 1)
-    readonly property color secondaryContainer: blend(surfaceContainerHigh,
-        secondary, 0.30)
+    readonly property color secondaryContainer: blend(surfaceContainerHigh, secondary, 0.32)
     readonly property color onSecondaryContainer: Qt.rgba(1, 1, 1, 1)
 
-    readonly property color tertiary: tone(wallpaperTertiary, 0.38)
+    readonly property color tertiary: tone(wallpaperTertiary, 0.40)
     readonly property color onTertiary: Qt.rgba(1, 1, 1, 1)
-    readonly property color tertiaryContainer: blend(surfaceContainerHigh,
-        tertiary, 0.28)
+    readonly property color tertiaryContainer: blend(surfaceContainerHigh, tertiary, 0.30)
     readonly property color onTertiaryContainer: Qt.rgba(1, 1, 1, 1)
 
     readonly property color onSurface: Qt.rgba(1, 1, 1, 1)
@@ -87,15 +90,18 @@ Singleton {
     readonly property string textFont: "Noto Sans"
     readonly property string iconFont: "Material Symbols Rounded"
 
-    // Material shape and spacing tokens. Only controls use full pills; content
-    // surfaces stay tighter so the dashboard remains calm and task-oriented.
+    // Material 3 Expressive shape scale tokens & corner morphing values.
+    readonly property int shapeNone: 0
     readonly property int shapeExtraSmall: 4
     readonly property int shapeSmall: 8
     readonly property int shapeMedium: 12
     readonly property int shapeLarge: 16
     readonly property int shapeExtraLarge: 24
-    readonly property int shapePressed: 10
+    readonly property int shapeFull: 9999
+    readonly property int shapePressed: 8
+    readonly property int shapeHovered: 16
     readonly property int shapeSelected: 20
+
     readonly property int space1: 4
     readonly property int space2: 8
     readonly property int space3: 12
@@ -133,7 +139,7 @@ Singleton {
         || reducedMotionPreference === "true"
         || reducedMotionPreference === "yes"
 
-    // Material 3 motion tokens. State changes stay below 400 ms.
+    // Material 3 Expressive motion tokens.
     readonly property int motionShort1: reduceMotion ? 0 : 50
     readonly property int motionShort2: reduceMotion ? 0 : 100
     readonly property int motionShort3: reduceMotion ? 0 : 150
@@ -143,7 +149,7 @@ Singleton {
     readonly property int motionMedium3: reduceMotion ? 0 : 350
     readonly property int motionMedium4: reduceMotion ? 0 : 400
     readonly property int motionLong1: reduceMotion ? 0 : 400
-    readonly property int motionLong2: reduceMotion ? 0 : 400
+    readonly property int motionLong2: reduceMotion ? 0 : 500
     readonly property int popupTransitionDuration: reduceMotion ? 0 : 260
     readonly property int popupHideDelay: reduceMotion
         ? 0 : popupTransitionDuration + 40
@@ -152,13 +158,15 @@ Singleton {
     readonly property int motionMedium: motionMedium2
     readonly property int motionLong: motionLong1
 
+    // Material 3 Expressive Interpolators & Physics Curves
     readonly property var standardCurve: [0.2, 0.0, 0.0, 1.0, 1.0, 1.0]
     readonly property var standardDecelerate: [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
     readonly property var standardAccelerate: [0.3, 0.0, 1.0, 1.0, 1.0, 1.0]
     readonly property var emphasizedDecelerate: [0.05, 0.7, 0.1, 1.0, 1.0, 1.0]
     readonly property var emphasizedAccelerate: [0.3, 0.0, 0.8, 0.15, 1.0, 1.0]
-    // A non-bouncy expressive ease for compact product UI state changes.
+    // M3 Expressive physics spring curve for tactile response & shape morphing.
     readonly property var springCurve: [0.16, 1.0, 0.3, 1.0, 1.0, 1.0]
+    readonly property var expressiveBounce: [0.34, 1.56, 0.64, 1.0, 1.0, 1.0]
 
     function asColor(value) {
         if (typeof value !== "string")

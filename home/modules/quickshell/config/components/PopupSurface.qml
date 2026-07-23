@@ -23,49 +23,30 @@ Item {
 
     enabled: shown
     opacity: revealProgress
-    scale: 0.985 + revealProgress * 0.015
+    scale: 0.92 + revealProgress * 0.08
     transformOrigin: Item.Top
     transform: Translate {
-        y: (1 - root.revealProgress) * -6
+        y: (1 - root.revealProgress) * -12
     }
 
     Behavior on revealProgress {
         NumberAnimation {
             duration: Theme.popupTransitionDuration
             easing.type: Easing.BezierSpline
-            easing.bezierCurve: Theme.standardCurve
+            easing.bezierCurve: root.shown ? Theme.springCurve : Theme.emphasizedAccelerate
         }
     }
 
-    RectangularShadow {
-        anchors.fill: panel
-        offset: Qt.vector2d(0, 2)
-        radius: panel.radius
-        blur: 7
-        spread: -1
-        color: Theme.alpha("#000000", 0.48)
-        opacity: root.revealProgress
-    }
-
+    // Single background blur surface with zero shadow layers
     Rectangle {
         id: panel
         anchors.fill: parent
         anchors.margins: Theme.popupWindowInset
         radius: Theme.popupRadius
         color: Theme.popupSurface
+        border.width: 1
+        border.color: Theme.alpha(Theme.outlineVariant, 0.40)
         clip: true
-
-        // A subtle top sheen separates the tinted material from dark windows
-        // without outlining the whole popup.
-        Rectangle {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.leftMargin: Theme.shapeExtraLarge
-            anchors.rightMargin: Theme.shapeExtraLarge
-            height: 1
-            color: Theme.alpha(Theme.textPrimary, 0.16)
-        }
     }
 
     Item {

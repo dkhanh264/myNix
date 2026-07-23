@@ -7,15 +7,15 @@ let
       --output "$out" \
       ${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake-white.svg
   '';
-  white = "rgba(255,255,255,1.0)";
-  onSurfaceVariant = "rgba(208,211,222,1.0)";
-  primary = "rgba(190,194,255,1.0)";
-  primaryContainer = "rgba(48,56,94,0.90)";
-  surface = "rgba(10,13,19,0.76)";
-  surfaceContainer = "rgba(27,32,43,0.88)";
-  surfaceStrong = "rgba(31,37,49,0.96)";
-  outline = "rgba(218,221,232,0.22)";
-  error = "rgba(255,180,171,1.0)";
+  white = "rgba(255, 255, 255, 1.0)";
+  onSurfaceVariant = "rgba(208, 211, 222, 1.0)";
+  primary = "rgba(190, 194, 255, 1.0)";
+  primaryContainer = "rgba(48, 56, 94, 0.85)";
+  surface = "rgba(10, 13, 20, 0.65)";
+  surfaceContainer = "rgba(22, 27, 38, 0.75)";
+  surfaceStrong = "rgba(26, 32, 45, 0.85)";
+  outline = "rgba(255, 255, 255, 0.16)";
+  error = "rgba(255, 180, 171, 1.0)";
 in
 {
   programs.hyprlock = {
@@ -32,12 +32,12 @@ in
         {
           monitor = "";
           path = "/home/dk/.config/current-wallpaper";
-          blur_passes = 6;
-          blur_size = 12;
-          noise = 0.010;
-          contrast = 1.06;
-          brightness = 0.44;
-          vibrancy = 0.24;
+          blur_passes = 4;
+          blur_size = 10;
+          noise = 0.012;
+          contrast = 1.05;
+          brightness = 0.50;
+          vibrancy = 0.30;
           vibrancy_darkness = 0.20;
         }
       ];
@@ -60,22 +60,19 @@ in
           monitor = "";
           size = "792, 432";
           color = surface;
-          rounding = 28;
+          rounding = 24;
           border_size = 1;
           border_color = outline;
           position = "0, -4";
           halign = "center";
           valign = "center";
           zindex = 0;
-          shadow_passes = 4;
-          shadow_size = 14;
-          shadow_color = "rgba(0,0,0,0.52)";
         }
         {
           monitor = "";
           size = "282, 400";
           color = primaryContainer;
-          rounding = 48;
+          rounding = 20;
           border_size = 0;
           position = "-239, -4";
           halign = "center";
@@ -253,7 +250,7 @@ in
           placeholder_text = "Mật khẩu";
           check_text = "Đang xác thực…";
           fail_text = "<b>Không đúng</b> · thử lại ($ATTEMPTS)";
-          rounding = 16;
+          rounding = 20;
           shadow_passes = 0;
           fade_on_empty = false;
           dots_size = 0.22;

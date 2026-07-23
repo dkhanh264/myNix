@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import "../theme"
 
 PopupWindow {
     id: root
@@ -24,6 +25,31 @@ PopupWindow {
     anchor.window: anchorWindow
     anchor.rect.x: popupX
     anchor.rect.y: popupY
+
+    Behavior on popupX {
+        enabled: root.requestedVisible && !Theme.reduceMotion
+        NumberAnimation {
+            duration: Theme.motionMedium2
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
+        }
+    }
+    Behavior on popupWidth {
+        enabled: root.requestedVisible && !Theme.reduceMotion
+        NumberAnimation {
+            duration: Theme.motionMedium2
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
+        }
+    }
+    Behavior on popupHeight {
+        enabled: root.requestedVisible && !Theme.reduceMotion
+        NumberAnimation {
+            duration: Theme.motionMedium2
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
+        }
+    }
 
     onRequestedVisibleChanged: {
         dismissalGuard.stop();

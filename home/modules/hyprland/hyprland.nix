@@ -1,29 +1,88 @@
-{ pkgs, config, ... }:
+{ pkgs, lib, ... }:
 
 let
+  # The runtime palette exporter replaces this file atomically after Pywal
+  # finishes.  Keeping a small fallback here makes the sourced Hyprland
+  # fragment valid on first login and when the Pywal cache has been cleared.
+  defaultHyprlandPalette = pkgs.writeText "hyprland-default-palette.conf" ''
+    general:col.active_border = rgba(bec2ffff) rgba(c6bfffff) 45deg
+    general:col.inactive_border = rgba(8e9099a6)
+
+    group:col.border_active = rgba(bec2ffff) rgba(c6bfffff) 45deg
+    group:col.border_inactive = rgba(8e909986)
+    group:col.border_locked_active = rgba(c6bfffff) rgba(bec2ffff) 45deg
+    group:col.border_locked_inactive = rgba(8e909970)
+
+    group:groupbar:col.active = rgba(bec2ffff)
+    group:groupbar:col.inactive = rgba(242731ee)
+    group:groupbar:col.locked_active = rgba(c6bfffff)
+    group:groupbar:col.locked_inactive = rgba(242731ee)
+    group:groupbar:text_color = rgba(191b24ff)
+    group:groupbar:text_color_inactive = rgba(c6c5ccff)
+    group:groupbar:text_color_locked_active = rgba(191b24ff)
+    group:groupbar:text_color_locked_inactive = rgba(c6c5ccff)
+
+    decoration:shadow:color = rgba(05070ca6)
+    decoration:shadow:color_inactive = rgba(05070c66)
+  '';
+
   captureScreen = pkgs.writeShellApplication {
     name = "capture-screen";
     runtimeInputs = with pkgs; [ coreutils grim slurp wl-clipboard libnotify ];
     text = ''
-      screenshot_dir="''${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
-      mkdir -p "$screenshot_dir"
-      screenshot_path="$screenshot_dir/screenshot-$(date +%Y-%m-%d_%H-%M-%S).png"
+      set -Eeuo pipefail
 
-      if [ "''${1:-region}" = "region" ]; then
+      mode="''${1:-region}"
+      case "$mode" in
+        region|full) ;;
+        *)
+          printf 'Usage: capture-screen {region|full}\n' >&2
+          exit 2
+          ;;
+      esac
+
+      screenshot_dir="''${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
+      mkdir -p -- "$screenshot_dir"
+      screenshot_path=$(mktemp --tmpdir="$screenshot_dir" \
+        "screenshot-$(date +%Y-%m-%d_%H-%M-%S)-XXXXXX.png")
+      completed=0
+      cleanup() {
+        (( completed )) || rm -f -- "$screenshot_path"
+      }
+      trap cleanup EXIT
+
+      if [[ "$mode" == "region" ]]; then
         selection="$(slurp)" || exit 0
-        [ -n "$selection" ] || exit 0
+        [[ -n "$selection" ]] || exit 0
         grim -g "$selection" "$screenshot_path"
       else
         grim "$screenshot_path"
       fi
 
       wl-copy --type image/png < "$screenshot_path"
-      notify-send -a "Screenshot" -i "$screenshot_path" \
-        "Screenshot copied" "$screenshot_path"
+      completed=1
+      notify-send -a "Screenshot" -u normal -t 4500 \
+        -h string:x-canonical-private-synchronous:screenshot \
+        -i "$screenshot_path" "Screenshot copied" \
+        "Saved to $screenshot_path" || true
     '';
   };
 in
 {
+  home.activation.ensureHyprlandPalette = lib.hm.dag.entryBetween
+    [ "linkGeneration" ]
+    [ "writeBoundary" ]
+    ''
+      palette_dir="$HOME/.config/hypr"
+      palette_path="$palette_dir/wal-colors.conf"
+
+      $DRY_RUN_CMD mkdir -p "$palette_dir"
+      if [ ! -e "$palette_path" ]; then
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 \
+          ${defaultHyprlandPalette} "$palette_path"
+      fi
+    '';
+
   # Các package chuyên biệt cho Hyprland
   home.packages = with pkgs; [
     hyprlock 
@@ -60,8 +119,6 @@ in
       # ── Autostart ─────────────────────────────────────────────────────
       exec-once = [
         "quickshell"
-        "mako"        # Khởi động trình thông báo
-        "hypridle"
         "wl-paste --type text --watch cliphist store"
         "fcitx5 -d"
         "swww-daemon"  # Daemon cho hình nền có hiệu ứng chuyển cảnh
@@ -69,30 +126,81 @@ in
 
       # ── General ───────────────────────────────────────────────────────
       general = {
-        gaps_in               = 5;
-        gaps_out              = 10;
+        gaps_in               = 6;
+        gaps_out              = 12;
         border_size           = 2;
-        "col.active_border"   = "rgba(aee0e6ff) rgba(aeb1e6ff) 45deg";
-        "col.inactive_border" = "rgba(595959aa)";
+        # Static semantic fallback.  The sourced Pywal fragment below is
+        # appended last and overrides these colors without rebuilding Home
+        # Manager whenever the wallpaper changes.
+        "col.active_border"   = "rgba(bec2ffff) rgba(c6bfffff) 45deg";
+        "col.inactive_border" = "rgba(8e9099a6)";
         layout                = "dwindle";
         resize_on_border      = true;
       };
 
       decoration = {
-        rounding = 30;
+        # A restrained squircle reads consistently with the MD3 surfaces in
+        # Quickshell while leaving tiled windows visually compact.
+        rounding = 16;
+        rounding_power = 3.0;
+        shadow = {
+          enabled        = true;
+          range          = 8;
+          render_power   = 3;
+          ignore_window  = true;
+          color          = "rgba(05070ca6)";
+          color_inactive = "rgba(05070c66)";
+          offset         = "0 3";
+          scale          = 0.985;
+        };
         blur = {
           enabled            = true;
-          size               = 18;
-          passes             = 4;
+          size               = 12;
+          passes             = 3;
           new_optimizations  = true;
           ignore_opacity     = true;
           popups             = true;
           popups_ignorealpha = 0.08;
           noise              = 0.012;
-          contrast           = 0.92;
-          brightness         = 0.82;
-          vibrancy           = 0.24;
-          vibrancy_darkness  = 0.10;
+          contrast           = 0.94;
+          brightness         = 0.88;
+          vibrancy           = 0.18;
+          vibrancy_darkness  = 0.08;
+        };
+      };
+
+      # Hyprland only draws text itself for a few compositor-owned surfaces.
+      # Match those to the same UI family and semantic palette as Quickshell.
+      group = {
+        "col.border_active"          = "rgba(bec2ffff) rgba(c6bfffff) 45deg";
+        "col.border_inactive"        = "rgba(8e909986)";
+        "col.border_locked_active"   = "rgba(c6bfffff) rgba(bec2ffff) 45deg";
+        "col.border_locked_inactive" = "rgba(8e909970)";
+
+        groupbar = {
+          enabled                     = true;
+          font_family                 = "Noto Sans";
+          font_size                   = 11;
+          font_weight_active          = "semibold";
+          font_weight_inactive        = "normal";
+          height                      = 28;
+          indicator_height            = 3;
+          indicator_gap               = 2;
+          gradients                   = true;
+          gradient_rounding           = 8;
+          gradient_rounding_power     = 3.0;
+          gradient_round_only_edges   = false;
+          gaps_in                     = 3;
+          gaps_out                    = 3;
+          keep_upper_gap              = true;
+          "col.active"               = "rgba(bec2ffff)";
+          "col.inactive"             = "rgba(242731ee)";
+          "col.locked_active"        = "rgba(c6bfffff)";
+          "col.locked_inactive"      = "rgba(242731ee)";
+          text_color                  = "rgba(191b24ff)";
+          text_color_inactive         = "rgba(c6c5ccff)";
+          text_color_locked_active    = "rgba(191b24ff)";
+          text_color_locked_inactive  = "rgba(c6c5ccff)";
         };
       };
 
@@ -103,9 +211,14 @@ in
           "m3Emphasized, 0.05, 0.7, 0.1, 1.0"
         ];
         animation = [
+          "border,     1, 5, m3Standard"
           "windows,    1, 6, m3Emphasized"
+          "windowsIn,  1, 6, m3Emphasized, popin 94%"
           "windowsOut, 1, 5, m3Standard, popin 88%"
-          "fade,       1, 5, m3Standard"
+          "fadeIn,     1, 5, m3Emphasized"
+          "fadeOut,    1, 4, m3Standard"
+          "layersIn,   1, 5, m3Emphasized, fade"
+          "layersOut,  1, 4, m3Standard, fade"
           "workspaces, 1, 5, m3Emphasized, slide"
         ];
       };
@@ -128,6 +241,9 @@ in
 
       misc = {
         disable_hyprland_logo   = true;
+        disable_splash_rendering = true;
+        font_family             = "Noto Sans";
+        splash_font_family      = "Noto Sans";
         mouse_move_enables_dpms = true;
         key_press_enables_dpms  = true;
       };
@@ -210,8 +326,8 @@ in
         ", XF86AudioNext,        exec, playerctl next"
         ", XF86AudioPrev,        exec, playerctl previous"
         
-        ", XF86MonBrightnessUp,   exec, brightnessctl set 10%+"
-        ", XF86MonBrightnessDown, exec, brightnessctl set 10%-"
+        ", XF86MonBrightnessUp,   exec, brightness-osd up"
+        ", XF86MonBrightnessDown, exec, brightness-osd down"
       ];
 
       bindm = [
@@ -231,5 +347,12 @@ in
         "ignorealpha 0.08, m3-shell"
       ];
     };
+
+    # Keep the generated palette separate from the declarative config.  The
+    # exporter can now update colors and issue a lightweight `hyprctl reload
+    # config-only`; window geometry, bindings and monitor state remain intact.
+    extraConfig = ''
+      source = ~/.config/hypr/wal-colors.conf
+    '';
   };
 }
