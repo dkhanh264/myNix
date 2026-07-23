@@ -1,5 +1,5 @@
 @import url("file:///home/dk/.config/current/wal-colors.css");
-/* Reset all elements */
+
 #window,
 #box,
 #search,
@@ -13,6 +13,7 @@ child,
 scrollbar,
 slider,
 #item,
+#icon,
 #text,
 #label,
 #sub,
@@ -21,69 +22,63 @@ slider,
 }
 
 * {
-  font-family: monospace;
-  font-size: 22px;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 15px;
 }
 
-/* Window */
 #window {
   background: transparent;
   color: @text;
 }
 
-/* Main box container */
 #box {
-  background: alpha(@base, 0.92);
-  padding: 16px 18px;
-  border: 2px solid @border;
-  border-radius: 12px;
+  background: alpha(@background, 0.97);
+  padding: 20px;
+  border-radius: 24px;
+  box-shadow: 0 8px 12px alpha(black, 0.28);
 }
 
-/* Search container */
 #search {
-  background: @base;
-  padding: 10px;
-  margin-bottom: 0;
+  background: alpha(@foreground, 0.09);
+  padding: 13px 15px;
+  margin-bottom: 12px;
+  border-radius: 16px;
 }
 
-/* Hide prompt icon */
 #prompt {
-  opacity: 0;
-  margin: 0;
+  color: @selected-text;
+  margin-right: 10px;
 }
 
-/* Hide clear button */
 #clear {
-  opacity: 0;
+  color: @text;
+  opacity: 0.78;
 }
 
-/* Input field */
 #input {
-  background: none;
   color: @text;
-  padding: 0;
+  caret-color: @selected-text;
 }
 
 #input placeholder {
-  opacity: 0.5;
   color: @text;
+  opacity: 0.78;
 }
 
-/* Hide typeahead */
 #typeahead {
-  opacity: 0;
+  color: @text;
+  opacity: 0.58;
 }
 
-/* List */
 #list {
   background: transparent;
 }
 
-/* List items */
 child {
-  padding: 6px 12px;
+  padding: 9px 11px;
+  margin: 2px 0;
   background: transparent;
-  border-radius: 10px;
+  border-radius: 14px;
 }
 
 child:selected,
@@ -91,99 +86,62 @@ child:hover {
   background: alpha(@selected-text, 0.18);
 }
 
-/* Item layout */
 #item {
   padding: 0;
 }
 
-#item.active {
-  font-style: italic;
-}
-
-/* Icon */
 #icon {
-  margin-right: 10px;
-  -gtk-icon-transform: scale(0.8);
+  margin-right: 12px;
+  -gtk-icon-transform: scale(0.92);
 }
 
-/* Text */
 #text {
   color: @text;
-  padding: 10px 0;
-
+  padding: 4px 0;
 }
 
 #label {
-  font-weight: normal;
+  color: @text;
+  font-weight: 600;
 }
 
-/* Selected state */
-child:selected #text,
+#sub {
+  color: @text;
+  font-size: 11px;
+  opacity: 0.74;
+}
+
 child:selected #label,
-child:hover #text,
-child:hover #label {
+child:selected #text,
+child:hover #label,
+child:hover #text {
   color: @selected-text;
 }
 
-/* Hide sub text */
-#sub {
-  opacity: 0;
-  font-size: 0;
-}
-
-/* Hide activation label */
 #activationlabel {
-  opacity: 0;
+  color: @text;
+  font-size: 11px;
+  opacity: 0.66;
 }
 
-/* Scrollbar styling */
 scrollbar {
-  opacity: 0;
+  margin-left: 6px;
 }
 
-/* Hide spinner */
+scrollbar slider {
+  min-width: 3px;
+  background: alpha(@selected-text, 0.55);
+  border-radius: 999px;
+}
+
 #spinner {
-  opacity: 0;
+  color: @selected-text;
 }
 
-/* Hide AI elements */
 #aiScroll,
 #aiList,
-.aiItem {
-  opacity: 0;
-}
-
-/* Bar entry (switcher) */
-#bar {
-  opacity: 0;
-}
-
+.aiItem,
+#bar,
 .barentry {
   opacity: 0;
-}
-
-#box, 
-#search {
-  border-radius: 7px;
-}
-
-
-#box {
-}
-* {
-  font-size: 24px;
-}
-
-/* OVERRIDE: HIDE SEARCH BAR COMPLETELY */
-#search {
-  all: unset;
-  opacity: 0;
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-
-/* Pull list up to compensate for hidden search bar */
-#list {
-  margin-top: -12px;
 }

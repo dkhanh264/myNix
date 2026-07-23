@@ -30,6 +30,11 @@
 
   programs.nix-ld.enable = true;
 
+  # Direct monitor capture uses gsr-kms-server. The NixOS module installs the
+  # capability wrapper that lets Quickshell start it without an interactive
+  # Polkit password prompt.
+  programs.gpu-screen-recorder.enable = true;
+
   # ── Network ────────────────────────────────────────────────────────────
   networking.hostName = "HiMeo";
   networking.networkmanager.enable = true;
@@ -217,6 +222,7 @@
   fonts.packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
+    material-symbols
     nerd-fonts.jetbrains-mono
     nerd-fonts.fira-code
     font-awesome

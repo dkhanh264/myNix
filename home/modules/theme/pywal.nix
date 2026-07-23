@@ -13,7 +13,7 @@ let
       mkdir -p "$OUT_DIR"
   
       if [ ! -f "$WALJSON" ]; then 
-         ${pkgs.libnotify}/bin/notify-send "Lỗi" "Không tìm thấy màu từ Pywal"
+         ${pkgs.libnotify}/bin/notify-send "Theme error" "No Pywal palette was found"
          exit 1
       fi
   
@@ -121,31 +121,118 @@ let
       EOF
       ${pkgs.mako}/bin/makoctl reload >/dev/null 2>&1 || true
   
-      ${pkgs.libnotify}/bin/notify-send "Thành công" "Màu hệ thống đã được đồng bộ!"
+      ${pkgs.libnotify}/bin/notify-send -t 2200 "Theme updated" \
+        "System colors now match your wallpaper"
       pkill walker || true
+    '';
+
+  setBackground = pkgs.writeShellScriptBin "set-background" ''
+      BACKGROUNDS_DIR="$HOME/Pictures/wallpapers"
+      CURRENT_BACKGROUND_LINK="$HOME/.config/current-wallpaper"
+
+      BACKGROUND_PATH="''${1:-}"
+      if [[ -z "$BACKGROUND_PATH" ]]; then
+        ${pkgs.libnotify}/bin/notify-send "Wallpaper" "No wallpaper was selected"
+        exit 1
+      fi
+
+      if [[ "$BACKGROUND_PATH" = /* ]]; then
+        NEW_BACKGROUND="$BACKGROUND_PATH"
+      else
+        NEW_BACKGROUND="$BACKGROUNDS_DIR/$BACKGROUND_PATH"
+      fi
+      WALLPAPER_ROOT=$(${pkgs.coreutils}/bin/realpath -m "$BACKGROUNDS_DIR")
+      NEW_BACKGROUND=$(${pkgs.coreutils}/bin/realpath -m "$NEW_BACKGROUND")
+
+      case "$NEW_BACKGROUND" in
+        "$WALLPAPER_ROOT"/*) ;;
+        *)
+          ${pkgs.libnotify}/bin/notify-send "Wallpaper error" \
+            "Select a file from ~/Pictures/wallpapers"
+          exit 1
+          ;;
+      esac
+
+      if [[ ! -f "$NEW_BACKGROUND" ]]; then
+        ${pkgs.libnotify}/bin/notify-send "Wallpaper error" \
+          "The selected file no longer exists"
+        exit 1
+      fi
+
+      case "''${NEW_BACKGROUND,,}" in
+        *.jpg|*.jpeg|*.png|*.webp|*.mp4|*.mkv|*.webm|*.avi|*.mov) ;;
+        *)
+          ${pkgs.libnotify}/bin/notify-send "Wallpaper error" \
+            "That file type is not supported"
+          exit 1
+          ;;
+      esac
+
+      mkdir -p "$(dirname "$CURRENT_BACKGROUND_LINK")"
+      ln -nsf "$NEW_BACKGROUND" "$CURRENT_BACKGROUND_LINK"
+
+      is_video() {
+        local file="''${1,,}"
+        case "$file" in
+          *.mp4|*.mkv|*.webm|*.avi|*.mov) return 0 ;;
+          *) return 1 ;;
+        esac
+      }
+
+      pkill mpvpaper || true
+      pkill swaybg || true
+
+      if is_video "$NEW_BACKGROUND"; then
+        ${pkgs.mpvpaper}/bin/mpvpaper "*" \
+          --mpv-options "loop no-audio" "$NEW_BACKGROUND" >/dev/null 2>&1 &
+
+        TMPFRAME=$(mktemp /tmp/wallpaper-frame-XXXXXX.png)
+        ${pkgs.ffmpeg}/bin/ffmpeg -y -i "$NEW_BACKGROUND" -vframes 1 -q:v 2 \
+          "$TMPFRAME" >/dev/null 2>&1
+        ${pkgs.pywal}/bin/wal -i "$TMPFRAME" -n --saturate 0.7 -q \
+          -o ${walColorExport}/bin/wal-color-export -b 010101
+        rm -f "$TMPFRAME"
+      else
+        if ! pgrep -x swww-daemon >/dev/null 2>&1; then
+          ${pkgs.swww}/bin/swww-daemon >/dev/null 2>&1 &
+          sleep 0.3
+        fi
+
+        TRANSITIONS=(fade wipe wave grow center outer)
+        TRANSITION_INDEX=$((RANDOM % ''${#TRANSITIONS[@]}))
+        SELECTED_TRANSITION="''${TRANSITIONS[$TRANSITION_INDEX]}"
+        ${pkgs.swww}/bin/swww img "$NEW_BACKGROUND" \
+          --transition-type "$SELECTED_TRANSITION" \
+          --transition-duration 1 \
+          --transition-fps 60 \
+          >/dev/null 2>&1
+
+        ${pkgs.pywal}/bin/wal -i "$NEW_BACKGROUND" -n --saturate 0.7 -q \
+          -o ${walColorExport}/bin/wal-color-export -b 010101
+      fi
     '';
 
   cycleBackground = pkgs.writeShellScriptBin "cycle-background" ''
       BACKGROUNDS_DIR="$HOME/Pictures/wallpapers"
       CURRENT_BACKGROUND_LINK="$HOME/.config/current-wallpaper"
-  
+
       mapfile -d "" -t BACKGROUNDS < <(find "$BACKGROUNDS_DIR" -type f \( \
         -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \
         -o -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.webm" -o -iname "*.avi" -o -iname "*.mov" \
       \) -print0 | sort -z)
       TOTAL=''${#BACKGROUNDS[@]}
-  
-      if [[ $TOTAL -eq 0 ]]; then 
-         ${pkgs.libnotify}/bin/notify-send "Lỗi" "Thư mục hình nền trống"
+
+      if [[ $TOTAL -eq 0 ]]; then
+         ${pkgs.libnotify}/bin/notify-send "Wallpaper" "The wallpaper folder is empty"
          exit 1
       fi
-  
+
       if [[ -L "$CURRENT_BACKGROUND_LINK" ]]; then
          CURRENT_BACKGROUND=$(readlink "$CURRENT_BACKGROUND_LINK")
       else
          CURRENT_BACKGROUND=""
       fi
-  
+
       INDEX=-1
       for i in "''${!BACKGROUNDS[@]}"; do
          if [[ "''${BACKGROUNDS[$i]}" == "$CURRENT_BACKGROUND" ]]; then
@@ -153,57 +240,14 @@ let
             break
          fi
       done
-  
+
       NEXT_INDEX=$(((INDEX + 1) % TOTAL))
       NEW_BACKGROUND="''${BACKGROUNDS[$NEXT_INDEX]}"
-  
-      ln -nsf "$NEW_BACKGROUND" "$CURRENT_BACKGROUND_LINK"
-  
-      # Detect video files
-      is_video() {
-        local f="''${1,,}"
-        case "$f" in
-          *.mp4|*.mkv|*.webm|*.avi|*.mov) return 0 ;;
-          *) return 1 ;;
-        esac
-      }
-  
-      # Kill existing wallpaper daemons
-      pkill mpvpaper || true
-      pkill swaybg   || true
-  
-      if is_video "$NEW_BACKGROUND"; then
-        # ── Video wallpaper ──────────────────────────────────────────────
-        ${pkgs.mpvpaper}/bin/mpvpaper "*" --mpv-options "loop no-audio" "$NEW_BACKGROUND" >/dev/null 2>&1 &
-  
-        # Extract first frame so pywal can generate a colour scheme
-        TMPFRAME=$(mktemp /tmp/wallpaper-frame-XXXXXX.png)
-        ${pkgs.ffmpeg}/bin/ffmpeg -y -i "$NEW_BACKGROUND" -vframes 1 -q:v 2 "$TMPFRAME" >/dev/null 2>&1
-        ${pkgs.pywal}/bin/wal -i "$TMPFRAME" -n --saturate 0.7 -q \
-          -o ${walColorExport}/bin/wal-color-export -b 010101
-        rm -f "$TMPFRAME"
-      else
-        # ── Static image wallpaper with varied transition ────────────────
-        # Ensure swww daemon is running
-        if ! pgrep -x swww-daemon >/dev/null 2>&1; then
-          ${pkgs.swww}/bin/swww-daemon >/dev/null 2>&1 &
-          sleep 0.3
-        fi
-        TRANSITIONS=(fade wipe wave grow center outer)
-        TRANSITION_INDEX=$((NEXT_INDEX % ''${#TRANSITIONS[@]}))
-        SELECTED_TRANSITION="''${TRANSITIONS[$TRANSITION_INDEX]}"
-        ${pkgs.swww}/bin/swww img "$NEW_BACKGROUND" \
-          --transition-type "$SELECTED_TRANSITION" \
-          --transition-duration 1 \
-          --transition-fps 60 \
-          >/dev/null 2>&1
-  
-        ${pkgs.pywal}/bin/wal -i "$NEW_BACKGROUND" -n --saturate 0.7 -q \
-          -o ${walColorExport}/bin/wal-color-export -b 010101
-      fi
+
+      exec ${setBackground}/bin/set-background "$NEW_BACKGROUND"
     '';
 
 in
 {
-  home.packages = [ pkgs.pywal walColorExport cycleBackground ];
+  home.packages = [ pkgs.pywal walColorExport setBackground cycleBackground ];
 }

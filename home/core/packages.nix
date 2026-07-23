@@ -53,6 +53,7 @@
 
     # dev 
     jdk17
+    nodejs_22
     codex-cli-nix.packages.${pkgs.system}.default
 
   

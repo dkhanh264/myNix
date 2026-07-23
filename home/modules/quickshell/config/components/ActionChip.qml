@@ -1,0 +1,146 @@
+import QtQuick
+import "../theme"
+
+Item {
+    id: root
+
+    property string icon: ""
+    property string label: ""
+    property string supportingText: ""
+    property bool selected: false
+    property bool enabled: true
+    property real presentationScale: 1
+    signal clicked
+
+    implicitHeight: supportingText ? 56 : 48
+    opacity: enabled ? 1 : 0.38
+    scale: presentationScale * (pointer.pressed ? 0.96 : 1)
+    activeFocusOnTab: enabled
+
+    Accessible.role: Accessible.Button
+    Accessible.name: supportingText.length > 0
+        ? label + ". " + supportingText : label
+    Accessible.checked: selected
+    Accessible.focusable: enabled
+
+    Keys.onPressed: event => {
+        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
+                || event.key === Qt.Key_Space) {
+            root.clicked();
+            event.accepted = true;
+        }
+    }
+
+    Rectangle {
+        id: chipSurface
+        anchors.fill: parent
+        radius: pointer.pressed ? Theme.shapeSmall
+            : root.selected ? Theme.shapeMedium : height / 2
+        color: root.selected
+            ? Theme.secondaryContainer
+            : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow)
+        border.width: root.selected ? 0 : 1
+        border.color: Theme.outlineVariant
+
+        Behavior on color { ColorAnimation { duration: Theme.motionShort } }
+        Behavior on radius {
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
+        }
+    }
+
+    MaterialRipple {
+        id: ripple
+        rippleColor: root.selected ? Theme.textPrimary : Theme.textPrimary
+    }
+
+    Rectangle {
+        id: iconContainer
+        width: 32
+        height: 32
+        radius: pointer.pressed ? Theme.shapeSmall
+            : (root.selected ? Theme.shapeSmall : width / 2)
+        anchors.left: parent.left
+        anchors.leftMargin: Theme.space2
+        anchors.verticalCenter: parent.verticalCenter
+        color: root.selected ? Theme.secondary : Theme.surfaceContainerHighest
+
+        MaterialIcon {
+            anchors.centerIn: parent
+            text: root.icon
+            iconSize: 16
+            color: root.selected ? Theme.textPrimary : Theme.textSecondary
+        }
+
+        Behavior on radius {
+            NumberAnimation {
+                duration: Theme.motionMedium1
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Theme.springCurve
+            }
+        }
+    }
+
+    Column {
+        anchors.left: iconContainer.right
+        anchors.leftMargin: Theme.space2
+        anchors.right: parent.right
+        anchors.rightMargin: Theme.space2
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: Theme.space1
+
+        Text {
+            width: parent.width
+            text: root.label
+            color: root.selected ? Theme.textPrimary : Theme.textPrimary
+            font.family: Theme.textFont
+            font.pixelSize: 13
+            font.weight: Font.DemiBold
+            elide: Text.ElideRight
+        }
+
+        Text {
+            visible: root.supportingText.length > 0
+            width: parent.width
+            text: root.supportingText
+            color: Theme.textSecondary
+            font.family: Theme.textFont
+            font.pixelSize: 10
+            elide: Text.ElideRight
+        }
+    }
+
+    MouseArea {
+        id: pointer
+        anchors.fill: parent
+        enabled: root.enabled
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onPressed: mouse => {
+            root.focus = false;
+            ripple.burst(mouse.x, mouse.y);
+        }
+        onClicked: root.clicked()
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: 2
+        radius: Math.max(0, chipSurface.radius - 2)
+        color: "transparent"
+        border.width: 2
+        border.color: Theme.primary
+        visible: root.activeFocus
+    }
+
+    Behavior on scale {
+        NumberAnimation {
+            duration: Theme.motionShort4
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.standardCurve
+        }
+    }
+}

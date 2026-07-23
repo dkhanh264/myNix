@@ -1,25 +1,24 @@
-# WINDOW WIDTH 
 [ui.window.box]
-width = 450
-min_width = 100
-max_width = 450
-height = 50
-min_height = 20
-max_height = 100
+width = 620
+min_width = 480
+max_width = 720
+height = 520
+min_height = 320
+max_height = 640
 
-# WINDOW HEIGHT
 [ui.window.box.scroll.list]
-height = 20
-min_height = 20
-max_height = 250
-width = 30
-min_width = 30
-max_width = 30
+height = 410
+min_height = 220
+max_height = 520
+width = 580
+min_width = 440
+max_width = 680
+
 [ui.window.box.scroll.list.item.icon]
-pixel_size = 20
+pixel_size = 32
 
 [ui.window.box.scroll.list.item]
 h_align = "start"
-min_width = 10
-width = 10
-max_width = 300
+min_width = 420
+width = 550
+max_width = 650
