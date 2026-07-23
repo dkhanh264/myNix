@@ -118,10 +118,10 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
-    theme = "sugar-candy";
+    theme = "sugar-dark";
     settings = {
       Theme = {
-        Current = "sugar-candy";
+        Current = "sugar-dark";
         CursorTheme = "Adwaita";
         CursorSize = 24;
         Font = "Noto Sans";
@@ -245,7 +245,7 @@
     pciutils
     libimobiledevice
     usbmuxd
-    libsForQt5.sddm-sugar-candy
+    sddm-sugar-dark
   ];
 
   environment.sessionVariables = {
