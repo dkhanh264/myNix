@@ -52,6 +52,12 @@ Singleton {
     readonly property color popupSurface: alpha(
         blend(pureBlackMode ? "#07090e" : "#0d1118", wallpaperPrimary, 0.09), 0.35)
     readonly property color popupSurfaceStrong: alpha(pureBlackMode ? "#0a0e14" : "#121720", 0.70)
+    readonly property color lockSurfaceBackground: alpha(
+        blend(pureBlackMode ? "#040508" : "#080a10", wallpaperPrimary, 0.05), 0.82)
+    readonly property color lockSurfaceGlass: alpha(
+        blend(pureBlackMode ? "#0d1017" : "#141824", wallpaperPrimary, 0.12), 0.55)
+    readonly property color lockCardBackground: alpha(
+        blend(surfaceContainerHigh, wallpaperSecondary, 0.10), 0.65)
 
     readonly property color primary: tone(wallpaperPrimary, 0.38)
     readonly property color onPrimary: Qt.rgba(1, 1, 1, 1)

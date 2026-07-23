@@ -295,6 +295,18 @@ ShellRoot {
         function mute(): void { systemService.toggleMute(); root.triggerVolumeOsd(); }
     }
 
+    IpcHandler {
+        target: "lockscreen"
+
+        function lock(): void { lockScreen.lockSession(); }
+        function show(): void { lockScreen.lockSession(); }
+        function unlock(): void { lockScreen.locked = false; }
+    }
+
+    LockScreen {
+        id: lockScreen
+    }
+
     Variants {
         model: Quickshell.screens
 

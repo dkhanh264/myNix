@@ -19,6 +19,7 @@ Item {
     property color accentColor: Theme.primary
     property color inactiveColor: Theme.surfaceContainerHighest
     property color foregroundColor: Theme.textPrimary
+    property bool showStopDot: false
     readonly property bool hovered: pointer.containsMouse
     readonly property bool interacting: pointer.pressed
     readonly property real normalizedProgress: to <= from ? 0
@@ -132,6 +133,18 @@ Item {
             Behavior on color {
                 ColorAnimation { duration: Theme.motionShort3 }
             }
+        }
+
+        // M3 Expressive stop dot indicator at end of inactive track
+        Rectangle {
+            visible: root.showStopDot && inactiveTrack.width >= 16
+            width: 4
+            height: 4
+            radius: 2
+            anchors.right: parent.right
+            anchors.rightMargin: 8
+            anchors.verticalCenter: parent.verticalCenter
+            color: Theme.alpha(root.foregroundColor, 0.50)
         }
 
         MaterialIcon {

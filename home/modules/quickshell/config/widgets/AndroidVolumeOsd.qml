@@ -73,26 +73,45 @@ Rectangle {
                 }
             }
 
-            // Inactive track background
-            Rectangle {
-                anchors.fill: parent
-                radius: width / 2
-                color: Theme.surfaceContainerHighest
-            }
-
             // Active track fill (from bottom to top)
             Rectangle {
+                id: activeVolumeTrack
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
-                height: Math.max(width, Math.min(parent.height, parent.height * parent.displayVal))
+                height: Math.max(0, parent.height * parent.displayVal - 3)
                 radius: width / 2
+                topLeftRadius: Theme.shapeExtraSmall
+                topRightRadius: Theme.shapeExtraSmall
                 color: root.controller && root.controller.muted
                     ? Theme.error : Theme.primary
 
                 Behavior on color {
                     ColorAnimation { duration: Theme.motionShort3 }
                 }
+            }
+
+            // Inactive track background (top to tip of active track)
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                height: Math.max(0, parent.height * (1 - parent.displayVal) - 3)
+                radius: width / 2
+                bottomLeftRadius: Theme.shapeExtraSmall
+                bottomRightRadius: Theme.shapeExtraSmall
+                color: Theme.surfaceContainerHighest
+            }
+
+            // M3 Expressive morphing handle capsule at split boundary
+            Rectangle {
+                visible: parent.displayVal > 0.02 && parent.displayVal < 0.98
+                width: parent.width - 16
+                height: 4
+                radius: 2
+                anchors.horizontalCenter: parent.horizontalCenter
+                y: Math.max(0, Math.min(parent.height - height, parent.height * (1 - parent.displayVal) - 2))
+                color: Theme.blend(Theme.primary, "#ffffff", 0.40)
             }
 
             // Speaker icon at the bottom of the track (perfectly centered in lower cap)
