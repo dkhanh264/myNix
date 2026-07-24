@@ -69,13 +69,13 @@ Item {
         return Theme.barItemHeight;
     }
 
-    readonly property real notifContentWidth: thumbnailBox.width + 10 + textColumn.implicitWidth + (closeBtn.visible ? 28 : 0) + 24
-    readonly property real notifWidth: Math.max(260, Math.min(480, notifContentWidth))
+    readonly property real notifContentWidth: thumbnailBox.width + 10 + textColumn.implicitWidth + 24
+    readonly property real notifWidth: Math.max(220, Math.min(460, notifContentWidth))
 
     implicitWidth: normalWidth + (notifWidth - normalWidth) * animProgress
     implicitHeight: Theme.barItemHeight
 
-    // Liquid surface background
+    // Liquid surface background (visible only during morph transition & notification display)
     Rectangle {
         id: morphSurface
         anchors.fill: parent
@@ -83,6 +83,8 @@ Item {
         color: Theme.blend(Theme.barSurface, Theme.primaryContainer, root.animProgress)
         border.width: Theme.barOutlineWidth
         border.color: Theme.blend(Theme.barOutline, Theme.primary, root.animProgress)
+        opacity: root.animProgress
+        visible: opacity > 0.001
 
         // Water drop squish and stretch dynamic physics during liquid state transition
         transform: Scale {
@@ -214,41 +216,32 @@ Item {
             Column {
                 id: textColumn
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: -1
+                spacing: 0
 
                 Text {
                     id: titleText
-                    width: Math.min(320, implicitWidth)
+                    width: Math.min(300, implicitWidth)
                     text: root.toastTitle
                     color: Theme.textPrimary
                     font.family: Theme.textFont
                     font.pixelSize: 12
                     font.weight: Font.Bold
                     elide: Text.ElideRight
+                    verticalAlignment: Text.AlignVCenter
                 }
 
                 Text {
                     id: bodyText
                     visible: root.toastBody.length > 0
-                    width: Math.min(320, implicitWidth)
+                    width: Math.min(300, implicitWidth)
                     text: root.toastBody
                     color: Theme.textSecondary
                     font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.Medium
                     elide: Text.ElideRight
+                    verticalAlignment: Text.AlignVCenter
                 }
-            }
-
-            // Dismiss Button
-            IconButton {
-                id: closeBtn
-                anchors.verticalCenter: parent.verticalCenter
-                icon: "close"
-                iconSize: 14
-                buttonSize: 22
-                foregroundColor: Theme.textSecondary
-                onClicked: root.toastDismissed()
             }
         }
     }

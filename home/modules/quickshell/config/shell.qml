@@ -199,16 +199,22 @@ ShellRoot {
         activePopup = "";
     }
 
+    Shortcut {
+        sequence: "Escape"
+        enabled: root.popupVisible
+        onActivated: root.hidePopup()
+    }
+
     function popupAnchor(kind, barWidth, popupWidth) {
         let desired = barWidth - popupWidth - Theme.popupEdgeInset;
         if (kind === "wallpaper")
-            desired = Theme.popupEdgeInset;
+            desired = Math.round((barWidth - popupWidth) / 2);
         else if (kind === "music")
-            desired = 235;
+            desired = Theme.popupEdgeInset;
         else if (kind === "calendar")
-            desired = (barWidth - popupWidth) / 2 - 105;
+            desired = (barWidth - popupWidth) / 2 - 65;
         else if (kind === "weather")
-            desired = (barWidth - popupWidth) / 2 + 115;
+            desired = (barWidth - popupWidth) / 2 + 65;
         return Math.max(Theme.popupEdgeInset,
             Math.min(barWidth - popupWidth - Theme.popupEdgeInset, desired));
     }
@@ -329,6 +335,8 @@ ShellRoot {
             WlrLayershell.namespace: "popup-dismiss-overlay"
             WlrLayershell.layer: WlrLayer.Overlay
             exclusiveZone: -1
+            WlrLayershell.keyboardFocus: root.popupVisible && root.popupScreen === modelData.name
+                ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
             anchors {
                 top: true
@@ -340,6 +348,11 @@ ShellRoot {
             MouseArea {
                 anchors.fill: parent
                 onPressed: root.hidePopup()
+            }
+
+            Item {
+                focus: parent.visible
+                Keys.onEscapePressed: root.hidePopup()
             }
         }
 

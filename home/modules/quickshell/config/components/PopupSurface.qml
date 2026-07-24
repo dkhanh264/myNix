@@ -22,6 +22,8 @@ Item {
     signal closeRequested
 
     enabled: shown
+    focus: shown
+    Keys.onEscapePressed: closeRequested()
     opacity: revealProgress
     scale: 0.90 + revealProgress * 0.10
     transformOrigin: Item.Top
