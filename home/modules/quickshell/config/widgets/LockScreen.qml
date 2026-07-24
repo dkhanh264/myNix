@@ -197,11 +197,10 @@ WlSessionLock {
                                             anchors.leftMargin: Theme.space2
                                             anchors.rightMargin: Theme.space2
                                             verticalAlignment: TextInput.AlignVCenter
-                                            echoMode: showPasswordToggle.showPass ? TextInput.Normal : TextInput.Password
-                                            color: (!showPasswordToggle.showPass && passwordInput.text.length > 0)
-                                                ? "transparent" : Theme.textPrimary
-                                            selectionColor: Theme.primaryContainer
-                                            selectedTextColor: Theme.onPrimaryContainer
+                                            echoMode: TextInput.Normal
+                                            color: showPasswordToggle.showPass ? Theme.textPrimary : "transparent"
+                                            selectionColor: showPasswordToggle.showPass ? Theme.primaryContainer : "transparent"
+                                            selectedTextColor: showPasswordToggle.showPass ? Theme.onPrimaryContainer : "transparent"
                                             font.family: Theme.textFont
                                             font.pixelSize: 15
                                             font.weight: Font.Medium
@@ -402,14 +401,15 @@ WlSessionLock {
                         }
                     }
 
-                    // 3. Music Widget (Active when media is playing/available)
+                    // 3. Music Widget (Always present on Lockscreen)
                     Item {
                         id: mediaCard
                         width: parent.width
                         implicitHeight: mediaCardBg.implicitHeight
-                        visible: Mpris.players.values.length > 0 && Mpris.players.values[0].trackTitle.length > 0
+                        visible: true
 
-                        readonly property var activePlayer: Mpris.players.values.length > 0 ? Mpris.players.values[0] : null
+                        readonly property var activePlayer: (Mpris.players && Mpris.players.values && Mpris.players.values.length > 0) ? Mpris.players.values[0] : null
+                        readonly property bool hasTrack: activePlayer && activePlayer.trackTitle && activePlayer.trackTitle.length > 0
 
                         Rectangle {
                             id: mediaCardBg
@@ -432,7 +432,7 @@ WlSessionLock {
                                     width: parent.width
                                     spacing: Theme.space3
 
-                                    // Album Art with spinning animation when playing
+                                    // Album Art
                                     Rectangle {
                                         width: 52
                                         height: 52
@@ -473,7 +473,7 @@ WlSessionLock {
 
                                         Text {
                                             width: parent.width
-                                            text: mediaCard.activePlayer ? (mediaCard.activePlayer.trackTitle || "Không có tiêu đề") : ""
+                                            text: mediaCard.hasTrack ? mediaCard.activePlayer.trackTitle : "Chưa có nhạc phát"
                                             color: Theme.textPrimary
                                             font.family: Theme.textFont
                                             font.pixelSize: 14
@@ -483,7 +483,7 @@ WlSessionLock {
 
                                         Text {
                                             width: parent.width
-                                            text: mediaCard.activePlayer ? (mediaCard.activePlayer.trackArtist || "Nghệ sĩ chưa rõ") : ""
+                                            text: mediaCard.hasTrack ? (mediaCard.activePlayer.trackArtist || "Nghệ sĩ chưa rõ") : "Mở ứng dụng phát nhạc"
                                             color: Theme.textSecondary
                                             font.family: Theme.textFont
                                             font.pixelSize: 12
