@@ -119,7 +119,6 @@ in
       # ── Autostart ─────────────────────────────────────────────────────
       exec-once = [
         "rfkill unblock bluetooth"
-        "quickshell"
         "wl-paste --type text --watch cliphist store"
         "fcitx5 -d"
         "swww-daemon"  # Daemon cho hình nền có hiệu ứng chuyển cảnh
