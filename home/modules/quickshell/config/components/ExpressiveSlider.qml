@@ -27,7 +27,7 @@ Item {
 
     signal moved(real value)
 
-    implicitHeight: 32
+    implicitHeight: Theme.sliderHandleHeight
     opacity: enabled ? 1 : 0.38
     scale: interacting ? 0.99 : (hovered && enabled ? 1.005 : 1.0)
     activeFocusOnTab: enabled
@@ -110,7 +110,7 @@ Item {
         font.weight: Font.DemiBold
     }
 
-    // Long & Slim Track Container spanning full length
+    // Track Container
     Item {
         id: track
         anchors.left: leftIcon.visible ? leftIcon.right : parent.left
@@ -118,19 +118,19 @@ Item {
         anchors.leftMargin: leftIcon.visible ? 8 : 4
         anchors.rightMargin: rightValueLabel.visible ? 8 : 4
         anchors.verticalCenter: parent.verticalCenter
-        height: 6
+        height: Theme.sliderTrackHeight
 
         readonly property real handleCenter: root.displayProgress * width
-        readonly property real handleGap: root.interacting ? 4 : (root.hovered ? 3 : 2)
+        readonly property real handleGap: root.interacting ? 5 : (root.hovered ? 4 : 4)
 
-        // M3 Active Rail (Slim filled segment)
+        // M3 Active Rail (Thick filled segment on the left)
         Rectangle {
             id: activeTrack
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            width: Math.max(0, parent.handleCenter - parent.handleGap / 2)
+            width: Math.max(0, parent.handleCenter - handle.width / 2 - parent.handleGap)
             height: parent.height
-            radius: height / 2
+            radius: Math.min(height / 2, width / 2)
             color: root.interacting
                 ? Theme.blend(root.activeColor, "#ffffff", 0.20)
                 : root.hovered
@@ -142,14 +142,14 @@ Item {
             }
         }
 
-        // M3 Inactive Rail (Slim background segment)
+        // M3 Inactive Rail (Thick container segment on the right)
         Rectangle {
             id: inactiveTrack
             anchors.verticalCenter: parent.verticalCenter
-            x: Math.min(parent.width, parent.handleCenter + parent.handleGap / 2)
+            x: Math.min(parent.width, parent.handleCenter + handle.width / 2 + parent.handleGap)
             width: Math.max(0, parent.width - x)
             height: parent.height
-            radius: height / 2
+            radius: Math.min(height / 2, width / 2)
             color: root.interacting
                 ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.08)
                 : root.hovered
@@ -161,11 +161,25 @@ Item {
             }
         }
 
-        // M3 Expressive Morphing Handle Capsule
+        // Terminal stop dot near the end of the inactive track rail
+        Rectangle {
+            id: stopDot
+            width: 4
+            height: 4
+            radius: 2
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+            anchors.rightMargin: Math.max(4, parent.height / 2 - 2)
+            color: root.accentColor
+            opacity: root.displayProgress > 0.95 ? (1 - root.displayProgress) / 0.05 : 0.8
+            visible: inactiveTrack.width >= 12
+        }
+
+        // Vertical Line Handle / Separator
         Rectangle {
             id: handle
-            width: root.interacting ? 10 : (root.hovered ? 8 : 6)
-            height: root.interacting ? 22 : (root.hovered ? 18 : 16)
+            width: root.interacting ? 5 : (root.hovered ? 4 : 4)
+            height: root.interacting ? 34 : (root.hovered ? 32 : 30)
             radius: width / 2
             anchors.verticalCenter: parent.verticalCenter
             x: Math.max(0, Math.min(parent.width - width, parent.handleCenter - width / 2))
