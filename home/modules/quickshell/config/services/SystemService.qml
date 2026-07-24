@@ -1076,7 +1076,7 @@ Scope {
     function sessionAction(action) {
         switch (action) {
         case "lock":
-            execDetached(["sh", "-c", "quickshellipc lockscreen lock || hyprlock"]);
+            execDetached(["sh", "-c", "qs ipc call lockscreen lock"]);
             break;
         case "logout":
             execDetached(["hyprctl", "dispatch", "exit"]);

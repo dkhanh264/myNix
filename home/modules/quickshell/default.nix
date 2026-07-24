@@ -5,6 +5,9 @@
   # deduplicates packages that are also required elsewhere in the home config.
   home.packages = with pkgs; [
     quickshell
+    (writeShellScriptBin "quickshellipc" ''
+      exec ${quickshell}/bin/quickshell ipc call "$@"
+    '')
     brightnessctl
     networkmanager
     networkmanagerapplet

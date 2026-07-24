@@ -58,7 +58,7 @@ let
         selection="$(menu "$prompt" "$choices" "$system_theme")" || return 0
 
         case "$selection" in
-          *"Lock"*|*"Khóa"*) quickshellipc lockscreen lock || hyprlock ;;
+          *"Lock"*|*"Khóa"*) qs ipc call lockscreen lock ;;
           *"Suspend"*|*"Tạm dừng"*) systemctl suspend ;;
           *"Restart"*|*"Khởi động"*) systemctl reboot ;;
           *"Shut down"*|*"Tắt máy"*) systemctl poweroff ;;

@@ -286,7 +286,7 @@ in
         "ALT, F4,         killactive"
         "$mainMod, V,         togglefloating"
         "$mainMod, F,         fullscreen, 0"
-        "$mainMod, L,         exec, quickshellipc lockscreen lock || hyprlock"
+        "$mainMod, L,         exec, qs ipc call lockscreen lock"
         
         # Dùng walker --dmenu thay cho rofi -dmenu để gọi clipboard
         "$mainMod, C,         exec, cliphist list | walker --dmenu | cliphist decode | wl-copy"

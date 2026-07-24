@@ -44,15 +44,15 @@ M3BarPill {
     }
 
     readonly property int nodeSize: 24
-    readonly property int nodeGap: Theme.space2
+    readonly property int nodeGap: 6
 
     interactive: false
-    horizontalPadding: Theme.space2
+    horizontalPadding: 6
     accessibleName: I18n.tr("Không gian làm việc", "Workspaces")
 
     Row {
         id: rowLayout
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.centerIn: parent
         spacing: root.nodeGap
 
         Repeater {
