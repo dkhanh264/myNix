@@ -300,7 +300,7 @@ ShellRoot {
 
         function lock(): void { lockScreen.lockSession(); }
         function show(): void { lockScreen.lockSession(); }
-        function unlock(): void { lockScreen.locked = false; }
+        function unlock(): void { lockScreen.locked = false; if (lockScreen.unlock) lockScreen.unlock(); }
     }
 
     LockScreen {

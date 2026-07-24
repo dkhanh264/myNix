@@ -25,9 +25,28 @@ WlSessionLock {
         WlSessionLockSurface {
             id: lockSurface
 
+            function submitPassword() {
+                if (passwordInput.text.length === 0 || lock.authenticating)
+                    return;
+
+                lock.authenticating = true;
+                lock.authError = false;
+
+                if (!pam.active) {
+                    pam.start();
+                } else if (pam.responseRequired) {
+                    pam.respond(passwordInput.text);
+                } else {
+                    if (pam.active) {
+                        pam.abort();
+                    }
+                    pam.start();
+                }
+            }
+
             Connections {
                 target: lock
-                function onLockedChanged() {
+                function onLockStateChanged() {
                     if (lock.locked) {
                         passwordInput.text = "";
                         lock.authError = false;
@@ -586,7 +605,7 @@ WlSessionLock {
                 PamContext {
                     id: pam
                     user: Quickshell.env("USER") || "dk"
-                    config: "login"
+                    config: "quickshell"
 
                     onResponseRequiredChanged: {
                         if (responseRequired && lock.authenticating && passwordInput.text.length > 0) {
@@ -600,6 +619,9 @@ WlSessionLock {
                             lock.authError = false;
                             passwordInput.text = "";
                             lock.locked = false;
+                            if (lock.unlock) {
+                                lock.unlock();
+                            }
                             lock.unlocked();
                         } else {
                             lock.authError = true;
@@ -621,23 +643,6 @@ WlSessionLock {
                         if (!pam.active) {
                             pam.start();
                         }
-                    }
-                }
-
-                function submitPassword() {
-                    if (passwordInput.text.length === 0 || lock.authenticating)
-                        return;
-
-                    lock.authenticating = true;
-                    lock.authError = false;
-
-                    if (pam.responseRequired) {
-                        pam.respond(passwordInput.text);
-                    } else {
-                        if (pam.active) {
-                            pam.abort();
-                        }
-                        pam.start();
                     }
                 }
             }
