@@ -1,6 +1,9 @@
 import QtQuick
 import "../theme"
 
+// Material 3 Filled / Outlined Text Field Component.
+// Includes floating label, leading and trailing icon support, clear button,
+// error state formatting, and Material 3 Expressive focus transitions.
 Item {
     id: root
 
@@ -9,14 +12,17 @@ Item {
     property string label: ""
     property string placeholderText: ""
     property string leadingIcon: ""
+    property string trailingIcon: ""
+    property bool showClearButton: false
     property bool enabled: true
     property bool error: false
     property string supportingText: ""
     readonly property bool focused: input.activeFocus
 
     signal accepted
+    signal trailingIconClicked
 
-    implicitHeight: supportingText.length > 0 ? 70 : 56
+    implicitHeight: supportingText.length > 0 ? 72 : 56
     opacity: enabled ? 1 : 0.38
 
     Rectangle {
@@ -58,8 +64,8 @@ Item {
             id: input
             anchors.left: leading.visible ? leading.right : parent.left
             anchors.leftMargin: leading.visible ? 10 : 16
-            anchors.right: parent.right
-            anchors.rightMargin: 16
+            anchors.right: trailingItem.visible ? trailingItem.left : parent.right
+            anchors.rightMargin: trailingItem.visible ? 8 : 16
             anchors.top: parent.top
             anchors.topMargin: root.label.length > 0 ? 22 : 0
             anchors.bottom: parent.bottom
@@ -100,6 +106,31 @@ Item {
             font.pixelSize: 14
             elide: Text.ElideRight
         }
+
+        Item {
+            id: trailingItem
+            anchors.right: parent.right
+            anchors.rightMargin: 10
+            anchors.verticalCenter: parent.verticalCenter
+            width: 32
+            height: 32
+            visible: (root.showClearButton && input.text.length > 0) || root.trailingIcon.length > 0
+
+            IconButton {
+                anchors.centerIn: parent
+                buttonSize: 32
+                iconSize: 18
+                icon: (root.showClearButton && input.text.length > 0) ? "close" : root.trailingIcon
+                foregroundColor: root.error ? Theme.error : Theme.textSecondary
+                onClicked: {
+                    if (root.showClearButton && input.text.length > 0) {
+                        input.text = "";
+                    } else {
+                        root.trailingIconClicked();
+                    }
+                }
+            }
+        }
     }
 
     Text {
@@ -117,3 +148,4 @@ Item {
         elide: Text.ElideRight
     }
 }
+

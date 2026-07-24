@@ -1,12 +1,16 @@
 import QtQuick
 import "../theme"
 
+// Material 3 Icon Button Component.
+// Supports Standard, Filled, Filled Tonal, and Outlined variants
+// with Material 3 Expressive spring morphing and state layer overlays.
 Item {
     id: root
 
     property string icon: ""
     property int buttonSize: 40
     property int iconSize: 20
+    property string variant: checked ? "tonal" : (fillColor !== "transparent" ? "filled" : "standard") // standard, filled, tonal, outlined
     property color fillColor: "transparent"
     property color hoverColor: Theme.alpha(Theme.textPrimary, 0.09)
     property color foregroundColor: Theme.textPrimary
@@ -20,7 +24,7 @@ Item {
     implicitWidth: buttonSize
     implicitHeight: buttonSize
     opacity: enabled ? 1 : 0.38
-    scale: pointer.pressed ? 0.94 : 1
+    scale: pointer.pressed ? 0.94 : (hovered && enabled ? 1.05 : 1)
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.Button
@@ -28,12 +32,39 @@ Item {
     Accessible.focusable: enabled
 
     Keys.onPressed: event => {
-        if (!root.enabled)
-            return;
+        if (!root.enabled) return;
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
                 || event.key === Qt.Key_Space) {
             root.clicked();
             event.accepted = true;
+        }
+    }
+
+    function getSurfaceColor() {
+        if (root.checked) return Theme.primaryContainer;
+        switch (root.variant) {
+        case "filled":
+            return root.fillColor !== "transparent" ? root.fillColor : Theme.primary;
+        case "tonal":
+            return Theme.secondaryContainer;
+        case "outlined":
+        case "standard":
+        default:
+            return pointer.containsMouse ? root.hoverColor : "transparent";
+        }
+    }
+
+    function getIconColor() {
+        if (root.checked) return Theme.textPrimary;
+        switch (root.variant) {
+        case "filled":
+            return Theme.textPrimary;
+        case "tonal":
+            return Theme.textPrimary;
+        case "outlined":
+        case "standard":
+        default:
+            return root.foregroundColor;
         }
     }
 
@@ -43,12 +74,12 @@ Item {
         radius: pointer.pressed ? Theme.shapeMedium
             : root.checked ? Theme.shapeMedium
             : pointer.containsMouse ? Theme.shapeLarge : width / 2
-        color: root.checked
-            ? Theme.primaryContainer
-            : (pointer.containsMouse ? root.hoverColor : root.fillColor)
+        color: root.getSurfaceColor()
+        border.width: root.variant === "outlined" && !root.checked ? 1 : 0
+        border.color: pointer.containsMouse ? Theme.primary : Theme.outline
 
         Behavior on color {
-            ColorAnimation { duration: Theme.motionShort }
+            ColorAnimation { duration: Theme.motionShort3 }
         }
 
         Behavior on radius {
@@ -62,7 +93,7 @@ Item {
 
     MaterialRipple {
         id: ripple
-        rippleColor: root.checked ? Theme.textPrimary : root.foregroundColor
+        rippleColor: root.getIconColor()
         peakOpacity: 0.13
     }
 
@@ -71,14 +102,15 @@ Item {
         anchors.centerIn: parent
         text: root.icon
         iconSize: root.iconSize
-        color: root.checked ? Theme.textPrimary : root.foregroundColor
+        color: root.getIconColor()
+        filled: root.checked || root.variant === "filled"
         scale: pointer.pressed ? 0.90 : 1
 
         Behavior on scale {
             NumberAnimation {
                 duration: Theme.motionShort4
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.standardCurve
+                easing.bezierCurve: Theme.springCurve
             }
         }
     }
@@ -98,8 +130,8 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        anchors.margins: 2
-        radius: Math.max(0, buttonSurface.radius - 2)
+        anchors.margins: -2
+        radius: buttonSurface.radius + 2
         color: "transparent"
         border.width: 2
         border.color: Theme.primary
@@ -110,7 +142,8 @@ Item {
         NumberAnimation {
             duration: Theme.motionShort4
             easing.type: Easing.BezierSpline
-            easing.bezierCurve: Theme.standardCurve
+            easing.bezierCurve: Theme.springCurve
         }
     }
 }
+

@@ -1,18 +1,22 @@
 import QtQuick
 import "../theme"
 
+// Material 3 Switch Component.
+// Features Material 3 track/thumb color tokens, expressive spring morphing,
+// optional thumb icon, and accessible focus indication.
 Item {
     id: root
 
     property bool checked: false
     property bool enabled: true
+    property string icon: ""
     property string accessibleName: ""
     signal toggled(bool checked)
 
     implicitWidth: 52
     implicitHeight: 32
     opacity: enabled ? 1 : 0.38
-    scale: pointer.pressed ? 0.94 : 1
+    scale: pointer.pressed ? 0.94 : (pointer.containsMouse ? 1.02 : 1)
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.CheckBox
@@ -21,6 +25,7 @@ Item {
     Accessible.focusable: enabled
 
     Keys.onPressed: event => {
+        if (!enabled) return;
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
                 || event.key === Qt.Key_Space) {
             root.toggled(!root.checked);
@@ -32,9 +37,11 @@ Item {
         id: switchSurface
         anchors.fill: parent
         radius: pointer.pressed ? Theme.shapeMedium : height / 2
-        color: root.checked ? Theme.primary : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerHighest)
+        color: root.checked
+            ? Theme.primary
+            : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerHighest)
         border.width: root.checked ? 0 : 2
-        border.color: pointer.containsMouse ? Theme.outlineVariant : Theme.outline
+        border.color: pointer.containsMouse ? Theme.outline : Theme.outlineVariant
 
         Behavior on color {
             ColorAnimation { duration: Theme.motionMedium }
@@ -55,14 +62,17 @@ Item {
         peakOpacity: 0.12
     }
 
+    // Switch Thumb / Handle
     Rectangle {
         id: handle
         width: pointer.pressed ? 28 : (root.checked ? 24 : 16)
-        height: pointer.pressed ? 20 : width
-        radius: pointer.pressed ? Theme.shapeSmall : width / 2
-        x: root.checked ? root.width - width - (pointer.pressed ? 2 : 4) : (pointer.pressed ? 4 : 8)
+        height: pointer.pressed ? 20 : (root.checked ? 24 : 16)
+        radius: pointer.pressed ? Theme.shapeSmall : height / 2
+        x: root.checked
+            ? root.width - width - (pointer.pressed ? 4 : 4)
+            : (pointer.pressed ? 4 : 8)
         anchors.verticalCenter: parent.verticalCenter
-        color: root.checked ? Theme.textPrimary : Theme.outline
+        color: root.checked ? Theme.textPrimary : (pointer.containsMouse ? Theme.textPrimary : Theme.outline)
 
         Behavior on x {
             NumberAnimation {
@@ -97,7 +107,15 @@ Item {
         }
 
         Behavior on color {
-            ColorAnimation { duration: Theme.motionShort }
+            ColorAnimation { duration: Theme.motionShort3 }
+        }
+
+        MaterialIcon {
+            visible: root.icon.length > 0 && root.checked
+            anchors.centerIn: parent
+            text: root.icon
+            iconSize: 12
+            color: Theme.primary
         }
     }
 
@@ -105,6 +123,7 @@ Item {
         id: pointer
         anchors.fill: parent
         enabled: root.enabled
+        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onPressed: mouse => {
             root.focus = false;
@@ -115,8 +134,8 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        anchors.margins: 2
-        radius: Math.max(0, switchSurface.radius - 2)
+        anchors.margins: -2
+        radius: switchSurface.radius + 2
         color: "transparent"
         border.width: 2
         border.color: Theme.primary
@@ -127,7 +146,8 @@ Item {
         NumberAnimation {
             duration: Theme.motionShort4
             easing.type: Easing.BezierSpline
-            easing.bezierCurve: Theme.standardCurve
+            easing.bezierCurve: Theme.springCurve
         }
     }
 }
+

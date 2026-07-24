@@ -129,8 +129,8 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        anchors.margins: 2
-        radius: Math.max(0, chipSurface.radius - 2)
+        anchors.margins: -2
+        radius: chipSurface.radius + 2
         color: "transparent"
         border.width: 2
         border.color: Theme.primary
@@ -141,7 +141,8 @@ Item {
         NumberAnimation {
             duration: Theme.motionShort4
             easing.type: Easing.BezierSpline
-            easing.bezierCurve: Theme.standardCurve
+            easing.bezierCurve: Theme.springCurve
         }
     }
 }
+

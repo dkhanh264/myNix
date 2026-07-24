@@ -341,7 +341,6 @@ in
       ];
       # ── Blur cho các giao diện nổi (Android 17 Glassmorphic Backdrop) ────
       layerrule = [
-        "noshadow, walker"
         "blur, walker"
         "ignorezero, walker"
         "blur, waybar"
