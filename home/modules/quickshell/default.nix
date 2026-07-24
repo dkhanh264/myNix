@@ -16,7 +16,10 @@
     curl
   ];
 
-  xdg.configFile."quickshell".source = ./config;
+  xdg.configFile."quickshell" = {
+    source = ./config;
+    force = true;
+  };
 
   systemd.user.services.quickshell = {
     Unit = {
