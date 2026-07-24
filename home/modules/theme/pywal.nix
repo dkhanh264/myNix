@@ -182,12 +182,9 @@ let
       ERROR_CONTAINER="#5a2225"
       ON_ERROR="#2b0b0e"
 
-      BG_HEX="''${BG#\#}"
       FG_HEX="''${FG#\#}"
       PRIMARY_HEX="''${PRIMARY#\#}"
-      PRIMARY_BRIGHT_HEX="''${PRIMARY_BRIGHT#\#}"
       SECONDARY_HEX="''${SECONDARY#\#}"
-      TERTIARY_HEX="''${TERTIARY#\#}"
       MUTED_HEX="''${MUTED#\#}"
       ON_PRIMARY_HEX=$(readable_on_color "$PRIMARY")
       ON_SECONDARY_HEX=$(readable_on_color "$SECONDARY")
