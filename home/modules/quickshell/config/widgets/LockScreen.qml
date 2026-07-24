@@ -257,17 +257,15 @@ WlSessionLock {
                                             id: passwordInput
                                             anchors.fill: parent
                                             verticalAlignment: TextInput.AlignVCenter
-                                            echoMode: TextInput.Normal
+                                            echoMode: showPasswordToggle.showPass ? TextInput.Normal : TextInput.NoEcho
                                             color: showPasswordToggle.showPass ? Theme.textPrimary : "transparent"
-                                            selectionColor: showPasswordToggle.showPass ? Theme.primaryContainer : "transparent"
-                                            selectedTextColor: showPasswordToggle.showPass ? Theme.onPrimaryContainer : "transparent"
+                                            selectionColor: Theme.primaryContainer
+                                            selectedTextColor: Theme.onPrimaryContainer
                                             font.family: Theme.textFont
                                             font.pixelSize: 15
                                             font.weight: Font.Medium
                                             focus: lock.locked
                                             clip: true
-
-                                            property var dotSeeds: []
 
                                             Text {
                                                 visible: passwordInput.text.length === 0
@@ -285,101 +283,18 @@ WlSessionLock {
                                             onTextChanged: {
                                                 if (lock.authError)
                                                     lock.authError = false;
-
-                                                let seeds = passwordInput.dotSeeds ? passwordInput.dotSeeds.slice() : [];
-                                                const len = passwordInput.text.length;
-                                                if (len === 0) {
-                                                    passwordInput.dotSeeds = [];
-                                                    return;
-                                                }
-                                                while (seeds.length < len) {
-                                                    seeds.push({
-                                                        shapeType: Math.floor(Math.random() * 7),
-                                                        colIdx: Math.floor(Math.random() * 5),
-                                                        rotation: Math.floor(Math.random() * 4) * 45
-                                                    });
-                                                }
-                                                if (seeds.length > len) {
-                                                    seeds = seeds.slice(0, len);
-                                                }
-                                                passwordInput.dotSeeds = seeds;
                                             }
                                         }
 
-                                        // Material 3 Expressive Dynamic Password Shapes
-                                        Row {
+                                        // Material 3 Expressive Dynamic Password Shapes Component
+                                        Md3PasswordDots {
                                             id: md3PasswordDots
-                                            visible: !showPasswordToggle.showPass && passwordInput.text.length > 0
                                             anchors.verticalCenter: parent.verticalCenter
                                             anchors.left: parent.left
-                                            spacing: 8
-
-                                            Repeater {
-                                                model: passwordInput.text.length
-
-                                                delegate: Item {
-                                                    required property int index
-                                                    readonly property var seed: (passwordInput.dotSeeds && index < passwordInput.dotSeeds.length)
-                                                        ? passwordInput.dotSeeds[index]
-                                                        : ({ shapeType: index % 7, colIdx: index % 5, rotation: 0 })
-
-                                                    readonly property int shapeType: seed.shapeType
-                                                    readonly property int colIdx: seed.colIdx
-                                                    readonly property int seedRot: seed.rotation
-
-                                                    width: shapeType === 2 ? 22 : (shapeType === 3 ? 16 : 18)
-                                                    height: 26
-
-                                                    readonly property var md3Colors: [
-                                                        Theme.primary,
-                                                        Theme.secondary,
-                                                        Theme.tertiary,
-                                                        Theme.wallpaperPrimary,
-                                                        Theme.wallpaperSecondary
-                                                    ]
-
-                                                    readonly property color dotColor: md3Colors[colIdx % md3Colors.length]
-
-                                                    Item {
-                                                        anchors.centerIn: parent
-                                                        width: 24
-                                                        height: 24
-
-                                                        Rectangle {
-                                                            id: shapeRect
-                                                            anchors.centerIn: parent
-                                                            color: parent.parent.dotColor
-
-                                                            width: shapeType === 2 ? 22 : (shapeType === 3 ? 14 : (shapeType === 4 ? 15 : 16))
-                                                            height: shapeType === 2 ? 14 : (shapeType === 3 ? 22 : (shapeType === 4 ? 15 : 16))
-                                                            radius: shapeType === 0 ? width / 2 : (shapeType === 1 ? 5 : (shapeType === 2 || shapeType === 3 ? 7 : (shapeType === 4 ? 3.5 : 5)))
-                                                            rotation: shapeType === 4 ? 45 : seedRot
-
-                                                            scale: 0
-                                                            Component.onCompleted: scale = 1.0
-
-                                                            Behavior on scale {
-                                                                NumberAnimation {
-                                                                    duration: Theme.motionShort4
-                                                                    easing.type: Easing.BezierSpline
-                                                                    easing.bezierCurve: Theme.springCurve
-                                                                }
-                                                            }
-                                                        }
-
-                                                        Rectangle {
-                                                            visible: shapeType === 5
-                                                            anchors.centerIn: parent
-                                                            color: parent.parent.dotColor
-                                                            width: 15
-                                                            height: 15
-                                                            radius: 4
-                                                            rotation: shapeRect.rotation + 45
-                                                            scale: shapeRect.scale
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                            passwordLength: passwordInput.text.length
+                                            showPassword: showPasswordToggle.showPass
+                                            dotSize: 18
+                                            dotGap: 8
                                         }
                                     }
 

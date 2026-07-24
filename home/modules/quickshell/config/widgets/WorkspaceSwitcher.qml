@@ -43,7 +43,7 @@ M3BarPill {
         return result;
     }
 
-    readonly property int nodeSize: 24
+    readonly property int nodeSize: 20
     readonly property int nodeGap: 6
 
     interactive: false
@@ -53,7 +53,8 @@ M3BarPill {
 
     Row {
         id: rowLayout
-        anchors.centerIn: parent
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.left: parent.left
         spacing: root.nodeGap
 
         Repeater {
@@ -78,7 +79,7 @@ M3BarPill {
                     && workspace.toplevels.values.length > 0
                 readonly property bool urgent: workspace && workspace.urgent
 
-                implicitWidth: active ? 36 : root.nodeSize
+                implicitWidth: active ? 32 : root.nodeSize
                 implicitHeight: root.nodeSize
                 activeFocusOnTab: true
 
