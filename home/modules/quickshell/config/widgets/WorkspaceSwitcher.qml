@@ -100,10 +100,7 @@ M3BarPill {
                             : workspaceButton.occupied
                                 ? Theme.primaryContainer
                                 : Theme.surfaceContainerHighest
-                    border.width: workspaceButton.active ? 0 : 1
-                    border.color: pointer.containsMouse
-                        ? Theme.outline
-                        : Theme.alpha(Theme.outlineVariant, 0.50)
+                    border.width: 0
                     scale: pointer.pressed ? 0.90 : (pointer.containsMouse ? 1.08 : 1.0)
 
                     Behavior on color {

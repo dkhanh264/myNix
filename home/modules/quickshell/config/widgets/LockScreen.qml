@@ -208,6 +208,8 @@ WlSessionLock {
                                             focus: lock.locked
                                             clip: true
 
+                                            property var dotSeeds: []
+
                                             Text {
                                                 visible: passwordInput.text.length === 0 && !passwordInput.activeFocus
                                                 anchors.verticalCenter: parent.verticalCenter
@@ -222,10 +224,28 @@ WlSessionLock {
                                             onTextChanged: {
                                                 if (lock.authError)
                                                     lock.authError = false;
+
+                                                let seeds = passwordInput.dotSeeds ? passwordInput.dotSeeds.slice() : [];
+                                                const len = passwordInput.text.length;
+                                                if (len === 0) {
+                                                    passwordInput.dotSeeds = [];
+                                                    return;
+                                                }
+                                                while (seeds.length < len) {
+                                                    seeds.push({
+                                                        shapeType: Math.floor(Math.random() * 7),
+                                                        colIdx: Math.floor(Math.random() * 5),
+                                                        rotation: Math.floor(Math.random() * 4) * 45
+                                                    });
+                                                }
+                                                if (seeds.length > len) {
+                                                    seeds = seeds.slice(0, len);
+                                                }
+                                                passwordInput.dotSeeds = seeds;
                                             }
                                         }
 
-                                        // Material 3 Expressive Dynamic Password Shapes (replaces plain password dots)
+                                        // Material 3 Expressive Dynamic Password Shapes (random MD3 shapes per character)
                                         Row {
                                             id: md3PasswordDots
                                             visible: !showPasswordToggle.showPass && passwordInput.text.length > 0
@@ -239,8 +259,15 @@ WlSessionLock {
 
                                                 delegate: Item {
                                                     required property int index
-                                                    readonly property int shapeType: index % 5
-                                                    width: shapeType === 2 ? 18 : (shapeType === 3 ? 14 : 13)
+                                                    readonly property var seed: (passwordInput.dotSeeds && index < passwordInput.dotSeeds.length)
+                                                        ? passwordInput.dotSeeds[index]
+                                                        : ({ shapeType: index % 7, colIdx: index % 5, rotation: 0 })
+
+                                                    readonly property int shapeType: seed.shapeType
+                                                    readonly property int colIdx: seed.colIdx
+                                                    readonly property int seedRot: seed.rotation
+
+                                                    width: shapeType === 2 ? 17 : (shapeType === 3 ? 12 : 13)
                                                     height: 20
                                                     anchors.verticalCenter: parent.verticalCenter
 
@@ -252,27 +279,46 @@ WlSessionLock {
                                                         Theme.wallpaperSecondary
                                                     ]
 
-                                                    readonly property color dotColor: md3Colors[index % md3Colors.length]
+                                                    readonly property color dotColor: md3Colors[colIdx % md3Colors.length]
 
-                                                    Rectangle {
-                                                        id: shapeRect
+                                                    Item {
                                                         anchors.centerIn: parent
-                                                        color: dotColor
+                                                        width: 18
+                                                        height: 18
 
-                                                        width: shapeType === 2 ? 18 : (shapeType === 3 ? 11 : 12)
-                                                        height: shapeType === 2 ? 11 : (shapeType === 3 ? 11 : 12)
-                                                        radius: shapeType === 0 ? width / 2 : (shapeType === 1 ? 3 : (shapeType === 2 ? height / 2 : (shapeType === 3 ? 2.5 : 5)))
-                                                        rotation: shapeType === 3 ? 45 : 0
+                                                        // Primary MD3 Expressive Shape
+                                                        Rectangle {
+                                                            id: shapeRect
+                                                            anchors.centerIn: parent
+                                                            color: parent.parent.dotColor
 
-                                                        scale: 0
-                                                        Component.onCompleted: scale = 1.0
+                                                            width: shapeType === 2 ? 17 : (shapeType === 3 ? 10 : (shapeType === 4 ? 11 : 12))
+                                                            height: shapeType === 2 ? 10 : (shapeType === 3 ? 17 : (shapeType === 4 ? 11 : 12))
+                                                            radius: shapeType === 0 ? width / 2 : (shapeType === 1 ? 3.5 : (shapeType === 2 || shapeType === 3 ? 5 : (shapeType === 4 ? 2.5 : 4)))
+                                                            rotation: shapeType === 4 ? 45 : seedRot
 
-                                                        Behavior on scale {
-                                                            NumberAnimation {
-                                                                duration: Theme.motionShort4
-                                                                easing.type: Easing.BezierSpline
-                                                                easing.bezierCurve: Theme.springCurve
+                                                            scale: 0
+                                                            Component.onCompleted: scale = 1.0
+
+                                                            Behavior on scale {
+                                                                NumberAnimation {
+                                                                    duration: Theme.motionShort4
+                                                                    easing.type: Easing.BezierSpline
+                                                                    easing.bezierCurve: Theme.springCurve
+                                                                }
                                                             }
+                                                        }
+
+                                                        // Secondary layer for Flower/Star MD3 Expressive shape (shapeType 5)
+                                                        Rectangle {
+                                                            visible: shapeType === 5
+                                                            anchors.centerIn: parent
+                                                            color: parent.parent.dotColor
+                                                            width: 11
+                                                            height: 11
+                                                            radius: 3
+                                                            rotation: shapeRect.rotation + 45
+                                                            scale: shapeRect.scale
                                                         }
                                                     }
                                                 }

@@ -47,87 +47,10 @@ in
         ];
       };
 
-      shape = [
-        # Android 17 Top Lock Status Badge Container
-        {
-          monitor = "";
-          size = "220, 38";
-          color = "$surface_container";
-          rounding = 19;
-          border_size = 1;
-          border_color = "$primary";
-          position = "0, 320";
-          halign = "center";
-          valign = "center";
-          zindex = 1;
-        }
-        # Android 17 Date Pill Chip Container
-        {
-          monitor = "";
-          size = "280, 36";
-          color = "$surface_container";
-          rounding = 18;
-          border_size = 1;
-          border_color = "$primary";
-          position = "0, -85";
-          halign = "center";
-          valign = "center";
-          zindex = 1;
-        }
-        # Bottom Left Action Circle Badge (Sleep)
-        {
-          monitor = "";
-          size = "52, 52";
-          color = "$surface_container";
-          rounding = 26;
-          border_size = 1;
-          border_color = "$primary";
-          position = "-260, -320";
-          halign = "center";
-          valign = "center";
-          zindex = 1;
-        }
-        # Bottom Right Action Circle Badge (Power)
-        {
-          monitor = "";
-          size = "52, 52";
-          color = "$surface_container";
-          rounding = 26;
-          border_size = 1;
-          border_color = "$error";
-          position = "260, -320";
-          halign = "center";
-          valign = "center";
-          zindex = 1;
-        }
-        # Bottom Gesture Indicator Handle Bar
-        {
-          monitor = "";
-          size = "80, 5";
-          color = "$surface_bright";
-          rounding = 3;
-          border_size = 0;
-          position = "0, -350";
-          halign = "center";
-          valign = "center";
-          zindex = 1;
-        }
-      ];
+      shape = [ ];
 
       label = [
-        # Top Lock Status Text
-        {
-          monitor = "";
-          text = "🔒 Android 17  ·  Đã khóa";
-          color = "$primary";
-          font_size = 12;
-          font_family = "Noto Sans Bold";
-          position = "0, 320";
-          halign = "center";
-          valign = "center";
-          zindex = 2;
-        }
-        # Android 17 Giant Stacked Hero Clock - Hours
+        # Stacked Hero Clock - Hours
         {
           monitor = "";
           text = "cmd[update:1000] date +\"%H\"";
@@ -139,7 +62,7 @@ in
           valign = "center";
           zindex = 2;
         }
-        # Android 17 Giant Stacked Hero Clock - Minutes
+        # Stacked Hero Clock - Minutes
         {
           monitor = "";
           text = "cmd[update:1000] date +\"%M\"";
@@ -159,42 +82,6 @@ in
           font_size = 13;
           font_family = "Noto Sans";
           position = "0, -85";
-          halign = "center";
-          valign = "center";
-          zindex = 2;
-        }
-        # User Instruction Label
-        {
-          monitor = "";
-          text = "Mở khóa cho <b>$USER</b>";
-          color = "$fg";
-          font_size = 12;
-          font_family = "Noto Sans";
-          position = "0, -125";
-          halign = "center";
-          valign = "center";
-          zindex = 2;
-        }
-        # Bottom Left Sleep Icon
-        {
-          monitor = "";
-          text = "bedtime";
-          color = "$primary";
-          font_size = 22;
-          font_family = "Material Symbols Rounded";
-          position = "-260, -320";
-          halign = "center";
-          valign = "center";
-          zindex = 2;
-        }
-        # Bottom Right Power Icon
-        {
-          monitor = "";
-          text = "power_settings_new";
-          color = "$error";
-          font_size = 22;
-          font_family = "Material Symbols Rounded";
-          position = "260, -320";
           halign = "center";
           valign = "center";
           zindex = 2;
