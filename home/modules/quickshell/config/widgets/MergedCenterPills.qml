@@ -38,6 +38,17 @@ Item {
         return str;
     }
 
+    function getShapeTypeForNotification(iconStr, titleStr) {
+        let str = (iconStr || "") + (titleStr || "");
+        if (str.length === 0)
+            return 5;
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash * 31 + str.charCodeAt(i)) & 0x7FFFFFFF;
+        }
+        return hash % 8;
+    }
+
     // Animation progress (0.0 = Idle 2 pills, 1.0 = Notification pill active)
     property real animProgress: 0.0
 
@@ -69,8 +80,14 @@ Item {
         return Theme.barItemHeight;
     }
 
-    readonly property real notifContentWidth: thumbnailBox.width + 10 + textColumn.implicitWidth + 24
-    readonly property real notifWidth: Math.max(220, Math.min(460, notifContentWidth))
+    readonly property real maxNotifTextWidth: 320
+    readonly property real calcTextWidth: {
+        let tW = titleText.implicitWidth;
+        let bW = root.toastBody.length > 0 ? bodyText.implicitWidth : 0;
+        return Math.min(maxNotifTextWidth, Math.max(tW, bW));
+    }
+    readonly property real notifContentWidth: 28 + 8 + calcTextWidth + 24
+    readonly property real notifWidth: Math.max(140, Math.min(440, notifContentWidth))
 
     implicitWidth: normalWidth + (notifWidth - normalWidth) * animProgress
     implicitHeight: Theme.barItemHeight
@@ -120,8 +137,6 @@ Item {
             controller: root.controller
             checked: root.activePopup === "calendar"
             anchors.verticalCenter: parent.verticalCenter
-            containerColor: Theme.alpha(Theme.barSurface, 1.0 - Math.min(1.0, root.animProgress * 2.2))
-            outlineColor: Theme.alpha(Theme.barOutline, 1.0 - Math.min(1.0, root.animProgress * 2.2))
 
             // X-position morphing from left towards center as pills merge
             x: {
@@ -145,8 +160,6 @@ Item {
             compact: root.weatherCompact
             checked: root.activePopup === "weather"
             anchors.verticalCenter: parent.verticalCenter
-            containerColor: Theme.alpha(Theme.barSurface, 1.0 - Math.min(1.0, root.animProgress * 2.2))
-            outlineColor: Theme.alpha(Theme.barOutline, 1.0 - Math.min(1.0, root.animProgress * 2.2))
 
             // X-position morphing from right towards center as pills merge
             x: {
@@ -164,7 +177,7 @@ Item {
         }
     }
 
-    // Notification Pill Content
+    // Notification Pill Content (Music pill style layout without media controls)
     Item {
         id: notifContent
         anchors.fill: parent
@@ -179,36 +192,41 @@ Item {
 
         Row {
             anchors.centerIn: parent
-            spacing: 10
+            spacing: 8
 
-            // Left Thumbnail Circle
-            Rectangle {
+            // Left Thumbnail / Avatar
+            Item {
                 id: thumbnailBox
                 width: 28
                 height: 28
-                radius: 14
                 anchors.verticalCenter: parent.verticalCenter
-                color: Theme.alpha(Theme.primary, 0.22)
-                border.width: 1
-                border.color: Theme.alpha(Theme.primary, 0.40)
-                clip: true
 
-                Image {
-                    id: notifImg
+                Rectangle {
+                    id: imageClipRect
                     anchors.fill: parent
-                    source: root.formatSourceUrl(root.toastImage)
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    visible: root.toastImage.length > 0 && status === Image.Ready
+                    radius: width / 2
+                    color: Theme.alpha(Theme.primary, 0.16)
+                    border.width: 1
+                    border.color: Theme.alpha(Theme.primary, 0.35)
+                    clip: true
+                    visible: notifImg.visible
+
+                    Image {
+                        id: notifImg
+                        anchors.fill: parent
+                        source: root.formatSourceUrl(root.toastImage)
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        visible: root.toastImage.length > 0 && status === Image.Ready
+                    }
                 }
 
-                MaterialIcon {
+                Md3ExpressiveShape {
                     visible: !notifImg.visible
                     anchors.centerIn: parent
-                    text: root.sanitizeIconName(root.toastIcon)
-                    iconSize: 16
+                    size: 20
+                    shapeType: root.getShapeTypeForNotification(root.toastIcon, root.toastTitle)
                     color: Theme.primary
-                    filled: true
                 }
             }
 
@@ -220,11 +238,11 @@ Item {
 
                 Text {
                     id: titleText
-                    width: Math.min(300, implicitWidth)
+                    width: Math.min(root.maxNotifTextWidth, implicitWidth)
                     text: root.toastTitle
                     color: Theme.textPrimary
                     font.family: Theme.textFont
-                    font.pixelSize: 12
+                    font.pixelSize: 10
                     font.weight: Font.Bold
                     elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
@@ -233,11 +251,11 @@ Item {
                 Text {
                     id: bodyText
                     visible: root.toastBody.length > 0
-                    width: Math.min(300, implicitWidth)
+                    width: Math.min(root.maxNotifTextWidth, implicitWidth)
                     text: root.toastBody
                     color: Theme.textSecondary
                     font.family: Theme.textFont
-                    font.pixelSize: 10
+                    font.pixelSize: 8
                     font.weight: Font.Medium
                     elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter

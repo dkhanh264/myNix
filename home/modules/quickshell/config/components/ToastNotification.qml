@@ -26,6 +26,17 @@ Rectangle {
         return str;
     }
 
+    function getShapeTypeForNotification(iconStr, titleStr) {
+        let str = (iconStr || "") + (titleStr || "");
+        if (str.length === 0)
+            return 5;
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash * 31 + str.charCodeAt(i)) & 0x7FFFFFFF;
+        }
+        return hash % 8;
+    }
+
     implicitWidth: 410
     implicitHeight: Math.max(76, contentRow.implicitHeight + 28)
     radius: Theme.shapeExpressiveContainer
@@ -93,13 +104,12 @@ Rectangle {
                 visible: root.imageSource.length > 0 && status === Image.Ready
             }
 
-            MaterialIcon {
+            Md3ExpressiveShape {
                 visible: !notifImg.visible
                 anchors.centerIn: parent
-                text: root.iconName
-                iconSize: 24
+                size: 26
+                shapeType: root.getShapeTypeForNotification(root.iconName, root.title)
                 color: root.accentColor
-                filled: true
             }
         }
 

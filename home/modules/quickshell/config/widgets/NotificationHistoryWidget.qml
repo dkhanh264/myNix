@@ -141,14 +141,13 @@ Rectangle {
                                 width: 42
                                 height: 42
                                 radius: Theme.shapeMedium
-                                color: Theme.primaryContainer
+                                color: Theme.alpha(Theme.primary, 0.16)
 
-                                MaterialIcon {
+                                Md3ExpressiveShape {
                                     anchors.centerIn: parent
-                                    text: "notifications"
-                                    iconSize: 21
+                                    size: 24
+                                    shapeType: (summary + appName).length % 8
                                     color: Theme.primary
-                                    filled: true
                                 }
                             }
 
