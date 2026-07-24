@@ -67,9 +67,9 @@ Item {
         id: handle
         width: pointer.pressed ? 28 : (root.checked ? 24 : 16)
         height: pointer.pressed ? 20 : (root.checked ? 24 : 16)
-        radius: pointer.pressed ? Theme.shapeSmall : height / 2
+        radius: pointer.pressed ? Theme.shapeSmall : (root.checked ? 12 : 8)
         x: root.checked
-            ? root.width - width - (pointer.pressed ? 4 : 4)
+            ? root.width - (pointer.pressed ? 28 : 24) - 4
             : (pointer.pressed ? 4 : 8)
         anchors.verticalCenter: parent.verticalCenter
         color: root.checked ? Theme.textPrimary : (pointer.containsMouse ? Theme.textPrimary : Theme.outline)

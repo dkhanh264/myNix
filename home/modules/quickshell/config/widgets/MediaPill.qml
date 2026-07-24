@@ -156,6 +156,8 @@ BarPill {
             buttonSize: 30
             iconSize: 16
             isPlaying: root.player && root.player.isPlaying
+            fillColor: "transparent"
+            hoverColor: Theme.alpha(Theme.textPrimary, 0.09)
             enabled: root.player && root.player.canTogglePlaying
             onClicked: root.togglePlayback()
         }
