@@ -5,11 +5,22 @@ import "../theme"
 Item {
     id: root
 
-    property url source: ""
+    property var source: ""
     property color accentColor: Theme.secondary
+    readonly property string formattedSource: formatArtUrl(source)
     readonly property int renderScale: width <= 64 ? 4 : 2
-    readonly property bool artAvailable: source.toString().length > 0
+    readonly property bool artAvailable: formattedSource.length > 0
         && artSource.status === Image.Ready
+
+    function formatArtUrl(rawUrl) {
+        if (!rawUrl) return "";
+        let str = String(rawUrl).trim();
+        if (str.length === 0) return "";
+        if (str.startsWith("/") && !str.startsWith("//")) {
+            return "file://" + str;
+        }
+        return str;
+    }
 
     // The disc is continuously rotated by its parent. Render the complete
     // subtree above its display resolution first so circular mask and border
@@ -32,7 +43,7 @@ Item {
     Image {
         id: artSource
         anchors.fill: parent
-        source: root.source
+        source: root.formattedSource
         sourceSize.width: Math.max(128, root.width * root.renderScale)
         sourceSize.height: Math.max(128, root.height * root.renderScale)
         fillMode: Image.PreserveAspectCrop
@@ -112,3 +123,4 @@ Item {
         }
     }
 }
+

@@ -29,6 +29,7 @@ slider,
 #window {
   background: transparent;
   color: @text;
+  box-shadow: none;
 }
 
 #box {
@@ -36,7 +37,7 @@ slider,
   padding: 24px;
   border-radius: 32px;
   border: 2px solid alpha(@primary, 0.45);
-  box-shadow: 0 20px 40px alpha(black, 0.45);
+  box-shadow: none;
 }
 
 #search {

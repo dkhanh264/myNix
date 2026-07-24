@@ -263,6 +263,8 @@ in
         "opacity 0.95 0.90, class:^(discord)$"
         "opacity 0.95 0.90, class:^(Spotify)$"
         "opacity 0.95 0.90, class:^(Code|code)$"
+        "noshadow, class:^(walker)$"
+        "noshadow, title:^(walker)$"
         # Cú pháp: opacity <độ_đục_khi_đang_dùng> <độ_đục_khi_không_dùng>, class:^(tên_app)$
       ];
 
@@ -339,6 +341,7 @@ in
       ];
       # ── Blur cho các giao diện nổi (Android 17 Glassmorphic Backdrop) ────
       layerrule = [
+        "noshadow, walker"
         "blur, walker"
         "ignorezero, walker"
         "blur, waybar"

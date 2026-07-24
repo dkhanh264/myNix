@@ -67,10 +67,18 @@ BarPill {
                 border.width: 1
                 border.color: Theme.alpha(Theme.secondary, 0.45)
 
+                function formatArtUrl(rawUrl) {
+                    if (!rawUrl) return "";
+                    let str = String(rawUrl).trim();
+                    if (str.startsWith("/") && !str.startsWith("//"))
+                        return "file://" + str;
+                    return str;
+                }
+
                 Image {
                     id: coverImage
                     anchors.fill: parent
-                    source: root.player ? root.player.trackArtUrl : ""
+                    source: formatArtUrl(root.player ? root.player.trackArtUrl : "")
                     asynchronous: true
                     fillMode: Image.PreserveAspectCrop
                     visible: status === Image.Ready

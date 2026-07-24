@@ -8,16 +8,17 @@ import "../theme"
 import "../components"
 import "../services"
 
-// Material 3 Expressive Custom Lockscreen powered by Quickshell & PAM.
-// Features ambient dynamic color lighting, acrylic blur surface, large clock typography,
-// user auth profile card, password mask toggle, shake animation on error,
-// integrated MPRIS media control card, system metric pills, and quick power actions.
+// Android 17 Material 3 Expressive Custom Lockscreen powered by Quickshell & PAM.
+// Features Android 17 vertical stacked hero clock typography, dynamic ambient wallpaper lighting,
+// top lock status badge, M3 Expressive media card, floating auth pill with password toggle,
+// bottom corner action shortcuts (Sleep / Power), gesture bar, and PAM authentication.
 WlSessionLock {
     id: lock
 
     property bool authenticating: false
     property bool authError: false
     property string errorMessage: ""
+    property bool showPowerMenu: false
 
     signal unlocked()
 
@@ -27,16 +28,17 @@ WlSessionLock {
 
             // Dark ambient acrylic blur background
             Rectangle {
+                id: lockBg
                 anchors.fill: parent
                 color: Theme.lockSurfaceBackground
 
-                // Radial ambient glow matching dynamic wallpaper palette
+                // Radial ambient glow matching dynamic wallpaper palette (Android 17 aura)
                 Rectangle {
-                    width: Math.min(parent.width, parent.height) * 0.9
+                    width: Math.min(parent.width, parent.height) * 0.85
                     height: width
                     radius: width / 2
                     anchors.centerIn: parent
-                    color: Theme.alpha(Theme.wallpaperPrimary, 0.08)
+                    color: Theme.alpha(Theme.wallpaperPrimary, 0.10)
                     scale: lock.authenticating ? 1.15 : (lock.authError ? 1.05 : 1.0)
 
                     Behavior on scale {
@@ -48,16 +50,15 @@ WlSessionLock {
                     }
                 }
 
-                // Secondary soft glow spot
+                // Secondary ambient soft glow spot
                 Rectangle {
-                    width: 320
-                    height: 320
-                    radius: 160
+                    width: 400
+                    height: 400
+                    radius: 200
                     anchors.top: parent.top
-                    anchors.right: parent.right
-                    anchors.topMargin: -80
-                    anchors.rightMargin: -80
-                    color: Theme.alpha(Theme.wallpaperSecondary, 0.06)
+                    anchors.topMargin: -100
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: Theme.alpha(Theme.wallpaperSecondary, 0.08)
                 }
 
                 // Keyboard event handler on lock surface
@@ -69,7 +70,61 @@ WlSessionLock {
                         if (event.key === Qt.Key_Escape) {
                             passwordInput.text = "";
                             lock.authError = false;
+                            lock.showPowerMenu = false;
                             event.accepted = true;
+                        }
+                    }
+                }
+
+                // 1. Android 17 Top Lock Status Badge
+                Rectangle {
+                    id: topStatusPill
+                    anchors.top: parent.top
+                    anchors.topMargin: 36
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    height: 38
+                    implicitWidth: topStatusRow.implicitWidth + Theme.space4 * 2
+                    radius: 19
+                    color: Theme.lockCardBackground
+                    border.width: 1
+                    border.color: Theme.barOutline
+
+                    Row {
+                        id: topStatusRow
+                        anchors.centerIn: parent
+                        spacing: Theme.space2
+
+                        MaterialIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: lock.authenticating ? "sync" : "lock"
+                            iconSize: 16
+                            color: Theme.primary
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Android 17"
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 13
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "•"
+                            color: Theme.textSecondary
+                            font.pixelSize: 12
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: lock.authenticating
+                                ? "Đang xác thực..."
+                                : (lock.authError ? "Không đúng" : "Đã khóa an toàn")
+                            color: lock.authError ? Theme.error : Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 12
                         }
                     }
                 }
@@ -78,22 +133,22 @@ WlSessionLock {
                 Column {
                     id: centerColumn
                     anchors.centerIn: parent
-                    spacing: Theme.space6
+                    spacing: Theme.space5
                     width: Math.min(460, parent.width - 48)
 
-                    // 1. Material 3 Expressive Clock & Date
+                    // 2. Android 17 Stacked Hero Clock (HH on top, MM on bottom)
                     Column {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: Theme.space1
+                        spacing: -24 // Tight Android vertical clock line spacing
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: Qt.formatDateTime(systemClock.date, "HH:mm")
+                            text: Qt.formatDateTime(systemClock.date, "HH")
                             color: Theme.textPrimary
                             font.family: Theme.textFont
-                            font.pixelSize: 84
+                            font.pixelSize: 128
                             font.weight: Font.Bold
-                            font.letterSpacing: -2
+                            font.letterSpacing: -5
 
                             SystemClock {
                                 id: systemClock
@@ -103,19 +158,53 @@ WlSessionLock {
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: Qt.formatDateTime(systemClock.date, "dddd, d MMMM yyyy")
+                            text: Qt.formatDateTime(systemClock.date, "mm")
                             color: Theme.wallpaperPrimary
                             font.family: Theme.textFont
-                            font.pixelSize: 16
-                            font.weight: Font.Medium
+                            font.pixelSize: 128
+                            font.weight: Font.Bold
+                            font.letterSpacing: -5
                         }
                     }
 
-                    // 2. User & Password Auth Card
+                    // Android 17 Date Pill Chip
+                    Rectangle {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        height: 34
+                        implicitWidth: dateChipRow.implicitWidth + Theme.space4 * 2
+                        radius: 17
+                        color: Theme.alpha(Theme.surfaceContainerHigh, 0.50)
+                        border.width: 1
+                        border.color: Theme.alpha(Theme.barOutline, 0.40)
+
+                        Row {
+                            id: dateChipRow
+                            anchors.centerIn: parent
+                            spacing: Theme.space2
+
+                            MaterialIcon {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "calendar_month"
+                                iconSize: 15
+                                color: Theme.primary
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: Qt.formatDateTime(systemClock.date, "dddd, d MMMM yyyy")
+                                color: Theme.textPrimary
+                                font.family: Theme.textFont
+                                font.pixelSize: 13
+                                font.weight: Font.Medium
+                            }
+                        }
+                    }
+
+                    // 3. User & Password Auth Capsule Card
                     Rectangle {
                         id: authCard
                         width: parent.width
-                        implicitHeight: authContent.implicitHeight + Theme.space6 * 2
+                        implicitHeight: authContent.implicitHeight + Theme.space5 * 2
                         radius: Theme.popupRadius
                         color: Theme.lockCardBackground
                         border.width: 1
@@ -144,25 +233,25 @@ WlSessionLock {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             anchors.top: parent.top
-                            anchors.margins: Theme.space6
-                            spacing: Theme.space4
+                            anchors.margins: Theme.space5
+                            spacing: Theme.space3
 
-                            // User Avatar Header
+                            // User Avatar Header Row
                             Row {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 spacing: Theme.space3
 
                                 Rectangle {
-                                    width: 56
-                                    height: 56
-                                    radius: 28
+                                    width: 48
+                                    height: 48
+                                    radius: 24
                                     color: Theme.primaryContainer
                                     anchors.verticalCenter: parent.verticalCenter
 
                                     MaterialIcon {
                                         anchors.centerIn: parent
                                         text: "person"
-                                        iconSize: 32
+                                        iconSize: 26
                                         color: Theme.primary
                                     }
                                 }
@@ -175,16 +264,16 @@ WlSessionLock {
                                         text: Quickshell.env("USER") || "User"
                                         color: Theme.textPrimary
                                         font.family: Theme.textFont
-                                        font.pixelSize: 18
+                                        font.pixelSize: 16
                                         font.weight: Font.Bold
                                     }
 
                                     Text {
                                         text: lock.authenticating
-                                            ? "Đang xác thực..."
+                                            ? "Đang kiểm tra mật khẩu..."
                                             : (lock.authError
                                                 ? (lock.errorMessage || "Mật khẩu không đúng")
-                                                : "Nhập mật khẩu để mở khóa")
+                                                : "Nhập mật khẩu để tiếp tục")
                                         color: lock.authError
                                             ? Theme.error
                                             : (lock.authenticating ? Theme.primary : Theme.textSecondary)
@@ -194,11 +283,11 @@ WlSessionLock {
                                 }
                             }
 
-                            // Password Input Field Container
+                            // Password Input Container Capsule
                             Rectangle {
                                 width: parent.width
                                 height: 50
-                                radius: Theme.cardRadius
+                                radius: 25
                                 color: Theme.surfaceContainerHighest
                                 border.width: passwordInput.activeFocus ? 2 : 1
                                 border.color: lock.authError
@@ -211,19 +300,19 @@ WlSessionLock {
 
                                 Row {
                                     anchors.fill: parent
-                                    anchors.leftMargin: Theme.space3
+                                    anchors.leftMargin: Theme.space4
                                     anchors.rightMargin: Theme.space2
 
                                     MaterialIcon {
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: "lock"
+                                        text: "key"
                                         iconSize: 20
                                         color: passwordInput.activeFocus ? Theme.primary : Theme.textSecondary
                                     }
 
                                     TextInput {
                                         id: passwordInput
-                                        width: parent.width - 84
+                                        width: parent.width - 92
                                         anchors.verticalCenter: parent.verticalCenter
                                         echoMode: showPasswordToggle.showPass ? TextInput.Normal : TextInput.Password
                                         color: Theme.textPrimary
@@ -236,7 +325,7 @@ WlSessionLock {
                                         Text {
                                             visible: passwordInput.text.length === 0 && !passwordInput.activeFocus
                                             anchors.verticalCenter: parent.verticalCenter
-                                            text: "Mật khẩu..."
+                                            text: "Nhập mật khẩu..."
                                             color: Theme.alpha(Theme.textSecondary, 0.6)
                                             font.family: Theme.textFont
                                             font.pixelSize: 14
@@ -314,7 +403,7 @@ WlSessionLock {
                         }
                     }
 
-                    // 3. Media Player Card (if music active)
+                    // 4. Media Player Card (if music active)
                     Item {
                         id: mediaCard
                         width: parent.width
@@ -325,7 +414,7 @@ WlSessionLock {
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: Theme.cardRadius
+                            radius: 20
                             color: Theme.lockCardBackground
                             border.width: 1
                             border.color: Theme.barOutline
@@ -338,14 +427,22 @@ WlSessionLock {
                                 Rectangle {
                                     width: 48
                                     height: 48
-                                    radius: 10
+                                    radius: 12
                                     color: Theme.surfaceContainerHighest
                                     anchors.verticalCenter: parent.verticalCenter
                                     clip: true
 
+                                    function formatArtUrl(rawUrl) {
+                                        if (!rawUrl) return "";
+                                        let str = String(rawUrl).trim();
+                                        if (str.startsWith("/") && !str.startsWith("//"))
+                                            return "file://" + str;
+                                        return str;
+                                    }
+
                                     Image {
                                         anchors.fill: parent
-                                        source: mediaCard.activePlayer ? (mediaCard.activePlayer.trackArtUrl || "") : ""
+                                        source: formatArtUrl(mediaCard.activePlayer ? (mediaCard.activePlayer.trackArtUrl || "") : "")
                                         fillMode: Image.PreserveAspectCrop
                                         visible: status === Image.Ready
                                     }
@@ -366,7 +463,7 @@ WlSessionLock {
 
                                     Text {
                                         width: parent.width
-                                        text: mediaCard.activePlayer ? (mediaCard.activePlayer.trackTitle || "No title") : ""
+                                        text: mediaCard.activePlayer ? (mediaCard.activePlayer.trackTitle || "Không có tiêu đề") : ""
                                         color: Theme.textPrimary
                                         font.family: Theme.textFont
                                         font.pixelSize: 13
@@ -376,7 +473,7 @@ WlSessionLock {
 
                                     Text {
                                         width: parent.width
-                                        text: mediaCard.activePlayer ? (mediaCard.activePlayer.trackArtist || "Unknown artist") : ""
+                                        text: mediaCard.activePlayer ? (mediaCard.activePlayer.trackArtist || "Nghệ sĩ chưa rõ") : ""
                                         color: Theme.textSecondary
                                         font.family: Theme.textFont
                                         font.pixelSize: 11
@@ -412,47 +509,161 @@ WlSessionLock {
                     }
                 }
 
-                // 4. Bottom System Bar & Power Actions
-                Row {
+                // 5. Android 17 Bottom Corner Shortcuts & Power Popup
+                // Bottom Left Shortcut: Sleep / Suspend
+                Rectangle {
+                    width: 52
+                    height: 52
+                    radius: 26
+                    anchors.left: parent.left
                     anchors.bottom: parent.bottom
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottomMargin: Theme.space6
-                    spacing: Theme.space3
+                    anchors.leftMargin: 36
+                    anchors.bottomMargin: 36
+                    color: sleepBtnArea.containsMouse ? Theme.surfaceContainerHigh : Theme.lockCardBackground
+                    border.width: 1
+                    border.color: Theme.barOutline
 
-                    // Power options: Suspend, Reboot, Shutdown
-                    Rectangle {
-                        height: 44
-                        implicitWidth: powerRow.implicitWidth + Theme.space4 * 2
-                        radius: 22
-                        color: Theme.lockCardBackground
-                        border.width: 1
-                        border.color: Theme.barOutline
+                    MaterialIcon {
+                        anchors.centerIn: parent
+                        text: "bedtime"
+                        iconSize: 22
+                        color: Theme.primary
+                    }
+
+                    MouseArea {
+                        id: sleepBtnArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: systemService.execDetached(["systemctl", "suspend"])
+                    }
+                }
+
+                // Bottom Right Shortcut: Power Options Toggle
+                Rectangle {
+                    width: 52
+                    height: 52
+                    radius: 26
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.rightMargin: 36
+                    anchors.bottomMargin: 36
+                    color: powerBtnArea.containsMouse ? Theme.surfaceContainerHigh : Theme.lockCardBackground
+                    border.width: 1
+                    border.color: Theme.barOutline
+
+                    MaterialIcon {
+                        anchors.centerIn: parent
+                        text: "power_settings_new"
+                        iconSize: 22
+                        color: Theme.error
+                    }
+
+                    MouseArea {
+                        id: powerBtnArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: lock.showPowerMenu = !lock.showPowerMenu
+                    }
+                }
+
+                // Power Options Floating Menu (above bottom right shortcut)
+                Rectangle {
+                    id: powerMenuPopup
+                    width: 160
+                    height: 140
+                    radius: 20
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.rightMargin: 36
+                    anchors.bottomMargin: 96
+                    color: Theme.lockCardBackground
+                    border.width: 1
+                    border.color: Theme.barOutline
+                    visible: lock.showPowerMenu
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: Theme.space2
+                        width: parent.width - 24
 
                         Row {
-                            id: powerRow
-                            anchors.centerIn: parent
                             spacing: Theme.space2
+                            width: parent.width
 
                             IconButton {
                                 icon: "bedtime"
-                                accessibleName: "Sleep"
-                                onClicked: systemService.execDetached(["systemctl", "suspend"])
+                                iconSize: 18
+                                onClicked: {
+                                    lock.showPowerMenu = false;
+                                    systemService.execDetached(["systemctl", "suspend"]);
+                                }
                             }
+                            Text {
+                                text: "Tạm dừng"
+                                color: Theme.textPrimary
+                                font.family: Theme.textFont
+                                font.pixelSize: 13
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        Row {
+                            spacing: Theme.space2
+                            width: parent.width
 
                             IconButton {
                                 icon: "restart_alt"
-                                accessibleName: "Reboot"
-                                onClicked: systemService.execDetached(["systemctl", "reboot"])
+                                iconSize: 18
+                                onClicked: {
+                                    lock.showPowerMenu = false;
+                                    systemService.execDetached(["systemctl", "reboot"]);
+                                }
                             }
+                            Text {
+                                text: "Khởi động lại"
+                                color: Theme.textPrimary
+                                font.family: Theme.textFont
+                                font.pixelSize: 13
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        Row {
+                            spacing: Theme.space2
+                            width: parent.width
 
                             IconButton {
                                 icon: "power_settings_new"
-                                accessibleName: "Shutdown"
+                                iconSize: 18
                                 foregroundColor: Theme.error
-                                onClicked: systemService.execDetached(["systemctl", "poweroff"])
+                                onClicked: {
+                                    lock.showPowerMenu = false;
+                                    systemService.execDetached(["systemctl", "poweroff"]);
+                                }
+                            }
+                            Text {
+                                text: "Tắt máy"
+                                color: Theme.error
+                                font.family: Theme.textFont
+                                font.pixelSize: 13
+                                font.weight: Font.Bold
+                                anchors.verticalCenter: parent.verticalCenter
                             }
                         }
                     }
+                }
+
+                // Android 17 Gesture Indicator Bar (Bottom Center)
+                Rectangle {
+                    width: 72
+                    height: 5
+                    radius: 3
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 14
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: Theme.alpha(Theme.textPrimary, 0.40)
                 }
 
                 // PAM Authentication Service Context
@@ -501,3 +712,4 @@ WlSessionLock {
         locked = true;
     }
 }
+

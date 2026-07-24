@@ -1,9 +1,9 @@
 import QtQuick
 import "../theme"
 
-// Google Material Design 3 Expressive Slider.
-// Features dynamic split tracks, morphing handle capsule with spring physics,
-// inner corner smoothing, and integrated icons and value badges.
+// Material 3 Expressive Slim & Extended Slider.
+// Features a long horizontal track, ultra-slim 6px rail thickness,
+// compact vertical profile (32px), and a spring-morphing capsule handle.
 Item {
     id: root
 
@@ -15,11 +15,10 @@ Item {
     property string accessibleName: "System value"
     property string valueSuffix: "%"
     property bool showValue: true
-    property color activeColor: Theme.primaryContainer
+    property color activeColor: Theme.primary
     property color accentColor: Theme.primary
     property color inactiveColor: Theme.surfaceContainerHighest
     property color foregroundColor: Theme.textPrimary
-    property bool showStopDot: false
     readonly property bool hovered: pointer.containsMouse
     readonly property bool interacting: pointer.pressed
     readonly property real normalizedProgress: to <= from ? 0
@@ -28,9 +27,9 @@ Item {
 
     signal moved(real value)
 
-    implicitHeight: 52
+    implicitHeight: 32
     opacity: enabled ? 1 : 0.38
-    scale: interacting ? 0.985 : (hovered && enabled ? 1.01 : 1.0)
+    scale: interacting ? 0.99 : (hovered && enabled ? 1.005 : 1.0)
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.Slider
@@ -57,8 +56,9 @@ Item {
     }
 
     function updateFromPosition(position) {
-        if (width <= 0) return;
-        const normalized = Math.max(0, Math.min(1, position / width));
+        if (track.width <= 0) return;
+        const relX = position - track.x;
+        const normalized = Math.max(0, Math.min(1, relX / track.width));
         moved(from + normalized * (to - from));
     }
 
@@ -83,17 +83,47 @@ Item {
         }
     }
 
+    // Left Icon (Compact M3 style)
+    MaterialIcon {
+        id: leftIcon
+        visible: root.icon.length > 0
+        anchors.left: parent.left
+        anchors.leftMargin: 2
+        anchors.verticalCenter: parent.verticalCenter
+        text: root.icon
+        iconSize: 16
+        color: root.accentColor
+        filled: true
+    }
+
+    // Right Value Label
+    Text {
+        id: rightValueLabel
+        visible: root.showValue
+        anchors.right: parent.right
+        anchors.rightMargin: 2
+        anchors.verticalCenter: parent.verticalCenter
+        text: Math.round(root.value) + root.valueSuffix
+        color: Theme.textPrimary
+        font.family: Theme.textFont
+        font.pixelSize: 11
+        font.weight: Font.DemiBold
+    }
+
+    // Long & Slim Track Container spanning full length
     Item {
         id: track
-        anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.left: leftIcon.visible ? leftIcon.right : parent.left
+        anchors.right: rightValueLabel.visible ? rightValueLabel.left : parent.right
+        anchors.leftMargin: leftIcon.visible ? 8 : 4
+        anchors.rightMargin: rightValueLabel.visible ? 8 : 4
         anchors.verticalCenter: parent.verticalCenter
-        height: 24
+        height: 6
 
         readonly property real handleCenter: root.displayProgress * width
-        readonly property real handleGap: root.interacting ? 8 : (root.hovered ? 6 : 4)
+        readonly property real handleGap: root.interacting ? 4 : (root.hovered ? 3 : 2)
 
-        // M3 Expressive Active Track
+        // M3 Active Rail (Slim filled segment)
         Rectangle {
             id: activeTrack
             anchors.left: parent.left
@@ -101,12 +131,10 @@ Item {
             width: Math.max(0, parent.handleCenter - parent.handleGap / 2)
             height: parent.height
             radius: height / 2
-            topRightRadius: Theme.shapeExtraSmall
-            bottomRightRadius: Theme.shapeExtraSmall
             color: root.interacting
-                ? Theme.blend(root.activeColor, Theme.primary, 0.25)
+                ? Theme.blend(root.activeColor, "#ffffff", 0.20)
                 : root.hovered
-                    ? Theme.blend(root.activeColor, Theme.primary, 0.12)
+                    ? Theme.blend(root.activeColor, "#ffffff", 0.10)
                     : root.activeColor
 
             Behavior on color {
@@ -114,7 +142,7 @@ Item {
             }
         }
 
-        // M3 Expressive Inactive Track
+        // M3 Inactive Rail (Slim background segment)
         Rectangle {
             id: inactiveTrack
             anchors.verticalCenter: parent.verticalCenter
@@ -122,8 +150,6 @@ Item {
             width: Math.max(0, parent.width - x)
             height: parent.height
             radius: height / 2
-            topLeftRadius: Theme.shapeExtraSmall
-            bottomLeftRadius: Theme.shapeExtraSmall
             color: root.interacting
                 ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.08)
                 : root.hovered
@@ -135,50 +161,15 @@ Item {
             }
         }
 
-        // M3 Expressive stop dot indicator at end of inactive track
-        Rectangle {
-            visible: root.showStopDot && inactiveTrack.width >= 16
-            width: 4
-            height: 4
-            radius: 2
-            anchors.right: parent.right
-            anchors.rightMargin: 8
-            anchors.verticalCenter: parent.verticalCenter
-            color: Theme.alpha(root.foregroundColor, 0.50)
-        }
-
-        MaterialIcon {
-            visible: root.icon.length > 0 && activeTrack.width >= 32
-            anchors.left: parent.left
-            anchors.leftMargin: Theme.space3
-            anchors.verticalCenter: parent.verticalCenter
-            text: root.icon
-            iconSize: 15
-            color: root.foregroundColor
-            filled: true
-        }
-
-        Text {
-            visible: root.showValue
-            anchors.right: parent.right
-            anchors.rightMargin: Theme.space3
-            anchors.verticalCenter: parent.verticalCenter
-            text: Math.round(root.value) + root.valueSuffix
-            color: Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 10
-            font.weight: Font.DemiBold
-        }
-
         // M3 Expressive Morphing Handle Capsule
         Rectangle {
             id: handle
-            width: root.interacting ? 8 : (root.hovered ? 6 : 4)
-            height: root.interacting ? 36 : (root.hovered ? 32 : 28)
-            radius: root.interacting ? Theme.shapeExtraSmall : width / 2
+            width: root.interacting ? 10 : (root.hovered ? 8 : 6)
+            height: root.interacting ? 22 : (root.hovered ? 18 : 16)
+            radius: width / 2
             anchors.verticalCenter: parent.verticalCenter
             x: Math.max(0, Math.min(parent.width - width, parent.handleCenter - width / 2))
-            color: root.interacting ? Theme.blend(root.accentColor, "#ffffff", 0.18) : root.accentColor
+            color: root.interacting ? Theme.blend(root.accentColor, "#ffffff", 0.25) : root.accentColor
 
             Behavior on width {
                 NumberAnimation {
@@ -194,19 +185,13 @@ Item {
                     easing.bezierCurve: Theme.springCurve
                 }
             }
-            Behavior on radius {
-                NumberAnimation {
-                    duration: Theme.motionShort4
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Theme.springCurve
-                }
-            }
             Behavior on color {
                 ColorAnimation { duration: Theme.motionShort3 }
             }
         }
     }
 
+    // Touch & Mouse Area covers full component for easy dragging
     MouseArea {
         id: pointer
         anchors.fill: parent
@@ -229,10 +214,7 @@ Item {
     }
 
     Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        height: 42
+        anchors.fill: parent
         radius: Theme.shapeMedium
         color: "transparent"
         border.width: 2
@@ -240,4 +222,6 @@ Item {
         visible: root.activeFocus
     }
 }
+
+
 

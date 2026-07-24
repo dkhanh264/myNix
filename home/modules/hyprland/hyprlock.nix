@@ -48,192 +48,153 @@ in
       };
 
       shape = [
-        # Main Hero Expressive Card Container
+        # Android 17 Top Lock Status Badge Container
         {
           monitor = "";
-          size = "820, 480";
-          color = "$surface";
-          rounding = 32;
-          border_size = 2;
-          border_color = "$primary";
-          position = "0, 0";
-          halign = "center";
-          valign = "center";
-          zindex = 0;
-        }
-        # Left Accent Hero Section (Clock & Date Card)
-        {
-          monitor = "";
-          size = "320, 436";
+          size = "220, 38";
           color = "$surface_container";
-          rounding = 24;
+          rounding = 19;
           border_size = 1;
           border_color = "$primary";
-          position = "-224, 0";
+          position = "0, 320";
           halign = "center";
           valign = "center";
           zindex = 1;
         }
-        # User Avatar Capsule Badge
+        # Android 17 Date Pill Chip Container
         {
           monitor = "";
-          size = "80, 80";
-          color = "$surface";
-          rounding = 24;
-          border_size = 2;
-          border_color = "$primary";
-          position = "-224, 135";
-          halign = "center";
-          valign = "center";
-          zindex = 2;
-        }
-        # Expressive Lock Status Indicator Badge
-        {
-          monitor = "";
-          size = "64, 64";
-          color = "$primary";
-          rounding = 20;
-          border_size = 0;
-          position = "170, 140";
-          halign = "center";
-          valign = "center";
-          zindex = 1;
-        }
-        # MD3 System Info Pill (User Badge)
-        {
-          monitor = "";
-          size = "236, 42";
-          color = "$surface";
-          rounding = 21;
-          border_size = 1;
-          border_color = "$primary";
-          position = "-224, -165";
-          halign = "center";
-          valign = "center";
-          zindex = 2;
-        }
-        # Security Footer Pill
-        {
-          monitor = "";
-          size = "320, 42";
+          size = "280, 36";
           color = "$surface_container";
-          rounding = 21;
+          rounding = 18;
           border_size = 1;
           border_color = "$primary";
-          position = "170, -165";
+          position = "0, -85";
           halign = "center";
           valign = "center";
           zindex = 1;
         }
-      ];
-
-      image = [
+        # Bottom Left Action Circle Badge (Sleep)
         {
           monitor = "";
-          path = "${nixLogoPng}";
-          size = 52;
-          rounding = 16;
-          border_size = 0;
-          position = "-224, 135";
+          size = "52, 52";
+          color = "$surface_container";
+          rounding = 26;
+          border_size = 1;
+          border_color = "$primary";
+          position = "-260, -320";
           halign = "center";
           valign = "center";
-          zindex = 3;
+          zindex = 1;
+        }
+        # Bottom Right Action Circle Badge (Power)
+        {
+          monitor = "";
+          size = "52, 52";
+          color = "$surface_container";
+          rounding = 26;
+          border_size = 1;
+          border_color = "$error";
+          position = "260, -320";
+          halign = "center";
+          valign = "center";
+          zindex = 1;
+        }
+        # Bottom Gesture Indicator Handle Bar
+        {
+          monitor = "";
+          size = "80, 5";
+          color = "$surface_bright";
+          rounding = 3;
+          border_size = 0;
+          position = "0, -350";
+          halign = "center";
+          valign = "center";
+          zindex = 1;
         }
       ];
 
       label = [
-        # Large Expressive Hero Clock Digit ($TIME)
+        # Top Lock Status Text
         {
           monitor = "";
-          text = "$TIME";
+          text = "🔒 Android 17  ·  Đã khóa";
           color = "$primary";
-          font_size = 68;
+          font_size = 12;
           font_family = "Noto Sans Bold";
-          position = "-224, 32";
+          position = "0, 320";
           halign = "center";
           valign = "center";
-          zindex = 3;
+          zindex = 2;
         }
-        # Formatted Date Label
+        # Android 17 Giant Stacked Hero Clock - Hours
+        {
+          monitor = "";
+          text = "cmd[update:1000] date +\"%H\"";
+          color = "$fg";
+          font_size = 124;
+          font_family = "Noto Sans Bold";
+          position = "0, 160";
+          halign = "center";
+          valign = "center";
+          zindex = 2;
+        }
+        # Android 17 Giant Stacked Hero Clock - Minutes
+        {
+          monitor = "";
+          text = "cmd[update:1000] date +\"%M\"";
+          color = "$primary";
+          font_size = 124;
+          font_family = "Noto Sans Bold";
+          position = "0, 20";
+          halign = "center";
+          valign = "center";
+          zindex = 2;
+        }
+        # Date Chip Label
         {
           monitor = "";
           text = "cmd[update:60000] date +\"%A, %d %B %Y\"";
           color = "$fg";
           font_size = 13;
           font_family = "Noto Sans";
-          position = "-224, -36";
+          position = "0, -85";
           halign = "center";
           valign = "center";
-          zindex = 3;
+          zindex = 2;
         }
-        # User Pill Label
+        # User Instruction Label
         {
           monitor = "";
-          text = "<b>$USER</b> · NixOS Expressive";
+          text = "Mở khóa cho <b>$USER</b>";
           color = "$fg";
           font_size = 12;
           font_family = "Noto Sans";
-          position = "-224, -165";
+          position = "0, -125";
           halign = "center";
           valign = "center";
-          zindex = 3;
+          zindex = 2;
         }
-        # Lock Icon inside Badge
+        # Bottom Left Sleep Icon
         {
           monitor = "";
-          text = "lock";
-          color = "$on_primary";
-          font_size = 30;
+          text = "bedtime";
+          color = "$primary";
+          font_size = 22;
           font_family = "Material Symbols Rounded";
-          position = "170, 140";
-          halign = "center";
-          valign = "center";
-          zindex = 3;
-        }
-        # Main Title Header
-        {
-          monitor = "";
-          text = "<b>Mở khóa hệ thống</b>";
-          color = "$fg";
-          font_size = 24;
-          font_family = "Noto Sans Bold";
-          position = "170, 82";
+          position = "-260, -320";
           halign = "center";
           valign = "center";
           zindex = 2;
         }
-        # Subtitle Prompt
+        # Bottom Right Power Icon
         {
           monitor = "";
-          text = "Nhập mật khẩu của $USER để tiếp tục";
-          color = "$fg";
-          font_size = 11;
-          font_family = "Noto Sans";
-          position = "170, 48";
-          halign = "center";
-          valign = "center";
-          zindex = 2;
-        }
-        # Instruction Label
-        {
-          monitor = "";
-          text = "Nhập mật khẩu rồi nhấn Enter";
-          color = "$fg";
-          font_size = 10;
-          font_family = "Noto Sans";
-          position = "170, -88";
-          halign = "center";
-          valign = "center";
-          zindex = 2;
-        }
-        # Footer Action Label
-        {
-          monitor = "";
-          text = "Enter  ·  Xác thực an toàn MD3";
-          color = "$fg";
-          font_size = 11;
-          font_family = "Noto Sans";
-          position = "170, -165";
+          text = "power_settings_new";
+          color = "$error";
+          font_size = 22;
+          font_family = "Material Symbols Rounded";
+          position = "260, -320";
           halign = "center";
           valign = "center";
           zindex = 2;
@@ -243,8 +204,8 @@ in
       input-field = [
         {
           monitor = "";
-          size = "360, 64";
-          position = "170, -20";
+          size = "360, 56";
+          position = "0, -180";
           halign = "center";
           valign = "center";
           zindex = 3;
@@ -255,9 +216,9 @@ in
           fail_color = "$error";
           font_family = "Noto Sans";
           font_color = "$fg";
-          placeholder_text = "Mật khẩu";
+          placeholder_text = "Nhập mật khẩu...";
           check_text = "Đang xác thực…";
-          fail_text = "<b>Không đúng</b> · Thử lại ($ATTEMPTS)";
+          fail_text = "<b>Mật khẩu không đúng</b> ($ATTEMPTS)";
           rounding = 28;
           shadow_passes = 0;
           fade_on_empty = false;
@@ -277,3 +238,4 @@ in
     '';
   };
 }
+
