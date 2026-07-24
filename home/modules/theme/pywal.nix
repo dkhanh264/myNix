@@ -57,18 +57,6 @@ let
     theme[process_end]="#ffb4ab"
   '';
 
-  fallbackHyprlockTheme = pkgs.writeText "hyprlock-wal-fallback" ''
-    $bg = rgba(27, 27, 31, 1.0)
-    $fg = rgba(229, 225, 230, 1.0)
-    $primary = rgba(169, 199, 255, 1.0)
-    $primary_bright = rgba(192, 193, 255, 1.0)
-    $secondary = rgba(243, 183, 221, 1.0)
-    $tertiary = rgba(215, 185, 255, 1.0)
-    $surface = rgba(27, 27, 31, 0.70)
-    $surface_container = rgba(35, 36, 42, 0.85)
-    $on_primary = rgba(17, 19, 24, 1.0)
-    $error = rgba(255, 180, 171, 1.0)
-  '';
 
   walColorExport = pkgs.writeShellApplication {
     name = "wal-color-export";
@@ -91,7 +79,6 @@ let
       BTOP_COLORS="$HOME/.config/btop/themes/wal.theme"
       CAVA_COLORS="$HOME/.config/cava/themes/wal"
       HYPR_COLORS="$HOME/.config/hypr/wal-colors.conf"
-      HYPRLOCK_COLORS="$HOME/.config/hypr/hyprlock-colors.conf"
 
       declare -a TEMP_FILES=()
       cleanup() {
@@ -388,21 +375,6 @@ EOF
         hypr_changed=1
       fi
 
-      if atomic_write "$HYPRLOCK_COLORS" <<EOF
-      \$bg = rgba(''${BG_HEX}ff)
-      \$fg = rgba(''${FG_HEX}ff)
-      \$primary = rgba(''${PRIMARY_HEX}ff)
-      \$primary_bright = rgba(''${PRIMARY_BRIGHT_HEX}ff)
-      \$secondary = rgba(''${SECONDARY_HEX}ff)
-      \$tertiary = rgba(''${TERTIARY_HEX}ff)
-      \$surface = rgba(''${BG_HEX}aa)
-      \$surface_container = rgba(''${BG_HEX}dd)
-      \$on_primary = rgba(''${ON_PRIMARY_HEX}ff)
-      \$error = rgba(ffb4abff)
-EOF
-      then
-        changed_any=1
-      fi
 
       # Notify immediately as soon as colors are updated so user feedback is instant
       if (( changed_any )); then
@@ -412,7 +384,6 @@ EOF
 
       # Reload consumers whose generated files changed
       if (( css_changed )); then
-        pkill -USR2 -x waybar >/dev/null 2>&1 || true
         pkill -x walker >/dev/null 2>&1 || true
       fi
       if (( kitty_changed )); then
@@ -666,11 +637,6 @@ in
       run install -m 0644 ${fallbackBtopTheme} "$btop_theme"
     fi
 
-    hyprlock_theme="$HOME/.config/hypr/hyprlock-colors.conf"
-    if [[ ! -e "$hyprlock_theme" ]]; then
-      run mkdir -p "$(dirname "$hyprlock_theme")"
-      run install -m 0644 ${fallbackHyprlockTheme} "$hyprlock_theme"
-    fi
 
     cava_theme="$HOME/.config/cava/themes/wal"
     if [[ ! -e "$cava_theme" ]]; then

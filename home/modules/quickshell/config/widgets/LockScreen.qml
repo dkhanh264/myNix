@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Pam
@@ -9,7 +10,7 @@ import "../components"
 import "../services"
 
 // Clean Material 3 Expressive Custom Lockscreen powered by Quickshell & PAM.
-// Displays ONLY: Time Hero Clock, Password Auth Area with MD3 Dynamic Shapes, and Music Widget.
+// Displays: Time Hero Clock, Password Auth Area with MD3 Dynamic Shapes, and Music Widget.
 // Synchronizes all typography and UI elements with system wallpaper palette colors.
 WlSessionLock {
     id: lock
@@ -23,6 +24,32 @@ WlSessionLock {
     surface: Component {
         WlSessionLockSurface {
             id: lockSurface
+
+            Connections {
+                target: lock
+                function onLockedChanged() {
+                    if (lock.locked) {
+                        passwordInput.text = "";
+                        lock.authError = false;
+                        lock.authenticating = false;
+                        if (!pam.active) {
+                            pam.start();
+                        }
+                        passwordInput.forceActiveFocus();
+                    } else {
+                        if (pam.active) {
+                            pam.abort();
+                        }
+                    }
+                }
+            }
+
+            Component.onCompleted: {
+                if (lock.locked && !pam.active) {
+                    pam.start();
+                }
+                passwordInput.forceActiveFocus();
+            }
 
             // Dark ambient acrylic blur background
             Rectangle {
@@ -68,6 +95,7 @@ WlSessionLock {
                         if (event.key === Qt.Key_Escape) {
                             passwordInput.text = "";
                             lock.authError = false;
+                            passwordInput.forceActiveFocus();
                             event.accepted = true;
                         }
                     }
@@ -77,48 +105,62 @@ WlSessionLock {
                 Column {
                     id: centerColumn
                     anchors.centerIn: parent
-                    spacing: Theme.space6
+                    spacing: Theme.space5
                     width: Math.min(460, parent.width - 48)
 
                     // 1. Material 3 Stacked Hero Clock & System Date
                     Column {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: -20
+                        spacing: Theme.space3
 
-                        Text {
+                        Column {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: Qt.formatDateTime(systemClock.date, "HH")
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 120
-                            font.weight: Font.Bold
-                            font.letterSpacing: -4
+                            spacing: -24
 
-                            SystemClock {
-                                id: systemClock
-                                precision: SystemClock.Minutes
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: Qt.formatDateTime(systemClock.date, "HH")
+                                color: Theme.textPrimary
+                                font.family: Theme.textFont
+                                font.pixelSize: 110
+                                font.weight: Font.Bold
+                                font.letterSpacing: -4
+
+                                SystemClock {
+                                    id: systemClock
+                                    precision: SystemClock.Minutes
+                                }
+                            }
+
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: Qt.formatDateTime(systemClock.date, "mm")
+                                color: Theme.primary
+                                font.family: Theme.textFont
+                                font.pixelSize: 110
+                                font.weight: Font.Bold
+                                font.letterSpacing: -4
                             }
                         }
 
-                        Text {
+                        Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: Qt.formatDateTime(systemClock.date, "mm")
-                            color: Theme.primary
-                            font.family: Theme.textFont
-                            font.pixelSize: 120
-                            font.weight: Font.Bold
-                            font.letterSpacing: -4
-                        }
+                            implicitWidth: dateText.implicitWidth + Theme.space4
+                            implicitHeight: 32
+                            radius: 16
+                            color: Theme.alpha(Theme.surfaceContainerHigh, 0.6)
+                            border.width: 1
+                            border.color: Theme.alpha(Theme.outlineVariant, 0.4)
 
-                        Item { width: 1; height: 12 }
-
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: Qt.formatDateTime(systemClock.date, "dddd, d MMMM yyyy")
-                            color: Theme.textSecondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 14
-                            font.weight: Font.Medium
+                            Text {
+                                id: dateText
+                                anchors.centerIn: parent
+                                text: Qt.formatDateTime(systemClock.date, "dddd, d MMMM yyyy")
+                                color: Theme.textSecondary
+                                font.family: Theme.textFont
+                                font.pixelSize: 13
+                                font.weight: Font.Medium
+                            }
                         }
                     }
 
@@ -173,29 +215,28 @@ WlSessionLock {
                                     ColorAnimation { duration: Theme.motionShort3 }
                                 }
 
-                                Row {
+                                RowLayout {
                                     anchors.fill: parent
                                     anchors.leftMargin: Theme.space4
                                     anchors.rightMargin: Theme.space2
+                                    spacing: Theme.space2
 
                                     MaterialIcon {
-                                        anchors.verticalCenter: parent.verticalCenter
+                                        Layout.alignment: Qt.AlignVCenter
                                         text: "key"
                                         iconSize: 20
                                         color: passwordInput.activeFocus ? Theme.primary : Theme.textSecondary
                                     }
 
                                     Item {
-                                        width: parent.width - 96
-                                        height: parent.height
-                                        anchors.verticalCenter: parent.verticalCenter
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: parent.height
+                                        Layout.alignment: Qt.AlignVCenter
                                         clip: true
 
                                         TextInput {
                                             id: passwordInput
                                             anchors.fill: parent
-                                            anchors.leftMargin: Theme.space2
-                                            anchors.rightMargin: Theme.space2
                                             verticalAlignment: TextInput.AlignVCenter
                                             echoMode: TextInput.Normal
                                             color: showPasswordToggle.showPass ? Theme.textPrimary : "transparent"
@@ -210,7 +251,7 @@ WlSessionLock {
                                             property var dotSeeds: []
 
                                             Text {
-                                                visible: passwordInput.text.length === 0 && !passwordInput.activeFocus
+                                                visible: passwordInput.text.length === 0
                                                 anchors.verticalCenter: parent.verticalCenter
                                                 anchors.left: parent.left
                                                 text: "Nhập mật khẩu..."
@@ -244,14 +285,13 @@ WlSessionLock {
                                             }
                                         }
 
-                                        // Material 3 Expressive Dynamic Password Shapes (random MD3 shapes per character)
+                                        // Material 3 Expressive Dynamic Password Shapes
                                         Row {
                                             id: md3PasswordDots
                                             visible: !showPasswordToggle.showPass && passwordInput.text.length > 0
                                             anchors.verticalCenter: parent.verticalCenter
                                             anchors.left: parent.left
-                                            anchors.leftMargin: Theme.space2
-                                            spacing: 7
+                                            spacing: 8
 
                                             Repeater {
                                                 model: passwordInput.text.length
@@ -266,9 +306,8 @@ WlSessionLock {
                                                     readonly property int colIdx: seed.colIdx
                                                     readonly property int seedRot: seed.rotation
 
-                                                    width: shapeType === 2 ? 17 : (shapeType === 3 ? 12 : 13)
-                                                    height: 20
-                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    width: shapeType === 2 ? 22 : (shapeType === 3 ? 16 : 18)
+                                                    height: 26
 
                                                     readonly property var md3Colors: [
                                                         Theme.primary,
@@ -282,18 +321,17 @@ WlSessionLock {
 
                                                     Item {
                                                         anchors.centerIn: parent
-                                                        width: 18
-                                                        height: 18
+                                                        width: 24
+                                                        height: 24
 
-                                                        // Primary MD3 Expressive Shape
                                                         Rectangle {
                                                             id: shapeRect
                                                             anchors.centerIn: parent
                                                             color: parent.parent.dotColor
 
-                                                            width: shapeType === 2 ? 17 : (shapeType === 3 ? 10 : (shapeType === 4 ? 11 : 12))
-                                                            height: shapeType === 2 ? 10 : (shapeType === 3 ? 17 : (shapeType === 4 ? 11 : 12))
-                                                            radius: shapeType === 0 ? width / 2 : (shapeType === 1 ? 3.5 : (shapeType === 2 || shapeType === 3 ? 5 : (shapeType === 4 ? 2.5 : 4)))
+                                                            width: shapeType === 2 ? 22 : (shapeType === 3 ? 14 : (shapeType === 4 ? 15 : 16))
+                                                            height: shapeType === 2 ? 14 : (shapeType === 3 ? 22 : (shapeType === 4 ? 15 : 16))
+                                                            radius: shapeType === 0 ? width / 2 : (shapeType === 1 ? 5 : (shapeType === 2 || shapeType === 3 ? 7 : (shapeType === 4 ? 3.5 : 5)))
                                                             rotation: shapeType === 4 ? 45 : seedRot
 
                                                             scale: 0
@@ -308,14 +346,13 @@ WlSessionLock {
                                                             }
                                                         }
 
-                                                        // Secondary layer for Flower/Star MD3 Expressive shape (shapeType 5)
                                                         Rectangle {
                                                             visible: shapeType === 5
                                                             anchors.centerIn: parent
                                                             color: parent.parent.dotColor
-                                                            width: 11
-                                                            height: 11
-                                                            radius: 3
+                                                            width: 15
+                                                            height: 15
+                                                            radius: 4
                                                             rotation: shapeRect.rotation + 45
                                                             scale: shapeRect.scale
                                                         }
@@ -328,9 +365,9 @@ WlSessionLock {
                                     // Password mask visibility toggle button
                                     Item {
                                         id: showPasswordToggle
-                                        width: 32
-                                        height: 32
-                                        anchors.verticalCenter: parent.verticalCenter
+                                        Layout.preferredWidth: 32
+                                        Layout.preferredHeight: 32
+                                        Layout.alignment: Qt.AlignVCenter
                                         property bool showPass: false
 
                                         MaterialIcon {
@@ -351,10 +388,10 @@ WlSessionLock {
 
                                     // Submit Password Button
                                     Rectangle {
-                                        width: 36
-                                        height: 36
+                                        Layout.preferredWidth: 36
+                                        Layout.preferredHeight: 36
+                                        Layout.alignment: Qt.AlignVCenter
                                         radius: 18
-                                        anchors.verticalCenter: parent.verticalCenter
                                         color: lock.authenticating
                                             ? Theme.surfaceContainerLow
                                             : (submitBtnArea.pressed
@@ -428,17 +465,17 @@ WlSessionLock {
                                 anchors.margins: Theme.space4
                                 spacing: Theme.space3
 
-                                Row {
+                                RowLayout {
                                     width: parent.width
                                     spacing: Theme.space3
 
                                     // Album Art
                                     Rectangle {
-                                        width: 52
-                                        height: 52
+                                        Layout.preferredWidth: 52
+                                        Layout.preferredHeight: 52
+                                        Layout.alignment: Qt.AlignVCenter
                                         radius: 14
                                         color: Theme.surfaceContainerHighest
-                                        anchors.verticalCenter: parent.verticalCenter
                                         clip: true
 
                                         function formatArtUrl(rawUrl) {
@@ -466,13 +503,13 @@ WlSessionLock {
                                     }
 
                                     // Track Title & Artist Metadata
-                                    Column {
-                                        width: parent.width - 52 - 120 - Theme.space3 * 2
-                                        anchors.verticalCenter: parent.verticalCenter
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        Layout.alignment: Qt.AlignVCenter
                                         spacing: 2
 
                                         Text {
-                                            width: parent.width
+                                            Layout.fillWidth: true
                                             text: mediaCard.hasTrack ? mediaCard.activePlayer.trackTitle : "Chưa có nhạc phát"
                                             color: Theme.textPrimary
                                             font.family: Theme.textFont
@@ -482,7 +519,7 @@ WlSessionLock {
                                         }
 
                                         Text {
-                                            width: parent.width
+                                            Layout.fillWidth: true
                                             text: mediaCard.hasTrack ? (mediaCard.activePlayer.trackArtist || "Nghệ sĩ chưa rõ") : "Mở ứng dụng phát nhạc"
                                             color: Theme.textSecondary
                                             font.family: Theme.textFont
@@ -493,7 +530,7 @@ WlSessionLock {
 
                                     // Playback Control Action Buttons
                                     Row {
-                                        anchors.verticalCenter: parent.verticalCenter
+                                        Layout.alignment: Qt.AlignVCenter
                                         spacing: Theme.space1
 
                                         IconButton {
@@ -549,12 +586,19 @@ WlSessionLock {
                     user: Quickshell.env("USER") || "dk"
                     config: "login"
 
+                    onResponseRequiredChanged: {
+                        if (responseRequired && lock.authenticating && passwordInput.text.length > 0) {
+                            pam.respond(passwordInput.text);
+                        }
+                    }
+
                     onCompleted: result => {
                         lock.authenticating = false;
                         if (result === PamResult.Success) {
                             lock.authError = false;
                             passwordInput.text = "";
                             lock.locked = false;
+                            lock.unlock();
                             lock.unlocked();
                         } else {
                             lock.authError = true;
@@ -562,6 +606,9 @@ WlSessionLock {
                             shakeAnimation.restart();
                             passwordInput.selectAll();
                             passwordInput.forceActiveFocus();
+                            if (!pam.active) {
+                                pam.start();
+                            }
                         }
                     }
 
@@ -570,16 +617,26 @@ WlSessionLock {
                         lock.authError = true;
                         lock.errorMessage = "Lỗi xác thực PAM";
                         shakeAnimation.restart();
+                        if (!pam.active) {
+                            pam.start();
+                        }
                     }
                 }
 
                 function submitPassword() {
                     if (passwordInput.text.length === 0 || lock.authenticating)
                         return;
+
                     lock.authenticating = true;
                     lock.authError = false;
-                    pam.start();
-                    pam.respond(passwordInput.text);
+
+                    if (pam.responseRequired) {
+                        pam.respond(passwordInput.text);
+                    } else {
+                        if (!pam.active) {
+                            pam.start();
+                        }
+                    }
                 }
             }
         }

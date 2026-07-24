@@ -1505,14 +1505,14 @@ Scope {
     }
 
     Timer {
-        interval: 3000
+        interval: 4000
         running: true
         repeat: true
         onTriggered: root.refreshSystemStats()
     }
 
     Timer {
-        interval: 5000
+        interval: 6000
         running: true
         repeat: true
         onTriggered: {
@@ -1522,7 +1522,7 @@ Scope {
     }
 
     Timer {
-        interval: 12000
+        interval: 15000
         running: true
         repeat: true
         onTriggered: {

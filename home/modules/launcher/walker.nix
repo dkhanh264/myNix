@@ -4,7 +4,6 @@ let
     name = "walker-menu";
     runtimeInputs = with pkgs; [
       walker
-      hyprlock
       hyprland
       systemd
       power-profiles-daemon

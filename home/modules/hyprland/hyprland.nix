@@ -85,7 +85,6 @@ in
 
   # Các package chuyên biệt cho Hyprland
   home.packages = with pkgs; [
-    hyprlock 
     hypridle
     captureScreen
   ];
