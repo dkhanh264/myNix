@@ -78,10 +78,10 @@ Singleton {
     readonly property color onSurfaceVariant: Qt.rgba(0.776, 0.788, 0.824, 1)
     // Qt can interpret `onSurface*` as signal-handler syntax in a QML
     // singleton. Components consume these unambiguous aliases instead.
-    readonly property color textPrimary: "#ffffff"
-    readonly property color textSecondary: "#c6c9d2"
-    readonly property color outline: "#aeb4c0"
-    readonly property color outlineVariant: "#3b4350"
+    readonly property color textPrimary: wallpaperForeground
+    readonly property color textSecondary: alpha(wallpaperForeground, 0.72)
+    readonly property color outline: blend(wallpaperPrimary, wallpaperForeground, 0.40)
+    readonly property color outlineVariant: alpha(outline, 0.40)
 
     readonly property color error: "#ffb4ab"
     readonly property color onError: contrastText(error)
