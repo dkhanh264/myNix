@@ -261,6 +261,8 @@ WlSessionLock {
                                             }
 
                                             onAccepted: lockSurface.submitPassword()
+                                            Keys.onReturnPressed: lockSurface.submitPassword()
+                                            Keys.onEnterPressed: lockSurface.submitPassword()
                                             onTextChanged: {
                                                 if (lock.authError)
                                                     lock.authError = false;
@@ -594,11 +596,10 @@ WlSessionLock {
 
                     onCompleted: result => {
                         lock.authenticating = false;
-                        if (result === PamResult.Success) {
+                        if (result == PamResult.Success) {
                             lock.authError = false;
                             passwordInput.text = "";
                             lock.locked = false;
-                            lock.unlock();
                             lock.unlocked();
                         } else {
                             lock.authError = true;
@@ -633,9 +634,10 @@ WlSessionLock {
                     if (pam.responseRequired) {
                         pam.respond(passwordInput.text);
                     } else {
-                        if (!pam.active) {
-                            pam.start();
+                        if (pam.active) {
+                            pam.abort();
                         }
+                        pam.start();
                     }
                 }
             }
