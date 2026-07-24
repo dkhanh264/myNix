@@ -767,9 +767,17 @@ Scope {
     }
 
     function toggleBluetooth() {
-        if (!bluetoothAdapter)
-            return;
-        bluetoothAdapter.enabled = !bluetoothAdapter.enabled;
+        if (bluetoothAdapter) {
+            let nextState = !bluetoothAdapter.enabled;
+            bluetoothAdapter.enabled = nextState;
+            if (nextState) {
+                execDetached(["sh", "-c", "rfkill unblock bluetooth && bluetoothctl power on"]);
+            } else {
+                execDetached(["bluetoothctl", "power", "off"]);
+            }
+        } else {
+            execDetached(["sh", "-c", "rfkill unblock bluetooth && bluetoothctl power on"]);
+        }
     }
 
     function toggleBluetoothScan() {
