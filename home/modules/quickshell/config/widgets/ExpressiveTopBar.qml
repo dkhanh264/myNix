@@ -11,6 +11,15 @@ Item {
     property var screen
     property string activePopup: ""
 
+    property bool toastVisible: false
+    property string toastTitle: ""
+    property string toastBody: ""
+    property string toastIcon: "notifications"
+    property string toastImage: ""
+
+    signal popupRequested(string kind, string screenName)
+    signal toastDismissed
+
     readonly property var monitor: screen ? Hyprland.monitorFor(screen) : null
     // The workspace track deliberately keeps its large node geometry at all
     // widths. Reveal neighbouring groups only when their anchored rows retain
@@ -21,8 +30,6 @@ Item {
     readonly property bool showStatusLabels: width >= 1540
     readonly property bool showSystemStats: width >= 1500
     readonly property bool compactLauncher: width < 1040
-
-    signal popupRequested(string kind, string screenName)
 
     function requestPopup(kind) {
         root.popupRequested(kind, root.screen ? root.screen.name : "");
@@ -55,60 +62,22 @@ Item {
         }
     }
 
-    readonly property bool hasNotification: false
-
-    Row {
-        id: centerGroup
+    MergedCenterPills {
+        id: centerPills
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Theme.space2
-        opacity: root.hasNotification ? 0 : 1
-        scale: root.hasNotification ? 0.88 : 1
-        visible: opacity > 0.001
-        enabled: !root.hasNotification
-
-        transform: Translate {
-            y: root.hasNotification ? -10 : 0
-
-            Behavior on y {
-                NumberAnimation {
-                    duration: Theme.motionMedium1
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: root.hasNotification
-                        ? Theme.emphasizedAccelerate : Theme.emphasizedDecelerate
-                }
-            }
-        }
-
-        Behavior on opacity {
-            NumberAnimation { duration: Theme.motionShort4 }
-        }
-
-        Behavior on scale {
-            NumberAnimation {
-                duration: Theme.motionMedium1
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: root.hasNotification
-                    ? Theme.emphasizedAccelerate : Theme.emphasizedDecelerate
-            }
-        }
-
-        ClockPillM3 {
-            visible: root.showClock
-            anchors.verticalCenter: parent.verticalCenter
-            controller: root.controller
-            checked: root.activePopup === "calendar"
-            onClicked: root.requestPopup("calendar")
-        }
-
-        WeatherPillM3 {
-            visible: root.showWeather
-            anchors.verticalCenter: parent.verticalCenter
-            controller: root.controller
-            compact: root.width < 1380
-            checked: root.activePopup === "weather"
-            onPopupRequested: root.requestPopup("weather")
-        }
+        controller: root.controller
+        showClock: root.showClock
+        showWeather: root.showWeather
+        weatherCompact: root.width < 1380
+        activePopup: root.activePopup
+        toastVisible: root.toastVisible
+        toastTitle: root.toastTitle
+        toastBody: root.toastBody
+        toastIcon: root.toastIcon
+        toastImage: root.toastImage
+        onPopupRequested: kind => root.requestPopup(kind)
+        onToastDismissed: root.toastDismissed()
     }
 
     Row {
@@ -133,75 +102,4 @@ Item {
             onPopupRequested: section => root.requestPopup(section)
         }
     }
-
-    Rectangle {
-        id: messageToast
-
-        readonly property bool shown: root.hasNotification
-
-        z: Theme.layerToast
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-        width: Math.min(480, Math.max(200,
-            toastContent.implicitWidth + Theme.space4 * 2))
-        height: Theme.barItemHeight
-        radius: height / 2
-        color: Theme.primaryContainer
-        border.width: Theme.barOutlineWidth
-        border.color: Theme.primary
-        opacity: shown ? 1 : 0
-        scale: shown ? 1 : 0.88
-        visible: opacity > 0.001
-
-        transform: Translate {
-            y: messageToast.shown ? 0 : 10
-
-            Behavior on y {
-                NumberAnimation {
-                    duration: Theme.motionMedium1
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: messageToast.shown
-                        ? Theme.emphasizedDecelerate : Theme.emphasizedAccelerate
-                }
-            }
-        }
-
-        Row {
-            id: toastContent
-            anchors.centerIn: parent
-            spacing: Theme.space2
-
-            MaterialIcon {
-                anchors.verticalCenter: parent.verticalCenter
-                text: "notifications_active"
-                iconSize: 18
-                color: Theme.primary
-                filled: true
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                width: Math.min(410, implicitWidth)
-                text: root.controller ? root.controller.message : ""
-                color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 12
-                font.weight: Font.Bold
-                elide: Text.ElideRight
-            }
-        }
-
-        Behavior on opacity {
-            NumberAnimation { duration: Theme.motionShort4 }
-        }
-        Behavior on scale {
-            NumberAnimation {
-                duration: Theme.motionMedium1
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: messageToast.shown
-                    ? Theme.emphasizedDecelerate : Theme.emphasizedAccelerate
-            }
-        }
-    }
-
 }

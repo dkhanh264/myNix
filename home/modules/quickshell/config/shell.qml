@@ -374,6 +374,13 @@ ShellRoot {
                 activePopup: root.popupOpen
                     && root.popupScreen === barWindow.modelData.name
                     ? root.activePopup : ""
+                toastVisible: root.toastVisible
+                    && (root.toastScreen === "" || root.toastScreen === barWindow.modelData.name)
+                toastTitle: root.toastTitle
+                toastBody: root.toastBody
+                toastIcon: root.toastIcon
+                toastImage: root.toastImage
+                onToastDismissed: root.hideToast()
                 onPopupRequested: (kind, screenName) =>
                     root.togglePopup(kind, screenName)
             }
@@ -888,36 +895,6 @@ ShellRoot {
                 }
             }
 
-            PanelWindow {
-                id: toastWindow
-                screen: barWindow.modelData
-                visible: root.toastVisible && root.toastScreen === barWindow.modelData.name
-                color: "transparent"
-                WlrLayershell.namespace: "toast-notification"
-                WlrLayershell.layer: WlrLayer.Overlay
-                exclusiveZone: 0
-                anchors {
-                    top: true
-                    right: true
-                }
-                margins {
-                    top: Theme.barHeight
-                    right: Theme.barContentInset
-                }
-
-                implicitWidth: toastWidget.implicitWidth
-                implicitHeight: toastWidget.implicitHeight
-
-                ToastNotification {
-                    id: toastWidget
-                    title: root.toastTitle
-                    bodyText: root.toastBody
-                    iconName: root.toastIcon
-                    imageSource: root.toastImage
-                    shown: root.toastVisible
-                    onDismissed: root.hideToast()
-                }
-            }
         }
     }
 }
