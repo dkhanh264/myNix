@@ -60,6 +60,12 @@
       ];
     };
   };
+
+  # ── Bộ gõ Tiếng Việt Lotus (Fcitx5 Lotus) ────────────────────────────────
+  services.fcitx5-lotus = {
+    enable = true;
+    users = [ "dk" ];
+  };
   #---Android SDK----------------------------------------------------------
   nixpkgs.config.android_sdk.accept_license = true;
   # ── NVIDIA Driver ──────────────────────────────────────────────────────

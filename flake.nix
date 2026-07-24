@@ -21,6 +21,11 @@
       url = "github:jacopone/antigravity-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    fcitx5-lotus = {
+      url = "github:LotusInputMethod/fcitx5-lotus";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -32,18 +37,21 @@
       lanzaboote,
       codex-cli-nix,
       antigravity-nix,
+      fcitx5-lotus,
       ...
-    }:
+    }@inputs:
     let
       mkSystem =
         hostname:
         nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
+          specialArgs = { inherit inputs; };
 
           modules = [
             ./hosts/${hostname}/configuration.nix
             lanzaboote.nixosModules.lanzaboote
             home-manager.nixosModules.home-manager
+            fcitx5-lotus.nixosModules.fcitx5-lotus
 
             {
               home-manager = {
