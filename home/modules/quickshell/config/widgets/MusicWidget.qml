@@ -180,19 +180,14 @@ Rectangle {
                     onClicked: root.player.previous()
                 }
 
-                IconButton {
+                MediaPlayButton {
                     anchors.verticalCenter: parent.verticalCenter
                     buttonSize: 42
                     iconSize: 23
-                    icon: root.player && root.player.isPlaying
-                        ? "pause" : "play_arrow"
+                    isPlaying: root.player && root.player.isPlaying
                     fillColor: Theme.secondary
-                    hoverColor: Theme.blend(Theme.secondary, "#ffffff", 0.12)
                     foregroundColor: Theme.textPrimary
                     enabled: root.player && root.player.canTogglePlaying
-                    accessibleName: root.player && root.player.isPlaying
-                        ? I18n.tr("Tạm dừng", "Pause")
-                        : I18n.tr("Phát", "Play")
                     onClicked: root.togglePlayback()
                 }
 

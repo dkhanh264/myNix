@@ -491,10 +491,13 @@ WlSessionLock {
                                         onClicked: if (mediaCard.activePlayer) mediaCard.activePlayer.previous()
                                     }
 
-                                    IconButton {
-                                        icon: mediaCard.activePlayer && mediaCard.activePlayer.isPlaying ? "pause" : "play_arrow"
-                                        iconSize: 22
-                                        foregroundColor: Theme.primary
+                                    MediaPlayButton {
+                                        buttonSize: 36
+                                        iconSize: 20
+                                        isPlaying: mediaCard.activePlayer && mediaCard.activePlayer.isPlaying
+                                        fillColor: Theme.primary
+                                        foregroundColor: Theme.onPrimary
+                                        enabled: mediaCard.activePlayer && mediaCard.activePlayer.canTogglePlaying
                                         onClicked: if (mediaCard.activePlayer) mediaCard.activePlayer.togglePlaying()
                                     }
 

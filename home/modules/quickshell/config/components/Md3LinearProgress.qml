@@ -62,8 +62,8 @@ Item {
         height: root.trackHeight
         width: root.indeterminate ? parent.width * 0.3 : Math.max(0, Math.min(parent.width, parent.width * root.displayProgress))
         radius: root.trackRadius
-        topRightRadius: root.displayProgress >= 0.99 ? root.trackRadius : Theme.shapeExtraSmall
-        bottomRightRadius: root.displayProgress >= 0.99 ? root.trackRadius : Theme.shapeExtraSmall
+        topRightRadius: root.displayProgress >= 0.99 ? root.trackRadius : Theme.sliderInnerRadius
+        bottomRightRadius: root.displayProgress >= 0.99 ? root.trackRadius : Theme.sliderInnerRadius
         color: root.progressColor
         visible: root.indeterminate || root.displayProgress > 0.005
 

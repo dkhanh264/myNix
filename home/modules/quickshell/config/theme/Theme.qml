@@ -118,13 +118,13 @@ Singleton {
 
     // Shell geometry follows the same 4 px rhythm as the component spacing.
     // Large radii are reserved for popup/dialog surfaces; cards stop at 16 px.
-    readonly property int barHeight: 52
+    readonly property int barHeight: 48
     readonly property int barItemHeight: 36
-    readonly property int barContentInset: space2
+    readonly property int barContentInset: space3
     readonly property int componentPadding: space3
     readonly property int cardRadius: shapeLarge
     readonly property int popupRadius: shapeExtraLarge
-    readonly property int popupEdgeInset: space2
+    readonly property int popupEdgeInset: space3
     readonly property int popupWindowInset: 6
     readonly property int popupContentPadding: space4
     readonly property int popupHeaderHeight: 68
@@ -133,7 +133,7 @@ Singleton {
     readonly property int barOutlineWidth: 2
     readonly property int sliderTrackHeight: 20
     readonly property int sliderHandleHeight: 38
-    readonly property int sliderInnerRadius: shapeExtraSmall
+    readonly property int sliderInnerRadius: 2
     // Optical stroke geometry and semantic overlay order are not layout gaps.
     readonly property int focusRingInset: space1
     readonly property int focusRingWidth: 2

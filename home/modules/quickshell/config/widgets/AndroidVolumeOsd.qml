@@ -81,8 +81,8 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 height: Math.max(0, parent.height * parent.displayVal - 3)
                 radius: width / 2
-                topLeftRadius: Theme.shapeExtraSmall
-                topRightRadius: Theme.shapeExtraSmall
+                topLeftRadius: Theme.sliderInnerRadius
+                topRightRadius: Theme.sliderInnerRadius
                 color: root.controller && root.controller.muted
                     ? Theme.error : Theme.primary
 
@@ -98,8 +98,8 @@ Rectangle {
                 anchors.top: parent.top
                 height: Math.max(0, parent.height * (1 - parent.displayVal) - 3)
                 radius: width / 2
-                bottomLeftRadius: Theme.shapeExtraSmall
-                bottomRightRadius: Theme.shapeExtraSmall
+                bottomLeftRadius: Theme.sliderInnerRadius
+                bottomRightRadius: Theme.sliderInnerRadius
                 color: Theme.surfaceContainerHighest
             }
 

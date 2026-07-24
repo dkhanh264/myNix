@@ -151,14 +151,12 @@ BarPill {
             onClicked: root.player.previous()
         }
 
-        IconButton {
+        MediaPlayButton {
             anchors.verticalCenter: parent.verticalCenter
             buttonSize: 30
             iconSize: 16
-            icon: root.player && root.player.isPlaying ? "󰏤" : "󰐊"
-            checked: root.player && root.player.isPlaying
+            isPlaying: root.player && root.player.isPlaying
             enabled: root.player && root.player.canTogglePlaying
-            accessibleName: root.player && root.player.isPlaying ? "Tạm dừng" : "Phát"
             onClicked: root.togglePlayback()
         }
 

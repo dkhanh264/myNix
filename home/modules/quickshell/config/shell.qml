@@ -838,7 +838,7 @@ ShellRoot {
                     right: true
                 }
                 margins {
-                    right: 24
+                    right: Theme.barContentInset
                 }
 
                 implicitWidth: volumeOsdWidget.implicitWidth
@@ -865,8 +865,8 @@ ShellRoot {
                     right: true
                 }
                 margins {
-                    top: Theme.barHeight + 12
-                    right: 24
+                    top: Theme.barHeight + Theme.space3
+                    right: Theme.barContentInset
                 }
 
                 implicitWidth: toastWidget.implicitWidth

@@ -140,16 +140,13 @@ M3BarPill {
             onClicked: root.player.previous()
         }
 
-        IconButton {
+        MediaPlayButton {
             anchors.verticalCenter: parent.verticalCenter
             buttonSize: 30
             iconSize: 17
-            icon: root.player && root.player.isPlaying ? "pause" : "play_arrow"
-            checked: root.player && root.player.isPlaying
+            isPlaying: root.player && root.player.isPlaying
             foregroundColor: Theme.textPrimary
             enabled: root.player && root.player.canTogglePlaying
-            accessibleName: root.player && root.player.isPlaying
-                ? I18n.tr("Tạm dừng", "Pause") : I18n.tr("Phát", "Play")
             onClicked: root.togglePlayback()
         }
 

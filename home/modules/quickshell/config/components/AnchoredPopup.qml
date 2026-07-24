@@ -12,7 +12,7 @@ PopupWindow {
     property int popupWidth: 400
     property int popupHeight: 400
     property real popupX: 0
-    property real popupY: anchorWindow ? anchorWindow.height + 4 : 62
+    property real popupY: anchorWindow ? anchorWindow.height + Theme.space3 : 60
     property bool acceptsDismissal: false
 
     signal dismissed

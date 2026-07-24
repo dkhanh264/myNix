@@ -131,6 +131,8 @@ Item {
             width: Math.max(0, parent.handleCenter - handle.width / 2 - parent.handleGap)
             height: parent.height
             radius: Math.min(height / 2, width / 2)
+            topRightRadius: Math.min(Theme.sliderInnerRadius, radius)
+            bottomRightRadius: Math.min(Theme.sliderInnerRadius, radius)
             color: root.interacting
                 ? Theme.blend(root.activeColor, "#ffffff", 0.20)
                 : root.hovered
@@ -150,6 +152,8 @@ Item {
             width: Math.max(0, parent.width - x)
             height: parent.height
             radius: Math.min(height / 2, width / 2)
+            topLeftRadius: Math.min(Theme.sliderInnerRadius, radius)
+            bottomLeftRadius: Math.min(Theme.sliderInnerRadius, radius)
             color: root.interacting
                 ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.08)
                 : root.hovered
