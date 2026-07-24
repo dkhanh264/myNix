@@ -28,7 +28,7 @@ Rectangle {
 
     implicitWidth: 410
     implicitHeight: Math.max(76, contentRow.implicitHeight + 28)
-    radius: 20
+    radius: Theme.shapeExpressiveContainer
     color: Theme.alpha(Theme.surfaceContainerHighest, 0.94)
     border.width: 1
     border.color: Theme.barOutline

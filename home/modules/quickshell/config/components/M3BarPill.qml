@@ -12,6 +12,7 @@ Item {
     property bool alert: false
     property bool elevated: false
     property int horizontalPadding: Theme.componentPadding
+    property int verticalPadding: 0
     property int minimumWidth: Theme.barItemHeight
     property string accessibleName: ""
     property color containerColor: Theme.barSurface
@@ -99,6 +100,8 @@ Item {
         anchors.fill: parent
         anchors.leftMargin: root.horizontalPadding
         anchors.rightMargin: root.horizontalPadding
+        anchors.topMargin: root.verticalPadding
+        anchors.bottomMargin: root.verticalPadding
     }
 
     MaterialRipple {

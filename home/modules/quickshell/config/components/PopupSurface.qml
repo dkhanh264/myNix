@@ -23,15 +23,15 @@ Item {
 
     enabled: shown
     opacity: revealProgress
-    scale: 0.92 + revealProgress * 0.08
+    scale: 0.90 + revealProgress * 0.10
     transformOrigin: Item.Top
     transform: Translate {
-        y: (1 - root.revealProgress) * -12
+        y: (1 - root.revealProgress) * -10
     }
 
     Behavior on revealProgress {
         NumberAnimation {
-            duration: Theme.popupTransitionDuration
+            duration: root.shown ? Theme.popupTransitionDuration : 180
             easing.type: Easing.BezierSpline
             easing.bezierCurve: root.shown ? Theme.springCurve : Theme.emphasizedAccelerate
         }
@@ -78,8 +78,8 @@ Item {
         Column {
             anchors.left: headerIcon.right
             anchors.leftMargin: Theme.space3
-            anchors.right: closeButton.left
-            anchors.rightMargin: Theme.space2
+            anchors.right: parent.right
+            anchors.rightMargin: Theme.popupContentPadding
             anchors.verticalCenter: parent.verticalCenter
             spacing: 0
 
@@ -104,30 +104,6 @@ Item {
                 elide: Text.ElideRight
             }
         }
-
-        IconButton {
-            id: closeButton
-            visible: root.closeButtonVisible
-            anchors.right: parent.right
-            anchors.rightMargin: Theme.space3
-            anchors.verticalCenter: parent.verticalCenter
-            icon: "close"
-            fillColor: Theme.surfaceContainerHigh
-            hoverColor: Theme.surfaceContainerHighest
-            foregroundColor: Theme.textPrimary
-            accessibleName: I18n.tr("Đóng ", "Close ") + root.title
-            onClicked: root.closeRequested()
-        }
-    }
-
-    Rectangle {
-        anchors.left: panel.left
-        anchors.right: panel.right
-        anchors.top: header.bottom
-        anchors.leftMargin: Theme.popupContentPadding
-        anchors.rightMargin: Theme.popupContentPadding
-        height: 1
-        color: Theme.alpha(Theme.outlineVariant, 0.72)
     }
 
     Item {
@@ -138,7 +114,7 @@ Item {
         anchors.bottom: panel.bottom
         anchors.leftMargin: Theme.popupContentPadding
         anchors.rightMargin: Theme.popupContentPadding
-        anchors.topMargin: Theme.space3
+        anchors.topMargin: Theme.space2
         anchors.bottomMargin: Theme.popupContentPadding
     }
 }

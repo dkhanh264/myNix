@@ -32,6 +32,15 @@ ShellRoot {
         id: systemService
     }
 
+    Connections {
+        target: systemService
+        function onMessageChanged() {
+            if (systemService.message && systemService.message.length > 0) {
+                root.showToast(I18n.tr("Hệ thống", "System"), systemService.message, "palette", "");
+            }
+        }
+    }
+
     NotificationServer {
         id: notifServer
         onNotification: notification => {
@@ -311,13 +320,37 @@ ShellRoot {
         model: Quickshell.screens
 
         PanelWindow {
+            id: popupDismissOverlay
+            required property var modelData
+
+            screen: modelData
+            visible: root.popupVisible && root.popupScreen === modelData.name
+            color: "transparent"
+            WlrLayershell.namespace: "popup-dismiss-overlay"
+            WlrLayershell.layer: WlrLayer.Overlay
+            exclusiveZone: -1
+
+            anchors {
+                top: true
+                bottom: true
+                left: true
+                right: true
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onPressed: root.hidePopup()
+            }
+        }
+
+        PanelWindow {
             id: barWindow
             required property var modelData
 
             screen: modelData
             implicitHeight: Theme.barHeight
             color: "transparent"
-            exclusiveZone: Theme.barHeight
+            exclusiveZone: 36
             WlrLayershell.namespace: "m3-shell"
             WlrLayershell.keyboardFocus: root.popupVisible
                     && root.popupScreen === barWindow.modelData.name
@@ -331,7 +364,10 @@ ShellRoot {
 
             ExpressiveTopBar {
                 anchors.fill: parent
-                anchors.margins: Theme.barContentInset
+                anchors.leftMargin: Theme.barContentInset
+                anchors.rightMargin: Theme.barContentInset
+                anchors.topMargin: (Theme.barHeight - Theme.barItemHeight) / 2
+                anchors.bottomMargin: (Theme.barHeight - Theme.barItemHeight) / 2
                 barWindow: barWindow
                 controller: systemService
                 screen: barWindow.modelData
@@ -865,7 +901,7 @@ ShellRoot {
                     right: true
                 }
                 margins {
-                    top: Theme.barHeight + Theme.space3
+                    top: Theme.barHeight
                     right: Theme.barContentInset
                 }
 

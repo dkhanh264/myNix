@@ -14,10 +14,11 @@ PopupWindow {
     property real popupX: 0
     property real popupY: anchorWindow ? anchorWindow.height + Theme.space3 : 60
     property bool acceptsDismissal: false
+    property bool animatingOut: false
 
     signal dismissed
 
-    visible: requestedVisible
+    visible: requestedVisible || animatingOut
     color: "transparent"
     implicitWidth: popupWidth
     implicitHeight: popupHeight
@@ -27,7 +28,7 @@ PopupWindow {
     anchor.rect.y: popupY
 
     Behavior on popupX {
-        enabled: root.requestedVisible && !Theme.reduceMotion
+        enabled: (root.requestedVisible || root.animatingOut) && !Theme.reduceMotion
         NumberAnimation {
             duration: Theme.motionMedium2
             easing.type: Easing.BezierSpline
@@ -35,7 +36,7 @@ PopupWindow {
         }
     }
     Behavior on popupWidth {
-        enabled: root.requestedVisible && !Theme.reduceMotion
+        enabled: (root.requestedVisible || root.animatingOut) && !Theme.reduceMotion
         NumberAnimation {
             duration: Theme.motionMedium2
             easing.type: Easing.BezierSpline
@@ -43,7 +44,7 @@ PopupWindow {
         }
     }
     Behavior on popupHeight {
-        enabled: root.requestedVisible && !Theme.reduceMotion
+        enabled: (root.requestedVisible || root.animatingOut) && !Theme.reduceMotion
         NumberAnimation {
             duration: Theme.motionMedium2
             easing.type: Easing.BezierSpline
@@ -53,9 +54,21 @@ PopupWindow {
 
     onRequestedVisibleChanged: {
         dismissalGuard.stop();
+        exitTimer.stop();
         root.acceptsDismissal = false;
-        if (root.requestedVisible)
+        if (root.requestedVisible) {
+            root.animatingOut = false;
             dismissalGuard.restart();
+        } else {
+            root.animatingOut = true;
+            exitTimer.restart();
+        }
+    }
+
+    Timer {
+        id: exitTimer
+        interval: Theme.popupTransitionDuration + 20
+        onTriggered: root.animatingOut = false
     }
 
     onClosed: {

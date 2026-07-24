@@ -55,8 +55,7 @@ Item {
         }
     }
 
-    readonly property bool hasNotification: root.controller
-        && root.controller.message.length > 0
+    readonly property bool hasNotification: false
 
     Row {
         id: centerGroup
