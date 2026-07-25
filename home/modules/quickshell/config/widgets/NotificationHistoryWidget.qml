@@ -107,12 +107,11 @@ Rectangle {
                                 iconSize: 34
                                 color: Theme.textSecondary
                             }
-                            Text {
+                            M3Text {
+                                role: "labelMedium"
                                 text: I18n.tr("Chưa có thông báo trong lịch sử",
                                     "Notification history is empty")
                                 color: Theme.textSecondary
-                                font.family: Theme.textFont
-                                font.pixelSize: 12
                             }
                         }
                     }
@@ -160,31 +159,28 @@ Rectangle {
                                 anchors.verticalCenter: parent.verticalCenter
                                 spacing: 1
 
-                                Text {
+                                M3Text {
                                     width: parent.width
+                                    role: "labelMedium"
                                     text: summary
                                     color: Theme.textPrimary
-                                    font.family: Theme.textFont
-                                    font.pixelSize: 12
                                     font.weight: Font.DemiBold
                                     elide: Text.ElideRight
                                 }
-                                Text {
+                                M3Text {
                                     width: parent.width
+                                    role: "labelSmall"
                                     text: appName
                                     color: Theme.primary
-                                    font.family: Theme.textFont
-                                    font.pixelSize: 10
                                     font.weight: Font.Medium
                                     elide: Text.ElideRight
                                 }
-                                Text {
+                                M3Text {
                                     visible: body.length > 0
                                     width: parent.width
+                                    role: "labelSmall"
                                     text: body
                                     color: Theme.textSecondary
-                                    font.family: Theme.textFont
-                                    font.pixelSize: 10
                                     elide: Text.ElideRight
                                 }
                             }
@@ -240,12 +236,11 @@ Rectangle {
                                 iconSize: 34
                                 color: Theme.textSecondary
                             }
-                            Text {
+                            M3Text {
+                                role: "labelMedium"
                                 text: I18n.tr("Chưa có ảnh chụp màn hình",
                                     "No screenshots yet")
                                 color: Theme.textSecondary
-                                font.family: Theme.textFont
-                                font.pixelSize: 12
                             }
                         }
                     }
@@ -287,7 +282,8 @@ Rectangle {
                                 }
                             }
 
-                            Text {
+                            M3Text {
+                                role: "labelSmall"
                                 anchors.left: parent.left
                                 anchors.leftMargin: 10
                                 anchors.right: copyButton.left
@@ -296,8 +292,6 @@ Rectangle {
                                 anchors.bottomMargin: 14
                                 text: fileName
                                 color: Theme.textPrimary
-                                font.family: Theme.textFont
-                                font.pixelSize: 10
                                 font.weight: Font.Medium
                                 elide: Text.ElideMiddle
                             }

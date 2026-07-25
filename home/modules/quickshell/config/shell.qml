@@ -688,20 +688,18 @@ ShellRoot {
                                     anchors.verticalCenter: parent.verticalCenter
                                     spacing: 0
 
-                                    Text {
+                                    M3Text {
+                                        role: "headlineMedium"
                                         text: systemService.batteryAvailable
                                             ? systemService.batteryPercent + "%" : "--%"
                                         color: Theme.textPrimary
-                                        font.family: Theme.textFont
-                                        font.pixelSize: 28
                                         font.weight: Font.Bold
                                     }
 
-                                    Text {
+                                    M3Text {
+                                        role: "labelSmall"
                                         text: systemService.batteryState
                                         color: Theme.textSecondary
-                                        font.family: Theme.textFont
-                                        font.pixelSize: 10
                                     }
                                 }
                             }

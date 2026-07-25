@@ -80,13 +80,12 @@ Item {
                         ? Theme.error : Theme.primary
                     filled: true
                 }
-                Text {
+                M3Text {
                     visible: root.showLabels
+                    role: "labelSmall"
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller ? root.controller.volume + "%" : "--%"
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
 
@@ -105,14 +104,13 @@ Item {
                     color: Theme.tertiary
                     filled: true
                 }
-                Text {
+                M3Text {
                     visible: root.showLabels
+                    role: "labelSmall"
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller
                         ? root.controller.brightness + "%" : "--%"
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
@@ -156,16 +154,15 @@ Item {
                     color: root.controller && root.controller.wifiSsid
                         ? Theme.primary : Theme.textSecondary
                 }
-                Text {
+                M3Text {
                     visible: root.showLabels
+                    role: "labelSmall"
                     anchors.verticalCenter: parent.verticalCenter
                     width: Math.min(92, implicitWidth)
                     text: root.controller && root.controller.wifiSsid
                         ? root.controller.wifiSsid
                         : I18n.tr("Ngoại tuyến", "Offline")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -213,16 +210,15 @@ Item {
                     color: root.controller && root.controller.bluetoothConnectedCount > 0
                         ? Theme.tertiary : Theme.textSecondary
                 }
-                Text {
+                M3Text {
                     visible: root.showLabels
+                    role: "labelSmall"
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller && root.controller.bluetoothConnectedCount > 0
                         ? root.controller.bluetoothConnectedCount.toString()
                         : root.controller && root.controller.bluetoothEnabled
                             ? I18n.tr("Bật", "On") : I18n.tr("Tắt", "Off")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
@@ -261,13 +257,12 @@ Item {
                         ? Theme.error : Theme.tertiary
                     filled: true
                 }
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller ? root.controller.batteryPercent + "%" : ""
                     color: root.controller && root.controller.batteryPercent <= 20
                         ? Theme.error : Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
@@ -300,14 +295,13 @@ Item {
                     filled: root.controller
                         && root.controller.notificationHistory.count > 0
                 }
-                Text {
+                M3Text {
                     visible: root.showLabels
+                    role: "labelSmall"
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller
                         ? root.controller.notificationHistory.count.toString() : "0"
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
@@ -349,8 +343,9 @@ Item {
                     color: Theme.error
                     filled: true
                 }
-                Text {
+                M3Text {
                     visible: root.showLabels
+                    role: "labelSmall"
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.controller && root.controller.recordingStopping
                         ? I18n.tr("Đang lưu", "Saving")
@@ -358,8 +353,6 @@ Item {
                             ? I18n.tr("Tạm dừng", "Paused")
                             : "REC"
                     color: Theme.error
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.Bold
                 }
             }

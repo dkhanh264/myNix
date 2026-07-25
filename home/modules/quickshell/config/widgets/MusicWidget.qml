@@ -130,35 +130,32 @@ Rectangle {
                     color: Theme.secondary
                 }
 
-                Text {
+                M3Text {
                     anchors.verticalCenter: parent.verticalCenter
+                    role: "labelSmall"
                     text: root.player && root.player.isPlaying
                         ? I18n.tr("Đang phát", "Now playing")
                         : root.available ? I18n.tr("Đã tạm dừng", "Paused")
                         : "Media"
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
 
-            Text {
+            M3Text {
                 width: parent.width
+                role: "titleMedium"
                 text: root.titleText
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 15
                 font.weight: Font.Bold
                 elide: Text.ElideRight
             }
 
-            Text {
+            M3Text {
                 width: parent.width
+                role: "labelSmall"
                 text: root.artistText
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 11
                 elide: Text.ElideRight
             }
 
@@ -222,28 +219,26 @@ Rectangle {
             onMoved: value => root.seekTo(value)
         }
 
-        Text {
+        M3Text {
             id: timeElapsed
+            role: "labelSmall"
             anchors.left: parent.left
             anchors.top: progressWave.bottom
             anchors.topMargin: 2
             text: root.formatTime(root.playbackPosition)
             color: Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 9
             font.weight: Font.Medium
         }
 
-        Text {
+        M3Text {
             id: timeTotal
+            role: "labelSmall"
             anchors.right: parent.right
             anchors.top: progressWave.bottom
             anchors.topMargin: 2
             text: root.player && root.player.lengthSupported
                 ? root.formatTime(root.player.length) : "--:--"
             color: Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 9
             font.weight: Font.Medium
         }
 

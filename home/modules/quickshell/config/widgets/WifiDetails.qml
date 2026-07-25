@@ -37,23 +37,21 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 0
 
-                Text {
+                M3Text {
+                    role: "titleSmall"
                     text: I18n.tr("Mạng khả dụng", "Available networks")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 14
                     font.weight: Font.DemiBold
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     text: root.controller && root.controller.wifiSsid
                         ? I18n.tr("Đã kết nối ", "Connected to ")
                             + root.controller.wifiSsid
                         : I18n.tr("Chọn mạng để kết nối",
                             "Choose a network to connect")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                 }
             }
 
@@ -77,15 +75,14 @@ Rectangle {
             width: parent.width
             height: visible ? 64 : 0
 
-            Text {
+            M3Text {
+                role: "labelMedium"
                 anchors.centerIn: parent
                 text: root.controller && !root.controller.wifiEnabled
                     ? I18n.tr("Bật Wi‑Fi để tìm mạng",
                         "Turn on Wi-Fi to find networks")
                     : I18n.tr("Không tìm thấy mạng", "No networks found")
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 12
             }
         }
 
@@ -200,18 +197,18 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 1
 
-                        Text {
+                        M3Text {
                             width: parent.width
+                            role: "titleSmall"
                             text: networkRow.ssid
                             color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 13
                             font.weight: Font.DemiBold
                             elide: Text.ElideRight
                         }
 
-                        Text {
+                        M3Text {
                             width: parent.width
+                            role: "labelSmall"
                             text: networkRow.active
                                 ? I18n.tr("Đã kết nối", "Connected") + " · "
                                     + networkRow.strength + "%"
@@ -222,8 +219,6 @@ Rectangle {
                                         : networkRow.security)
                                     + " · " + networkRow.strength + "%"
                             color: Theme.textSecondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 10
                             elide: Text.ElideRight
                         }
                     }
@@ -374,14 +369,13 @@ Rectangle {
             width: parent.width
             height: 44
 
-            Text {
+            M3Text {
+                role: "labelSmall"
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: I18n.tr("Tùy chọn nâng cao",
                     "Advanced network options")
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 11
             }
 
             M3Button {

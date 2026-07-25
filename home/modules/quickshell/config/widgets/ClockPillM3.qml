@@ -29,20 +29,18 @@ M3BarPill {
             anchors.verticalCenter: parent.verticalCenter
             spacing: -1
 
-            Text {
+            M3Text {
+                role: "labelLarge"
                 text: root.controller ? root.controller.timeText : "--:--"
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 14
                 font.weight: Font.Bold
             }
 
-            Text {
+            M3Text {
+                role: "labelSmall"
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: root.controller ? root.controller.shortDateText : ""
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 9
                 font.weight: Font.Medium
             }
         }

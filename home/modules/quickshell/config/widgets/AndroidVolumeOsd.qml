@@ -14,7 +14,7 @@ Rectangle {
 
     implicitWidth: 56
     implicitHeight: 220
-    radius: 28
+    radius: Theme.shapeExtraLarge
     color: Theme.popupSurface
     border.width: 1
     border.color: Theme.barOutline
@@ -38,17 +38,16 @@ Rectangle {
     Column {
         id: containerColumn
         anchors.fill: parent
-        anchors.margins: 8
-        spacing: 8
+        anchors.margins: Theme.space2
+        spacing: Theme.space2
 
         // Volume percentage badge at top
-        Text {
+        M3Text {
             id: badgeText
+            role: "labelSmall"
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.controller && root.controller.muted ? "MUTE" : (root.controller ? root.controller.volume + "%" : "--%")
             color: root.controller && root.controller.muted ? Theme.error : Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 11
             font.weight: Font.Bold
         }
 
@@ -106,12 +105,12 @@ Rectangle {
             // M3 Expressive morphing handle capsule at split boundary
             Rectangle {
                 visible: parent.displayVal > 0.02 && parent.displayVal < 0.98
-                width: parent.width - 16
+                width: parent.width - Theme.space4
                 height: 4
-                radius: 2
+                radius: Theme.shapeExtraSmall
                 anchors.horizontalCenter: parent.horizontalCenter
                 y: Math.max(0, Math.min(parent.height - height, parent.height * (1 - parent.displayVal) - 2))
-                color: Theme.blend(Theme.primary, "#ffffff", 0.40)
+                color: Theme.onPrimaryContainer
             }
 
             // Speaker icon at the bottom of the track (perfectly centered in lower cap)
@@ -125,7 +124,7 @@ Rectangle {
                     if (root.controller.volume > 0) return "volume_down";
                     return "volume_mute";
                 }
-                iconSize: 20
+                iconSize: Theme.iconSizeSmall
                 color: root.controller && root.controller.muted ? Theme.onError : Theme.onPrimary
                 filled: true
             }
@@ -161,4 +160,5 @@ Rectangle {
         }
     }
 }
+
 

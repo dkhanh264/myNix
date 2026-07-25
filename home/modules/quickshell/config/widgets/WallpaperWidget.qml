@@ -375,23 +375,21 @@ FocusScope {
                             Layout.fillWidth: true
                             spacing: 2
 
-                            Text {
+                             M3Text {
                                 Layout.fillWidth: true
+                                role: "titleSmall"
                                 text: cardItem.modelData.fileName || ""
-                                color: "#ffffff"
-                                font.family: Theme.textFont
-                                font.pixelSize: 13
+                                color: Theme.textPrimary
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideMiddle
                             }
 
-                            Text {
+                            M3Text {
                                 Layout.fillWidth: true
+                                role: "labelSmall"
                                 text: cardItem.isSelected ? I18n.tr("Hình nền hiện tại", "Current Wallpaper")
                                     : (cardItem.isCurrent ? I18n.tr("Nhấn Enter để chọn", "Press Enter to select") : "")
-                                color: Theme.alpha("#ffffff", 0.80)
-                                font.family: Theme.textFont
-                                font.pixelSize: 11
+                                color: Theme.textSecondary
                                 elide: Text.ElideRight
                             }
                         }

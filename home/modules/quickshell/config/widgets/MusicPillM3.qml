@@ -90,22 +90,20 @@ M3BarPill {
                 width: root.compact ? 64 : 84
                 spacing: 0
 
-                Text {
+                M3Text {
                     width: parent.width
+                    role: "labelSmall"
                     text: root.titleText
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.Bold
                     elide: Text.ElideRight
                 }
 
-                Text {
+                M3Text {
                     width: parent.width
+                    role: "labelSmall"
                     text: root.artistText
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 8
                     font.weight: Font.Medium
                     elide: Text.ElideRight
                 }

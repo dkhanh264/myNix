@@ -89,19 +89,17 @@ M3BarPill {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: -1
 
-                    Text {
+                    M3Text {
+                        role: "labelSmall"
                         text: modelData.valueText
                         color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 9
                         font.weight: Font.Bold
                     }
 
-                    Text {
+                    M3Text {
+                        role: "labelSmall"
                         text: modelData.label
                         color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 7
                         font.weight: Font.Medium
                     }
                 }

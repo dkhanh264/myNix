@@ -277,13 +277,12 @@ WlSessionLock {
                             border.width: 1
                             border.color: Theme.alpha(Theme.outlineVariant, 0.4)
 
-                            Text {
+                            M3Text {
                                 id: dateText
+                                role: "labelMedium"
                                 anchors.centerIn: parent
                                 text: systemClock.date.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), I18n.vietnamese ? "dddd, d MMMM yyyy" : "dddd, MMMM d, yyyy")
                                 color: Theme.textSecondary
-                                font.family: Theme.textFont
-                                font.pixelSize: 13
                                 font.weight: Font.Medium
                             }
                         }
@@ -365,14 +364,13 @@ WlSessionLock {
                                             focus: lock.locked
                                             clip: true
 
-                                            Text {
+                                            M3Text {
+                                                role: "bodyMedium"
                                                 visible: passwordInput.text.length === 0
                                                 anchors.verticalCenter: parent.verticalCenter
                                                 anchors.left: parent.left
                                                 text: I18n.tr("Nhập mật khẩu...", "Enter password...")
                                                 color: Theme.alpha(Theme.textSecondary, 0.6)
-                                                font.family: Theme.textFont
-                                                font.pixelSize: 14
                                             }
 
                                             onAccepted: lockSurface.submitPassword()
@@ -451,13 +449,12 @@ WlSessionLock {
                             }
 
                             // Error status text
-                            Text {
+                            M3Text {
+                                role: "labelSmall"
                                 visible: lock.authError
                                 width: parent.width
                                 text: lock.errorMessage || I18n.tr("Mật khẩu không đúng. Vui lòng thử lại.", "Incorrect password. Please try again.")
                                 color: Theme.error
-                                font.family: Theme.textFont
-                                font.pixelSize: 12
                                 horizontalAlignment: Text.AlignHCenter
                             }
 
@@ -542,22 +539,20 @@ WlSessionLock {
                                         Layout.alignment: Qt.AlignVCenter
                                         spacing: 2
 
-                                        Text {
+                                        M3Text {
                                             Layout.fillWidth: true
+                                            role: "titleSmall"
                                             text: mediaCard.hasTrack ? mediaCard.activePlayer.trackTitle : I18n.tr("Chưa có nhạc phát", "No media playing")
                                             color: Theme.textPrimary
-                                            font.family: Theme.textFont
-                                            font.pixelSize: 14
                                             font.weight: Font.Bold
                                             elide: Text.ElideRight
                                         }
 
-                                        Text {
+                                        M3Text {
                                             Layout.fillWidth: true
+                                            role: "labelSmall"
                                             text: mediaCard.hasTrack ? (mediaCard.activePlayer.trackArtist || I18n.tr("Nghệ sĩ chưa rõ", "Unknown artist")) : I18n.tr("Mở ứng dụng phát nhạc", "Open media player")
                                             color: Theme.textSecondary
-                                            font.family: Theme.textFont
-                                            font.pixelSize: 12
                                             elide: Text.ElideRight
                                         }
                                     }

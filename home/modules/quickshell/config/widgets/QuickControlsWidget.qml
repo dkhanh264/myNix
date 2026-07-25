@@ -65,11 +65,10 @@ Column {
     }
 
     // 2. Quick Action Tiles Grid (4 Tiles: Wi-Fi, Bluetooth, Screen Record, Wallpaper)
-    Text {
+    M3Text {
+        role: "titleSmall"
         text: I18n.tr("Tác vụ nhanh", "Quick Actions")
         color: Theme.textPrimary
-        font.family: Theme.textFont
-        font.pixelSize: 13
         font.weight: Font.Bold
     }
 

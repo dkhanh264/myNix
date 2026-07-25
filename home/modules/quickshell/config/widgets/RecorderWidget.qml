@@ -63,7 +63,8 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 2
 
-                    Text {
+                    M3Text {
+                        role: "titleSmall"
                         text: root.controller && root.controller.recording
                             ? root.controller.recordingStopping
                                 ? I18n.tr("Đang hoàn tất bản ghi",
@@ -73,19 +74,16 @@ Rectangle {
                                     : I18n.tr("Đang ghi màn hình", "Recording screen")
                             : "GPU Screen Recorder"
                         color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 14
                         font.weight: Font.DemiBold
                     }
-                    Text {
+                    M3Text {
                         width: 270
+                        role: "labelSmall"
                         text: root.controller && root.controller.recording
                             ? root.controller.recordingOutput
                             : I18n.tr("Ghi bằng GPU, độ trễ thấp",
                                 "Low-latency GPU capture")
                         color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
                         elide: Text.ElideMiddle
                     }
                 }
@@ -97,11 +95,10 @@ Rectangle {
             width: parent.width
             spacing: 10
 
-            Text {
+            M3Text {
+                role: "labelMedium"
                 text: I18n.tr("Nguồn hình", "Capture source")
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 12
                 font.weight: Font.DemiBold
             }
 
@@ -132,13 +129,12 @@ Rectangle {
                 width: parent.width
                 height: 48
 
-                Text {
+                M3Text {
+                    role: "labelMedium"
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     text: I18n.tr("Tốc độ khung hình", "Frame rate")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 12
                     font.weight: Font.DemiBold
                 }
 
@@ -173,19 +169,17 @@ Rectangle {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 0
-                    Text {
+                    M3Text {
+                        role: "labelMedium"
                         text: I18n.tr("Âm thanh hệ thống", "System audio")
                         color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 12
                         font.weight: Font.DemiBold
                     }
-                    Text {
+                    M3Text {
+                        role: "labelSmall"
                         text: I18n.tr("Ghi âm thanh đầu ra mặc định",
                             "Capture the default output")
                         color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
                     }
                 }
 
@@ -207,19 +201,17 @@ Rectangle {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 0
-                    Text {
+                    M3Text {
+                        role: "labelMedium"
                         text: I18n.tr("Micrô", "Microphone")
                         color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 12
                         font.weight: Font.DemiBold
                     }
-                    Text {
+                    M3Text {
+                        role: "labelSmall"
                         text: I18n.tr("Ghi âm thanh đầu vào mặc định",
                             "Capture the default input")
                         color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
                     }
                 }
 

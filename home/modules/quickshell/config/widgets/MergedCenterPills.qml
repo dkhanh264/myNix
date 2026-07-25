@@ -236,26 +236,24 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 0
 
-                Text {
+                M3Text {
                     id: titleText
+                    role: "labelSmall"
                     width: Math.min(root.maxNotifTextWidth, implicitWidth)
                     text: root.toastTitle
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.Bold
                     elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
                 }
 
-                Text {
+                M3Text {
                     id: bodyText
+                    role: "labelSmall"
                     visible: root.toastBody.length > 0
                     width: Math.min(root.maxNotifTextWidth, implicitWidth)
                     text: root.toastBody
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 8
                     font.weight: Font.Medium
                     elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter

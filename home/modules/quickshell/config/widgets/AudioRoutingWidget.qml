@@ -8,7 +8,7 @@ Rectangle {
     property var controller
 
     implicitHeight: routingContent.implicitHeight + Theme.space6
-    radius: Theme.shapeLarge
+    radius: Theme.cardRadius
     color: Theme.surfaceContainerHigh
 
     Column {
@@ -28,20 +28,18 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 0
 
-                Text {
+                M3Text {
+                    role: "titleSmall"
                     text: I18n.tr("Định tuyến âm thanh", "Audio routing")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 13
                     font.weight: Font.DemiBold
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     text: I18n.tr("Chọn loa và micrô mặc định",
                         "Choose default speakers and microphone")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 9
                 }
             }
 
@@ -49,7 +47,7 @@ Rectangle {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 buttonSize: 34
-                iconSize: 17
+                iconSize: Theme.iconSizeExtraSmall
                 icon: "refresh"
                 enabled: root.controller && !root.controller.audioDevicesLoading
                 accessibleName: I18n.tr("Làm mới thiết bị âm thanh",
@@ -69,13 +67,12 @@ Rectangle {
                 width: (parent.width - parent.spacing) / 2
                 spacing: Theme.space1
 
-                Text {
+                M3Text {
+                    role: "labelMedium"
                     width: parent.width
                     height: 20
                     text: I18n.tr("Đầu ra", "Output")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -100,7 +97,8 @@ Rectangle {
                     }
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     visible: !root.controller
                         || root.controller.audioOutputs.count === 0
                     width: parent.width
@@ -109,8 +107,6 @@ Rectangle {
                         ? I18n.tr("Đang tìm thiết bị…", "Finding devices…")
                         : I18n.tr("Không có đầu ra", "No output found")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     verticalAlignment: Text.AlignVCenter
                 }
             }
@@ -120,13 +116,12 @@ Rectangle {
                 width: (parent.width - parent.spacing) / 2
                 spacing: Theme.space1
 
-                Text {
+                M3Text {
+                    role: "labelMedium"
                     width: parent.width
                     height: 20
                     text: I18n.tr("Đầu vào", "Input")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -151,7 +146,8 @@ Rectangle {
                     }
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     visible: !root.controller
                         || root.controller.audioInputs.count === 0
                     width: parent.width
@@ -160,11 +156,10 @@ Rectangle {
                         ? I18n.tr("Đang tìm thiết bị…", "Finding devices…")
                         : I18n.tr("Không có đầu vào", "No input found")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     verticalAlignment: Text.AlignVCenter
                 }
             }
         }
     }
 }
+

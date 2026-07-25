@@ -123,7 +123,8 @@ M3BarPill {
                         }
                     }
 
-                    Text {
+                    M3Text {
+                        role: "labelSmall"
                         anchors.centerIn: parent
                         text: workspaceButton.workspaceId
                         color: workspaceButton.urgent
@@ -133,8 +134,6 @@ M3BarPill {
                                 : workspaceButton.occupied
                                     ? Theme.textPrimary
                                     : Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 11
                         font.weight: Font.Bold
                     }
                 }

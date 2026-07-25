@@ -118,19 +118,17 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: -2
 
-                Text {
+                M3Text {
+                    role: "titleLarge"
                     text: Qt.formatDateTime(root.currentDate, "HH:mm")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 26
                     font.weight: Font.Bold
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     text: Qt.formatDate(root.currentDate, "dddd, d MMMM")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 11
                     font.weight: Font.Medium
                 }
             }
@@ -167,14 +165,13 @@ Rectangle {
                 onClicked: root.moveMonth(-1)
             }
 
-            Text {
+            M3Text {
+                role: "titleSmall"
                 anchors.centerIn: parent
                 text: (I18n.vietnamese ? root.viMonths[root.displayDate.getMonth()]
                     : root.enMonths[root.displayDate.getMonth()])
                     + " " + root.displayDate.getFullYear()
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 13
                 font.weight: Font.DemiBold
             }
 
@@ -203,14 +200,13 @@ Rectangle {
                     width: dayHeader.width / 7
                     height: 20
 
-                    Text {
+                    M3Text {
+                        role: "labelSmall"
                         anchors.centerIn: parent
                         text: I18n.vietnamese
                             ? root.viDayNames[parent.index]
                             : root.enDayNames[parent.index]
                         color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 9
                         font.weight: Font.DemiBold
                     }
                 }
@@ -270,12 +266,11 @@ Rectangle {
                         }
                     }
 
-                    Text {
+                    M3Text {
+                        role: "labelMedium"
                         anchors.centerIn: parent
                         text: dateCell.dayNumber > 0 ? dateCell.dayNumber : ""
-                        color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
+                        color: dateCell.selected ? Theme.onPrimary : Theme.textPrimary
                         font.weight: dateCell.selected || dateCell.today
                             ? Font.Bold : Font.Medium
                     }
@@ -315,14 +310,13 @@ Rectangle {
             width: parent.width
             height: 30
 
-            Text {
+            M3Text {
+                role: "titleSmall"
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: I18n.tr("Sự kiện · ", "Events · ")
                     + Qt.formatDate(root.selectedDate, "d/M")
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 12
                 font.weight: Font.DemiBold
             }
 
@@ -348,15 +342,14 @@ Rectangle {
                 width: parent.width
                 spacing: 4
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     visible: root.selectedEventCount() === 0
                     width: parent.width
                     height: visible ? 40 : 0
                     text: I18n.tr("Chưa có sự kiện trong ngày này",
                         "No events for this day")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 11
                     verticalAlignment: Text.AlignVCenter
                 }
 
@@ -391,26 +384,24 @@ Rectangle {
                                 radius: 12
                                 color: Theme.primaryContainer
 
-                                Text {
+                                M3Text {
                                     id: timeBadgeText
+                                    role: "labelSmall"
                                     anchors.centerIn: parent
                                     text: eventItemRect.timeText && eventItemRect.timeText.length > 0
                                         ? eventItemRect.timeText
                                         : I18n.tr("Cả ngày", "All day")
                                     color: Theme.primary
-                                    font.family: Theme.textFont
-                                    font.pixelSize: 10
                                     font.weight: Font.Bold
                                 }
                             }
 
-                            Text {
+                            M3Text {
+                                role: "labelSmall"
                                 width: parent.width - (timeBadgeText.implicitWidth + 28)
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: eventItemRect.title
                                 color: Theme.textPrimary
-                                font.family: Theme.textFont
-                                font.pixelSize: 11
                                 font.weight: Font.Medium
                                 elide: Text.ElideRight
                             }
@@ -440,12 +431,11 @@ Rectangle {
             height: 24
             spacing: 6
 
-            Text {
+            M3Text {
+                role: "labelSmall"
                 anchors.verticalCenter: parent.verticalCenter
                 text: I18n.tr("Chọn giờ:", "Quick time:")
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 10
             }
 
             Repeater {
@@ -461,13 +451,12 @@ Rectangle {
                     border.width: 1
                     border.color: eventTime.text === modelData ? Theme.primary : Theme.alpha(Theme.outlineVariant, 0.4)
 
-                    Text {
+                    M3Text {
                         id: chipText
+                        role: "labelSmall"
                         anchors.centerIn: parent
                         text: parent.modelData
                         color: parent.parent.eventTime && parent.parent.eventTime.text === parent.modelData ? Theme.primary : Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 9
                         font.weight: Font.Medium
                     }
 

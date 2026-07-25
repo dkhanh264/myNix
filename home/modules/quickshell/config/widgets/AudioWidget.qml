@@ -56,24 +56,22 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 1
 
-                Text {
+                M3Text {
                     width: parent.width
+                    role: "titleSmall"
                     text: I18n.tr("Âm thanh", "Audio")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 14
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
 
-                Text {
+                M3Text {
                     width: parent.width
+                    role: "labelSmall"
                     text: !root.controller ? I18n.tr("Đang cập nhật…", "Updating…")
                         : root.controller.muted ? I18n.tr("Đã tắt tiếng", "Muted")
                         : root.controller.volume + "%"
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 11
                     elide: Text.ElideRight
                 }
             }
