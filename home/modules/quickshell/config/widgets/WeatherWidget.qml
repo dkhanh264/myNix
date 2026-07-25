@@ -44,7 +44,7 @@ Rectangle {
         }
     ] : []
 
-    implicitHeight: 448
+    implicitHeight: weatherCol.implicitHeight + Theme.componentPadding * 2
     radius: Theme.cardRadius
     color: Theme.alpha(Theme.tertiaryContainer, 0.34)
 
@@ -123,7 +123,10 @@ Rectangle {
     }
 
     Column {
-        anchors.fill: parent
+        id: weatherCol
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.margins: Theme.componentPadding
         spacing: 8
 

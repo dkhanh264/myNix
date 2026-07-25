@@ -5,12 +5,15 @@ import "../theme"
 Rectangle {
     id: root
 
-    implicitHeight: 220
+    implicitHeight: langCol.implicitHeight + Theme.componentPadding * 2
     radius: Theme.cardRadius
     color: Theme.surfaceContainerLow
 
     Column {
-        anchors.fill: parent
+        id: langCol
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.margins: Theme.componentPadding
         spacing: Theme.space3
 

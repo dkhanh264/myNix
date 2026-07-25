@@ -8,13 +8,35 @@ import "../theme"
 
 // Material 3 Expressive Dashboard Widget
 // Integrates expressive dynamic shapes, real-time system performance vitals,
-// quick controls, media player, and system shortcuts into a cohesive MD3 UI.
+// fastfetch system information, live weather, calendar, quick controls, and shortcuts.
 Rectangle {
     id: root
 
     property var controller
     signal sectionRequested(string section)
     signal closeRequested
+
+    property string uptimeText: I18n.tr("Đang tính…", "Calculating…")
+
+    Process {
+        id: uptimeProc
+        command: ["uptime", "-p"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                let str = String(data).trim();
+                if (str.startsWith("up ")) str = str.substring(3);
+                if (str.length > 0) root.uptimeText = str;
+            }
+        }
+    }
+
+    Timer {
+        interval: 30000
+        running: true
+        repeat: true
+        onTriggered: uptimeProc.running = true
+    }
 
     implicitHeight: mainColumn.implicitHeight + Theme.componentPadding * 2
     radius: Theme.cardRadius
@@ -150,6 +172,374 @@ Rectangle {
             }
         }
 
+        // Section Title: Weather & Calendar
+        Text {
+            text: I18n.tr("Thời tiết & Lịch", "Weather & Calendar")
+            color: Theme.textPrimary
+            font.family: Theme.textFont
+            font.pixelSize: 13
+            font.weight: Font.Bold
+        }
+
+        // 2. Integrated Weather & Calendar Cards Row (2 Columns)
+        RowLayout {
+            width: parent.width
+            spacing: Theme.space2
+
+            // Weather Card
+            Rectangle {
+                Layout.fillWidth: true
+                height: 88
+                radius: Theme.cardRadius
+                color: Theme.alpha(Theme.tertiaryContainer, 0.45)
+                border.width: 1
+                border.color: Theme.alpha(Theme.outlineVariant, 0.3)
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.sectionRequested("weather")
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: Theme.space3
+                    spacing: Theme.space2
+
+                    Item {
+                        Layout.preferredWidth: 46
+                        Layout.preferredHeight: 46
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Md3ExpressiveShape {
+                            anchors.centerIn: parent
+                            size: 40
+                            shapeType: 6 // Oval shape
+                            color: Theme.tertiaryContainer
+                        }
+
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: "partly_cloudy_day"
+                            iconSize: 24
+                            color: Theme.tertiary
+                            filled: true
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignVCenter
+                        spacing: 1
+
+                        Text {
+                            text: root.controller && root.controller.weatherTemperatureC !== undefined
+                                ? root.controller.weatherTemperatureC + "°C"
+                                : I18n.tr("Thời tiết", "Weather")
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 15
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            text: root.controller && root.controller.weatherDescription
+                                ? root.controller.weatherDescription
+                                : I18n.tr("Trời quang · Dự báo", "Clear · Forecast")
+                            color: Theme.tertiary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            font.weight: Font.Medium
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            text: root.controller && root.controller.weatherLocation
+                                ? root.controller.weatherLocation
+                                : I18n.tr("Xem dự báo chi tiết", "View detailed forecast")
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 9
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+            }
+
+            // Calendar Card
+            Rectangle {
+                Layout.fillWidth: true
+                height: 88
+                radius: Theme.cardRadius
+                color: Theme.alpha(Theme.primaryContainer, 0.45)
+                border.width: 1
+                border.color: Theme.alpha(Theme.outlineVariant, 0.3)
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.sectionRequested("calendar")
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: Theme.space3
+                    spacing: Theme.space2
+
+                    Item {
+                        Layout.preferredWidth: 46
+                        Layout.preferredHeight: 46
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Md3ExpressiveShape {
+                            anchors.centerIn: parent
+                            size: 40
+                            shapeType: 5 // Star/Clover shape
+                            color: Theme.primaryContainer
+                        }
+
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: "calendar_month"
+                            iconSize: 24
+                            color: Theme.primary
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignVCenter
+                        spacing: 1
+
+                        Text {
+                            text: root.controller ? root.controller.shortDateText : I18n.tr("Lịch biểu", "Calendar")
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 14
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            text: I18n.tr("Hôm nay", "Today")
+                            color: Theme.primary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            font.weight: Font.Medium
+                        }
+
+                        Text {
+                            text: I18n.tr("Nhấp để quản lý sự kiện", "Click to manage events")
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 9
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+            }
+        }
+
+        // Section Title: Fastfetch System Info & Uptime
+        Text {
+            text: I18n.tr("Thông tin hệ thống & Fastfetch", "System Info & Fastfetch")
+            color: Theme.textPrimary
+            font.family: Theme.textFont
+            font.pixelSize: 13
+            font.weight: Font.Bold
+        }
+
+        // 3. Fastfetch & System Info Container Card
+        Rectangle {
+            width: parent.width
+            implicitHeight: sysInfoCol.implicitHeight + Theme.space3 * 2
+            radius: Theme.cardRadius
+            color: Theme.surfaceContainer
+
+            Column {
+                id: sysInfoCol
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: Theme.space3
+                spacing: Theme.space2
+
+                // Header with Terminal Icon & Uptime
+                RowLayout {
+                    width: parent.width
+                    spacing: Theme.space2
+
+                    Md3ExpressiveShape {
+                        Layout.preferredWidth: 32
+                        Layout.preferredHeight: 32
+                        Layout.alignment: Qt.AlignVCenter
+                        size: 32
+                        shapeType: 1 // Square shape
+                        color: Theme.secondaryContainer
+                    }
+
+                    MaterialIcon {
+                        Layout.alignment: Qt.AlignVCenter
+                        text: "terminal"
+                        iconSize: 18
+                        color: Theme.secondary
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: "NixOS Fastfetch"
+                        color: Theme.textPrimary
+                        font.family: Theme.textFont
+                        font.pixelSize: 13
+                        font.weight: Font.Bold
+                    }
+
+                    Rectangle {
+                        Layout.alignment: Qt.AlignVCenter
+                        implicitWidth: uptimeLabel.implicitWidth + 14
+                        implicitHeight: 24
+                        radius: 12
+                        color: Theme.alpha(Theme.secondaryContainer, 0.6)
+
+                        Text {
+                            id: uptimeLabel
+                            anchors.centerIn: parent
+                            text: "⏱ " + I18n.tr("Uptime: ", "Uptime: ") + root.uptimeText
+                            color: Theme.secondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 10
+                            font.weight: Font.DemiBold
+                        }
+                    }
+                }
+
+                // Fastfetch Info 2x2 Grid Chips
+                Grid {
+                    width: parent.width
+                    columns: 2
+                    columnSpacing: Theme.space2
+                    rowSpacing: 6
+
+                    // OS Info
+                    RowLayout {
+                        width: (parent.width - parent.columnSpacing) / 2
+                        spacing: 6
+
+                        MaterialIcon {
+                            text: "memory"
+                            iconSize: 15
+                            color: Theme.primary
+                        }
+
+                        Text {
+                            text: "OS: "
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "NixOS 24.11 (x86_64)"
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    // Kernel Info
+                    RowLayout {
+                        width: (parent.width - parent.columnSpacing) / 2
+                        spacing: 6
+
+                        MaterialIcon {
+                            text: "developer_board"
+                            iconSize: 15
+                            color: Theme.secondary
+                        }
+
+                        Text {
+                            text: "Kernel: "
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Linux 6.6 (Standard)"
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    // WM / Desktop Info
+                    RowLayout {
+                        width: (parent.width - parent.columnSpacing) / 2
+                        spacing: 6
+
+                        MaterialIcon {
+                            text: "desktop_windows"
+                            iconSize: 15
+                            color: Theme.tertiary
+                        }
+
+                        Text {
+                            text: "WM: "
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Hyprland (Wayland)"
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    // Shell / UI Info
+                    RowLayout {
+                        width: (parent.width - parent.columnSpacing) / 2
+                        spacing: 6
+
+                        MaterialIcon {
+                            text: "widgets"
+                            iconSize: 15
+                            color: Theme.primary
+                        }
+
+                        Text {
+                            text: "UI: "
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Quickshell M3 Expressive"
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+            }
+        }
+
         // Section Title: System Vitals
         Text {
             text: I18n.tr("Thông số hệ thống", "System Vitals")
@@ -159,7 +549,7 @@ Rectangle {
             font.weight: Font.Bold
         }
 
-        // 2. MD3 Expressive Vitals Grid (2x2 Layout)
+        // 4. MD3 Expressive Vitals Grid (2x2 Layout)
         Grid {
             id: vitalsGrid
             width: parent.width
@@ -431,7 +821,7 @@ Rectangle {
             font.weight: Font.Bold
         }
 
-        // 3. Quick Action Expressive Shape Chips (4 Items)
+        // 5. Quick Action Expressive Shape Chips (4 Items)
         RowLayout {
             width: parent.width
             spacing: Theme.space2
@@ -656,7 +1046,7 @@ Rectangle {
             font.weight: Font.Bold
         }
 
-        // 4. Quick Action Buttons Row
+        // 6. Quick Action Buttons Row
         RowLayout {
             width: parent.width
             spacing: Theme.space2

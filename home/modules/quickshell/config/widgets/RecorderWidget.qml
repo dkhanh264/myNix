@@ -12,12 +12,15 @@ Rectangle {
     property bool withMicrophone: controller
         ? controller.recordingMicrophone : false
 
-    implicitHeight: controller && controller.recording ? 250 : 408
+    implicitHeight: recorderContentCol.implicitHeight + Theme.componentPadding * 2
     radius: Theme.cardRadius
     color: Theme.surfaceContainerLow
 
     Column {
-        anchors.fill: parent
+        id: recorderContentCol
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.margins: Theme.componentPadding
         spacing: Theme.space3
 
@@ -232,6 +235,7 @@ Rectangle {
         }
 
         Row {
+            id: actionRow
             width: parent.width
             height: 46
             spacing: 8
@@ -239,8 +243,8 @@ Rectangle {
             M3Button {
                 visible: root.controller && root.controller.recording
                 enabled: visible && !root.controller.recordingStopping
-                width: visible ? (parent.width - parent.spacing) / 2 : 0
-                height: parent.height
+                width: visible ? (actionRow.width - actionRow.spacing) / 2 : 0
+                height: actionRow.height
                 tonal: true
                 icon: root.controller && root.controller.recordingPaused
                     ? "play_arrow" : "pause"
@@ -251,9 +255,9 @@ Rectangle {
             }
 
             M3Button {
-                width: root.controller && root.controller.recording
-                    ? (parent.width - parent.spacing) / 2 : parent.width
-                height: parent.height
+                width: (root.controller && root.controller.recording)
+                    ? (actionRow.width - actionRow.spacing) / 2 : actionRow.width
+                height: actionRow.height
                 enabled: !root.controller || !root.controller.recordingStopping
                 destructive: root.controller && root.controller.recording
                 icon: root.controller && root.controller.recordingStopping
