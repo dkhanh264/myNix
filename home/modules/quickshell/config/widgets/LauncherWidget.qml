@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../components"
+import "../theme"
 
 Item {
     id: root
@@ -24,8 +25,8 @@ Item {
             width: (parent.width - parent.spacing) / 2
             height: parent.height
             icon: "apps"
-            label: "Applications"
-            supportingText: "Search and launch"
+            label: I18n.tr("Ứng dụng", "Applications")
+            supportingText: I18n.tr("Tìm kiếm & khởi chạy", "Search and launch")
             onClicked: launcherProc.exec(["walker-menu", "apps"])
         }
 
@@ -33,8 +34,8 @@ Item {
             width: (parent.width - parent.spacing) / 2
             height: parent.height
             icon: "wallpaper"
-            label: "Wallpapers"
-            supportingText: "Choose your backdrop"
+            label: I18n.tr("Hình nền", "Wallpapers")
+            supportingText: I18n.tr("Chọn hình nền hệ thống", "Choose your backdrop")
             onClicked: wallpaperProc.exec(["walker-menu", "wallpapers"])
         }
     }

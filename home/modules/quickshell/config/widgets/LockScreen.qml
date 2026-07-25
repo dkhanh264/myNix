@@ -105,6 +105,112 @@ WlSessionLock {
                     color: Theme.alpha(Theme.wallpaperSecondary, 0.10)
                 }
 
+                // Floating MD3 Expressive Dynamic Shapes in Ambient Background
+                Item {
+                    id: floatingShapes
+                    anchors.fill: parent
+
+                    // Shape 1: Top-Left Flower Shape
+                    Md3ExpressiveShape {
+                        x: lockBg.width * 0.07
+                        y: lockBg.height * 0.10
+                        size: 140
+                        shapeType: 7 // Flower shape
+                        color: Theme.alpha(Theme.wallpaperPrimary, 0.14)
+
+                        SequentialAnimation on rotation {
+                            loops: Animation.Infinite
+                            running: lock.locked && !Theme.reduceMotion
+                            NumberAnimation { from: 0; to: 360; duration: 28000 }
+                        }
+                    }
+
+                    // Shape 2: Top-Right Clover/Star Shape
+                    Md3ExpressiveShape {
+                        x: lockBg.width * 0.78
+                        y: lockBg.height * 0.14
+                        size: 120
+                        shapeType: 5 // Star / Clover shape
+                        color: Theme.alpha(Theme.wallpaperSecondary, 0.15)
+
+                        SequentialAnimation on y {
+                            loops: Animation.Infinite
+                            running: lock.locked && !Theme.reduceMotion
+                            NumberAnimation { to: lockBg.height * 0.14 - 18; duration: 4000; easing.type: Easing.InOutSine }
+                            NumberAnimation { to: lockBg.height * 0.14 + 18; duration: 4000; easing.type: Easing.InOutSine }
+                        }
+
+                        SequentialAnimation on rotation {
+                            loops: Animation.Infinite
+                            running: lock.locked && !Theme.reduceMotion
+                            NumberAnimation { from: 0; to: -360; duration: 34000 }
+                        }
+                    }
+
+                    // Shape 3: Center-Right Diamond Shape
+                    Md3ExpressiveShape {
+                        x: lockBg.width * 0.82
+                        y: lockBg.height * 0.50
+                        size: 95
+                        shapeType: 4 // Diamond shape
+                        color: Theme.alpha(Theme.tertiary, 0.13)
+
+                        SequentialAnimation on scale {
+                            loops: Animation.Infinite
+                            running: lock.locked && !Theme.reduceMotion
+                            NumberAnimation { to: 1.18; duration: 3200; easing.type: Easing.InOutQuad }
+                            NumberAnimation { to: 0.92; duration: 3200; easing.type: Easing.InOutQuad }
+                        }
+                    }
+
+                    // Shape 4: Bottom-Left Oval Shape
+                    Md3ExpressiveShape {
+                        x: lockBg.width * 0.05
+                        y: lockBg.height * 0.65
+                        size: 130
+                        shapeType: 6 // Oval shape
+                        color: Theme.alpha(Theme.wallpaperPrimary, 0.13)
+
+                        SequentialAnimation on x {
+                            loops: Animation.Infinite
+                            running: lock.locked && !Theme.reduceMotion
+                            NumberAnimation { to: lockBg.width * 0.05 + 24; duration: 5000; easing.type: Easing.InOutSine }
+                            NumberAnimation { to: lockBg.width * 0.05 - 12; duration: 5000; easing.type: Easing.InOutSine }
+                        }
+                    }
+
+                    // Shape 5: Bottom-Right Flower/Cookie Shape
+                    Md3ExpressiveShape {
+                        x: lockBg.width * 0.74
+                        y: lockBg.height * 0.72
+                        size: 150
+                        shapeType: 7 // Flower shape
+                        color: Theme.alpha(Theme.wallpaperSecondary, 0.12)
+
+                        SequentialAnimation on rotation {
+                            loops: Animation.Infinite
+                            running: lock.locked && !Theme.reduceMotion
+                            NumberAnimation { from: 0; to: 360; duration: 40000 }
+                        }
+                    }
+
+                    // Shape 6: Mid-Left Horizontal Pill Shape
+                    Md3ExpressiveShape {
+                        x: lockBg.width * 0.10
+                        y: lockBg.height * 0.40
+                        size: 105
+                        shapeType: 2 // Pill Horiz
+                        color: Theme.alpha(Theme.primary, 0.12)
+
+                        SequentialAnimation on y {
+                            loops: Animation.Infinite
+                            running: lock.locked && !Theme.reduceMotion
+                            NumberAnimation { to: lockBg.height * 0.40 + 20; duration: 4500; easing.type: Easing.InOutSine }
+                            NumberAnimation { to: lockBg.height * 0.40 - 15; duration: 4500; easing.type: Easing.InOutSine }
+                        }
+                    }
+                }
+
                 // Keyboard event handler
                 Item {
                     anchors.fill: parent
@@ -134,16 +240,16 @@ WlSessionLock {
 
                         Column {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            spacing: -24
+                            spacing: -34
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: Qt.formatDateTime(systemClock.date, "HH")
                                 color: Theme.textPrimary
                                 font.family: Theme.textFont
-                                font.pixelSize: 110
+                                font.pixelSize: 148
                                 font.weight: Font.Bold
-                                font.letterSpacing: -4
+                                font.letterSpacing: -6
 
                                 SystemClock {
                                     id: systemClock
@@ -156,9 +262,9 @@ WlSessionLock {
                                 text: Qt.formatDateTime(systemClock.date, "mm")
                                 color: Theme.primary
                                 font.family: Theme.textFont
-                                font.pixelSize: 110
+                                font.pixelSize: 148
                                 font.weight: Font.Bold
-                                font.letterSpacing: -4
+                                font.letterSpacing: -6
                             }
                         }
 
@@ -174,7 +280,7 @@ WlSessionLock {
                             Text {
                                 id: dateText
                                 anchors.centerIn: parent
-                                text: Qt.formatDateTime(systemClock.date, "dddd, d MMMM yyyy")
+                                text: systemClock.date.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), I18n.vietnamese ? "dddd, d MMMM yyyy" : "dddd, MMMM d, yyyy")
                                 color: Theme.textSecondary
                                 font.family: Theme.textFont
                                 font.pixelSize: 13
@@ -183,21 +289,13 @@ WlSessionLock {
                         }
                     }
 
-                    // 2. Password Input Area with Material 3 Expressive Dynamic Shapes
+                    // 2. Password Input Area (Floating Capsule without Card Enclosure)
                     Rectangle {
                         id: authCard
                         width: parent.width
-                        implicitHeight: authContent.implicitHeight + Theme.space4 * 2
-                        radius: Theme.cardRadius
-                        color: Theme.lockCardBackground
-                        border.width: 1
-                        border.color: lock.authError
-                            ? Theme.error
-                            : (lock.authenticating ? Theme.primary : Theme.barOutline)
-
-                        Behavior on border.color {
-                            ColorAnimation { duration: Theme.motionShort4 }
-                        }
+                        implicitHeight: authContent.implicitHeight
+                        color: "transparent"
+                        border.width: 0
 
                         // Shake animation on authentication error
                         SequentialAnimation on x {
@@ -271,7 +369,7 @@ WlSessionLock {
                                                 visible: passwordInput.text.length === 0
                                                 anchors.verticalCenter: parent.verticalCenter
                                                 anchors.left: parent.left
-                                                text: "Nhập mật khẩu..."
+                                                text: I18n.tr("Nhập mật khẩu...", "Enter password...")
                                                 color: Theme.alpha(Theme.textSecondary, 0.6)
                                                 font.family: Theme.textFont
                                                 font.pixelSize: 14
@@ -356,7 +454,7 @@ WlSessionLock {
                             Text {
                                 visible: lock.authError
                                 width: parent.width
-                                text: lock.errorMessage || "Mật khẩu không đúng. Vui lòng thử lại."
+                                text: lock.errorMessage || I18n.tr("Mật khẩu không đúng. Vui lòng thử lại.", "Incorrect password. Please try again.")
                                 color: Theme.error
                                 font.family: Theme.textFont
                                 font.pixelSize: 12
@@ -446,7 +544,7 @@ WlSessionLock {
 
                                         Text {
                                             Layout.fillWidth: true
-                                            text: mediaCard.hasTrack ? mediaCard.activePlayer.trackTitle : "Chưa có nhạc phát"
+                                            text: mediaCard.hasTrack ? mediaCard.activePlayer.trackTitle : I18n.tr("Chưa có nhạc phát", "No media playing")
                                             color: Theme.textPrimary
                                             font.family: Theme.textFont
                                             font.pixelSize: 14
@@ -456,11 +554,38 @@ WlSessionLock {
 
                                         Text {
                                             Layout.fillWidth: true
-                                            text: mediaCard.hasTrack ? (mediaCard.activePlayer.trackArtist || "Nghệ sĩ chưa rõ") : "Mở ứng dụng phát nhạc"
+                                            text: mediaCard.hasTrack ? (mediaCard.activePlayer.trackArtist || I18n.tr("Nghệ sĩ chưa rõ", "Unknown artist")) : I18n.tr("Mở ứng dụng phát nhạc", "Open media player")
                                             color: Theme.textSecondary
                                             font.family: Theme.textFont
                                             font.pixelSize: 12
                                             elide: Text.ElideRight
+                                        }
+                                    }
+
+                                    // Animated Music Wave Visualizer Equalizer
+                                    Row {
+                                        Layout.alignment: Qt.AlignVCenter
+                                        spacing: 3
+                                        visible: mediaCard.activePlayer && mediaCard.activePlayer.isPlaying
+
+                                        Repeater {
+                                            model: 5
+
+                                            Rectangle {
+                                                required property int index
+                                                width: 3
+                                                height: mediaCard.activePlayer && mediaCard.activePlayer.isPlaying ? barH : 4
+                                                radius: 1.5
+                                                color: Theme.primary
+                                                property real barH: 8
+
+                                                SequentialAnimation on barH {
+                                                    loops: Animation.Infinite
+                                                    running: mediaCard.activePlayer && mediaCard.activePlayer.isPlaying && !Theme.reduceMotion
+                                                    NumberAnimation { to: 18 - (index % 3) * 4; duration: 240 + (index * 60) % 180; easing.type: Easing.InOutQuad }
+                                                    NumberAnimation { to: 4 + (index % 2) * 5; duration: 240 + (index * 60) % 180; easing.type: Easing.InOutQuad }
+                                                }
+                                            }
                                         }
                                     }
 
@@ -540,7 +665,7 @@ WlSessionLock {
                             lock.unlocked();
                         } else {
                             lock.authError = true;
-                            lock.errorMessage = "Mật khẩu không đúng. Vui lòng thử lại.";
+                            lock.errorMessage = I18n.tr("Mật khẩu không đúng. Vui lòng thử lại.", "Incorrect password. Please try again.");
                             shakeAnimation.restart();
                             passwordInput.selectAll();
                             passwordInput.forceActiveFocus();
@@ -553,7 +678,7 @@ WlSessionLock {
                     onError: err => {
                         lock.authenticating = false;
                         lock.authError = true;
-                        lock.errorMessage = "Lỗi xác thực PAM";
+                        lock.errorMessage = I18n.tr("Lỗi xác thực PAM", "PAM Authentication Error");
                         shakeAnimation.restart();
                         if (!pam.active) {
                             pam.start();

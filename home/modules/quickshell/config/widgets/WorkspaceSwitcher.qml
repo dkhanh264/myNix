@@ -47,8 +47,8 @@ M3BarPill {
     readonly property int nodeGap: 6
 
     interactive: false
-    horizontalPadding: 8
-    verticalPadding: 8
+    horizontalPadding: 6
+    verticalPadding: 6
     accessibleName: I18n.tr("Không gian làm việc", "Workspaces")
 
     Row {

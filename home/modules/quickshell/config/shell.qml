@@ -115,7 +115,7 @@ ShellRoot {
         return [
             "music", "calendar", "weather", "controls",
             "wifi", "bluetooth", "power", "activity", "recorder",
-            "language", "settings", "wallpaper"
+            "language", "settings", "wallpaper", "dashboard"
         ].indexOf(kind) >= 0;
     }
 
@@ -285,6 +285,7 @@ ShellRoot {
         function language(): void { root.showPopup("language", ""); }
         function settings(): void { root.showPopup("settings", ""); }
         function wallpaper(): void { root.showPopup("wallpaper", ""); }
+        function dashboard(): void { root.showPopup("dashboard", ""); }
         function hide(): void { root.hidePopup(); }
     }
 
@@ -878,6 +879,49 @@ ShellRoot {
                     WallpaperWidget {
                         anchors.fill: parent
                         controller: systemService
+                    }
+                }
+            }
+
+            AnchoredPopup {
+                id: dashboardPopup
+                anchorWindow: barWindow
+                requestedVisible: root.popupVisible && root.activePopup === "dashboard"
+                    && root.popupScreen === barWindow.modelData.name
+                popupWidth: Math.min(540, barWindow.width
+                    - Theme.popupEdgeInset * 2)
+                popupHeight: Math.min(dashboardWidget.implicitHeight
+                    + Theme.popupVerticalChrome,
+                    barWindow.modelData.height - barWindow.implicitHeight - 16)
+                popupX: Math.round((barWindow.width - popupWidth) / 2)
+                onDismissed: root.popupDismissed("dashboard")
+
+                PopupSurface {
+                    anchors.fill: parent
+                    shown: root.popupOpen && root.activePopup === "dashboard"
+                    title: I18n.tr("Bảng điều khiển MD3 Expressive", "MD3 Expressive Dashboard")
+                    subtitle: I18n.tr("Tổng quan hệ thống và hình dạng động",
+                        "System overview and expressive shapes")
+                    icon: "dashboard"
+                    accentColor: Theme.primary
+                    accentContainer: Theme.primaryContainer
+                    onCloseRequested: root.hidePopup()
+
+                    Flickable {
+                        anchors.fill: parent
+                        contentWidth: width
+                        contentHeight: dashboardWidget.implicitHeight
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+
+                        DashboardWidget {
+                            id: dashboardWidget
+                            width: parent.width
+                            controller: systemService
+                            onSectionRequested: section =>
+                                root.showPopup(section, barWindow.modelData.name)
+                            onCloseRequested: root.hidePopup()
+                        }
                     }
                 }
             }

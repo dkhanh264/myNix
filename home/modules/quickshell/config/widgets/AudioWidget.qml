@@ -58,7 +58,7 @@ Rectangle {
 
                 Text {
                     width: parent.width
-                    text: "Âm thanh"
+                    text: I18n.tr("Âm thanh", "Audio")
                     color: Theme.textPrimary
                     font.family: Theme.textFont
                     font.pixelSize: 14
@@ -68,8 +68,8 @@ Rectangle {
 
                 Text {
                     width: parent.width
-                    text: !root.controller ? "Đang cập nhật…"
-                        : root.controller.muted ? "Đã tắt tiếng"
+                    text: !root.controller ? I18n.tr("Đang cập nhật…", "Updating…")
+                        : root.controller.muted ? I18n.tr("Đã tắt tiếng", "Muted")
                         : root.controller.volume + "%"
                     color: Theme.textSecondary
                     font.family: Theme.textFont
@@ -91,7 +91,7 @@ Rectangle {
                         ? "volume_off" : "volume_up"
                     checked: root.controller && root.controller.muted
                     accessibleName: root.controller && root.controller.muted
-                        ? "Bật tiếng" : "Tắt tiếng"
+                        ? I18n.tr("Bật tiếng", "Unmute") : I18n.tr("Tắt tiếng", "Mute")
                     onClicked: {
                         if (root.controller)
                             root.controller.toggleMute();

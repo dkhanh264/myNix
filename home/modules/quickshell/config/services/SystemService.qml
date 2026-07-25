@@ -140,8 +140,8 @@ Scope {
     }
 
     readonly property string timeText: Qt.formatDateTime(systemClock.date, "HH:mm")
-    readonly property string shortDateText: Qt.formatDateTime(systemClock.date, "ddd, d MMM")
-    readonly property string longDateText: Qt.formatDateTime(systemClock.date, "dddd, d MMMM yyyy")
+    readonly property string shortDateText: systemClock.date.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), I18n.vietnamese ? "ddd, d MMM" : "ddd, MMM d")
+    readonly property string longDateText: systemClock.date.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), I18n.vietnamese ? "dddd, d MMMM yyyy" : "dddd, MMMM d, yyyy")
 
     ListModel {
         id: wifiNetworkModel

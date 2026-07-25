@@ -82,6 +82,8 @@ Item {
                     + root.controller.recordingFps + " FPS";
             return I18n.tr("Sẵn sàng · ", "Ready · ")
                 + root.controller.recordingFps + " FPS";
+        case "dashboard":
+            return I18n.tr("Hình dạng động & Vitals", "Dynamic shapes & Vitals");
         case "language":
             return I18n.language === "vi" ? "Tiếng Việt" : "English";
         default:
@@ -90,6 +92,11 @@ Item {
     }
 
     readonly property var settingsModel: [
+        {
+            "sectionKey": "dashboard", "sectionIcon": "dashboard",
+            "sectionLabel": I18n.tr("Bảng điều khiển", "Dashboard"),
+            "sectionHint": I18n.tr("Tổng quan hệ thống", "System overview")
+        },
         {
             "sectionKey": "wifi", "sectionIcon": "wifi",
             "sectionLabel": "Wi‑Fi",

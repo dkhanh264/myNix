@@ -11,7 +11,7 @@ M3BarPill {
     implicitWidth: clockRow.implicitWidth + horizontalPadding * 2
     accessibleName: controller
         ? controller.longDateText + ", " + controller.timeText
-        : "Clock and calendar"
+        : I18n.tr("Đồng hồ và lịch", "Clock and calendar")
 
     Row {
         id: clockRow
