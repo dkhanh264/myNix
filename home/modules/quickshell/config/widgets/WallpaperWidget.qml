@@ -4,8 +4,9 @@ import "../components"
 import "../theme"
 
 // Material 3 Expressive Minimal Wallpaper Carousel Picker
-// Minimalist UI adhering strictly to M3 Carousel Specs (https://m3.material.io/components/carousel/specs).
-// Features keyboard arrow key navigation (Left/Right) and Enter key to set wallpaper.
+// Strictly adheres to M3 Expressive Carousel Specs (https://m3.material.io/components/carousel/specs).
+// Only displays the carousel (UI arrow buttons removed).
+// Navigation & selection driven by Keyboard Arrow Keys (Left/Right to navigate, Up/Down/Enter to select wallpaper).
 Item {
     id: root
 
@@ -73,7 +74,7 @@ Item {
         }
     }
 
-    // Keyboard Shortcuts: Arrow keys (Left/Right) for carousel movement & Enter to apply wallpaper
+    // Keyboard Navigation & Selection (Arrow keys: Left/Right to navigate, Up/Down/Enter/Space to apply wallpaper)
     Keys.onLeftPressed: event => {
         if (carousel.currentIndex > 0) {
             carousel.currentIndex--;
@@ -88,6 +89,16 @@ Item {
         }
     }
 
+    Keys.onUpPressed: event => {
+        root.applySelectedWallpaper();
+        event.accepted = true;
+    }
+
+    Keys.onDownPressed: event => {
+        root.applySelectedWallpaper();
+        event.accepted = true;
+    }
+
     Keys.onReturnPressed: event => {
         root.applySelectedWallpaper();
         event.accepted = true;
@@ -98,7 +109,12 @@ Item {
         event.accepted = true;
     }
 
-    // Main M3 Carousel Layout Container
+    Keys.onSpacePressed: event => {
+        root.applySelectedWallpaper();
+        event.accepted = true;
+    }
+
+    // Main M3 Expressive Carousel Layout Container
     Item {
         anchors.fill: parent
         anchors.margins: Theme.space3
@@ -149,7 +165,7 @@ Item {
             }
         }
 
-        // Horizontal Hero Carousel ListView
+        // Horizontal M3 Expressive Hero Carousel
         ListView {
             id: carousel
             anchors.fill: parent
@@ -190,7 +206,7 @@ Item {
                 readonly property real distFromCenter: Math.abs(itemCenter - centerPos)
                 readonly property real normDist: Math.min(1.0, distFromCenter / (carousel.width * 0.45))
 
-                // M3 Expressive Morphing Scale, Opacity, and Shape Radius
+                // M3 Expressive Morphing Scale, Opacity, and Dynamic Shape Radius
                 readonly property real dynamicScale: 1.0 - normDist * 0.16
                 readonly property real dynamicOpacity: 1.0 - normDist * 0.40
                 readonly property real dynamicRadius: Theme.shapeExtraLarge - normDist * 12
@@ -348,7 +364,9 @@ Item {
 
                         Text {
                             width: parent.width
-                            text: cardItem.isCurrent ? I18n.tr("Nhấn Enter để đổi hình nền", "Press Enter to set wallpaper") : cardItem.modelData.fileType
+                            text: cardItem.isCurrent
+                                ? I18n.tr("Phím ◄ ► di chuyển | ▲ ▼ / Enter chọn", "Use ◄ ► to navigate | ▲ ▼ / Enter to apply")
+                                : cardItem.modelData.fileType
                             color: Qt.rgba(1, 1, 1, 0.80)
                             font.family: Theme.textFont
                             font.pixelSize: 11
@@ -379,40 +397,6 @@ Item {
                         }
                     }
                 }
-            }
-        }
-
-        // Floating Left Navigation Arrow
-        IconButton {
-            anchors.left: parent.left
-            anchors.leftMargin: 4
-            anchors.verticalCenter: parent.verticalCenter
-            buttonSize: 44
-            iconSize: 24
-            icon: "chevron_left"
-            variant: "filled"
-            fillColor: Theme.surfaceContainerHighest
-            visible: root.wallpapersData.length > 1 && carousel.currentIndex > 0
-            onClicked: {
-                if (carousel.currentIndex > 0)
-                    carousel.currentIndex--;
-            }
-        }
-
-        // Floating Right Navigation Arrow
-        IconButton {
-            anchors.right: parent.right
-            anchors.rightMargin: 4
-            anchors.verticalCenter: parent.verticalCenter
-            buttonSize: 44
-            iconSize: 24
-            icon: "chevron_right"
-            variant: "filled"
-            fillColor: Theme.surfaceContainerHighest
-            visible: root.wallpapersData.length > 1 && carousel.currentIndex < root.wallpapersData.length - 1
-            onClicked: {
-                if (carousel.currentIndex < root.wallpapersData.length - 1)
-                    carousel.currentIndex++;
             }
         }
 

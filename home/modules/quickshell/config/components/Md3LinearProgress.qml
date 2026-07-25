@@ -11,6 +11,9 @@ Item {
     property real to: 100
     property real value: 0
     property int trackHeight: 8
+    onHeightChanged: {
+        if (height > 0 && height !== trackHeight) trackHeight = height;
+    }
     property bool indeterminate: false
     property bool animatedWave: true
     property string accessibleName: "System metric progress"

@@ -899,12 +899,10 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "dashboard"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(680, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(dashboardWidget.implicitHeight
-                    + Theme.popupVerticalChrome,
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
+                popupWidth: Math.min(1080, barWindow.width - Theme.popupEdgeInset * 2)
+                popupHeight: Math.min(560, barWindow.modelData.height - barWindow.implicitHeight - 32)
                 popupX: Math.round((barWindow.width - popupWidth) / 2)
+                popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
                 onDismissed: root.popupDismissed("dashboard")
 
                 PopupSurface {
@@ -918,21 +916,13 @@ ShellRoot {
                     accentContainer: Theme.primaryContainer
                     onCloseRequested: root.hidePopup()
 
-                    Flickable {
+                    DashboardWidget {
+                        id: dashboardWidget
                         anchors.fill: parent
-                        contentWidth: width
-                        contentHeight: dashboardWidget.implicitHeight
-                        clip: true
-                        boundsBehavior: Flickable.StopAtBounds
-
-                        DashboardWidget {
-                            id: dashboardWidget
-                            width: parent.width
-                            controller: systemService
-                            onSectionRequested: section =>
-                                root.showPopup(section, barWindow.modelData.name)
-                            onCloseRequested: root.hidePopup()
-                        }
+                        controller: systemService
+                        onSectionRequested: section =>
+                            root.showPopup(section, barWindow.modelData.name)
+                        onCloseRequested: root.hidePopup()
                     }
                 }
             }
