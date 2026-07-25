@@ -1,14 +1,13 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
 import Quickshell
 import "../components"
 import "../theme"
 
-// Material 3 Expressive Minimal Wallpaper Carousel Picker
-// Strictly adheres to M3 Expressive Carousel Specs (https://m3.material.io/components/carousel/specs).
-// Features smooth rounded corners (MultiEffect mask), dynamic shape morphing,
-// and Keyboard Arrow Navigation (Left/Right to navigate, Enter to apply wallpaper).
+// Material 3 Expressive Minimalist Carousel
+// Pure, ultra-clean M3 Hero Carousel with dynamic width morphing,
+// hardware-accelerated image clipping, and 100% reliable keyboard & mouse navigation.
+// Zero clutter: No on-screen buttons, no indicator bars, no overlays.
 FocusScope {
     id: root
 
@@ -84,7 +83,38 @@ FocusScope {
         }
     }
 
-    // Keyboard Navigation (Left/Right to switch focus) & Selection (Enter to apply)
+    function navigatePrev() {
+        if (carousel.currentIndex > 0) {
+            carousel.currentIndex--;
+        }
+    }
+
+    function navigateNext() {
+        if (carousel.currentIndex < root.wallpapersData.length - 1) {
+            carousel.currentIndex++;
+        }
+    }
+
+    // Invisible 100% Reliable Keyboard Shortcuts
+    Shortcut {
+        sequences: ["Left", "a", "A"]
+        enabled: root.visible
+        onActivated: root.navigatePrev()
+    }
+
+    Shortcut {
+        sequences: ["Right", "d", "D"]
+        enabled: root.visible
+        onActivated: root.navigateNext()
+    }
+
+    Shortcut {
+        sequences: ["Return", "Enter", "Space"]
+        enabled: root.visible
+        onActivated: root.applySelectedWallpaper()
+    }
+
+    // FocusScope Keyboard Event Handlers
     Keys.onLeftPressed: event => {
         if (carousel.currentIndex > 0) {
             carousel.currentIndex--;
@@ -109,7 +139,7 @@ FocusScope {
         event.accepted = true;
     }
 
-    // Main M3 Expressive Carousel Layout Container
+    // Main Carousel Container
     Item {
         anchors.fill: parent
         anchors.margins: Theme.space2
@@ -160,31 +190,44 @@ FocusScope {
             }
         }
 
-        // Horizontal M3 Expressive Hero Carousel
+        // Minimalist Horizontal M3 Carousel
         ListView {
             id: carousel
             anchors.fill: parent
-            anchors.bottomMargin: 24
             visible: root.wallpapersData.length > 0
             focus: true
 
             orientation: ListView.Horizontal
-            spacing: 24
+            spacing: 16
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 3000
             snapMode: ListView.SnapToItem
             highlightRangeMode: ListView.StrictlyEnforceRange
-            preferredHighlightBegin: (width - cardWidth) / 2
-            preferredHighlightEnd: (width - cardWidth) / 2
+            preferredHighlightBegin: Math.round((width - largeCardWidth) / 2)
+            preferredHighlightEnd: Math.round((width - largeCardWidth) / 2)
             highlightMoveDuration: Theme.motionMedium3
 
-            property real cardWidth: Math.min(440, carousel.width * 0.56)
-            property real cardHeight: Math.min(500, carousel.height - 12)
+            property real largeCardWidth: Math.min(480, carousel.width * 0.54)
+            property real mediumCardWidth: Math.min(240, carousel.width * 0.27)
+            property real smallCardWidth: Math.min(120, carousel.width * 0.14)
 
             model: root.wallpapersData
 
-            // Key events handling
+            // Mouse wheel support
+            MouseArea {
+                anchors.fill: parent
+                propagateComposedEvents: true
+                onWheel: event => {
+                    if (event.angleDelta.y > 0 || event.angleDelta.x < 0) {
+                        root.navigatePrev();
+                    } else if (event.angleDelta.y < 0 || event.angleDelta.x > 0) {
+                        root.navigateNext();
+                    }
+                }
+            }
+
+            // Keyboard navigation inside ListView
             Keys.onLeftPressed: event => {
                 if (carousel.currentIndex > 0) {
                     carousel.currentIndex--;
@@ -206,9 +249,6 @@ FocusScope {
                 required property var modelData
                 required property int index
 
-                width: carousel.cardWidth
-                height: carousel.cardHeight
-
                 readonly property bool isSelected: root.controller
                     && root.controller.currentWallpaper === modelData.filePath
                 readonly property bool isCurrent: carousel.currentIndex === index
@@ -217,201 +257,59 @@ FocusScope {
                 readonly property real centerPos: carousel.contentX + carousel.width / 2
                 readonly property real itemCenter: x + width / 2
                 readonly property real distFromCenter: Math.abs(itemCenter - centerPos)
-                readonly property real normDist: Math.min(1.0, distFromCenter / (carousel.width * 0.45))
+                readonly property real normDist: Math.min(1.0, distFromCenter / (carousel.width * 0.48))
 
-                // M3 Expressive Morphing Scale, Opacity, and Dynamic Shape Radius
-                readonly property real dynamicScale: 1.0 - normDist * 0.16
-                readonly property real dynamicOpacity: 1.0 - normDist * 0.35
-                readonly property real dynamicRadius: Math.max(16, Theme.shapeExtraLarge - normDist * 14)
+                // M3 Morphing Width & Shape Radius
+                readonly property real targetWidth: carousel.largeCardWidth - normDist * (carousel.largeCardWidth - carousel.smallCardWidth)
+                
+                width: Math.max(carousel.smallCardWidth, targetWidth)
+                height: carousel.height - 8
 
-                scale: cardPointer.pressed ? dynamicScale * 0.96 : (cardPointer.containsMouse ? dynamicScale * 1.02 : dynamicScale)
-                opacity: dynamicOpacity
-                z: isCurrent ? 10 : Math.max(1, 5 - Math.round(normDist * 4))
-
-                Behavior on scale {
+                Behavior on width {
                     enabled: !Theme.reduceMotion
                     NumberAnimation {
-                        duration: Theme.motionShort4
+                        duration: Theme.motionMedium1
                         easing.type: Easing.BezierSpline
                         easing.bezierCurve: Theme.springCurve
                     }
                 }
 
-                // Wallpaper Card Container Surface
+                // Card Container Surface with Rounded Corners
                 Rectangle {
                     id: cardSurface
                     anchors.fill: parent
-                    anchors.centerIn: parent
-                    radius: cardItem.dynamicRadius
+                    anchors.margins: 4
+                    radius: 28
                     color: Theme.surfaceContainerHighest
-                    border.width: cardItem.isCurrent ? 3 : (cardItem.isSelected ? 2 : 1)
+                    border.width: cardItem.isCurrent ? 3 : (cardItem.isSelected ? 2 : 0)
                     border.color: cardItem.isCurrent ? Theme.primary
-                        : (cardItem.isSelected ? Theme.secondary : Theme.alpha(Theme.outline, 0.2))
+                        : (cardItem.isSelected ? Theme.tertiary : "transparent")
                     clip: true
 
                     Behavior on border.color { ColorAnimation { duration: Theme.motionShort3 } }
-                    Behavior on radius { NumberAnimation { duration: Theme.motionMedium1 } }
 
-                    // Media Content Host (Image + Dark Bottom Gradient)
-                    Item {
-                        id: mediaContent
+                    // Wallpaper Image
+                    Image {
+                        id: cardImage
                         anchors.fill: parent
-                        visible: false
+                        source: cardItem.modelData.fileUrl ? cardItem.modelData.fileUrl : ("file://" + cardItem.modelData.filePath)
+                        asynchronous: true
+                        cache: true
+                        fillMode: Image.PreserveAspectCrop
+                        sourceSize.width: 800
+                        sourceSize.height: 600
 
-                        Image {
-                            id: cardImage
-                            anchors.fill: parent
-                            source: cardItem.modelData.isVideo ? "" : cardItem.modelData.fileUrl
-                            asynchronous: true
-                            cache: true
-                            fillMode: Image.PreserveAspectCrop
-                            sourceSize.width: 720
-                            sourceSize.height: 960
-                        }
-
-                        // Bottom Dark Gradient Mask for contrast & text readability
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.bottom: parent.bottom
-                            height: 100
-                            gradient: Gradient {
-                                GradientStop { position: 0.0; color: "transparent" }
-                                GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.85) }
-                            }
+                        // Loading placeholder
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            visible: cardImage.status !== Image.Ready && !cardItem.modelData.isVideo
+                            text: "image"
+                            iconSize: 44
+                            color: Theme.textSecondary
                         }
                     }
 
-                    // Mask for Media Content to enforce dynamic M3 rounded corners
-                    Rectangle {
-                        id: mediaMask
-                        anchors.fill: parent
-                        radius: cardItem.dynamicRadius
-                        color: "white"
-                        visible: false
-                        antialiasing: true
-                    }
-
-                    MultiEffect {
-                        anchors.fill: parent
-                        source: mediaContent
-                        maskEnabled: true
-                        maskSource: mediaMask
-                        autoPaddingEnabled: false
-                        antialiasing: true
-                        visible: cardImage.status === Image.Ready || cardItem.modelData.isVideo
-                    }
-
-                    // Fallback / Loading Icon when image is not loaded
-                    MaterialIcon {
-                        anchors.centerIn: parent
-                        visible: cardImage.status !== Image.Ready && !cardItem.modelData.isVideo
-                        text: "wallpaper"
-                        iconSize: 48
-                        color: Theme.textSecondary
-                    }
-
-                    // Top Badge Row
-                    Row {
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.margins: 14
-                        spacing: 8
-                        z: 15
-
-                        // Active Wallpaper Badge Pill ("Đang dùng" / "In use")
-                        Rectangle {
-                            visible: cardItem.isSelected
-                            height: 28
-                            radius: 14
-                            color: Theme.primary
-                            implicitWidth: activeBadgeRow.implicitWidth + 16
-
-                            Row {
-                                id: activeBadgeRow
-                                anchors.centerIn: parent
-                                spacing: 4
-
-                                MaterialIcon {
-                                    text: "check"
-                                    iconSize: 15
-                                    color: Theme.onPrimary
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-
-                                Text {
-                                    text: I18n.tr("Đang dùng", "In use")
-                                    color: Theme.onPrimary
-                                    font.family: Theme.textFont
-                                    font.pixelSize: 11
-                                    font.weight: Font.Bold
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                            }
-                        }
-
-                        // Video Badge Pill
-                        Rectangle {
-                            visible: cardItem.modelData.isVideo
-                            height: 28
-                            radius: 14
-                            color: Theme.alpha("#000000", 0.75)
-                            implicitWidth: videoBadgeRow.implicitWidth + 14
-
-                            Row {
-                                id: videoBadgeRow
-                                anchors.centerIn: parent
-                                spacing: 4
-
-                                MaterialIcon {
-                                    text: "play_arrow"
-                                    iconSize: 16
-                                    color: "#ffffff"
-                                    filled: true
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-
-                                Text {
-                                    text: "VIDEO"
-                                    color: "#ffffff"
-                                    font.family: Theme.textFont
-                                    font.pixelSize: 10
-                                    font.weight: Font.Bold
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                            }
-                        }
-                    }
-
-                    // Bottom Title Overlay (Clean presentation without guidance text)
-                    Column {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        anchors.margins: 16
-                        spacing: 2
-                        z: 15
-
-                        Text {
-                            width: parent.width
-                            text: cardItem.modelData.fileName
-                            color: "#ffffff"
-                            font.family: Theme.textFont
-                            font.pixelSize: 15
-                            font.weight: Font.Bold
-                            elide: Text.ElideMiddle
-                        }
-
-                        Text {
-                            width: parent.width
-                            text: cardItem.modelData.fileType
-                            color: Qt.rgba(1, 1, 1, 0.75)
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            elide: Text.ElideRight
-                        }
-                    }
-
+                    // Selection Feedback Ripple
                     MaterialRipple {
                         id: cardRipple
                         rippleColor: "#ffffff"
@@ -423,6 +321,7 @@ FocusScope {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onPressed: mouse => {
+                            carousel.forceActiveFocus();
                             cardRipple.burst(mouse.x, mouse.y);
                         }
                         onClicked: {
@@ -431,48 +330,6 @@ FocusScope {
                             } else {
                                 root.applySelectedWallpaper();
                             }
-                        }
-                    }
-                }
-            }
-        }
-
-        // MD3 Expressive Pager Dots Indicator
-        RowLayout {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 2
-            spacing: 12
-
-            Row {
-                spacing: 6
-                visible: root.wallpapersData.length > 1 && root.wallpapersData.length <= 30
-
-                Repeater {
-                    model: root.wallpapersData.length
-
-                    Rectangle {
-                        required property int index
-                        readonly property bool active: carousel.currentIndex === index
-
-                        width: active ? 22 : 7
-                        height: 7
-                        radius: 3.5
-                        color: active ? Theme.primary : Theme.alpha(Theme.outline, 0.4)
-
-                        Behavior on width {
-                            NumberAnimation {
-                                duration: Theme.motionShort4
-                                easing.type: Easing.BezierSpline
-                                easing.bezierCurve: Theme.springCurve
-                            }
-                        }
-                        Behavior on color { ColorAnimation { duration: Theme.motionShort3 } }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: carousel.currentIndex = index
                         }
                     }
                 }
