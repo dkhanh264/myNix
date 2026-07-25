@@ -1,19 +1,28 @@
 import QtQuick
+import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import "../components"
 import "../theme"
 
 // Material 3 Expressive Minimal Wallpaper Carousel Picker
 // Strictly adheres to M3 Expressive Carousel Specs (https://m3.material.io/components/carousel/specs).
-// Only displays the carousel (UI arrow buttons removed).
-// Navigation & selection driven by Keyboard Arrow Keys (Left/Right to navigate, Up/Down/Enter to select wallpaper).
-Item {
+// Features smooth rounded corners (MultiEffect mask), dynamic shape morphing, visual arrow controls,
+// and Keyboard Arrow Navigation (Left/Right to navigate, Up/Down/Enter/Space to apply wallpaper).
+FocusScope {
     id: root
 
     property var controller
     property var wallpapersData: []
 
     focus: true
+
+    onVisibleChanged: {
+        if (visible) {
+            root.forceActiveFocus();
+            if (carousel) carousel.forceActiveFocus();
+        }
+    }
 
     function refreshFilteredData() {
         if (!root.controller || !root.controller.wallpapers) {
@@ -44,6 +53,7 @@ Item {
     Component.onCompleted: {
         refreshFilteredData();
         root.forceActiveFocus();
+        if (carousel) carousel.forceActiveFocus();
     }
 
     readonly property var currentItem: (wallpapersData.length > 0 && carousel.currentIndex >= 0 && carousel.currentIndex < wallpapersData.length)
@@ -74,7 +84,7 @@ Item {
         }
     }
 
-    // Keyboard Navigation & Selection (Arrow keys: Left/Right to navigate, Up/Down/Enter/Space to apply wallpaper)
+    // Keyboard Navigation & Selection
     Keys.onLeftPressed: event => {
         if (carousel.currentIndex > 0) {
             carousel.currentIndex--;
@@ -117,7 +127,7 @@ Item {
     // Main M3 Expressive Carousel Layout Container
     Item {
         anchors.fill: parent
-        anchors.margins: Theme.space3
+        anchors.margins: Theme.space2
 
         // Empty state notice
         Column {
@@ -165,14 +175,90 @@ Item {
             }
         }
 
+        // Floating Left UI Navigation Arrow
+        Rectangle {
+            id: prevButton
+            anchors.left: parent.left
+            anchors.verticalCenter: carousel.verticalCenter
+            anchors.leftMargin: 8
+            width: 44
+            height: 44
+            radius: 22
+            color: prevMouse.containsMouse ? Theme.primary : Theme.alpha(Theme.surfaceContainerHigh, 0.90)
+            border.width: 1
+            border.color: Theme.alpha(Theme.outline, 0.3)
+            visible: root.wallpapersData.length > 1 && carousel.currentIndex > 0
+            z: 30
+
+            Behavior on color { ColorAnimation { duration: Theme.motionShort2 } }
+
+            MaterialIcon {
+                anchors.centerIn: parent
+                text: "chevron_left"
+                iconSize: 26
+                color: prevMouse.containsMouse ? Theme.onPrimary : Theme.textPrimary
+            }
+
+            MouseArea {
+                id: prevMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (carousel.currentIndex > 0) {
+                        carousel.currentIndex--;
+                    }
+                }
+            }
+        }
+
+        // Floating Right UI Navigation Arrow
+        Rectangle {
+            id: nextButton
+            anchors.right: parent.right
+            anchors.verticalCenter: carousel.verticalCenter
+            anchors.rightMargin: 8
+            width: 44
+            height: 44
+            radius: 22
+            color: nextMouse.containsMouse ? Theme.primary : Theme.alpha(Theme.surfaceContainerHigh, 0.90)
+            border.width: 1
+            border.color: Theme.alpha(Theme.outline, 0.3)
+            visible: root.wallpapersData.length > 1 && carousel.currentIndex < root.wallpapersData.length - 1
+            z: 30
+
+            Behavior on color { ColorAnimation { duration: Theme.motionShort2 } }
+
+            MaterialIcon {
+                anchors.centerIn: parent
+                text: "chevron_right"
+                iconSize: 26
+                color: nextMouse.containsMouse ? Theme.onPrimary : Theme.textPrimary
+            }
+
+            MouseArea {
+                id: nextMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (carousel.currentIndex < root.wallpapersData.length - 1) {
+                        carousel.currentIndex++;
+                    }
+                }
+            }
+        }
+
         // Horizontal M3 Expressive Hero Carousel
         ListView {
             id: carousel
             anchors.fill: parent
+            anchors.bottomMargin: 32
             visible: root.wallpapersData.length > 0
+            focus: true
 
             orientation: ListView.Horizontal
-            spacing: 20
+            spacing: 24
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 3000
@@ -182,10 +268,27 @@ Item {
             preferredHighlightEnd: (width - cardWidth) / 2
             highlightMoveDuration: Theme.motionMedium3
 
-            property real cardWidth: Math.min(360, carousel.width * 0.58)
-            property real cardHeight: Math.min(460, carousel.height - 24)
+            property real cardWidth: Math.min(420, carousel.width * 0.54)
+            property real cardHeight: Math.min(480, carousel.height - 16)
 
             model: root.wallpapersData
+
+            // Forward key events to root as well
+            Keys.onLeftPressed: event => {
+                if (carousel.currentIndex > 0) {
+                    carousel.currentIndex--;
+                    event.accepted = true;
+                }
+            }
+            Keys.onRightPressed: event => {
+                if (carousel.currentIndex < root.wallpapersData.length - 1) {
+                    carousel.currentIndex++;
+                    event.accepted = true;
+                }
+            }
+            Keys.onReturnPressed: event => { root.applySelectedWallpaper(); event.accepted = true; }
+            Keys.onEnterPressed: event => { root.applySelectedWallpaper(); event.accepted = true; }
+            Keys.onSpacePressed: event => { root.applySelectedWallpaper(); event.accepted = true; }
 
             delegate: Item {
                 id: cardItem
@@ -208,8 +311,8 @@ Item {
 
                 // M3 Expressive Morphing Scale, Opacity, and Dynamic Shape Radius
                 readonly property real dynamicScale: 1.0 - normDist * 0.16
-                readonly property real dynamicOpacity: 1.0 - normDist * 0.40
-                readonly property real dynamicRadius: Theme.shapeExtraLarge - normDist * 12
+                readonly property real dynamicOpacity: 1.0 - normDist * 0.35
+                readonly property real dynamicRadius: Math.max(16, Theme.shapeExtraLarge - normDist * 14)
 
                 scale: cardPointer.pressed ? dynamicScale * 0.96 : (cardPointer.containsMouse ? dynamicScale * 1.02 : dynamicScale)
                 opacity: dynamicOpacity
@@ -239,38 +342,63 @@ Item {
                     Behavior on border.color { ColorAnimation { duration: Theme.motionShort3 } }
                     Behavior on radius { NumberAnimation { duration: Theme.motionMedium1 } }
 
-                    // Image Preview
-                    Image {
-                        id: cardImage
+                    // Media Content Host (Image + Dark Bottom Gradient)
+                    Item {
+                        id: mediaContent
                         anchors.fill: parent
-                        source: cardItem.modelData.isVideo ? "" : cardItem.modelData.fileUrl
-                        asynchronous: true
-                        cache: true
-                        fillMode: Image.PreserveAspectCrop
-                        sourceSize.width: 720
-                        sourceSize.height: 960
-                        visible: status === Image.Ready
+                        visible: false
+
+                        Image {
+                            id: cardImage
+                            anchors.fill: parent
+                            source: cardItem.modelData.isVideo ? "" : cardItem.modelData.fileUrl
+                            asynchronous: true
+                            cache: true
+                            fillMode: Image.PreserveAspectCrop
+                            sourceSize.width: 720
+                            sourceSize.height: 960
+                        }
+
+                        // Bottom Dark Gradient Mask for contrast & text readability
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            height: 110
+                            gradient: Gradient {
+                                GradientStop { position: 0.0; color: "transparent" }
+                                GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.85) }
+                            }
+                        }
                     }
 
-                    // Fallback / Loading Icon
+                    // Mask for Media Content to enforce dynamic M3 rounded corners
+                    Rectangle {
+                        id: mediaMask
+                        anchors.fill: parent
+                        radius: cardItem.dynamicRadius
+                        color: "white"
+                        visible: false
+                        antialiasing: true
+                    }
+
+                    MultiEffect {
+                        anchors.fill: parent
+                        source: mediaContent
+                        maskEnabled: true
+                        maskSource: mediaMask
+                        autoPaddingEnabled: false
+                        antialiasing: true
+                        visible: cardImage.status === Image.Ready || cardItem.modelData.isVideo
+                    }
+
+                    // Fallback / Loading Icon when image is not loaded
                     MaterialIcon {
                         anchors.centerIn: parent
-                        visible: !cardImage.visible
-                        text: cardItem.modelData.isVideo ? "movie" : "wallpaper"
+                        visible: cardImage.status !== Image.Ready && !cardItem.modelData.isVideo
+                        text: "wallpaper"
                         iconSize: 48
                         color: Theme.textSecondary
-                    }
-
-                    // Bottom Dark Gradient Mask for contrast
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        height: 100
-                        gradient: Gradient {
-                            GradientStop { position: 0.0; color: "transparent" }
-                            GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.85) }
-                        }
                     }
 
                     // Top Badge Row
@@ -279,6 +407,7 @@ Item {
                         anchors.top: parent.top
                         anchors.margins: 14
                         spacing: 8
+                        z: 15
 
                         // Active Wallpaper Badge Pill ("Đang dùng" / "In use")
                         Rectangle {
@@ -351,6 +480,7 @@ Item {
                         anchors.bottom: parent.bottom
                         anchors.margins: 16
                         spacing: 4
+                        z: 15
 
                         Text {
                             width: parent.width
@@ -367,7 +497,7 @@ Item {
                             text: cardItem.isCurrent
                                 ? I18n.tr("Phím ◄ ► di chuyển | ▲ ▼ / Enter chọn", "Use ◄ ► to navigate | ▲ ▼ / Enter to apply")
                                 : cardItem.modelData.fileType
-                            color: Qt.rgba(1, 1, 1, 0.80)
+                            color: Qt.rgba(1, 1, 1, 0.82)
                             font.family: Theme.textFont
                             font.pixelSize: 11
                             font.weight: cardItem.isCurrent ? Font.Bold : Font.Normal
@@ -400,39 +530,43 @@ Item {
             }
         }
 
-        // MD3 Expressive Pager Dots
-        Row {
+        // MD3 Expressive Pager Dots + Helper Row
+        RowLayout {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: 4
-            spacing: 6
-            visible: root.wallpapersData.length > 1 && root.wallpapersData.length <= 30
+            anchors.bottomMargin: 2
+            spacing: 12
 
-            Repeater {
-                model: root.wallpapersData.length
+            Row {
+                spacing: 6
+                visible: root.wallpapersData.length > 1 && root.wallpapersData.length <= 30
 
-                Rectangle {
-                    required property int index
-                    readonly property bool active: carousel.currentIndex === index
+                Repeater {
+                    model: root.wallpapersData.length
 
-                    width: active ? 22 : 7
-                    height: 7
-                    radius: 3.5
-                    color: active ? Theme.primary : Theme.alpha(Theme.outline, 0.4)
+                    Rectangle {
+                        required property int index
+                        readonly property bool active: carousel.currentIndex === index
 
-                    Behavior on width {
-                        NumberAnimation {
-                            duration: Theme.motionShort4
-                            easing.type: Easing.BezierSpline
-                            easing.bezierCurve: Theme.springCurve
+                        width: active ? 22 : 7
+                        height: 7
+                        radius: 3.5
+                        color: active ? Theme.primary : Theme.alpha(Theme.outline, 0.4)
+
+                        Behavior on width {
+                            NumberAnimation {
+                                duration: Theme.motionShort4
+                                easing.type: Easing.BezierSpline
+                                easing.bezierCurve: Theme.springCurve
+                            }
                         }
-                    }
-                    Behavior on color { ColorAnimation { duration: Theme.motionShort3 } }
+                        Behavior on color { ColorAnimation { duration: Theme.motionShort3 } }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: carousel.currentIndex = index
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: carousel.currentIndex = index
+                        }
                     }
                 }
             }

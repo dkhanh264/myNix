@@ -336,8 +336,7 @@ ShellRoot {
             WlrLayershell.namespace: "popup-dismiss-overlay"
             WlrLayershell.layer: WlrLayer.Overlay
             exclusiveZone: -1
-            WlrLayershell.keyboardFocus: root.popupVisible && root.popupScreen === modelData.name
-                ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
             anchors {
                 top: true
@@ -856,15 +855,16 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "wallpaper"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(640, barWindow.width
+                popupWidth: Math.min(980, barWindow.width
                     - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(580,
+                popupHeight: Math.min(620,
                     barWindow.modelData.height - barWindow.implicitHeight - 32)
                 popupX: Math.round((barWindow.width - popupWidth) / 2)
                 popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
                 onDismissed: root.popupDismissed("wallpaper")
 
                 PopupSurface {
+                    id: wallpaperSurface
                     anchors.fill: parent
                     shown: root.popupOpen && root.activePopup === "wallpaper"
                     title: I18n.tr("Chọn hình nền", "Choose wallpaper")
@@ -874,6 +874,11 @@ ShellRoot {
                     accentColor: Theme.tertiary
                     accentContainer: Theme.tertiaryContainer
                     onCloseRequested: root.hidePopup()
+                    onShownChanged: {
+                        if (shown && wallpaperWidget) {
+                            wallpaperWidget.forceActiveFocus();
+                        }
+                    }
 
                     WallpaperWidget {
                         id: wallpaperWidget
@@ -890,8 +895,8 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "dashboard"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(1080, barWindow.width - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(560, barWindow.modelData.height - barWindow.implicitHeight - 32)
+                popupWidth: Math.min(1320, barWindow.width - Theme.popupEdgeInset * 2)
+                popupHeight: Math.min(640, barWindow.modelData.height - barWindow.implicitHeight - 32)
                 popupX: Math.round((barWindow.width - popupWidth) / 2)
                 popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
                 onDismissed: root.popupDismissed("dashboard")
