@@ -76,7 +76,7 @@ Singleton {
     readonly property color warning: "#f6c453"
     readonly property color warningContainer: "#4e3b10"
     readonly property color scrim: alpha("#000000", 0.58)
-    readonly property color shadow: alpha("#000000", 0.65)
+    readonly property color shadow: "transparent"
 
     // Translucent Blur Surfaces (Quickshell Glass)
     readonly property color barSurface: alpha(blend(pureBlackMode ? "#05070a" : "#0c0f15", wallpaperPrimary, 0.08), 0.48)
@@ -256,30 +256,30 @@ Singleton {
     // =========================================================================
     // 6. MATERIAL 3 ELEVATION SYSTEM
     // =========================================================================
-    // Canonical Elevation Level Shadow Tokens (Levels 0 through 5).
+    // Canonical Elevation Level Shadow Tokens (Disabled / Flat).
     readonly property int elevationLevel0OffsetY: 0
     readonly property int elevationLevel0Blur: 0
     readonly property real elevationLevel0Opacity: 0.0
 
-    readonly property int elevationLevel1OffsetY: 1
-    readonly property int elevationLevel1Blur: 3
-    readonly property real elevationLevel1Opacity: 0.15
+    readonly property int elevationLevel1OffsetY: 0
+    readonly property int elevationLevel1Blur: 0
+    readonly property real elevationLevel1Opacity: 0.0
 
-    readonly property int elevationLevel2OffsetY: 2
-    readonly property int elevationLevel2Blur: 6
-    readonly property real elevationLevel2Opacity: 0.20
+    readonly property int elevationLevel2OffsetY: 0
+    readonly property int elevationLevel2Blur: 0
+    readonly property real elevationLevel2Opacity: 0.0
 
-    readonly property int elevationLevel3OffsetY: 4
-    readonly property int elevationLevel3Blur: 10
-    readonly property real elevationLevel3Opacity: 0.24
+    readonly property int elevationLevel3OffsetY: 0
+    readonly property int elevationLevel3Blur: 0
+    readonly property real elevationLevel3Opacity: 0.0
 
-    readonly property int elevationLevel4OffsetY: 6
-    readonly property int elevationLevel4Blur: 14
-    readonly property real elevationLevel4Opacity: 0.28
+    readonly property int elevationLevel4OffsetY: 0
+    readonly property int elevationLevel4Blur: 0
+    readonly property real elevationLevel4Opacity: 0.0
 
-    readonly property int elevationLevel5OffsetY: 8
-    readonly property int elevationLevel5Blur: 20
-    readonly property real elevationLevel5Opacity: 0.32
+    readonly property int elevationLevel5OffsetY: 0
+    readonly property int elevationLevel5Blur: 0
+    readonly property real elevationLevel5Opacity: 0.0
 
 
     // =========================================================================

@@ -48,7 +48,7 @@ Item {
     }
 
     anchors.fill: parent
-    visible: level > 0
+    visible: false
 
     Rectangle {
         anchors.fill: parent

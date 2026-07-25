@@ -2,13 +2,12 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import Quickshell.Services.Mpris
 import "../components"
 import "../theme"
 
-// Material 3 Expressive Dashboard Widget
-// Integrates expressive dynamic shapes, real-time system performance vitals,
-// fastfetch system information, live weather, calendar, quick controls, and shortcuts.
+// Material 3 Expressive Dashboard Widget (Information Only)
+// Displays comprehensive real-time system stats, disk storage breakdown,
+// detailed weather forecast, full month calendar grid, and fastfetch system vitals.
 Rectangle {
     id: root
 
@@ -17,6 +16,7 @@ Rectangle {
     signal closeRequested
 
     property string uptimeText: I18n.tr("Đang tính…", "Calculating…")
+    property date currentDate: new Date()
 
     FileView {
         id: uptimeFile
@@ -61,7 +61,7 @@ Rectangle {
         anchors.margins: Theme.componentPadding
         spacing: Theme.space3
 
-        // 1. Hero Welcome Header Card with Expressive Shapes
+        // 1. Hero Welcome Header Card
         Rectangle {
             width: parent.width
             height: 96
@@ -69,7 +69,6 @@ Rectangle {
             color: Theme.primaryContainer
             clip: true
 
-            // Background Decorative Expressive Shapes
             Md3ExpressiveShape {
                 anchors.right: parent.right
                 anchors.rightMargin: -20
@@ -87,7 +86,7 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: -25
                 size: 85
-                shapeType: 5 // Star/Clover shape
+                shapeType: 5 // Star shape
                 color: Theme.alpha(Theme.tertiary, 0.18)
                 rotationAngle: 45
             }
@@ -98,7 +97,6 @@ Rectangle {
                 anchors.rightMargin: Theme.space4
                 spacing: Theme.space3
 
-                // User Avatar Container with Expressive Flower Shape Mask
                 Rectangle {
                     Layout.preferredWidth: 56
                     Layout.preferredHeight: 56
@@ -109,7 +107,7 @@ Rectangle {
                     Md3ExpressiveShape {
                         anchors.centerIn: parent
                         size: 32
-                        shapeType: 7 // Flower shape
+                        shapeType: 7
                         color: Theme.onPrimary
                     }
 
@@ -121,7 +119,6 @@ Rectangle {
                     }
                 }
 
-                // Greeting & Host Information
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
@@ -147,7 +144,6 @@ Rectangle {
                     }
                 }
 
-                // Live Clock Pill with Oval Expressive Shape Badge
                 Rectangle {
                     Layout.alignment: Qt.AlignVCenter
                     implicitWidth: clockCol.implicitWidth + 24
@@ -183,384 +179,15 @@ Rectangle {
             }
         }
 
-        // Section Title: Weather & Calendar
+        // 2. System Vitals Grid (CPU, RAM, Temp, Battery)
         Text {
-            text: I18n.tr("Thời tiết & Lịch", "Weather & Calendar")
+            text: I18n.tr("Thông số phần cứng", "Hardware Vitals")
             color: Theme.textPrimary
             font.family: Theme.textFont
             font.pixelSize: 13
             font.weight: Font.Bold
         }
 
-        // 2. Integrated Weather & Calendar Cards Row (2 Columns)
-        RowLayout {
-            width: parent.width
-            spacing: Theme.space2
-
-            // Weather Card
-            Rectangle {
-                Layout.fillWidth: true
-                height: 88
-                radius: Theme.cardRadius
-                color: Theme.alpha(Theme.tertiaryContainer, 0.45)
-                border.width: 1
-                border.color: Theme.alpha(Theme.outlineVariant, 0.3)
-
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.sectionRequested("weather")
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: Theme.space3
-                    spacing: Theme.space2
-
-                    Item {
-                        Layout.preferredWidth: 46
-                        Layout.preferredHeight: 46
-                        Layout.alignment: Qt.AlignVCenter
-
-                        Md3ExpressiveShape {
-                            anchors.centerIn: parent
-                            size: 40
-                            shapeType: 6 // Oval shape
-                            color: Theme.tertiaryContainer
-                        }
-
-                        MaterialIcon {
-                            anchors.centerIn: parent
-                            text: "partly_cloudy_day"
-                            iconSize: 24
-                            color: Theme.tertiary
-                            filled: true
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 1
-
-                        Text {
-                            text: root.controller && root.controller.weatherTemperatureC !== undefined
-                                ? root.controller.weatherTemperatureC + "°C"
-                                : I18n.tr("Thời tiết", "Weather")
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 15
-                            font.weight: Font.Bold
-                        }
-
-                        Text {
-                            text: root.controller && root.controller.weatherDescription
-                                ? root.controller.weatherDescription
-                                : I18n.tr("Trời quang · Dự báo", "Clear · Forecast")
-                            color: Theme.tertiary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            font.weight: Font.Medium
-                            elide: Text.ElideRight
-                        }
-
-                        Text {
-                            text: root.controller && root.controller.weatherLocation
-                                ? root.controller.weatherLocation
-                                : I18n.tr("Xem dự báo chi tiết", "View detailed forecast")
-                            color: Theme.textSecondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 9
-                            elide: Text.ElideRight
-                        }
-                    }
-                }
-            }
-
-            // Calendar Card
-            Rectangle {
-                Layout.fillWidth: true
-                height: 88
-                radius: Theme.cardRadius
-                color: Theme.alpha(Theme.primaryContainer, 0.45)
-                border.width: 1
-                border.color: Theme.alpha(Theme.outlineVariant, 0.3)
-
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.sectionRequested("calendar")
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: Theme.space3
-                    spacing: Theme.space2
-
-                    Item {
-                        Layout.preferredWidth: 46
-                        Layout.preferredHeight: 46
-                        Layout.alignment: Qt.AlignVCenter
-
-                        Md3ExpressiveShape {
-                            anchors.centerIn: parent
-                            size: 40
-                            shapeType: 5 // Star/Clover shape
-                            color: Theme.primaryContainer
-                        }
-
-                        MaterialIcon {
-                            anchors.centerIn: parent
-                            text: "calendar_month"
-                            iconSize: 24
-                            color: Theme.primary
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 1
-
-                        Text {
-                            text: root.controller ? root.controller.shortDateText : I18n.tr("Lịch biểu", "Calendar")
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 14
-                            font.weight: Font.Bold
-                        }
-
-                        Text {
-                            text: I18n.tr("Hôm nay", "Today")
-                            color: Theme.primary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            font.weight: Font.Medium
-                        }
-
-                        Text {
-                            text: I18n.tr("Nhấp để quản lý sự kiện", "Click to manage events")
-                            color: Theme.textSecondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 9
-                            elide: Text.ElideRight
-                        }
-                    }
-                }
-            }
-        }
-
-        // Section Title: Fastfetch System Info & Uptime
-        Text {
-            text: I18n.tr("Thông tin hệ thống & Fastfetch", "System Info & Fastfetch")
-            color: Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 13
-            font.weight: Font.Bold
-        }
-
-        // 3. Fastfetch & System Info Container Card
-        Rectangle {
-            width: parent.width
-            implicitHeight: sysInfoCol.implicitHeight + Theme.space3 * 2
-            radius: Theme.cardRadius
-            color: Theme.surfaceContainer
-
-            Column {
-                id: sysInfoCol
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.margins: Theme.space3
-                spacing: Theme.space2
-
-                // Header with Terminal Icon & Uptime
-                RowLayout {
-                    width: parent.width
-                    spacing: Theme.space2
-
-                    Md3ExpressiveShape {
-                        Layout.preferredWidth: 32
-                        Layout.preferredHeight: 32
-                        Layout.alignment: Qt.AlignVCenter
-                        size: 32
-                        shapeType: 1 // Square shape
-                        color: Theme.secondaryContainer
-                    }
-
-                    MaterialIcon {
-                        Layout.alignment: Qt.AlignVCenter
-                        text: "terminal"
-                        iconSize: 18
-                        color: Theme.secondary
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: "NixOS Fastfetch"
-                        color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 13
-                        font.weight: Font.Bold
-                    }
-
-                    Rectangle {
-                        Layout.alignment: Qt.AlignVCenter
-                        implicitWidth: uptimeLabel.implicitWidth + 14
-                        implicitHeight: 24
-                        radius: 12
-                        color: Theme.alpha(Theme.secondaryContainer, 0.6)
-
-                        Text {
-                            id: uptimeLabel
-                            anchors.centerIn: parent
-                            text: "⏱ " + I18n.tr("Uptime: ", "Uptime: ") + root.uptimeText
-                            color: Theme.secondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 10
-                            font.weight: Font.DemiBold
-                        }
-                    }
-                }
-
-                // Fastfetch Info 2x2 Grid Chips
-                Grid {
-                    width: parent.width
-                    columns: 2
-                    columnSpacing: Theme.space2
-                    rowSpacing: 6
-
-                    // OS Info
-                    RowLayout {
-                        width: (parent.width - parent.columnSpacing) / 2
-                        spacing: 6
-
-                        MaterialIcon {
-                            text: "memory"
-                            iconSize: 15
-                            color: Theme.primary
-                        }
-
-                        Text {
-                            text: "OS: "
-                            color: Theme.textSecondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            font.weight: Font.Bold
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: "NixOS 24.11 (x86_64)"
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            elide: Text.ElideRight
-                        }
-                    }
-
-                    // Kernel Info
-                    RowLayout {
-                        width: (parent.width - parent.columnSpacing) / 2
-                        spacing: 6
-
-                        MaterialIcon {
-                            text: "developer_board"
-                            iconSize: 15
-                            color: Theme.secondary
-                        }
-
-                        Text {
-                            text: "Kernel: "
-                            color: Theme.textSecondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            font.weight: Font.Bold
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Linux 6.6 (Standard)"
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            elide: Text.ElideRight
-                        }
-                    }
-
-                    // WM / Desktop Info
-                    RowLayout {
-                        width: (parent.width - parent.columnSpacing) / 2
-                        spacing: 6
-
-                        MaterialIcon {
-                            text: "desktop_windows"
-                            iconSize: 15
-                            color: Theme.tertiary
-                        }
-
-                        Text {
-                            text: "WM: "
-                            color: Theme.textSecondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            font.weight: Font.Bold
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Hyprland (Wayland)"
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            elide: Text.ElideRight
-                        }
-                    }
-
-                    // Shell / UI Info
-                    RowLayout {
-                        width: (parent.width - parent.columnSpacing) / 2
-                        spacing: 6
-
-                        MaterialIcon {
-                            text: "widgets"
-                            iconSize: 15
-                            color: Theme.primary
-                        }
-
-                        Text {
-                            text: "UI: "
-                            color: Theme.textSecondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            font.weight: Font.Bold
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Quickshell M3 Expressive"
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            elide: Text.ElideRight
-                        }
-                    }
-                }
-            }
-        }
-
-        // Section Title: System Vitals
-        Text {
-            text: I18n.tr("Thông số hệ thống", "System Vitals")
-            color: Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 13
-            font.weight: Font.Bold
-        }
-
-        // 4. MD3 Expressive Vitals Grid (2x2 Layout)
         Grid {
             id: vitalsGrid
             width: parent.width
@@ -571,7 +198,7 @@ Rectangle {
             // CPU Card
             Rectangle {
                 width: (vitalsGrid.width - vitalsGrid.columnSpacing) / 2
-                height: 84
+                height: 80
                 radius: Theme.cardRadius
                 color: Theme.surfaceContainer
 
@@ -581,13 +208,13 @@ Rectangle {
                     spacing: Theme.space2
 
                     Item {
-                        Layout.preferredWidth: 48
-                        Layout.preferredHeight: 48
+                        Layout.preferredWidth: 46
+                        Layout.preferredHeight: 46
                         Layout.alignment: Qt.AlignVCenter
 
                         Md3CircularProgress {
                             anchors.centerIn: parent
-                            diameter: 46
+                            diameter: 44
                             strokeWidth: 4
                             value: root.controller ? root.controller.cpuUsage : 0
                             showValue: false
@@ -636,7 +263,7 @@ Rectangle {
             // RAM Card
             Rectangle {
                 width: (vitalsGrid.width - vitalsGrid.columnSpacing) / 2
-                height: 84
+                height: 80
                 radius: Theme.cardRadius
                 color: Theme.surfaceContainer
 
@@ -646,13 +273,13 @@ Rectangle {
                     spacing: Theme.space2
 
                     Item {
-                        Layout.preferredWidth: 48
-                        Layout.preferredHeight: 48
+                        Layout.preferredWidth: 46
+                        Layout.preferredHeight: 46
                         Layout.alignment: Qt.AlignVCenter
 
                         Md3CircularProgress {
                             anchors.centerIn: parent
-                            diameter: 46
+                            diameter: 44
                             strokeWidth: 4
                             value: root.controller ? root.controller.memoryPercent : 0
                             showValue: false
@@ -701,7 +328,7 @@ Rectangle {
             // Temperature Card
             Rectangle {
                 width: (vitalsGrid.width - vitalsGrid.columnSpacing) / 2
-                height: 84
+                height: 80
                 radius: Theme.cardRadius
                 color: Theme.surfaceContainer
 
@@ -711,8 +338,8 @@ Rectangle {
                     spacing: Theme.space2
 
                     Item {
-                        Layout.preferredWidth: 48
-                        Layout.preferredHeight: 48
+                        Layout.preferredWidth: 46
+                        Layout.preferredHeight: 46
                         Layout.alignment: Qt.AlignVCenter
 
                         Md3ExpressiveShape {
@@ -764,7 +391,7 @@ Rectangle {
             // Battery / Power Card
             Rectangle {
                 width: (vitalsGrid.width - vitalsGrid.columnSpacing) / 2
-                height: 84
+                height: 80
                 radius: Theme.cardRadius
                 color: Theme.surfaceContainer
 
@@ -774,8 +401,8 @@ Rectangle {
                     spacing: Theme.space2
 
                     Item {
-                        Layout.preferredWidth: 48
-                        Layout.preferredHeight: 48
+                        Layout.preferredWidth: 46
+                        Layout.preferredHeight: 46
                         Layout.alignment: Qt.AlignVCenter
 
                         Md3ExpressiveShape {
@@ -825,170 +452,83 @@ Rectangle {
             }
         }
 
-        // Section Title: Quick Actions & Expressive Shapes Controls
+        // 3. Disk Information Section
         Text {
-            text: I18n.tr("Điều khiển nhanh", "Quick Controls")
+            text: I18n.tr("Dung lượng ổ đĩa (Disk Storage)", "Disk Storage Breakdown")
             color: Theme.textPrimary
             font.family: Theme.textFont
             font.pixelSize: 13
             font.weight: Font.Bold
         }
 
-        // 5. Quick Action Expressive Shape Chips (4 Items)
-        RowLayout {
+        Grid {
+            id: diskGrid
             width: parent.width
-            spacing: Theme.space2
+            columns: 2
+            columnSpacing: Theme.space2
+            rowSpacing: Theme.space2
 
-            // Wi-Fi Quick Tile (Oval Shape - Type 6)
+            // Root Partition Card
             Rectangle {
-                Layout.fillWidth: true
-                height: 64
-                radius: Theme.shapeMedium
-                color: root.controller && root.controller.wifiEnabled ? Theme.primaryContainer : Theme.surfaceContainer
-                border.width: 1
-                border.color: Theme.alpha(Theme.outlineVariant, 0.4)
+                width: (diskGrid.width - diskGrid.columnSpacing) / 2
+                height: 100
+                radius: Theme.cardRadius
+                color: Theme.surfaceContainer
 
-                MouseArea {
+                ColumnLayout {
                     anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.sectionRequested("wifi")
-                }
+                    anchors.margins: Theme.space3
+                    spacing: Theme.space1
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: Theme.space2
-                    spacing: Theme.space2
-
-                    Md3ExpressiveShape {
-                        Layout.preferredWidth: 36
-                        Layout.preferredHeight: 36
-                        Layout.alignment: Qt.AlignVCenter
-                        size: 36
-                        shapeType: 6 // Oval shape
-                        color: root.controller && root.controller.wifiEnabled ? Theme.primary : Theme.surfaceContainerHighest
-                    }
-
-                    ColumnLayout {
+                    RowLayout {
                         Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 0
+                        spacing: Theme.space2
+
+                        MaterialIcon {
+                            text: "hard_drive"
+                            iconSize: 20
+                            color: Theme.primary
+                        }
 
                         Text {
-                            text: "Wi-Fi"
+                            Layout.fillWidth: true
+                            text: "Root (/)"
                             color: Theme.textPrimary
                             font.family: Theme.textFont
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                             font.weight: Font.Bold
                         }
+
                         Text {
-                            text: root.controller && root.controller.wifiEnabled ? (root.controller.wifiSsid || I18n.tr("Đã bật", "On")) : I18n.tr("Đã tắt", "Off")
+                            text: root.controller ? root.controller.diskRootPercent + "%" : "--%"
+                            color: Theme.primary
+                            font.family: Theme.textFont
+                            font.pixelSize: 13
+                            font.weight: Font.Bold
+                        }
+                    }
+
+                    Md3LinearProgress {
+                        Layout.fillWidth: true
+                        height: 8
+                        value: root.controller ? root.controller.diskRootPercent : 0
+                        progressColor: Theme.primary
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        Text {
+                            text: root.controller ? root.controller.diskRootUsedGib.toFixed(1) + " GB / " + root.controller.diskRootTotalGib.toFixed(1) + " GB" : "-- GB"
                             color: Theme.textSecondary
                             font.family: Theme.textFont
                             font.pixelSize: 10
-                            elide: Text.ElideRight
                         }
-                    }
-                }
-            }
 
-            // Bluetooth Quick Tile (Vertical Pill - Type 3)
-            Rectangle {
-                Layout.fillWidth: true
-                height: 64
-                radius: Theme.shapeMedium
-                color: root.controller && root.controller.bluetoothEnabled ? Theme.tertiaryContainer : Theme.surfaceContainer
-                border.width: 1
-                border.color: Theme.alpha(Theme.outlineVariant, 0.4)
-
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.sectionRequested("bluetooth")
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: Theme.space2
-                    spacing: Theme.space2
-
-                    Md3ExpressiveShape {
-                        Layout.preferredWidth: 36
-                        Layout.preferredHeight: 36
-                        Layout.alignment: Qt.AlignVCenter
-                        size: 36
-                        shapeType: 3 // Vertical Pill shape
-                        color: root.controller && root.controller.bluetoothEnabled ? Theme.tertiary : Theme.surfaceContainerHighest
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 0
+                        Item { Layout.fillWidth: true }
 
                         Text {
-                            text: "Bluetooth"
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 12
-                            font.weight: Font.Bold
-                        }
-                        Text {
-                            text: root.controller && root.controller.bluetoothEnabled ? (root.controller.bluetoothConnectedCount + I18n.tr(" thiết bị", " devices")) : I18n.tr("Đã tắt", "Off")
-                            color: Theme.textSecondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 10
-                            elide: Text.ElideRight
-                        }
-                    }
-                }
-            }
-
-            // Sound Volume Quick Tile (Square Shape - Type 1)
-            Rectangle {
-                Layout.fillWidth: true
-                height: 64
-                radius: Theme.shapeMedium
-                color: root.controller && root.controller.muted ? Theme.errorContainer : Theme.surfaceContainer
-                border.width: 1
-                border.color: Theme.alpha(Theme.outlineVariant, 0.4)
-
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.sectionRequested("controls")
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: Theme.space2
-                    spacing: Theme.space2
-
-                    Md3ExpressiveShape {
-                        Layout.preferredWidth: 36
-                        Layout.preferredHeight: 36
-                        Layout.alignment: Qt.AlignVCenter
-                        size: 36
-                        shapeType: 1 // Square shape
-                        color: root.controller && root.controller.muted ? Theme.error : Theme.secondary
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 0
-
-                        Text {
-                            text: I18n.tr("Âm thanh", "Sound")
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 12
-                            font.weight: Font.Bold
-                        }
-                        Text {
-                            text: root.controller ? (root.controller.muted ? I18n.tr("Tắt tiếng", "Muted") : root.controller.volume + "%") : "--%"
+                            text: root.controller ? (root.controller.diskRootTotalGib - root.controller.diskRootUsedGib).toFixed(1) + " GB " + I18n.tr("trống", "free") : ""
                             color: Theme.textSecondary
                             font.family: Theme.textFont
                             font.pixelSize: 10
@@ -997,50 +537,67 @@ Rectangle {
                 }
             }
 
-            // Recorder Quick Tile (Circle Shape - Type 0)
+            // Home Partition / User Storage Card
             Rectangle {
-                Layout.fillWidth: true
-                height: 64
-                radius: Theme.shapeMedium
-                color: root.controller && root.controller.recording ? Theme.errorContainer : Theme.surfaceContainer
-                border.width: 1
-                border.color: Theme.alpha(Theme.outlineVariant, 0.4)
+                width: (diskGrid.width - diskGrid.columnSpacing) / 2
+                height: 100
+                radius: Theme.cardRadius
+                color: Theme.surfaceContainer
 
-                MouseArea {
+                ColumnLayout {
                     anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.sectionRequested("recorder")
-                }
+                    anchors.margins: Theme.space3
+                    spacing: Theme.space1
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: Theme.space2
-                    spacing: Theme.space2
-
-                    Md3ExpressiveShape {
-                        Layout.preferredWidth: 36
-                        Layout.preferredHeight: 36
-                        Layout.alignment: Qt.AlignVCenter
-                        size: 36
-                        shapeType: 0 // Circle shape
-                        color: root.controller && root.controller.recording ? Theme.error : Theme.primary
-                    }
-
-                    ColumnLayout {
+                    RowLayout {
                         Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 0
+                        spacing: Theme.space2
+
+                        MaterialIcon {
+                            text: "folder_user"
+                            iconSize: 20
+                            color: Theme.secondary
+                        }
 
                         Text {
-                            text: I18n.tr("Ghi hình", "Record")
+                            Layout.fillWidth: true
+                            text: "Home (/home)"
                             color: Theme.textPrimary
                             font.family: Theme.textFont
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                             font.weight: Font.Bold
                         }
+
                         Text {
-                            text: root.controller && root.controller.recording ? I18n.tr("Đang ghi…", "Recording…") : I18n.tr("Sẵn sàng", "Ready")
+                            text: root.controller ? (root.controller.diskHomePercent > 0 ? root.controller.diskHomePercent : root.controller.diskRootPercent) + "%" : "--%"
+                            color: Theme.secondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 13
+                            font.weight: Font.Bold
+                        }
+                    }
+
+                    Md3LinearProgress {
+                        Layout.fillWidth: true
+                        height: 8
+                        value: root.controller ? (root.controller.diskHomePercent > 0 ? root.controller.diskHomePercent : root.controller.diskRootPercent) : 0
+                        progressColor: Theme.secondary
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        Text {
+                            text: root.controller ? (root.controller.diskHomeTotalGib > 0 ? root.controller.diskHomeUsedGib.toFixed(1) + " GB / " + root.controller.diskHomeTotalGib.toFixed(1) + " GB" : root.controller.diskRootUsedGib.toFixed(1) + " GB / " + root.controller.diskRootTotalGib.toFixed(1) + " GB") : "-- GB"
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 10
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Text {
+                            text: root.controller ? (root.controller.diskHomeTotalGib > 0 ? (root.controller.diskHomeTotalGib - root.controller.diskHomeUsedGib).toFixed(1) : (root.controller.diskRootTotalGib - root.controller.diskRootUsedGib).toFixed(1)) + " GB " + I18n.tr("trống", "free") : ""
                             color: Theme.textSecondary
                             font.family: Theme.textFont
                             font.pixelSize: 10
@@ -1050,50 +607,471 @@ Rectangle {
             }
         }
 
-        // Section Title: System Shortcuts
+        // 4. Detailed Weather Section
         Text {
-            text: I18n.tr("Phím tắt hệ thống", "System Shortcuts")
+            text: I18n.tr("Thời tiết chi tiết", "Detailed Weather")
             color: Theme.textPrimary
             font.family: Theme.textFont
             font.pixelSize: 13
             font.weight: Font.Bold
         }
 
-        // 6. Quick Action Buttons Row
-        RowLayout {
+        Rectangle {
             width: parent.width
-            spacing: Theme.space2
+            implicitHeight: weatherCol.implicitHeight + Theme.space3 * 2
+            radius: Theme.cardRadius
+            color: Theme.alpha(Theme.tertiaryContainer, 0.40)
+            border.width: 1
+            border.color: Theme.alpha(Theme.outlineVariant, 0.3)
 
-            ActionChip {
-                Layout.fillWidth: true
-                height: 48
-                icon: "apps"
-                label: I18n.tr("Ứng dụng", "Apps")
-                onClicked: root.sectionRequested("wallpaper")
+            Column {
+                id: weatherCol
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: Theme.space3
+                spacing: Theme.space3
+
+                // Current Weather Header
+                RowLayout {
+                    width: parent.width
+                    spacing: Theme.space3
+
+                    Item {
+                        Layout.preferredWidth: 54
+                        Layout.preferredHeight: 54
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Md3ExpressiveShape {
+                            anchors.centerIn: parent
+                            size: 48
+                            shapeType: 6
+                            color: Theme.tertiaryContainer
+                        }
+
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: "partly_cloudy_day"
+                            iconSize: 28
+                            color: Theme.tertiary
+                            filled: true
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignVCenter
+                        spacing: 2
+
+                        RowLayout {
+                            spacing: Theme.space2
+
+                            Text {
+                                text: root.controller && root.controller.weatherTemperature !== undefined
+                                    ? root.controller.weatherTemperature + "°C"
+                                    : "--°C"
+                                color: Theme.textPrimary
+                                font.family: Theme.textFont
+                                font.pixelSize: 22
+                                font.weight: Font.Bold
+                            }
+
+                            Text {
+                                text: root.controller && root.controller.weatherDescription
+                                    ? root.controller.weatherDescription
+                                    : I18n.tr("Đang cập nhật", "Updating")
+                                color: Theme.tertiary
+                                font.family: Theme.textFont
+                                font.pixelSize: 14
+                                font.weight: Font.DemiBold
+                            }
+                        }
+
+                        Text {
+                            text: root.controller && root.controller.weatherLocation
+                                ? root.controller.weatherLocation + (root.controller.weatherRegion ? ", " + root.controller.weatherRegion : "")
+                                : I18n.tr("Chưa xác định vị trí", "Location unknown")
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    IconButton {
+                        Layout.alignment: Qt.AlignVCenter
+                        buttonSize: 36
+                        iconSize: 18
+                        icon: "refresh"
+                        accessibleName: I18n.tr("Làm mới thời tiết", "Refresh weather")
+                        onClicked: {
+                            if (root.controller)
+                                root.controller.refreshWeather(true);
+                        }
+                    }
+                }
+
+                // 4-Day Forecast Preview Row
+                RowLayout {
+                    width: parent.width
+                    spacing: Theme.space2
+                    visible: root.controller && root.controller.weatherForecast && root.controller.weatherForecast.count > 0
+
+                    Repeater {
+                        model: root.controller ? Math.min(4, root.controller.weatherForecast.count) : 0
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 68
+                            radius: Theme.shapeMedium
+                            color: Theme.surfaceContainer
+
+                            required property int index
+
+                            readonly property var forecastData: root.controller.weatherForecast.get(index)
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: 2
+
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: {
+                                        if (!forecastData || !forecastData.dateText) return "";
+                                        let d = new Date(forecastData.dateText);
+                                        return d.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), "ddd");
+                                    }
+                                    color: Theme.textSecondary
+                                    font.family: Theme.textFont
+                                    font.pixelSize: 10
+                                    font.weight: Font.Bold
+                                }
+
+                                MaterialIcon {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "partly_cloudy_day"
+                                    iconSize: 18
+                                    color: Theme.tertiary
+                                }
+
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: forecastData ? forecastData.maximum + "° / " + forecastData.minimum + "°" : ""
+                                    color: Theme.textPrimary
+                                    font.family: Theme.textFont
+                                    font.pixelSize: 10
+                                    font.weight: Font.Bold
+                                }
+                            }
+                        }
+                    }
+                }
             }
+        }
 
-            ActionChip {
-                Layout.fillWidth: true
-                height: 48
-                icon: "wallpaper"
-                label: I18n.tr("Hình nền", "Wallpaper")
-                onClicked: root.sectionRequested("wallpaper")
+        // 5. Detailed Calendar & Month Grid Section
+        Text {
+            text: I18n.tr("Lịch tháng & Sự kiện", "Month Calendar & Agenda")
+            color: Theme.textPrimary
+            font.family: Theme.textFont
+            font.pixelSize: 13
+            font.weight: Font.Bold
+        }
+
+        Rectangle {
+            width: parent.width
+            implicitHeight: calendarCol.implicitHeight + Theme.space3 * 2
+            radius: Theme.cardRadius
+            color: Theme.surfaceContainer
+
+            Column {
+                id: calendarCol
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: Theme.space3
+                spacing: Theme.space3
+
+                // Calendar Month Header
+                RowLayout {
+                    width: parent.width
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.currentDate.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), I18n.vietnamese ? "MMMM yyyy" : "MMMM yyyy")
+                        color: Theme.primary
+                        font.family: Theme.textFont
+                        font.pixelSize: 16
+                        font.weight: Font.Bold
+                    }
+
+                    Text {
+                        text: I18n.tr("Hôm nay: ", "Today: ") + root.currentDate.getDate()
+                        color: Theme.textSecondary
+                        font.family: Theme.textFont
+                        font.pixelSize: 11
+                        font.weight: Font.DemiBold
+                    }
+                }
+
+                // Days of Week Header
+                Grid {
+                    width: parent.width
+                    columns: 7
+
+                    Repeater {
+                        model: [I18n.tr("CN", "Sun"), I18n.tr("T2", "Mon"), I18n.tr("T3", "Tue"), I18n.tr("T4", "Wed"), I18n.tr("T5", "Thu"), I18n.tr("T6", "Fri"), I18n.tr("T7", "Sat")]
+
+                        Text {
+                            required property string modelData
+                            width: parent.width / 7
+                            horizontalAlignment: Text.AlignHCenter
+                            text: modelData
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 10
+                            font.weight: Font.Bold
+                        }
+                    }
+                }
+
+                // Days of Month 7-Column Grid
+                Grid {
+                    width: parent.width
+                    columns: 7
+                    rowSpacing: 4
+
+                    readonly property int year: root.currentDate.getFullYear()
+                    readonly property int month: root.currentDate.getMonth()
+                    readonly property int firstDayOfWeek: new Date(year, month, 1).getDay()
+                    readonly property int daysInMonth: new Date(year, month + 1, 0).getDate()
+                    readonly property int totalCells: Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7
+
+                    Repeater {
+                        model: parent.totalCells
+
+                        Item {
+                            required property int index
+
+                            readonly property int dayNumber: index - parent.firstDayOfWeek + 1
+                            readonly property bool isValidDay: dayNumber >= 1 && dayNumber <= parent.daysInMonth
+                            readonly property bool isToday: isValidDay && dayNumber === root.currentDate.getDate()
+
+                            width: parent.width / 7
+                            height: 32
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 28
+                                height: 28
+                                radius: 14
+                                color: parent.isToday ? Theme.primary : "transparent"
+                                visible: parent.isValidDay
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: parent.parent.isValidDay ? parent.parent.dayNumber : ""
+                                    color: parent.parent.isToday ? Theme.onPrimary : Theme.textPrimary
+                                    font.family: Theme.textFont
+                                    font.pixelSize: 11
+                                    font.weight: parent.parent.isToday ? Font.Bold : Font.Normal
+                                }
+                            }
+                        }
+                    }
+                }
             }
+        }
 
-            ActionChip {
-                Layout.fillWidth: true
-                height: 48
-                icon: "tune"
-                label: I18n.tr("Cài đặt", "Settings")
-                onClicked: root.sectionRequested("settings")
-            }
+        // 6. Fastfetch & System Info Container Card
+        Text {
+            text: I18n.tr("Thông tin hệ thống & Fastfetch", "System Info & Fastfetch")
+            color: Theme.textPrimary
+            font.family: Theme.textFont
+            font.pixelSize: 13
+            font.weight: Font.Bold
+        }
 
-            ActionChip {
-                Layout.fillWidth: true
-                height: 48
-                icon: "lock"
-                label: I18n.tr("Khóa máy", "Lock")
-                onClicked: root.sectionRequested("power")
+        Rectangle {
+            width: parent.width
+            implicitHeight: sysInfoCol.implicitHeight + Theme.space3 * 2
+            radius: Theme.cardRadius
+            color: Theme.surfaceContainer
+
+            Column {
+                id: sysInfoCol
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: Theme.space3
+                spacing: Theme.space2
+
+                RowLayout {
+                    width: parent.width
+                    spacing: Theme.space2
+
+                    Md3ExpressiveShape {
+                        Layout.preferredWidth: 32
+                        Layout.preferredHeight: 32
+                        Layout.alignment: Qt.AlignVCenter
+                        size: 32
+                        shapeType: 1
+                        color: Theme.secondaryContainer
+                    }
+
+                    MaterialIcon {
+                        Layout.alignment: Qt.AlignVCenter
+                        text: "terminal"
+                        iconSize: 18
+                        color: Theme.secondary
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: "NixOS Fastfetch"
+                        color: Theme.textPrimary
+                        font.family: Theme.textFont
+                        font.pixelSize: 13
+                        font.weight: Font.Bold
+                    }
+
+                    Rectangle {
+                        Layout.alignment: Qt.AlignVCenter
+                        implicitWidth: uptimeLabel.implicitWidth + 14
+                        implicitHeight: 24
+                        radius: 12
+                        color: Theme.alpha(Theme.secondaryContainer, 0.6)
+
+                        Text {
+                            id: uptimeLabel
+                            anchors.centerIn: parent
+                            text: "⏱ " + I18n.tr("Uptime: ", "Uptime: ") + root.uptimeText
+                            color: Theme.secondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 10
+                            font.weight: Font.DemiBold
+                        }
+                    }
+                }
+
+                Grid {
+                    width: parent.width
+                    columns: 2
+                    columnSpacing: Theme.space2
+                    rowSpacing: 6
+
+                    RowLayout {
+                        width: (parent.width - parent.columnSpacing) / 2
+                        spacing: 6
+
+                        MaterialIcon {
+                            text: "memory"
+                            iconSize: 15
+                            color: Theme.primary
+                        }
+
+                        Text {
+                            text: "OS: "
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "NixOS 24.11 (x86_64)"
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    RowLayout {
+                        width: (parent.width - parent.columnSpacing) / 2
+                        spacing: 6
+
+                        MaterialIcon {
+                            text: "developer_board"
+                            iconSize: 15
+                            color: Theme.secondary
+                        }
+
+                        Text {
+                            text: "Kernel: "
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Linux 6.6 (Standard)"
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    RowLayout {
+                        width: (parent.width - parent.columnSpacing) / 2
+                        spacing: 6
+
+                        MaterialIcon {
+                            text: "desktop_windows"
+                            iconSize: 15
+                            color: Theme.tertiary
+                        }
+
+                        Text {
+                            text: "WM: "
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Hyprland (Wayland)"
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    RowLayout {
+                        width: (parent.width - parent.columnSpacing) / 2
+                        spacing: 6
+
+                        MaterialIcon {
+                            text: "widgets"
+                            iconSize: 15
+                            color: Theme.primary
+                        }
+
+                        Text {
+                            text: "UI: "
+                            color: Theme.textSecondary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Quickshell M3 Expressive"
+                            color: Theme.textPrimary
+                            font.family: Theme.textFont
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
             }
         }
     }

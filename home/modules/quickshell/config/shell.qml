@@ -885,8 +885,11 @@ ShellRoot {
                     onCloseRequested: root.hidePopup()
 
                     WallpaperWidget {
+                        id: wallpaperWidget
                         anchors.fill: parent
                         controller: systemService
+                        focus: true
+                        Component.onCompleted: forceActiveFocus()
                     }
                 }
             }
@@ -896,7 +899,7 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "dashboard"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(540, barWindow.width
+                popupWidth: Math.min(680, barWindow.width
                     - Theme.popupEdgeInset * 2)
                 popupHeight: Math.min(dashboardWidget.implicitHeight
                     + Theme.popupVerticalChrome,
