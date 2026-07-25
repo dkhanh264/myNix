@@ -11,8 +11,8 @@ Item {
     property real from: 0
     property real to: 100
     property real value: 0
-    property int diameter: 68
-    property int strokeWidth: 5
+    property real diameter: 68
+    property real strokeWidth: 5
     property bool showValue: true
     property bool animatedWave: true
     property string valueText: Math.round(value).toString()
