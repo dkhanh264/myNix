@@ -342,6 +342,7 @@ in
       layerrule = [
         "blur, walker"
         "ignorezero, walker"
+        "ignorealpha 0.05, walker"
         "blur, waybar"
         "ignorezero, waybar"
         "blur, notifications"
@@ -352,6 +353,14 @@ in
         "blur, quickshell"
         "blurpopups, quickshell"
         "ignorealpha 0.05, quickshell"
+        "blur, wallpaper"
+        "ignorealpha 0.05, wallpaper"
+        "blur, power"
+        "ignorealpha 0.05, power"
+        "blur, launcher"
+        "ignorealpha 0.05, launcher"
+        "blur, volume-osd"
+        "ignorealpha 0.05, volume-osd"
       ];
     };
 

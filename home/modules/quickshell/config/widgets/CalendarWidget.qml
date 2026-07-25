@@ -88,8 +88,10 @@ Rectangle {
     function addEvent() {
         if (!controller)
             return;
-        if (controller.addCalendarEvent(selectedKey, eventTitle.text,
-                eventTime.text)) {
+        let tVal = eventTime.text.trim();
+        if (!tVal || tVal.length === 0)
+            tVal = Qt.formatDateTime(new Date(), "HH:mm");
+        if (controller.addCalendarEvent(selectedKey, eventTitle.text, tVal)) {
             eventTitle.text = "";
             eventTime.text = "";
         }
@@ -362,6 +364,7 @@ Rectangle {
                     model: root.controller ? root.controller.calendarEvents : 0
 
                     Rectangle {
+                        id: eventItemRect
                         required property string eventId
                         required property string dateText
                         required property string title
@@ -373,34 +376,105 @@ Rectangle {
                         radius: Theme.shapeMedium
                         color: Theme.surfaceContainerHigh
 
-                        Text {
+                        Row {
                             anchors.left: parent.left
-                            anchors.leftMargin: 12
+                            anchors.leftMargin: 10
                             anchors.right: removeEvent.left
                             anchors.rightMargin: 6
                             anchors.verticalCenter: parent.verticalCenter
-                            text: (parent.timeText ? parent.timeText + " · " : "")
-                                + parent.title
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            font.weight: Font.Medium
-                            elide: Text.ElideRight
+                            spacing: 8
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: timeBadgeText.implicitWidth + 12
+                                height: 24
+                                radius: 12
+                                color: Theme.primaryContainer
+
+                                Text {
+                                    id: timeBadgeText
+                                    anchors.centerIn: parent
+                                    text: eventItemRect.timeText && eventItemRect.timeText.length > 0
+                                        ? eventItemRect.timeText
+                                        : I18n.tr("Cả ngày", "All day")
+                                    color: Theme.primary
+                                    font.family: Theme.textFont
+                                    font.pixelSize: 10
+                                    font.weight: Font.Bold
+                                }
+                            }
+
+                            Text {
+                                width: parent.width - (timeBadgeText.implicitWidth + 28)
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: eventItemRect.title
+                                color: Theme.textPrimary
+                                font.family: Theme.textFont
+                                font.pixelSize: 11
+                                font.weight: Font.Medium
+                                elide: Text.ElideRight
+                            }
                         }
 
                         IconButton {
                             id: removeEvent
                             anchors.right: parent.right
-                            anchors.rightMargin: 3
+                            anchors.rightMargin: 4
                             anchors.verticalCenter: parent.verticalCenter
-                            buttonSize: 36
-                            iconSize: 17
+                            buttonSize: 34
+                            iconSize: 16
                             icon: "delete"
                             foregroundColor: Theme.error
                             accessibleName: I18n.tr("Xóa sự kiện", "Delete event")
                             onClicked: root.controller.removeCalendarEvent(
-                                parent.eventId)
+                                eventItemRect.eventId)
                         }
+                    }
+                }
+            }
+        }
+
+        // Quick time selector presets
+        Row {
+            width: parent.width
+            height: 24
+            spacing: 6
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: I18n.tr("Chọn giờ:", "Quick time:")
+                color: Theme.textSecondary
+                font.family: Theme.textFont
+                font.pixelSize: 10
+            }
+
+            Repeater {
+                model: ["08:00", "09:00", "12:00", "14:00", "18:00", "20:00"]
+
+                Rectangle {
+                    required property string modelData
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: chipText.implicitWidth + 10
+                    height: 22
+                    radius: 11
+                    color: eventTime.text === modelData ? Theme.primaryContainer : Theme.surfaceContainerHigh
+                    border.width: 1
+                    border.color: eventTime.text === modelData ? Theme.primary : Theme.alpha(Theme.outlineVariant, 0.4)
+
+                    Text {
+                        id: chipText
+                        anchors.centerIn: parent
+                        text: parent.modelData
+                        color: parent.parent.eventTime && parent.parent.eventTime.text === parent.modelData ? Theme.primary : Theme.textPrimary
+                        font.family: Theme.textFont
+                        font.pixelSize: 9
+                        font.weight: Font.Medium
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: eventTime.text = parent.modelData
                     }
                 }
             }
@@ -413,7 +487,7 @@ Rectangle {
 
             M3TextField {
                 id: eventTitle
-                width: parent.width * 0.66
+                width: parent.width * 0.64
                 height: parent.height
                 label: I18n.tr("Tên sự kiện", "Event title")
                 leadingIcon: "edit_calendar"
@@ -427,6 +501,7 @@ Rectangle {
                 label: I18n.tr("Giờ", "Time")
                 placeholderText: "09:00"
                 leadingIcon: "schedule"
+                showClearButton: true
                 onAccepted: root.addEvent()
             }
         }

@@ -65,18 +65,19 @@ M3BarPill {
                 required property var modelData
 
                 visible: modelData.visible
-                width: modelData.label === "RAM" ? 58 : 52
+                width: modelData.label === "RAM" ? 60 : 54
                 height: 30
 
-                LiquidGauge {
+                Md3CircularProgress {
                     id: gauge
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    diameter: 24
+                    diameter: 22
+                    strokeWidth: 3.5
                     value: modelData.progress
-                    valueText: modelData.valueText
                     showValue: false
-                    liquidColor: modelData.color
+                    animatedWave: false
+                    progressColor: modelData.color
                     accessibleName: modelData.label
                 }
 

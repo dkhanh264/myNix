@@ -824,9 +824,9 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "settings"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(510, barWindow.width
+                popupWidth: Math.min(540, barWindow.width
                     - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(systemSettings.implicitHeight
+                popupHeight: Math.min(dashboardWidgetSettings.implicitHeight
                     + Theme.popupVerticalChrome,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("settings", barWindow.width, popupWidth)
@@ -835,19 +835,27 @@ ShellRoot {
                 PopupSurface {
                     anchors.fill: parent
                     shown: root.popupOpen && root.activePopup === "settings"
-                    title: I18n.tr("Cài đặt hệ thống", "System settings")
+                    title: I18n.tr("Bảng điều khiển MD3 Expressive", "MD3 Expressive Dashboard")
                     subtitle: I18n.tr("Giao diện thống nhất cho toàn hệ thống",
                         "One consistent system interface")
-                    icon: "tune"
+                    icon: "dashboard"
                     onCloseRequested: root.hidePopup()
 
-                    SystemSettingsWidget {
-                        id: systemSettings
+                    Flickable {
                         anchors.fill: parent
-                        controller: systemService
-                        onSectionRequested: section =>
-                            root.showPopup(section, barWindow.modelData.name)
-                        onCloseRequested: root.hidePopup()
+                        contentWidth: width
+                        contentHeight: dashboardWidgetSettings.implicitHeight
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+
+                        DashboardWidget {
+                            id: dashboardWidgetSettings
+                            width: parent.width
+                            controller: systemService
+                            onSectionRequested: section =>
+                                root.showPopup(section, barWindow.modelData.name)
+                            onCloseRequested: root.hidePopup()
+                        }
                     }
                 }
             }

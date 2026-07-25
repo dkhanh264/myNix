@@ -18,24 +18,35 @@ Rectangle {
 
     property string uptimeText: I18n.tr("Đang tính…", "Calculating…")
 
-    Process {
-        id: uptimeProc
-        command: ["uptime", "-p"]
-        running: true
-        stdout: SplitParser {
-            onRead: data => {
-                let str = String(data).trim();
-                if (str.startsWith("up ")) str = str.substring(3);
-                if (str.length > 0) root.uptimeText = str;
-            }
-        }
+    FileView {
+        id: uptimeFile
+        path: "/proc/uptime"
+        watchChanges: false
+        printErrors: false
     }
 
     Timer {
-        interval: 30000
+        interval: 5000
         running: true
         repeat: true
-        onTriggered: uptimeProc.running = true
+        triggeredOnStart: true
+        onTriggered: {
+            uptimeFile.reload();
+            let raw = uptimeFile.text();
+            if (raw && raw.length > 0) {
+                let sec = parseFloat(raw.trim().split(" ")[0]);
+                if (!isNaN(sec)) {
+                    let d = Math.floor(sec / 86400);
+                    let h = Math.floor((sec % 86400) / 3600);
+                    let m = Math.floor((sec % 3600) / 60);
+                    let parts = [];
+                    if (d > 0) parts.push(d + (I18n.tr("d", "d")));
+                    if (h > 0) parts.push(h + (I18n.tr("h", "h")));
+                    if (m > 0 || parts.length === 0) parts.push(m + (I18n.tr("m", "m")));
+                    root.uptimeText = parts.join(" ");
+                }
+            }
+        }
     }
 
     implicitHeight: mainColumn.implicitHeight + Theme.componentPadding * 2
@@ -576,16 +587,17 @@ Rectangle {
 
                         Md3CircularProgress {
                             anchors.centerIn: parent
-                            diameter: 48
+                            diameter: 46
                             strokeWidth: 4
                             value: root.controller ? root.controller.cpuUsage : 0
+                            showValue: false
                             progressColor: Theme.primary
                         }
 
-                        Md3ExpressiveShape {
+                        MaterialIcon {
                             anchors.centerIn: parent
-                            size: 22
-                            shapeType: 5 // Star/Clover
+                            text: "memory"
+                            iconSize: 20
                             color: Theme.primary
                         }
                     }
@@ -640,16 +652,17 @@ Rectangle {
 
                         Md3CircularProgress {
                             anchors.centerIn: parent
-                            diameter: 48
+                            diameter: 46
                             strokeWidth: 4
                             value: root.controller ? root.controller.memoryPercent : 0
+                            showValue: false
                             progressColor: Theme.secondary
                         }
 
-                        Md3ExpressiveShape {
+                        MaterialIcon {
                             anchors.centerIn: parent
-                            size: 22
-                            shapeType: 7 // Flower shape
+                            text: "storage"
+                            iconSize: 20
                             color: Theme.secondary
                         }
                     }
