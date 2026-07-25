@@ -55,7 +55,7 @@ Item {
             anchors.leftMargin: 14
             anchors.verticalCenter: parent.verticalCenter
             text: root.leadingIcon
-            iconSize: 20
+            iconSize: Theme.iconSizeSmall
             color: root.error ? Theme.error
                 : input.activeFocus ? Theme.primary : Theme.textSecondary
         }
@@ -74,36 +74,33 @@ Item {
             selectionColor: Theme.primaryContainer
             selectedTextColor: Theme.textPrimary
             font.family: Theme.textFont
-            font.pixelSize: 14
+            font.pixelSize: Theme.bodyMediumSize
             enabled: root.enabled
             clip: true
             activeFocusOnTab: root.enabled
             onAccepted: root.accepted()
         }
 
-        Text {
+        M3Text {
             visible: root.label.length > 0
             anchors.left: input.left
             anchors.top: parent.top
             anchors.topMargin: 7
+            role: "labelSmall"
             text: root.label
             color: root.error ? Theme.error
                 : input.activeFocus ? Theme.primary : Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 10
-            font.weight: Font.Medium
         }
 
-        Text {
+        M3Text {
             visible: input.text.length === 0 && !input.activeFocus
                 && root.placeholderText.length > 0
             anchors.left: input.left
             anchors.right: input.right
             anchors.verticalCenter: input.verticalCenter
+            role: "bodyMedium"
             text: root.placeholderText
             color: Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 14
             elide: Text.ElideRight
         }
 
@@ -119,7 +116,7 @@ Item {
             IconButton {
                 anchors.centerIn: parent
                 buttonSize: 32
-                iconSize: 18
+                iconSize: Theme.iconSizeExtraSmall
                 icon: (root.showClearButton && input.text.length > 0) ? "close" : root.trailingIcon
                 foregroundColor: root.error ? Theme.error : Theme.textSecondary
                 onClicked: {
@@ -133,7 +130,7 @@ Item {
         }
     }
 
-    Text {
+    M3Text {
         visible: root.supportingText.length > 0
         anchors.left: parent.left
         anchors.leftMargin: 16
@@ -141,11 +138,9 @@ Item {
         anchors.rightMargin: 16
         anchors.top: container.bottom
         anchors.topMargin: 3
+        role: "labelSmall"
         text: root.supportingText
         color: root.error ? Theme.error : Theme.textSecondary
-        font.family: Theme.textFont
-        font.pixelSize: 10
         elide: Text.ElideRight
     }
 }
-

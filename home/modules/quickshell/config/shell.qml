@@ -865,9 +865,9 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "wallpaper"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(560, barWindow.width
+                popupWidth: Math.min(640, barWindow.width
                     - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(640,
+                popupHeight: Math.min(580,
                     barWindow.modelData.height - barWindow.implicitHeight - 32)
                 popupX: Math.round((barWindow.width - popupWidth) / 2)
                 popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
@@ -877,9 +877,9 @@ ShellRoot {
                     anchors.fill: parent
                     shown: root.popupOpen && root.activePopup === "wallpaper"
                     title: I18n.tr("Chọn hình nền", "Choose wallpaper")
-                    subtitle: I18n.tr("Ảnh xem trước đi cùng tên file",
-                        "Preview beside every file name")
-                    icon: "wallpaper"
+                    subtitle: I18n.tr("Carousel hình nền MD3 Expressive",
+                        "MD3 Expressive Wallpaper Carousel")
+                    icon: "view_carousel"
                     accentColor: Theme.tertiary
                     accentContainer: Theme.tertiaryContainer
                     onCloseRequested: root.hidePopup()

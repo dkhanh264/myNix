@@ -55,7 +55,7 @@ Item {
 
     MaterialRipple {
         id: ripple
-        rippleColor: root.selected ? Theme.textPrimary : Theme.textPrimary
+        rippleColor: Theme.textPrimary
     }
 
     Rectangle {
@@ -72,7 +72,7 @@ Item {
         MaterialIcon {
             anchors.centerIn: parent
             text: root.icon
-            iconSize: 16
+            iconSize: Theme.iconSizeExtraSmall
             color: root.selected ? Theme.textPrimary : Theme.textSecondary
         }
 
@@ -91,25 +91,23 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: Theme.space2
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Theme.space1
+        spacing: 1
 
-        Text {
+        M3Text {
             width: parent.width
+            role: "labelLarge"
             text: root.label
-            color: root.selected ? Theme.textPrimary : Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 13
+            color: Theme.textPrimary
             font.weight: Font.DemiBold
             elide: Text.ElideRight
         }
 
-        Text {
+        M3Text {
             visible: root.supportingText.length > 0
             width: parent.width
+            role: "labelSmall"
             text: root.supportingText
             color: Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 10
             elide: Text.ElideRight
         }
     }
@@ -145,4 +143,3 @@ Item {
         }
     }
 }
-

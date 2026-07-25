@@ -2,9 +2,7 @@ import QtQuick
 import QtQuick.Effects
 import "../theme"
 
-// Shared visual and motion contract for every independent shell popup. The
-// compositor supplies the blur; this item supplies a dark tint and readable
-// semantic content on top of it.
+// Shared visual, elevation, and motion contract for every independent shell popup.
 Item {
     id: root
 
@@ -39,7 +37,14 @@ Item {
         }
     }
 
-    // Single background blur surface with zero shadow layers
+    // Material 3 Level 5 Elevation Shadow
+    M3Elevation {
+        anchors.fill: panel
+        level: 5
+        radius: Theme.popupRadius
+    }
+
+    // Background blur surface with M3 Container styling
     Rectangle {
         id: panel
         anchors.fill: parent
@@ -71,7 +76,7 @@ Item {
             MaterialIcon {
                 anchors.centerIn: parent
                 text: root.icon
-                iconSize: 23
+                iconSize: Theme.iconSizeMedium
                 color: root.accentColor
                 filled: true
             }
@@ -83,26 +88,23 @@ Item {
             anchors.right: parent.right
             anchors.rightMargin: Theme.popupContentPadding
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 0
+            spacing: 2
 
-            Text {
+            M3Text {
                 width: parent.width
+                role: "titleMedium"
                 text: root.title
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 17
                 font.weight: Font.Bold
                 elide: Text.ElideRight
             }
 
-            Text {
+            M3Text {
                 visible: root.subtitle.length > 0
                 width: parent.width
+                role: "labelSmall"
                 text: root.subtitle
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 10
-                font.weight: Font.Medium
                 elide: Text.ElideRight
             }
         }

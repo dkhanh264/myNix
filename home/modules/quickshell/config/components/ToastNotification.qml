@@ -5,7 +5,7 @@ import "../theme"
 // Material 3 Expressive Toast Notification Card.
 // Displays notifications for song changes, theme updates, wallpaper changes,
 // and general system alerts with high-contrast legibility and smooth motion.
-Rectangle {
+Item {
     id: root
 
     property string title: ""
@@ -39,10 +39,6 @@ Rectangle {
 
     implicitWidth: 410
     implicitHeight: Math.max(76, contentRow.implicitHeight + 28)
-    radius: Theme.shapeExpressiveContainer
-    color: Theme.alpha(Theme.surfaceContainerHighest, 0.94)
-    border.width: 1
-    border.color: Theme.barOutline
 
     opacity: shown ? 1.0 : 0.0
     scale: shown ? 1.0 : 0.88
@@ -63,7 +59,23 @@ Rectangle {
         }
     }
 
-    // Visual Left Accent Pill Bar for fast notification categorizing
+    // Material 3 Level 3 Elevation Shadow
+    M3Elevation {
+        anchors.fill: cardSurface
+        level: 3
+        radius: Theme.shapeExpressiveContainer
+    }
+
+    Rectangle {
+        id: cardSurface
+        anchors.fill: parent
+        radius: Theme.shapeExpressiveContainer
+        color: Theme.alpha(Theme.surfaceContainerHighest, 0.94)
+        border.width: 1
+        border.color: Theme.barOutline
+    }
+
+    // Visual Left Accent Pill Bar
     Rectangle {
         width: 4
         height: 38
@@ -117,27 +129,23 @@ Rectangle {
         Column {
             width: parent.width - iconBox.width - closeBtn.width - parent.spacing * 2
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 4
+            spacing: 2
 
-            Text {
+            M3Text {
                 width: parent.width
+                role: "titleSmall"
                 text: root.title
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 14
                 font.weight: Font.Bold
                 elide: Text.ElideRight
             }
 
-            Text {
+            M3Text {
                 visible: root.bodyText.length > 0
                 width: parent.width
+                role: "bodySmall"
                 text: root.bodyText
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 12
-                font.weight: Font.Medium
-                lineHeight: 1.15
                 elide: Text.ElideRight
                 maximumLineCount: 3
                 wrapMode: Text.Wrap
@@ -149,12 +157,10 @@ Rectangle {
             id: closeBtn
             anchors.verticalCenter: parent.verticalCenter
             icon: "close"
-            iconSize: 18
+            iconSize: Theme.iconSizeExtraSmall
             buttonSize: 32
             foregroundColor: Theme.textSecondary
             onClicked: root.dismissed()
         }
     }
 }
-
-

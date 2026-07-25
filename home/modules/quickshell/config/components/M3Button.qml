@@ -39,7 +39,6 @@ Item {
         }
     }
 
-    // Helper functions for M3 Variant Styling
     function getBackgroundColor() {
         if (root.selected) return Theme.primaryContainer;
         switch (root.variant) {
@@ -71,7 +70,6 @@ Item {
         }
     }
 
-    // Container surface with M3 Expressive shape morphing
     Rectangle {
         id: container
         anchors.fill: parent
@@ -99,7 +97,6 @@ Item {
         }
     }
 
-    // State Layer (Hover / Pressed overlay)
     Rectangle {
         anchors.fill: parent
         radius: container.radius
@@ -120,7 +117,6 @@ Item {
         }
     }
 
-    // Button Label and Icon
     Row {
         id: buttonContent
         anchors.centerIn: parent
@@ -130,18 +126,17 @@ Item {
             visible: root.icon.length > 0
             anchors.verticalCenter: parent.verticalCenter
             text: root.icon
-            iconSize: root.compact ? 16 : 18
+            iconSize: root.compact ? Theme.iconSizeExtraSmall : Theme.iconSizeSmall
             color: root.getTextColor()
             filled: root.selected || root.variant === "filled"
         }
 
-        Text {
+        M3Text {
             visible: root.text.length > 0
             anchors.verticalCenter: parent.verticalCenter
+            role: root.compact ? "labelMedium" : "labelLarge"
             text: root.text
             color: root.getTextColor()
-            font.family: Theme.textFont
-            font.pixelSize: root.compact ? 11 : 13
             font.weight: Font.DemiBold
         }
     }
@@ -165,7 +160,6 @@ Item {
         onClicked: root.clicked()
     }
 
-    // Accessible Focus Ring
     Rectangle {
         anchors.fill: parent
         anchors.margins: -2
@@ -184,4 +178,3 @@ Item {
         }
     }
 }
-

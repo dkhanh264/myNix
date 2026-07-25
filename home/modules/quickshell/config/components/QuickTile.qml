@@ -76,7 +76,7 @@ Item {
         MaterialIcon {
             anchors.centerIn: parent
             text: root.icon
-            iconSize: 21
+            iconSize: Theme.iconSizeSmall
             color: root.active ? Theme.textPrimary : Theme.textSecondary
         }
 
@@ -107,26 +107,24 @@ Item {
         anchors.right: detailsButton.left
         anchors.rightMargin: root.showDetails ? 4 : 12
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Theme.space1
+        spacing: 1
 
-        Text {
+        M3Text {
             width: parent.width
+            role: "titleSmall"
             text: root.title
-            color: root.active ? Theme.textPrimary : Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 14
+            color: Theme.textPrimary
             font.weight: Font.DemiBold
             elide: Text.ElideRight
         }
 
-        Text {
+        M3Text {
             width: parent.width
+            role: "labelSmall"
             text: root.subtitle
             color: root.active
                 ? Theme.alpha(Theme.textPrimary, 0.76)
                 : Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 11
             elide: Text.ElideRight
         }
     }
@@ -138,8 +136,8 @@ Item {
         anchors.rightMargin: Theme.componentPadding
         anchors.verticalCenter: parent.verticalCenter
         buttonSize: 40
-        iconSize: 16
-        icon: "󰅂"
+        iconSize: Theme.iconSizeExtraSmall
+        icon: "chevron_right"
         rotation: root.expanded ? 90 : 0
         fillColor: "transparent"
         foregroundColor: root.active ? Theme.textPrimary : Theme.textSecondary
