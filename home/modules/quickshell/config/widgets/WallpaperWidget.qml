@@ -178,71 +178,6 @@ FocusScope {
         event.accepted = true;
     }
 
-    // Floating Header Overlay Controls
-    RowLayout {
-        id: floatingHeader
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: Theme.space3
-        z: 10
-        visible: root.wallpapersData.length > 0
-
-        Rectangle {
-            height: 38
-            implicitWidth: titleRow.implicitWidth + 24
-            radius: 19
-            color: Theme.popupSurface
-            border.width: 1
-            border.color: Theme.alpha(Theme.outlineVariant, 0.35)
-
-            RowLayout {
-                id: titleRow
-                anchors.centerIn: parent
-                spacing: 8
-
-                MaterialIcon {
-                    text: "wallpaper"
-                    iconSize: 18
-                    color: Theme.primary
-                    filled: true
-                }
-
-                Text {
-                    text: I18n.tr("Hình nền", "Wallpapers") + " (" + (carousel.currentIndex + 1) + "/" + root.wallpapersData.length + ")"
-                    color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 13
-                    font.weight: Font.Bold
-                }
-            }
-        }
-
-        Item { Layout.fillWidth: true }
-
-        Rectangle {
-            width: 38
-            height: 38
-            radius: 19
-            color: Theme.popupSurface
-            border.width: 1
-            border.color: Theme.alpha(Theme.outlineVariant, 0.35)
-
-            MaterialIcon {
-                anchors.centerIn: parent
-                text: "close"
-                iconSize: 18
-                color: Theme.textPrimary
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.closeRequested()
-            }
-        }
-    }
-
     // Main Carousel Container (Uncontained, edge-to-edge)
     Item {
         anchors.fill: parent
@@ -293,16 +228,16 @@ FocusScope {
             }
         }
 
-        // Horizontal M3 Hero Carousel
+        // Horizontal M3 Hero Carousel (Bookshelf layout)
         ListView {
             id: carousel
             anchors.fill: parent
-            anchors.topMargin: 50
+            anchors.topMargin: 0
             visible: root.wallpapersData.length > 0
             focus: true
 
             orientation: ListView.Horizontal
-            spacing: 16
+            spacing: 12
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 3000
@@ -313,8 +248,8 @@ FocusScope {
             highlightMoveDuration: Theme.motionMedium2
 
             property real largeCardWidth: Math.min(540, carousel.width * 0.55)
-            property real mediumCardWidth: Math.min(270, carousel.width * 0.27)
-            property real smallCardWidth: Math.min(130, carousel.width * 0.13)
+            property real mediumCardWidth: Math.min(110, carousel.width * 0.11)
+            property real smallCardWidth: Math.min(60, carousel.width * 0.06)
 
             model: root.wallpapersData
 
@@ -424,7 +359,7 @@ FocusScope {
                     anchors.bottom: parent.bottom
                     height: 68
                     radius: 28
-                    visible: cardItem.width >= carousel.mediumCardWidth * 0.85
+                    visible: cardItem.width >= carousel.largeCardWidth * 0.7
 
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "transparent" }
