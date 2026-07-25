@@ -855,38 +855,22 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "wallpaper"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(980, barWindow.width
+                popupWidth: Math.min(1080, barWindow.width
                     - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(620,
+                popupHeight: Math.min(520,
                     barWindow.modelData.height - barWindow.implicitHeight - 32)
                 popupX: Math.round((barWindow.width - popupWidth) / 2)
                 popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
                 onDismissed: root.popupDismissed("wallpaper")
 
-                PopupSurface {
-                    id: wallpaperSurface
+                WallpaperWidget {
+                    id: wallpaperWidget
                     anchors.fill: parent
                     shown: root.popupOpen && root.activePopup === "wallpaper"
-                    title: I18n.tr("Chọn hình nền", "Choose wallpaper")
-                    subtitle: I18n.tr("Carousel hình nền MD3 Expressive",
-                        "MD3 Expressive Wallpaper Carousel")
-                    icon: "view_carousel"
-                    accentColor: Theme.tertiary
-                    accentContainer: Theme.tertiaryContainer
+                    controller: systemService
+                    focus: true
                     onCloseRequested: root.hidePopup()
-                    onShownChanged: {
-                        if (shown && wallpaperWidget) {
-                            wallpaperWidget.forceActiveFocus();
-                        }
-                    }
-
-                    WallpaperWidget {
-                        id: wallpaperWidget
-                        anchors.fill: parent
-                        controller: systemService
-                        focus: true
-                        Component.onCompleted: forceActiveFocus()
-                    }
+                    Component.onCompleted: forceActiveFocus()
                 }
             }
 

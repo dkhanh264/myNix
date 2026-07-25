@@ -1,20 +1,48 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import "../components"
 import "../theme"
 
-// Material 3 Expressive Minimalist Carousel
-// Pure, ultra-clean M3 Hero Carousel with dynamic width morphing,
-// hardware-accelerated image clipping, and 100% reliable keyboard & mouse navigation.
-// Zero clutter: No on-screen buttons, no indicator bars, no overlays.
+// Material 3 Expressive Hero Carousel (Uncontained Wallpaper Picker)
+// Optimized performance (discrete index-based card morphing, 0% scroll stutter),
+// 28dp hardware-accelerated rounded corner clipping via MultiEffect mask,
+// floating header controls without outer card wrapper.
 FocusScope {
     id: root
 
     property var controller
     property var wallpapersData: []
+    property bool shown: true
+    signal closeRequested
 
     focus: true
+
+    opacity: shown ? 1.0 : 0.0
+    scale: 0.95 + (shown ? 0.05 : 0.0)
+
+    Behavior on opacity {
+        NumberAnimation {
+            duration: Theme.motionMedium1
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
+        }
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: Theme.motionMedium1
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
+        }
+    }
+
+    onShownChanged: {
+        if (shown) {
+            root.forceActiveFocus();
+            if (carousel) carousel.forceActiveFocus();
+        }
+    }
 
     onVisibleChanged: {
         if (visible) {
@@ -95,7 +123,7 @@ FocusScope {
         }
     }
 
-    // Invisible 100% Reliable Keyboard Shortcuts
+    // Keyboard Shortcuts
     Shortcut {
         sequences: ["Left", "a", "A"]
         enabled: root.visible
@@ -112,6 +140,12 @@ FocusScope {
         sequences: ["Return", "Enter", "Space"]
         enabled: root.visible
         onActivated: root.applySelectedWallpaper()
+    }
+
+    Shortcut {
+        sequences: ["Escape"]
+        enabled: root.visible
+        onActivated: root.closeRequested()
     }
 
     // FocusScope Keyboard Event Handlers
@@ -139,10 +173,79 @@ FocusScope {
         event.accepted = true;
     }
 
-    // Main Carousel Container
+    Keys.onEscapePressed: event => {
+        root.closeRequested();
+        event.accepted = true;
+    }
+
+    // Floating Header Overlay Controls
+    RowLayout {
+        id: floatingHeader
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: Theme.space3
+        z: 10
+        visible: root.wallpapersData.length > 0
+
+        Rectangle {
+            height: 38
+            implicitWidth: titleRow.implicitWidth + 24
+            radius: 19
+            color: Theme.popupSurface
+            border.width: 1
+            border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+
+            RowLayout {
+                id: titleRow
+                anchors.centerIn: parent
+                spacing: 8
+
+                MaterialIcon {
+                    text: "wallpaper"
+                    iconSize: 18
+                    color: Theme.primary
+                    filled: true
+                }
+
+                Text {
+                    text: I18n.tr("Hình nền", "Wallpapers") + " (" + (carousel.currentIndex + 1) + "/" + root.wallpapersData.length + ")"
+                    color: Theme.textPrimary
+                    font.family: Theme.textFont
+                    font.pixelSize: 13
+                    font.weight: Font.Bold
+                }
+            }
+        }
+
+        Item { Layout.fillWidth: true }
+
+        Rectangle {
+            width: 38
+            height: 38
+            radius: 19
+            color: Theme.popupSurface
+            border.width: 1
+            border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+
+            MaterialIcon {
+                anchors.centerIn: parent
+                text: "close"
+                iconSize: 18
+                color: Theme.textPrimary
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.closeRequested()
+            }
+        }
+    }
+
+    // Main Carousel Container (Uncontained, edge-to-edge)
     Item {
         anchors.fill: parent
-        anchors.margins: Theme.space2
 
         // Empty state notice
         Column {
@@ -190,10 +293,11 @@ FocusScope {
             }
         }
 
-        // Minimalist Horizontal M3 Carousel
+        // Horizontal M3 Hero Carousel
         ListView {
             id: carousel
             anchors.fill: parent
+            anchors.topMargin: 50
             visible: root.wallpapersData.length > 0
             focus: true
 
@@ -206,11 +310,11 @@ FocusScope {
             highlightRangeMode: ListView.StrictlyEnforceRange
             preferredHighlightBegin: Math.round((width - largeCardWidth) / 2)
             preferredHighlightEnd: Math.round((width - largeCardWidth) / 2)
-            highlightMoveDuration: Theme.motionMedium3
+            highlightMoveDuration: Theme.motionMedium2
 
-            property real largeCardWidth: Math.min(480, carousel.width * 0.54)
-            property real mediumCardWidth: Math.min(240, carousel.width * 0.27)
-            property real smallCardWidth: Math.min(120, carousel.width * 0.14)
+            property real largeCardWidth: Math.min(540, carousel.width * 0.55)
+            property real mediumCardWidth: Math.min(270, carousel.width * 0.27)
+            property real smallCardWidth: Math.min(130, carousel.width * 0.13)
 
             model: root.wallpapersData
 
@@ -242,6 +346,7 @@ FocusScope {
             }
             Keys.onReturnPressed: event => { root.applySelectedWallpaper(); event.accepted = true; }
             Keys.onEnterPressed: event => { root.applySelectedWallpaper(); event.accepted = true; }
+            Keys.onEscapePressed: event => { root.closeRequested(); event.accepted = true; }
 
             delegate: Item {
                 id: cardItem
@@ -253,83 +358,160 @@ FocusScope {
                     && root.controller.currentWallpaper === modelData.filePath
                 readonly property bool isCurrent: carousel.currentIndex === index
 
-                // Continuous center-distance calculated properties for smooth M3 morphing
-                readonly property real centerPos: carousel.contentX + carousel.width / 2
-                readonly property real itemCenter: x + width / 2
-                readonly property real distFromCenter: Math.abs(itemCenter - centerPos)
-                readonly property real normDist: Math.min(1.0, distFromCenter / (carousel.width * 0.48))
+                // Discrete Index Distance Morphing for 60fps Zero-Lag Smooth Motion
+                readonly property int indexDist: Math.abs(index - carousel.currentIndex)
+                readonly property real targetWidth: indexDist === 0 ? carousel.largeCardWidth
+                    : (indexDist === 1 ? carousel.mediumCardWidth : carousel.smallCardWidth)
 
-                // M3 Morphing Width & Shape Radius
-                readonly property real targetWidth: carousel.largeCardWidth - normDist * (carousel.largeCardWidth - carousel.smallCardWidth)
-                
                 width: Math.max(carousel.smallCardWidth, targetWidth)
-                height: carousel.height - 8
+                height: carousel.height - 12
 
                 Behavior on width {
-                    enabled: !Theme.reduceMotion
+                    enabled: !Theme.reduceMotion && !carousel.moving
                     NumberAnimation {
-                        duration: Theme.motionMedium1
+                        duration: Theme.motionMedium2
                         easing.type: Easing.BezierSpline
                         easing.bezierCurve: Theme.springCurve
                     }
                 }
 
-                // Card Container Surface with Rounded Corners
+                // 28dp Rounded Mask (M3 Corner Extra Large)
                 Rectangle {
-                    id: cardSurface
-                    anchors.fill: parent
-                    anchors.margins: 4
+                    id: maskRect
+                    width: cardItem.width
+                    height: cardItem.height
                     radius: 28
-                    color: Theme.surfaceContainerHighest
+                    visible: false
+                    layer.enabled: true
+                }
+
+                // Wallpaper Image Source
+                Image {
+                    id: cardImage
+                    anchors.fill: parent
+                    source: cardItem.modelData.fileUrl ? cardItem.modelData.fileUrl : ("file://" + cardItem.modelData.filePath)
+                    asynchronous: true
+                    cache: true
+                    fillMode: Image.PreserveAspectCrop
+                    sourceSize.width: 800
+                    sourceSize.height: 600
+                    smooth: true
+                    mipmap: true
+                    visible: false
+
+                    MaterialIcon {
+                        anchors.centerIn: parent
+                        visible: cardImage.status !== Image.Ready && !cardItem.modelData.isVideo
+                        text: "image"
+                        iconSize: 44
+                        color: Theme.textSecondary
+                    }
+                }
+
+                // Clipped Image with 28dp Rounded Corners
+                MultiEffect {
+                    anchors.fill: parent
+                    source: cardImage
+                    maskEnabled: true
+                    maskSource: maskRect
+                    autoPaddingEnabled: false
+                }
+
+                // Bottom Scrim Overlay with Title & Badge
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    height: 68
+                    radius: 28
+                    visible: cardItem.width >= carousel.mediumCardWidth * 0.85
+
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: "transparent" }
+                        GradientStop { position: 1.0; color: Theme.alpha("#000000", 0.78) }
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 14
+                        spacing: 8
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: cardItem.modelData.fileName || ""
+                                color: "#ffffff"
+                                font.family: Theme.textFont
+                                font.pixelSize: 13
+                                font.weight: Font.DemiBold
+                                elide: Text.ElideMiddle
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: cardItem.isSelected ? I18n.tr("Hình nền hiện tại", "Current Wallpaper")
+                                    : (cardItem.isCurrent ? I18n.tr("Nhấn Enter để chọn", "Press Enter to select") : "")
+                                color: Theme.alpha("#ffffff", 0.80)
+                                font.family: Theme.textFont
+                                font.pixelSize: 11
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        Rectangle {
+                            visible: cardItem.isSelected
+                            width: 24
+                            height: 24
+                            radius: 12
+                            color: Theme.primary
+
+                            MaterialIcon {
+                                anchors.centerIn: parent
+                                text: "check"
+                                iconSize: 16
+                                color: Theme.onPrimary
+                                filled: true
+                            }
+                        }
+                    }
+                }
+
+                // Selection / Focus Border Outline around 28dp rounded card shape
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 28
+                    color: "transparent"
                     border.width: cardItem.isCurrent ? 3 : (cardItem.isSelected ? 2 : 0)
                     border.color: cardItem.isCurrent ? Theme.primary
                         : (cardItem.isSelected ? Theme.tertiary : "transparent")
-                    clip: true
+                    antialiasing: true
 
                     Behavior on border.color { ColorAnimation { duration: Theme.motionShort3 } }
+                }
 
-                    // Wallpaper Image
-                    Image {
-                        id: cardImage
-                        anchors.fill: parent
-                        source: cardItem.modelData.fileUrl ? cardItem.modelData.fileUrl : ("file://" + cardItem.modelData.filePath)
-                        asynchronous: true
-                        cache: true
-                        fillMode: Image.PreserveAspectCrop
-                        sourceSize.width: 800
-                        sourceSize.height: 600
+                // Ripple Feedback
+                MaterialRipple {
+                    id: cardRipple
+                    rippleColor: "#ffffff"
+                }
 
-                        // Loading placeholder
-                        MaterialIcon {
-                            anchors.centerIn: parent
-                            visible: cardImage.status !== Image.Ready && !cardItem.modelData.isVideo
-                            text: "image"
-                            iconSize: 44
-                            color: Theme.textSecondary
-                        }
+                MouseArea {
+                    id: cardPointer
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: mouse => {
+                        carousel.forceActiveFocus();
+                        cardRipple.burst(mouse.x, mouse.y);
                     }
-
-                    // Selection Feedback Ripple
-                    MaterialRipple {
-                        id: cardRipple
-                        rippleColor: "#ffffff"
-                    }
-
-                    MouseArea {
-                        id: cardPointer
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onPressed: mouse => {
-                            carousel.forceActiveFocus();
-                            cardRipple.burst(mouse.x, mouse.y);
-                        }
-                        onClicked: {
-                            if (carousel.currentIndex !== cardItem.index) {
-                                carousel.currentIndex = cardItem.index;
-                            } else {
-                                root.applySelectedWallpaper();
-                            }
+                    onClicked: {
+                        if (carousel.currentIndex !== cardItem.index) {
+                            carousel.currentIndex = cardItem.index;
+                        } else {
+                            root.applySelectedWallpaper();
                         }
                     }
                 }
