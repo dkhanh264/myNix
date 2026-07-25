@@ -7,8 +7,8 @@ import "../theme"
 
 // Material 3 Expressive Minimal Wallpaper Carousel Picker
 // Strictly adheres to M3 Expressive Carousel Specs (https://m3.material.io/components/carousel/specs).
-// Features smooth rounded corners (MultiEffect mask), dynamic shape morphing, visual arrow controls,
-// and Keyboard Arrow Navigation (Left/Right to navigate, Up/Down/Enter/Space to apply wallpaper).
+// Features smooth rounded corners (MultiEffect mask), dynamic shape morphing,
+// and Keyboard Arrow Navigation (Left/Right to navigate, Enter to apply wallpaper).
 FocusScope {
     id: root
 
@@ -84,7 +84,7 @@ FocusScope {
         }
     }
 
-    // Keyboard Navigation & Selection
+    // Keyboard Navigation (Left/Right to switch focus) & Selection (Enter to apply)
     Keys.onLeftPressed: event => {
         if (carousel.currentIndex > 0) {
             carousel.currentIndex--;
@@ -99,27 +99,12 @@ FocusScope {
         }
     }
 
-    Keys.onUpPressed: event => {
-        root.applySelectedWallpaper();
-        event.accepted = true;
-    }
-
-    Keys.onDownPressed: event => {
-        root.applySelectedWallpaper();
-        event.accepted = true;
-    }
-
     Keys.onReturnPressed: event => {
         root.applySelectedWallpaper();
         event.accepted = true;
     }
 
     Keys.onEnterPressed: event => {
-        root.applySelectedWallpaper();
-        event.accepted = true;
-    }
-
-    Keys.onSpacePressed: event => {
         root.applySelectedWallpaper();
         event.accepted = true;
     }
@@ -175,85 +160,11 @@ FocusScope {
             }
         }
 
-        // Floating Left UI Navigation Arrow
-        Rectangle {
-            id: prevButton
-            anchors.left: parent.left
-            anchors.verticalCenter: carousel.verticalCenter
-            anchors.leftMargin: 8
-            width: 44
-            height: 44
-            radius: 22
-            color: prevMouse.containsMouse ? Theme.primary : Theme.alpha(Theme.surfaceContainerHigh, 0.90)
-            border.width: 1
-            border.color: Theme.alpha(Theme.outline, 0.3)
-            visible: root.wallpapersData.length > 1 && carousel.currentIndex > 0
-            z: 30
-
-            Behavior on color { ColorAnimation { duration: Theme.motionShort2 } }
-
-            MaterialIcon {
-                anchors.centerIn: parent
-                text: "chevron_left"
-                iconSize: 26
-                color: prevMouse.containsMouse ? Theme.onPrimary : Theme.textPrimary
-            }
-
-            MouseArea {
-                id: prevMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (carousel.currentIndex > 0) {
-                        carousel.currentIndex--;
-                    }
-                }
-            }
-        }
-
-        // Floating Right UI Navigation Arrow
-        Rectangle {
-            id: nextButton
-            anchors.right: parent.right
-            anchors.verticalCenter: carousel.verticalCenter
-            anchors.rightMargin: 8
-            width: 44
-            height: 44
-            radius: 22
-            color: nextMouse.containsMouse ? Theme.primary : Theme.alpha(Theme.surfaceContainerHigh, 0.90)
-            border.width: 1
-            border.color: Theme.alpha(Theme.outline, 0.3)
-            visible: root.wallpapersData.length > 1 && carousel.currentIndex < root.wallpapersData.length - 1
-            z: 30
-
-            Behavior on color { ColorAnimation { duration: Theme.motionShort2 } }
-
-            MaterialIcon {
-                anchors.centerIn: parent
-                text: "chevron_right"
-                iconSize: 26
-                color: nextMouse.containsMouse ? Theme.onPrimary : Theme.textPrimary
-            }
-
-            MouseArea {
-                id: nextMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (carousel.currentIndex < root.wallpapersData.length - 1) {
-                        carousel.currentIndex++;
-                    }
-                }
-            }
-        }
-
         // Horizontal M3 Expressive Hero Carousel
         ListView {
             id: carousel
             anchors.fill: parent
-            anchors.bottomMargin: 32
+            anchors.bottomMargin: 24
             visible: root.wallpapersData.length > 0
             focus: true
 
@@ -268,12 +179,12 @@ FocusScope {
             preferredHighlightEnd: (width - cardWidth) / 2
             highlightMoveDuration: Theme.motionMedium3
 
-            property real cardWidth: Math.min(420, carousel.width * 0.54)
-            property real cardHeight: Math.min(480, carousel.height - 16)
+            property real cardWidth: Math.min(440, carousel.width * 0.56)
+            property real cardHeight: Math.min(500, carousel.height - 12)
 
             model: root.wallpapersData
 
-            // Forward key events to root as well
+            // Key events handling
             Keys.onLeftPressed: event => {
                 if (carousel.currentIndex > 0) {
                     carousel.currentIndex--;
@@ -288,7 +199,6 @@ FocusScope {
             }
             Keys.onReturnPressed: event => { root.applySelectedWallpaper(); event.accepted = true; }
             Keys.onEnterPressed: event => { root.applySelectedWallpaper(); event.accepted = true; }
-            Keys.onSpacePressed: event => { root.applySelectedWallpaper(); event.accepted = true; }
 
             delegate: Item {
                 id: cardItem
@@ -364,7 +274,7 @@ FocusScope {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             anchors.bottom: parent.bottom
-                            height: 110
+                            height: 100
                             gradient: Gradient {
                                 GradientStop { position: 0.0; color: "transparent" }
                                 GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.85) }
@@ -473,13 +383,13 @@ FocusScope {
                         }
                     }
 
-                    // Bottom Title Overlay & Helper Text
+                    // Bottom Title Overlay (Clean presentation without guidance text)
                     Column {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.bottom: parent.bottom
                         anchors.margins: 16
-                        spacing: 4
+                        spacing: 2
                         z: 15
 
                         Text {
@@ -494,13 +404,10 @@ FocusScope {
 
                         Text {
                             width: parent.width
-                            text: cardItem.isCurrent
-                                ? I18n.tr("Phím ◄ ► di chuyển | ▲ ▼ / Enter chọn", "Use ◄ ► to navigate | ▲ ▼ / Enter to apply")
-                                : cardItem.modelData.fileType
-                            color: Qt.rgba(1, 1, 1, 0.82)
+                            text: cardItem.modelData.fileType
+                            color: Qt.rgba(1, 1, 1, 0.75)
                             font.family: Theme.textFont
                             font.pixelSize: 11
-                            font.weight: cardItem.isCurrent ? Font.Bold : Font.Normal
                             elide: Text.ElideRight
                         }
                     }
@@ -530,7 +437,7 @@ FocusScope {
             }
         }
 
-        // MD3 Expressive Pager Dots + Helper Row
+        // MD3 Expressive Pager Dots Indicator
         RowLayout {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
