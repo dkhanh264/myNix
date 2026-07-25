@@ -12,10 +12,9 @@ Text {
     id: root
 
     property string role: "bodyMedium" // Canonical M3 Type Scale role
-    property color color: Theme.textPrimary
 
     font.family: Theme.textFont
-    color: root.color
+    color: Theme.textPrimary
 
     font.pixelSize: {
         switch (role) {
