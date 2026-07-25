@@ -2,9 +2,12 @@ import QtQuick
 import "../theme"
 
 // Material 3 Expressive Circular Progress Indicator.
-// Standardized reusable circular progress component styled like the music widget progress bar.
-// Features clean background track ring, animated expressive waveform/arc with rounded caps,
-// dynamic split-track gap, terminal dot indicator, and smooth Bezier spline interpolation.
+// Conforms to M3 Progress Indicator specs (https://m3.material.io/components/progress-indicators/specs).
+// Features:
+// - Distinct active indicator arc and inactive track with M3 split-track gap
+// - Rounded end caps on both active arc and inactive track
+// - Expressive optional waveform/pulse animation for active states
+// - Smooth Bezier spline level transitions with Emphasized motion
 Item {
     id: root
 
@@ -15,6 +18,7 @@ Item {
     property real strokeWidth: 5
     property bool showValue: true
     property bool animatedWave: true
+    property bool showStopIndicator: false
     property string valueText: Math.round(value).toString()
     property string accessibleName: "System metric"
     property color progressColor: Theme.primary
@@ -74,41 +78,70 @@ Item {
             const stroke = root.strokeWidth;
             const centerX = w / 2;
             const centerY = h / 2;
-            const baseRadius = Math.max(stroke, Math.min(w, h) / 2 - stroke / 2 - 3);
+            // Pad to ensure rounded stroke caps don't clip at edge boundaries
+            const baseRadius = Math.max(stroke, Math.min(w, h) / 2 - stroke / 2 - 1.5);
 
             ctx.reset();
             ctx.clearRect(0, 0, w, h);
 
-            // Track background ring
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2, false);
-            ctx.strokeStyle = root.trackColor;
-            ctx.lineWidth = Math.max(2, stroke - 1);
-            ctx.lineCap = "round";
-            ctx.stroke();
-
-            // Active expressive progress arc
             const level = Math.min(1, Math.max(0, root.displayLevel));
-            if (level > 0.001) {
-                const startAngle = -Math.PI / 2;
-                const sweepAngle = Math.PI * 2 * level;
-                const endAngle = startAngle + sweepAngle;
+            const startAngle = -Math.PI / 2; // 12 o'clock
+            const fullSweep = Math.PI * 2;
 
+            // M3 Spec: Gap between active indicator and inactive track
+            // Visual gap between stroke caps: ~2.5px to 4px depending on stroke scale
+            const visualGap = Math.max(2, Math.min(4, stroke * 0.75));
+            const angularGap = baseRadius > 0 ? (visualGap + stroke) / baseRadius : 0.3;
+
+            if (level <= 0.001) {
+                // 0% progress: Inactive track only
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, baseRadius, 0, fullSweep, false);
+                ctx.strokeStyle = root.trackColor;
+                ctx.lineWidth = stroke;
+                ctx.lineCap = "round";
+                ctx.stroke();
+            } else if (level >= 0.999) {
+                // 100% progress: Active indicator full circle
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, baseRadius, 0, fullSweep, false);
+                ctx.strokeStyle = root.progressColor;
+                ctx.lineWidth = stroke;
+                ctx.lineCap = "round";
+                ctx.stroke();
+            } else {
+                const activeSweep = fullSweep * level;
+                const activeEndAngle = startAngle + activeSweep;
+
+                // 1. Inactive Track with M3 Gap at both ends of active indicator
+                const inactiveStartAngle = activeEndAngle + angularGap;
+                const inactiveEndAngle = startAngle - angularGap;
+
+                // Ensure there is room for the inactive arc after applying gaps
+                if (fullSweep - activeSweep > angularGap * 2.2) {
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, baseRadius, inactiveStartAngle, inactiveEndAngle, false);
+                    ctx.strokeStyle = root.trackColor;
+                    ctx.lineWidth = stroke;
+                    ctx.lineCap = "round";
+                    ctx.stroke();
+                }
+
+                // 2. Active Indicator Arc
                 ctx.strokeStyle = root.progressColor;
                 ctx.lineWidth = stroke;
                 ctx.lineCap = "round";
                 ctx.lineJoin = "round";
 
                 if (root.animatedWave && level > 0.03) {
-                    const steps = Math.max(24, Math.floor(sweepAngle * 24));
-                    const amplitude = 1.4;
-                    const frequency = 7.0;
+                    const steps = Math.max(24, Math.floor(activeSweep * 24));
+                    const amplitude = 1.2;
+                    const frequency = 6.0;
 
                     ctx.beginPath();
                     for (let i = 0; i <= steps; i++) {
                         const t = i / steps;
-                        const angle = startAngle + t * sweepAngle;
-                        // Envelope dampens wave at the start and end of the arc
+                        const angle = startAngle + t * activeSweep;
                         const envelope = Math.sin(t * Math.PI);
                         const r = baseRadius + Math.sin(angle * frequency + progressCanvas.wavePhase) * amplitude * envelope;
                         const x = centerX + Math.cos(angle) * r;
@@ -122,17 +155,19 @@ Item {
                     ctx.stroke();
                 } else {
                     ctx.beginPath();
-                    ctx.arc(centerX, centerY, baseRadius, startAngle, endAngle, false);
+                    ctx.arc(centerX, centerY, baseRadius, startAngle, activeEndAngle, false);
                     ctx.stroke();
                 }
 
-                // Terminal dot indicator at tip of active arc (mirrors M3 Expressive slider handle)
-                const tipX = centerX + Math.cos(endAngle) * baseRadius;
-                const tipY = centerY + Math.sin(endAngle) * baseRadius;
-                ctx.fillStyle = root.progressColor;
-                ctx.beginPath();
-                ctx.arc(tipX, tipY, Math.max(2, stroke * 0.65), 0, Math.PI * 2, false);
-                ctx.fill();
+                // 3. Optional M3 Stop Indicator at tip of active arc
+                if (root.showStopIndicator) {
+                    const tipX = centerX + Math.cos(activeEndAngle) * baseRadius;
+                    const tipY = centerY + Math.sin(activeEndAngle) * baseRadius;
+                    ctx.fillStyle = root.progressColor;
+                    ctx.beginPath();
+                    ctx.arc(tipX, tipY, Math.max(2, stroke * 0.6), 0, fullSweep, false);
+                    ctx.fill();
+                }
             }
         }
     }
@@ -152,4 +187,3 @@ Item {
         }
     }
 }
-

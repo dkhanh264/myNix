@@ -27,7 +27,9 @@ M3BarPill {
                     ? Math.max(0, Math.min(100,
                         root.controller.temperatureC)) : 0,
             "color": root.controller && root.controller.temperatureC >= 80
-                ? Theme.error : Theme.tertiary,
+                ? Theme.error
+                : (root.controller && root.controller.temperatureC >= 65
+                    ? Theme.warning : Theme.tertiary),
             "visible": root.controller
                 && root.controller.temperatureAvailable
         },
@@ -65,7 +67,7 @@ M3BarPill {
                 required property var modelData
 
                 visible: modelData.visible
-                width: modelData.label === "RAM" ? 60 : 54
+                width: modelData.label === "RAM" ? 62 : 56
                 height: 30
 
                 Md3CircularProgress {
