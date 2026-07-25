@@ -68,7 +68,7 @@ Item {
             to: Math.PI * 2
             duration: 2200
             loops: Animation.Infinite
-            running: root.animatedWave && root.visible && !Theme.reduceMotion
+            running: root.animatedWave && root.visible && (root.Window.window ? root.Window.window.visible : true) && !Theme.reduceMotion
         }
 
         onPaint: {

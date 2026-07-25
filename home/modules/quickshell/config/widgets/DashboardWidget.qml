@@ -230,6 +230,7 @@ Item {
                                     strokeWidth: 3.5
                                     value: root.controller ? root.controller.cpuUsage : 0
                                     showValue: false
+                                    animatedWave: false
                                     progressColor: Theme.primary
                                 }
 
@@ -287,6 +288,7 @@ Item {
                                     strokeWidth: 3.5
                                     value: root.controller ? root.controller.memoryPercent : 0
                                     showValue: false
+                                    animatedWave: false
                                     progressColor: Theme.secondary
                                 }
 
@@ -930,6 +932,7 @@ Item {
                                 model: parent.totalCells
 
                                 Item {
+                                    id: dayCell
                                     required property int index
 
                                     readonly property int dayNumber: index - parent.firstDayOfWeek + 1
@@ -944,16 +947,16 @@ Item {
                                         width: 22
                                         height: 22
                                         radius: 11
-                                        color: parent.isToday ? Theme.primary : "transparent"
-                                        visible: parent.isValidDay
+                                        color: dayCell.isToday ? Theme.primary : "transparent"
+                                        visible: dayCell.isValidDay
 
                                         Text {
                                             anchors.centerIn: parent
-                                            text: parent.parent.isValidDay ? parent.parent.dayNumber : ""
-                                            color: parent.parent.isToday ? Theme.onPrimary : Theme.textPrimary
+                                            text: dayCell.isValidDay ? dayCell.dayNumber : ""
+                                            color: dayCell.isToday ? Theme.onPrimary : Theme.textPrimary
                                             font.family: Theme.textFont
                                             font.pixelSize: 10
-                                            font.weight: parent.parent.isToday ? Font.Bold : Font.Normal
+                                            font.weight: dayCell.isToday ? Font.Bold : Font.Normal
                                         }
                                     }
                                 }

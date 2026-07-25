@@ -60,7 +60,7 @@ Item {
             to: Math.PI * 2
             duration: 2400
             loops: Animation.Infinite
-            running: root.animate && root.visible && !Theme.reduceMotion
+            running: root.animate && root.visible && (root.Window.window ? root.Window.window.visible : true) && !Theme.reduceMotion
                 && root.normalizedLevel > 0.01
                 && root.normalizedLevel < 0.99
         }

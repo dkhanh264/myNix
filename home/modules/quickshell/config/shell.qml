@@ -256,8 +256,8 @@ ShellRoot {
     IpcHandler {
         target: "controlCenter"
 
-        function toggle(): void { root.togglePopup("settings", ""); }
-        function show(): void { root.showPopup("settings", ""); }
+        function toggle(): void { root.togglePopup("dashboard", ""); }
+        function show(): void { root.showPopup("dashboard", ""); }
         function hide(): void { root.hidePopup(); }
     }
 
@@ -826,8 +826,7 @@ ShellRoot {
                     && root.popupScreen === barWindow.modelData.name
                 popupWidth: Math.min(540, barWindow.width
                     - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(dashboardWidgetSettings.implicitHeight
-                    + Theme.popupVerticalChrome,
+                popupHeight: Math.min(320,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("settings", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("settings")
@@ -835,26 +834,18 @@ ShellRoot {
                 PopupSurface {
                     anchors.fill: parent
                     shown: root.popupOpen && root.activePopup === "settings"
-                    title: I18n.tr("Bảng điều khiển MD3 Expressive", "MD3 Expressive Dashboard")
-                    subtitle: I18n.tr("Giao diện thống nhất cho toàn hệ thống",
-                        "One consistent system interface")
-                    icon: "dashboard"
+                    title: I18n.tr("Cài đặt hệ thống", "System Settings")
+                    subtitle: I18n.tr("Các lựa chọn cấu hình hệ thống",
+                        "System configuration options")
+                    icon: "settings"
                     onCloseRequested: root.hidePopup()
 
-                    Flickable {
+                    Loader {
                         anchors.fill: parent
-                        contentWidth: width
-                        contentHeight: dashboardWidgetSettings.implicitHeight
-                        clip: true
-                        boundsBehavior: Flickable.StopAtBounds
-
-                        DashboardWidget {
-                            id: dashboardWidgetSettings
-                            width: parent.width
+                        active: root.popupVisible && root.activePopup === "settings"
+                            && root.popupScreen === barWindow.modelData.name
+                        sourceComponent: SettingsGrid {
                             controller: systemService
-                            onSectionRequested: section =>
-                                root.showPopup(section, barWindow.modelData.name)
-                            onCloseRequested: root.hidePopup()
                         }
                     }
                 }
@@ -916,13 +907,16 @@ ShellRoot {
                     accentContainer: Theme.primaryContainer
                     onCloseRequested: root.hidePopup()
 
-                    DashboardWidget {
-                        id: dashboardWidget
+                    Loader {
                         anchors.fill: parent
-                        controller: systemService
-                        onSectionRequested: section =>
-                            root.showPopup(section, barWindow.modelData.name)
-                        onCloseRequested: root.hidePopup()
+                        active: root.popupVisible && root.activePopup === "dashboard"
+                            && root.popupScreen === barWindow.modelData.name
+                        sourceComponent: DashboardWidget {
+                            controller: systemService
+                            onSectionRequested: section =>
+                                root.showPopup(section, barWindow.modelData.name)
+                            onCloseRequested: root.hidePopup()
+                        }
                     }
                 }
             }

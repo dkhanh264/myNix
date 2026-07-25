@@ -90,8 +90,8 @@ Item {
             visible: root.showSystemStats
             anchors.verticalCenter: parent.verticalCenter
             controller: root.controller
-            checked: root.activePopup === "settings"
-            onPopupRequested: root.requestPopup("settings")
+            checked: root.activePopup === "dashboard" || root.activePopup === "settings"
+            onPopupRequested: root.requestPopup("dashboard")
         }
 
         StatusWidgets {
