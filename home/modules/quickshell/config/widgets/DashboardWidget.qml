@@ -15,6 +15,9 @@ Item {
     signal sectionRequested(string section)
     signal closeRequested
 
+    implicitWidth: mainLayout.implicitWidth
+    implicitHeight: mainLayout.implicitHeight
+
     property string uptimeText: I18n.tr("Đang tính…", "Calculating…")
     property date currentDate: new Date()
 
@@ -50,6 +53,7 @@ Item {
     }
 
     ColumnLayout {
+        id: mainLayout
         anchors.fill: parent
         spacing: Theme.space2
 
@@ -184,7 +188,6 @@ Item {
             // ================= LEFT COLUMN =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: parent.width * 0.49
                 Layout.fillHeight: true
                 spacing: Theme.space2
 
@@ -688,7 +691,6 @@ Item {
             // ================= RIGHT COLUMN =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: parent.width * 0.49
                 Layout.fillHeight: true
                 spacing: Theme.space2
 
