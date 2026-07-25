@@ -14,7 +14,7 @@ Item {
 
     implicitHeight: supportingText ? 56 : 48
     opacity: enabled ? 1 : 0.38
-    scale: presentationScale * (pointer.pressed ? 0.96 : (pointer.containsMouse ? 1.015 : 1))
+    scale: presentationScale * (pointer.pressed ? 0.97 : 1.0)
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.Button

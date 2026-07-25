@@ -521,6 +521,8 @@ ShellRoot {
                             width: parent.width
                             height: implicitHeight
                             controller: systemService
+                            onSectionRequested: section =>
+                                root.showPopup(section, barWindow.modelData.name)
                         }
                     }
                 }

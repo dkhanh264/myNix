@@ -64,7 +64,7 @@ Column {
         }
     }
 
-    // 2. Quick Control Tiles Grid (Screen Recorder, Wallpaper, Wi-Fi, Bluetooth)
+    // 2. Quick Action Tiles Grid (4 Tiles: Wi-Fi, Bluetooth, Screen Record, Wallpaper)
     Text {
         text: I18n.tr("Tác vụ nhanh", "Quick Actions")
         color: Theme.textPrimary
@@ -73,222 +73,80 @@ Column {
         font.weight: Font.Bold
     }
 
-    Grid {
+    GridLayout {
         width: parent.width
         columns: 2
         columnSpacing: Theme.space2
         rowSpacing: Theme.space2
 
-        // Screen Recorder Tile
-        Rectangle {
-            width: (parent.width - parent.columnSpacing) / 2
-            height: 64
-            radius: Theme.shapeMedium
-            color: root.controller && root.controller.recording ? Theme.errorContainer : Theme.surfaceContainer
-            border.width: 1
-            border.color: Theme.alpha(Theme.outlineVariant, 0.4)
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.sectionRequested("recorder")
-            }
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: Theme.space2
-                spacing: Theme.space2
-
-                Md3ExpressiveShape {
-                    Layout.preferredWidth: 36
-                    Layout.preferredHeight: 36
-                    Layout.alignment: Qt.AlignVCenter
-                    size: 36
-                    shapeType: 0 // Circle shape
-                    color: root.controller && root.controller.recording ? Theme.error : Theme.primary
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    spacing: 0
-
-                    Text {
-                        text: I18n.tr("Ghi màn hình", "Screen Record")
-                        color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 12
-                        font.weight: Font.Bold
-                    }
-                    Text {
-                        text: root.controller && root.controller.recording ? I18n.tr("Đang ghi…", "Recording…") : I18n.tr("Sẵn sàng", "Ready")
-                        color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
-                        elide: Text.ElideRight
-                    }
-                }
-            }
-        }
-
-        // Wallpaper Picker Tile
-        Rectangle {
-            width: (parent.width - parent.columnSpacing) / 2
-            height: 64
-            radius: Theme.shapeMedium
-            color: Theme.surfaceContainer
-            border.width: 1
-            border.color: Theme.alpha(Theme.outlineVariant, 0.4)
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.sectionRequested("wallpaper")
-            }
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: Theme.space2
-                spacing: Theme.space2
-
-                Md3ExpressiveShape {
-                    Layout.preferredWidth: 36
-                    Layout.preferredHeight: 36
-                    Layout.alignment: Qt.AlignVCenter
-                    size: 36
-                    shapeType: 5 // Star shape
-                    color: Theme.tertiary
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    spacing: 0
-
-                    Text {
-                        text: I18n.tr("Hình nền", "Wallpaper")
-                        color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 12
-                        font.weight: Font.Bold
-                    }
-                    Text {
-                        text: I18n.tr("Đổi hình nền", "Change Wallpaper")
-                        color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
-                        elide: Text.ElideRight
-                    }
-                }
-            }
-        }
-
         // Wi-Fi Quick Tile
-        Rectangle {
-            width: (parent.width - parent.columnSpacing) / 2
-            height: 64
-            radius: Theme.shapeMedium
-            color: root.controller && root.controller.wifiEnabled ? Theme.primaryContainer : Theme.surfaceContainer
-            border.width: 1
-            border.color: Theme.alpha(Theme.outlineVariant, 0.4)
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.sectionRequested("wifi")
+        QuickTile {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 1
+            icon: root.controller && root.controller.wifiEnabled ? "wifi" : "wifi_off"
+            title: "Wi-Fi"
+            subtitle: root.controller && root.controller.wifiEnabled
+                ? (root.controller.wifiSsid || I18n.tr("Đã bật", "On"))
+                : I18n.tr("Đã tắt", "Off")
+            active: root.controller && root.controller.wifiEnabled
+            showDetails: true
+            onPrimaryClicked: {
+                if (root.controller && !root.controller.wifiEnabled)
+                    root.controller.toggleWifi();
+                else
+                    root.sectionRequested("wifi");
             }
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: Theme.space2
-                spacing: Theme.space2
-
-                Md3ExpressiveShape {
-                    Layout.preferredWidth: 36
-                    Layout.preferredHeight: 36
-                    Layout.alignment: Qt.AlignVCenter
-                    size: 36
-                    shapeType: 6 // Oval shape
-                    color: root.controller && root.controller.wifiEnabled ? Theme.primary : Theme.surfaceContainerHighest
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    spacing: 0
-
-                    Text {
-                        text: "Wi-Fi"
-                        color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 12
-                        font.weight: Font.Bold
-                    }
-                    Text {
-                        text: root.controller && root.controller.wifiEnabled ? (root.controller.wifiSsid || I18n.tr("Đã bật", "On")) : I18n.tr("Đã tắt", "Off")
-                        color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
-                        elide: Text.ElideRight
-                    }
-                }
-            }
+            onDetailsClicked: root.sectionRequested("wifi")
         }
 
         // Bluetooth Quick Tile
-        Rectangle {
-            width: (parent.width - parent.columnSpacing) / 2
-            height: 64
-            radius: Theme.shapeMedium
-            color: root.controller && root.controller.bluetoothEnabled ? Theme.tertiaryContainer : Theme.surfaceContainer
-            border.width: 1
-            border.color: Theme.alpha(Theme.outlineVariant, 0.4)
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.sectionRequested("bluetooth")
+        QuickTile {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 1
+            icon: root.controller && root.controller.bluetoothEnabled ? "bluetooth" : "bluetooth_disabled"
+            title: "Bluetooth"
+            subtitle: root.controller && root.controller.bluetoothEnabled
+                ? (root.controller.bluetoothConnectedCount > 0
+                    ? root.controller.bluetoothConnectedCount + I18n.tr(" thiết bị", " devices")
+                    : I18n.tr("Đã bật", "On"))
+                : I18n.tr("Đã tắt", "Off")
+            active: root.controller && root.controller.bluetoothEnabled
+            showDetails: true
+            onPrimaryClicked: {
+                if (root.controller && !root.controller.bluetoothEnabled)
+                    root.controller.toggleBluetooth();
+                else
+                    root.sectionRequested("bluetooth");
             }
+            onDetailsClicked: root.sectionRequested("bluetooth")
+        }
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: Theme.space2
-                spacing: Theme.space2
+        // Screen Recorder Quick Tile
+        QuickTile {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 1
+            icon: root.controller && root.controller.recording ? "stop_circle" : "videocam"
+            title: I18n.tr("Ghi màn hình", "Screen Record")
+            subtitle: root.controller && root.controller.recording
+                ? I18n.tr("Đang ghi…", "Recording…")
+                : I18n.tr("Sẵn sàng", "Ready")
+            active: root.controller && root.controller.recording
+            showDetails: true
+            onPrimaryClicked: root.sectionRequested("recorder")
+            onDetailsClicked: root.sectionRequested("recorder")
+        }
 
-                Md3ExpressiveShape {
-                    Layout.preferredWidth: 36
-                    Layout.preferredHeight: 36
-                    Layout.alignment: Qt.AlignVCenter
-                    size: 36
-                    shapeType: 3 // Vertical Pill shape
-                    color: root.controller && root.controller.bluetoothEnabled ? Theme.tertiary : Theme.surfaceContainerHighest
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    spacing: 0
-
-                    Text {
-                        text: "Bluetooth"
-                        color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 12
-                        font.weight: Font.Bold
-                    }
-                    Text {
-                        text: root.controller && root.controller.bluetoothEnabled ? (root.controller.bluetoothConnectedCount + I18n.tr(" thiết bị", " devices")) : I18n.tr("Đã tắt", "Off")
-                        color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
-                        elide: Text.ElideRight
-                    }
-                }
-            }
+        // Wallpaper Picker Quick Tile
+        QuickTile {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 1
+            icon: "wallpaper"
+            title: I18n.tr("Hình nền", "Wallpaper")
+            subtitle: I18n.tr("Bộ sưu tập", "Gallery")
+            active: false
+            showDetails: true
+            onPrimaryClicked: root.sectionRequested("wallpaper")
+            onDetailsClicked: root.sectionRequested("wallpaper")
         }
     }
 

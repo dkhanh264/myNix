@@ -20,7 +20,7 @@ Item {
 
     implicitHeight: 72
     opacity: enabled ? 1 : 0.42
-    scale: primaryPointer.pressed ? 0.96 : (primaryPointer.containsMouse ? 1.015 : 1)
+    scale: primaryPointer.pressed ? 0.97 : 1.0
 
     Rectangle {
         id: tileSurface
