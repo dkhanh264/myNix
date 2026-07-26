@@ -261,23 +261,24 @@ Scope {
         if (temperatureAvailable)
             temperatureC = Math.round(millidegrees / 1000);
 
+        let dfDataIndex = 0;
         for (let i = 3; i < lines.length; ++i) {
             const dfFields = lines[i].trim().split(/\s+/);
-            if (dfFields.length >= 6) {
-                const mount = dfFields[5];
+            if (dfFields.length >= 6 && !dfFields[0].startsWith("Filesystem")) {
                 const totalKiB = Number(dfFields[1]) || 0;
                 const usedKiB = Number(dfFields[2]) || 0;
                 const pct = parseInt(dfFields[4]) || 0;
-                if (mount === "/") {
+                if (dfDataIndex === 0) {
                     root.diskRootTotalGib = totalKiB / 1048576;
                     root.diskRootUsedGib = usedKiB / 1048576;
                     root.diskRootPercent = pct;
                     root.diskAvailable = true;
-                } else if (mount === "/home") {
+                } else if (dfDataIndex === 1) {
                     root.diskHomeTotalGib = totalKiB / 1048576;
                     root.diskHomeUsedGib = usedKiB / 1048576;
                     root.diskHomePercent = pct;
                 }
+                dfDataIndex++;
             }
         }
     }

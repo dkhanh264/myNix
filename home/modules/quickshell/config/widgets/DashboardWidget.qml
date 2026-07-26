@@ -248,7 +248,7 @@ Item {
                         }
                     }
 
-                    // Card 1B: Rectangular Water Bottle Disk Storage Card - Equal Width
+                    // Card 1B: Dual Water Bottle Disk Storage Card - 2 Equal Water Bottles Filling Parent Card
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredWidth: 1
@@ -260,166 +260,288 @@ Item {
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.margins: Theme.space3
-                            spacing: Theme.space3
+                            anchors.margins: Theme.space2
+                            spacing: Theme.space2
 
-                            // Upright Rectangular Water Bottle Progress Vessel
-                            Item {
-                                id: waterBottleVessel
-                                implicitWidth: 46
+                            // 1. Water Bottle 1: Root Partition (/)
+                            Rectangle {
+                                id: rootBottleVessel
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 1
                                 Layout.fillHeight: true
+                                radius: Theme.shapeMedium
+                                color: Theme.surfaceContainerHigh
+                                border.width: 1.5
+                                border.color: Theme.alpha(Theme.primary, 0.45)
+                                clip: true
+
+                                Canvas {
+                                    id: rootBottleCanvas
+                                    anchors.fill: parent
+                                    antialiasing: true
+                                    renderStrategy: Canvas.Cooperative
+                                    property real wavePhase: 0
+
+                                    onWavePhaseChanged: requestPaint()
+                                    Component.onCompleted: requestPaint()
+
+                                    NumberAnimation on wavePhase {
+                                        from: 0
+                                        to: Math.PI * 2
+                                        duration: 2200
+                                        loops: Animation.Infinite
+                                        running: root.visible && !Theme.reduceMotion
+                                    }
+
+                                    readonly property real pct: root.controller ? Math.max(0.05, Math.min(0.95, root.controller.diskRootPercent / 100)) : 0.45
+
+                                    onPaint: {
+                                        const ctx = getContext("2d");
+                                        const w = width;
+                                        const h = height;
+                                        if (w <= 0 || h <= 0) return;
+                                        const liquidH = h * pct;
+                                        const surfaceY = h - liquidH;
+                                        const amplitude = 3.5;
+                                        const r = Theme.shapeMedium;
+
+                                        ctx.reset();
+                                        ctx.clearRect(0, 0, w, h);
+
+                                        // Clip all 4 directions / corners
+                                        ctx.beginPath();
+                                        ctx.moveTo(r, 0);
+                                        ctx.arcTo(w, 0, w, h, r);
+                                        ctx.arcTo(w, h, 0, h, r);
+                                        ctx.arcTo(0, h, 0, 0, r);
+                                        ctx.arcTo(0, 0, w, 0, r);
+                                        ctx.closePath();
+                                        ctx.clip();
+
+                                        // Rear liquid wave
+                                        ctx.globalAlpha = 0.30;
+                                        ctx.fillStyle = Theme.primary;
+                                        ctx.beginPath();
+                                        ctx.moveTo(0, h);
+                                        for (let x = 0; x <= w; x += 1) {
+                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 - rootBottleCanvas.wavePhase * 0.8) * amplitude;
+                                            ctx.lineTo(x, y);
+                                        }
+                                        ctx.lineTo(w, h);
+                                        ctx.closePath();
+                                        ctx.fill();
+
+                                        // Front liquid wave
+                                        ctx.globalAlpha = 0.80;
+                                        ctx.fillStyle = Theme.primary;
+                                        ctx.beginPath();
+                                        ctx.moveTo(0, h);
+                                        for (let x = 0; x <= w; x += 1) {
+                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 + rootBottleCanvas.wavePhase) * amplitude;
+                                            ctx.lineTo(x, y);
+                                        }
+                                        ctx.lineTo(w, h);
+                                        ctx.closePath();
+                                        ctx.fill();
+                                    }
+                                }
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    radius: Theme.shapeMedium
-                                    color: Theme.surfaceContainerHigh
-                                    border.width: 1.5
-                                    border.color: Theme.alpha(Theme.primary, 0.45)
-                                    clip: true
+                                    anchors.margins: Theme.space2
+                                    color: Theme.alpha(Theme.surface, 0.35)
+                                    radius: Theme.shapeMedium - 2
 
-                                    Canvas {
-                                        id: bottleCanvas
+                                    ColumnLayout {
                                         anchors.fill: parent
-                                        antialiasing: true
-                                        renderStrategy: Canvas.Cooperative
-                                        property real wavePhase: 0
-
-                                        onWavePhaseChanged: requestPaint()
-                                        Component.onCompleted: requestPaint()
-
-                                        NumberAnimation on wavePhase {
-                                            from: 0
-                                            to: Math.PI * 2
-                                            duration: 2200
-                                            loops: Animation.Infinite
-                                            running: root.visible && !Theme.reduceMotion
-                                        }
-
-                                        readonly property real pct: root.controller ? Math.max(0.05, Math.min(0.95, root.controller.diskRootPercent / 100)) : 0.4
-
-                                        onPaint: {
-                                            const ctx = getContext("2d");
-                                            const w = width;
-                                            const h = height;
-                                            if (w <= 0 || h <= 0) return;
-                                            const liquidH = h * pct;
-                                            const surfaceY = h - liquidH;
-                                            const amplitude = 3;
-
-                                            ctx.reset();
-                                            ctx.clearRect(0, 0, w, h);
-
-                                            // Rear liquid wave
-                                            ctx.globalAlpha = 0.35;
-                                            ctx.fillStyle = Theme.primary;
-                                            ctx.beginPath();
-                                            ctx.moveTo(0, h);
-                                            for (let x = 0; x <= w; x += 1) {
-                                                const y = surfaceY + Math.sin((x / w) * Math.PI * 2 - bottleCanvas.wavePhase * 0.8) * amplitude;
-                                                ctx.lineTo(x, y);
-                                            }
-                                            ctx.lineTo(w, h);
-                                            ctx.closePath();
-                                            ctx.fill();
-
-                                            // Front liquid wave
-                                            ctx.globalAlpha = 0.85;
-                                            ctx.fillStyle = Theme.primary;
-                                            ctx.beginPath();
-                                            ctx.moveTo(0, h);
-                                            for (let x = 0; x <= w; x += 1) {
-                                                const y = surfaceY + Math.sin((x / w) * Math.PI * 2 + bottleCanvas.wavePhase) * amplitude;
-                                                ctx.lineTo(x, y);
-                                            }
-                                            ctx.lineTo(w, h);
-                                            ctx.closePath();
-                                            ctx.fill();
-                                        }
-                                    }
-
-                                    Column {
-                                        anchors.centerIn: parent
+                                        anchors.margins: 4
                                         spacing: 2
 
-                                        MaterialIcon {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            text: "water_drop"
-                                            iconSize: 16
-                                            color: Theme.textPrimary
+                                        RowLayout {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            spacing: 4
+
+                                            MaterialIcon {
+                                                text: "storage"
+                                                iconSize: 14
+                                                color: Theme.primary
+                                            }
+
+                                            M3Text {
+                                                role: "labelMedium"
+                                                text: "Root (/)"
+                                                color: Theme.textPrimary
+                                                font.weight: Font.Bold
+                                            }
                                         }
 
+                                        Item { Layout.fillHeight: true }
+
                                         M3Text {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            role: "labelSmall"
+                                            Layout.alignment: Qt.AlignHCenter
+                                            role: "titleLarge"
                                             text: (root.controller ? root.controller.diskRootPercent : 0) + "%"
                                             color: Theme.textPrimary
                                             font.weight: Font.Bold
                                         }
+
+                                        M3Text {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            role: "labelSmall"
+                                            text: (root.controller && root.controller.diskRootUsedGib ? root.controller.diskRootUsedGib.toFixed(1) : "--") + " / " + (root.controller && root.controller.diskRootTotalGib ? root.controller.diskRootTotalGib.toFixed(1) : "--") + " GB"
+                                            color: Theme.textSecondary
+                                            font.weight: Font.Medium
+                                        }
+
+                                        Item { Layout.fillHeight: true }
                                     }
                                 }
                             }
 
-                            // Storage Text Info & Breakdown
-                            ColumnLayout {
+                            // 2. Water Bottle 2: Home Partition (/home)
+                            Rectangle {
+                                id: homeBottleVessel
                                 Layout.fillWidth: true
+                                Layout.preferredWidth: 1
                                 Layout.fillHeight: true
-                                spacing: 4
+                                radius: Theme.shapeMedium
+                                color: Theme.surfaceContainerHigh
+                                border.width: 1.5
+                                border.color: Theme.alpha(Theme.tertiary, 0.45)
+                                clip: true
 
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    spacing: Theme.space1
+                                Canvas {
+                                    id: homeBottleCanvas
+                                    anchors.fill: parent
+                                    antialiasing: true
+                                    renderStrategy: Canvas.Cooperative
+                                    property real wavePhase: 0
 
-                                    MaterialIcon {
-                                        text: "storage"
-                                        iconSize: Theme.iconSizeSmall
-                                        color: Theme.primary
+                                    onWavePhaseChanged: requestPaint()
+                                    Component.onCompleted: requestPaint()
+
+                                    NumberAnimation on wavePhase {
+                                        from: 0
+                                        to: Math.PI * 2
+                                        duration: 2600
+                                        loops: Animation.Infinite
+                                        running: root.visible && !Theme.reduceMotion
                                     }
 
-                                    M3Text {
-                                        Layout.fillWidth: true
-                                        role: "titleSmall"
-                                        text: I18n.tr("Dung lượng", "Storage")
-                                        color: Theme.textPrimary
-                                        font.weight: Font.Bold
+                                    readonly property real pct: {
+                                        if (!root.controller) return 0.40;
+                                        const p = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomePercent : root.controller.diskRootPercent;
+                                        return Math.max(0.05, Math.min(0.95, p / 100));
+                                    }
+
+                                    onPaint: {
+                                        const ctx = getContext("2d");
+                                        const w = width;
+                                        const h = height;
+                                        if (w <= 0 || h <= 0) return;
+                                        const liquidH = h * pct;
+                                        const surfaceY = h - liquidH;
+                                        const amplitude = 3.5;
+                                        const r = Theme.shapeMedium;
+
+                                        ctx.reset();
+                                        ctx.clearRect(0, 0, w, h);
+
+                                        // Clip all 4 directions / corners
+                                        ctx.beginPath();
+                                        ctx.moveTo(r, 0);
+                                        ctx.arcTo(w, 0, w, h, r);
+                                        ctx.arcTo(w, h, 0, h, r);
+                                        ctx.arcTo(0, h, 0, 0, r);
+                                        ctx.arcTo(0, 0, w, 0, r);
+                                        ctx.closePath();
+                                        ctx.clip();
+
+                                        // Rear liquid wave
+                                        ctx.globalAlpha = 0.30;
+                                        ctx.fillStyle = Theme.tertiary;
+                                        ctx.beginPath();
+                                        ctx.moveTo(0, h);
+                                        for (let x = 0; x <= w; x += 1) {
+                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 - homeBottleCanvas.wavePhase * 0.8) * amplitude;
+                                            ctx.lineTo(x, y);
+                                        }
+                                        ctx.lineTo(w, h);
+                                        ctx.closePath();
+                                        ctx.fill();
+
+                                        // Front liquid wave
+                                        ctx.globalAlpha = 0.80;
+                                        ctx.fillStyle = Theme.tertiary;
+                                        ctx.beginPath();
+                                        ctx.moveTo(0, h);
+                                        for (let x = 0; x <= w; x += 1) {
+                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 + homeBottleCanvas.wavePhase) * amplitude;
+                                            ctx.lineTo(x, y);
+                                        }
+                                        ctx.lineTo(w, h);
+                                        ctx.closePath();
+                                        ctx.fill();
                                     }
                                 }
 
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 2
+                                Rectangle {
+                                    anchors.fill: parent
+                                    anchors.margins: Theme.space2
+                                    color: Theme.alpha(Theme.surface, 0.35)
+                                    radius: Theme.shapeMedium - 2
 
-                                    M3Text {
-                                        role: "labelSmall"
-                                        text: I18n.tr("Chiếm chỗ: ", "Used: ") + (root.controller && root.controller.diskRootUsedGib ? root.controller.diskRootUsedGib.toFixed(1) + " GB" : "--")
-                                        color: Theme.primary
-                                        font.weight: Font.Bold
-                                    }
+                                    ColumnLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: 4
+                                        spacing: 2
 
-                                    M3Text {
-                                        role: "labelSmall"
-                                        text: I18n.tr("Còn trống: ", "Free: ") + (root.controller && root.controller.diskRootTotalGib ? Math.max(0, root.controller.diskRootTotalGib - root.controller.diskRootUsedGib).toFixed(1) + " GB" : "--")
-                                        color: Theme.textSecondary
-                                        font.weight: Font.Medium
-                                    }
-                                }
+                                        RowLayout {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            spacing: 4
 
-                                Item { Layout.fillHeight: true }
+                                            MaterialIcon {
+                                                text: "folder_special"
+                                                iconSize: 14
+                                                color: Theme.tertiary
+                                            }
 
-                                // Root Partition
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 1
+                                            M3Text {
+                                                role: "labelMedium"
+                                                text: "Home (/home)"
+                                                color: Theme.textPrimary
+                                                font.weight: Font.Bold
+                                            }
+                                        }
 
-                                    M3Text {
-                                        role: "labelSmall"
-                                        text: "Root (/)"
-                                        color: Theme.textSecondary
-                                    }
-                                    Md3LinearProgress {
-                                        Layout.fillWidth: true
-                                        trackHeight: 6
-                                        value: root.controller ? root.controller.diskRootPercent : 0
-                                        progressColor: Theme.primary
+                                        Item { Layout.fillHeight: true }
+
+                                        M3Text {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            role: "titleLarge"
+                                            text: {
+                                                if (!root.controller) return "0%";
+                                                const p = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomePercent : root.controller.diskRootPercent;
+                                                return p + "%";
+                                            }
+                                            color: Theme.textPrimary
+                                            font.weight: Font.Bold
+                                        }
+
+                                        M3Text {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            role: "labelSmall"
+                                            text: {
+                                                if (!root.controller) return "--";
+                                                const used = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomeUsedGib : root.controller.diskRootUsedGib;
+                                                const total = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomeTotalGib : root.controller.diskRootTotalGib;
+                                                return (used ? used.toFixed(1) : "--") + " / " + (total ? total.toFixed(1) : "--") + " GB";
+                                            }
+                                            color: Theme.textSecondary
+                                            font.weight: Font.Medium
+                                        }
+
+                                        Item { Layout.fillHeight: true }
                                     }
                                 }
                             }
@@ -478,13 +600,6 @@ Item {
                                                 root.controller.setVolume(val);
                                         }
                                     }
-
-                                    M3Text {
-                                        role: "labelSmall"
-                                        text: (root.controller ? root.controller.volume : 0) + "%"
-                                        color: Theme.textSecondary
-                                        font.weight: Font.Bold
-                                    }
                                 }
                             }
 
@@ -520,13 +635,6 @@ Item {
                                             if (root.controller)
                                                 root.controller.setBrightness(val);
                                         }
-                                    }
-
-                                    M3Text {
-                                        role: "labelSmall"
-                                        text: (root.controller ? root.controller.brightness : 0) + "%"
-                                        color: Theme.textSecondary
-                                        font.weight: Font.Bold
                                     }
                                 }
                             }

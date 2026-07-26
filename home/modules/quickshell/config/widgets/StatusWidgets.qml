@@ -244,10 +244,10 @@ Item {
                 }
             }
 
-            onClicked: root.popupRequested("wifi")
+            onClicked: root.popupRequested("power")
             onSecondaryClicked: {
                 if (root.controller)
-                    root.controller.openSettings("network");
+                    root.controller.openSettings("power");
             }
         }
 
