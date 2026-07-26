@@ -158,12 +158,11 @@ Rectangle {
                         }
                     }
 
-                    Text {
+                    M3Text {
+                        role: "labelSmall"
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: actionLabel
                         color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 9
                         font.weight: Font.Medium
                     }
                 }
@@ -250,23 +249,21 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             spacing: Theme.space1
 
-            Text {
+            M3Text {
                 width: parent.width
+                role: "titleSmall"
                 text: root.actionLabel(root.pendingAction.length > 0
                     ? root.pendingAction : root.lastAction)
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 13
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
 
-            Text {
+            M3Text {
+                role: "labelSmall"
                 text: I18n.tr("Thao tác này sẽ đóng mọi ứng dụng đang chạy.",
                     "This will close all running applications.")
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 9
             }
         }
 

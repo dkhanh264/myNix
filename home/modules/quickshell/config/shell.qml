@@ -3,6 +3,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
+import Quickshell.Services.Notifications
+import Quickshell.Services.Mpris
 import "./components"
 import "./services"
 import "./theme"
@@ -16,8 +18,89 @@ ShellRoot {
     property bool popupOpen: false
     property bool popupVisible: false
 
+    property string volumeOsdScreen: ""
+    property bool volumeOsdVisible: false
+
+    property string toastScreen: ""
+    property bool toastVisible: false
+    property string toastTitle: ""
+    property string toastBody: ""
+    property string toastIcon: "notifications"
+    property string toastImage: ""
+
     SystemService {
         id: systemService
+    }
+
+    Connections {
+        target: systemService
+        function onMessageChanged() {
+            if (systemService.message && systemService.message.length > 0) {
+                root.showToast(I18n.tr("Hệ thống", "System"), systemService.message, "palette", "");
+            }
+        }
+    }
+
+    NotificationServer {
+        id: notifServer
+        onNotification: notification => {
+            const notifImg = notification.image || (notification.appIcon && (notification.appIcon.startsWith("/") || notification.appIcon.startsWith("file://") || notification.appIcon.startsWith("http")) ? notification.appIcon : "");
+            systemService.addNotificationToHistory(notification.summary, notification.appName, notification.body);
+            root.showToast(notification.summary, notification.body, notification.appName || "notifications", notifImg);
+        }
+    }
+
+    Instantiator {
+        model: Mpris.players.values
+        delegate: Item {
+            required property var modelData
+            property string lastTrack: ""
+            Connections {
+                target: modelData
+                function onTrackTitleChanged() {
+                    const title = modelData.trackTitle || "";
+                    if (title.length > 0 && title !== lastTrack) {
+                        lastTrack = title;
+                        const artist = modelData.trackArtist || "";
+                        root.showToast("Đang phát", title + (artist ? " · " + artist : ""), "music", modelData.trackArtUrl || "");
+                    }
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: volumeOsdTimer
+        interval: 2000
+        onTriggered: root.volumeOsdVisible = false
+    }
+
+    function triggerVolumeOsd() {
+        systemService.refreshVolume();
+        volumeOsdScreen = focusedScreenName();
+        volumeOsdVisible = true;
+        volumeOsdTimer.restart();
+    }
+
+    Timer {
+        id: toastTimer
+        interval: 3500
+        onTriggered: root.toastVisible = false
+    }
+
+    function showToast(title, body, icon, image) {
+        toastTitle = title || "";
+        toastBody = body || "";
+        toastIcon = icon || "notifications";
+        toastImage = image || "";
+        toastScreen = focusedScreenName();
+        toastVisible = true;
+        toastTimer.restart();
+    }
+
+    function hideToast() {
+        toastTimer.stop();
+        toastVisible = false;
     }
 
     function focusedScreenName() {
@@ -32,7 +115,7 @@ ShellRoot {
         return [
             "music", "calendar", "weather", "controls",
             "wifi", "bluetooth", "power", "activity", "recorder",
-            "language", "settings", "wallpaper"
+            "language", "settings", "wallpaper", "dashboard"
         ].indexOf(kind) >= 0;
     }
 
@@ -116,16 +199,22 @@ ShellRoot {
         activePopup = "";
     }
 
+    Shortcut {
+        sequence: "Escape"
+        enabled: root.popupVisible
+        onActivated: root.hidePopup()
+    }
+
     function popupAnchor(kind, barWidth, popupWidth) {
         let desired = barWidth - popupWidth - Theme.popupEdgeInset;
         if (kind === "wallpaper")
-            desired = Theme.popupEdgeInset;
+            desired = Math.round((barWidth - popupWidth) / 2);
         else if (kind === "music")
-            desired = 235;
+            desired = Theme.popupEdgeInset;
         else if (kind === "calendar")
-            desired = (barWidth - popupWidth) / 2 - 105;
+            desired = (barWidth - popupWidth) / 2 - 65;
         else if (kind === "weather")
-            desired = (barWidth - popupWidth) / 2 + 115;
+            desired = (barWidth - popupWidth) / 2 + 65;
         return Math.max(Theme.popupEdgeInset,
             Math.min(barWidth - popupWidth - Theme.popupEdgeInset, desired));
     }
@@ -167,8 +256,8 @@ ShellRoot {
     IpcHandler {
         target: "controlCenter"
 
-        function toggle(): void { root.togglePopup("settings", ""); }
-        function show(): void { root.showPopup("settings", ""); }
+        function toggle(): void { root.togglePopup("dashboard", ""); }
+        function show(): void { root.showPopup("dashboard", ""); }
         function hide(): void { root.hidePopup(); }
     }
 
@@ -196,6 +285,7 @@ ShellRoot {
         function language(): void { root.showPopup("language", ""); }
         function settings(): void { root.showPopup("settings", ""); }
         function wallpaper(): void { root.showPopup("wallpaper", ""); }
+        function dashboard(): void { root.showPopup("dashboard", ""); }
         function hide(): void { root.hidePopup(); }
     }
 
@@ -203,7 +293,7 @@ ShellRoot {
         target: "launcher"
 
         function apps(): void {
-            Quickshell.execDetached(["walker-menu", "apps"]);
+            systemService.execDetached(["walker-menu", "apps"]);
         }
 
         function wallpapers(): void {
@@ -211,8 +301,60 @@ ShellRoot {
         }
     }
 
+    IpcHandler {
+        target: "volumeOsd"
+
+        function trigger(): void { root.triggerVolumeOsd(); }
+        function show(): void { root.triggerVolumeOsd(); }
+        function up(): void { systemService.nudgeVolume(5); root.triggerVolumeOsd(); }
+        function down(): void { systemService.nudgeVolume(-5); root.triggerVolumeOsd(); }
+        function mute(): void { systemService.toggleMute(); root.triggerVolumeOsd(); }
+    }
+
+    IpcHandler {
+        target: "lockscreen"
+
+        function lock(): void { lockScreen.lockSession(); }
+        function show(): void { lockScreen.lockSession(); }
+        function unlock(): void { lockScreen.locked = false; if (lockScreen.unlock) lockScreen.unlock(); }
+    }
+
+    LockScreen {
+        id: lockScreen
+    }
+
     Variants {
         model: Quickshell.screens
+
+        PanelWindow {
+            id: popupDismissOverlay
+            required property var modelData
+
+            screen: modelData
+            visible: root.popupVisible && root.popupScreen === modelData.name
+            color: "transparent"
+            WlrLayershell.namespace: "popup-dismiss-overlay"
+            WlrLayershell.layer: WlrLayer.Overlay
+            exclusiveZone: -1
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+
+            anchors {
+                top: true
+                bottom: true
+                left: true
+                right: true
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onPressed: root.hidePopup()
+            }
+
+            Item {
+                focus: parent.visible
+                Keys.onEscapePressed: root.hidePopup()
+            }
+        }
 
         PanelWindow {
             id: barWindow
@@ -221,7 +363,7 @@ ShellRoot {
             screen: modelData
             implicitHeight: Theme.barHeight
             color: "transparent"
-            exclusiveZone: Theme.barHeight
+            exclusiveZone: 36
             WlrLayershell.namespace: "m3-shell"
             WlrLayershell.keyboardFocus: root.popupVisible
                     && root.popupScreen === barWindow.modelData.name
@@ -235,13 +377,23 @@ ShellRoot {
 
             ExpressiveTopBar {
                 anchors.fill: parent
-                anchors.margins: Theme.barContentInset
+                anchors.leftMargin: Theme.barContentInset
+                anchors.rightMargin: Theme.barContentInset
+                anchors.topMargin: (Theme.barHeight - Theme.barItemHeight) / 2
+                anchors.bottomMargin: (Theme.barHeight - Theme.barItemHeight) / 2
                 barWindow: barWindow
                 controller: systemService
                 screen: barWindow.modelData
                 activePopup: root.popupOpen
                     && root.popupScreen === barWindow.modelData.name
                     ? root.activePopup : ""
+                toastVisible: root.toastVisible
+                    && (root.toastScreen === "" || root.toastScreen === barWindow.modelData.name)
+                toastTitle: root.toastTitle
+                toastBody: root.toastBody
+                toastIcon: root.toastIcon
+                toastImage: root.toastImage
+                onToastDismissed: root.hideToast()
                 onPopupRequested: (kind, screenName) =>
                     root.togglePopup(kind, screenName)
             }
@@ -270,6 +422,7 @@ ShellRoot {
 
                     MusicWidget {
                         anchors.fill: parent
+                        controller: systemService
                     }
                 }
             }
@@ -368,6 +521,8 @@ ShellRoot {
                             width: parent.width
                             height: implicitHeight
                             controller: systemService
+                            onSectionRequested: section =>
+                                root.showPopup(section, barWindow.modelData.name)
                         }
                     }
                 }
@@ -533,20 +688,18 @@ ShellRoot {
                                     anchors.verticalCenter: parent.verticalCenter
                                     spacing: 0
 
-                                    Text {
+                                    M3Text {
+                                        role: "headlineMedium"
                                         text: systemService.batteryAvailable
                                             ? systemService.batteryPercent + "%" : "--%"
                                         color: Theme.textPrimary
-                                        font.family: Theme.textFont
-                                        font.pixelSize: 28
                                         font.weight: Font.Bold
                                     }
 
-                                    Text {
+                                    M3Text {
+                                        role: "labelSmall"
                                         text: systemService.batteryState
                                         color: Theme.textSecondary
-                                        font.family: Theme.textFont
-                                        font.pixelSize: 10
                                     }
                                 }
                             }
@@ -670,10 +823,9 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "settings"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(510, barWindow.width
+                popupWidth: Math.min(540, barWindow.width
                     - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(systemSettings.implicitHeight
-                    + Theme.popupVerticalChrome,
+                popupHeight: Math.min(320,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("settings", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("settings")
@@ -681,19 +833,19 @@ ShellRoot {
                 PopupSurface {
                     anchors.fill: parent
                     shown: root.popupOpen && root.activePopup === "settings"
-                    title: I18n.tr("Cài đặt hệ thống", "System settings")
-                    subtitle: I18n.tr("Giao diện thống nhất cho toàn hệ thống",
-                        "One consistent system interface")
-                    icon: "tune"
+                    title: I18n.tr("Cài đặt hệ thống", "System Settings")
+                    subtitle: I18n.tr("Các lựa chọn cấu hình hệ thống",
+                        "System configuration options")
+                    icon: "settings"
                     onCloseRequested: root.hidePopup()
 
-                    SystemSettingsWidget {
-                        id: systemSettings
+                    Loader {
                         anchors.fill: parent
-                        controller: systemService
-                        onSectionRequested: section =>
-                            root.showPopup(section, barWindow.modelData.name)
-                        onCloseRequested: root.hidePopup()
+                        active: root.popupVisible && root.activePopup === "settings"
+                            && root.popupScreen === barWindow.modelData.name
+                        sourceComponent: SettingsGrid {
+                            controller: systemService
+                        }
                     }
                 }
             }
@@ -703,30 +855,87 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "wallpaper"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(520, barWindow.width
+                popupWidth: Math.min(1080, barWindow.width
                     - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(640,
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("wallpaper", barWindow.width, popupWidth)
+                popupHeight: Math.min(520,
+                    barWindow.modelData.height - barWindow.implicitHeight - 32)
+                popupX: Math.round((barWindow.width - popupWidth) / 2)
+                popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
                 onDismissed: root.popupDismissed("wallpaper")
+
+                WallpaperWidget {
+                    id: wallpaperWidget
+                    anchors.fill: parent
+                    shown: root.popupOpen && root.activePopup === "wallpaper"
+                    controller: systemService
+                    focus: true
+                    onCloseRequested: root.hidePopup()
+                    Component.onCompleted: forceActiveFocus()
+                }
+            }
+
+            AnchoredPopup {
+                id: dashboardPopup
+                anchorWindow: barWindow
+                requestedVisible: root.popupVisible && root.activePopup === "dashboard"
+                    && root.popupScreen === barWindow.modelData.name
+                popupWidth: Math.min(1080, barWindow.width - Theme.popupEdgeInset * 2)
+                popupHeight: Math.min(500, barWindow.modelData.height - barWindow.implicitHeight - 32)
+                popupX: Math.round((barWindow.width - popupWidth) / 2)
+                popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
+                onDismissed: root.popupDismissed("dashboard")
 
                 PopupSurface {
                     anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "wallpaper"
-                    title: I18n.tr("Chọn hình nền", "Choose wallpaper")
-                    subtitle: I18n.tr("Ảnh xem trước đi cùng tên file",
-                        "Preview beside every file name")
-                    icon: "wallpaper"
-                    accentColor: Theme.tertiary
-                    accentContainer: Theme.tertiaryContainer
+                    shown: root.popupOpen && root.activePopup === "dashboard"
+                    title: I18n.tr("Bảng điều khiển MD3 Expressive", "MD3 Expressive Dashboard")
+                    subtitle: I18n.tr("Tổng quan hệ thống và hình dạng động",
+                        "System overview and expressive shapes")
+                    icon: "dashboard"
+                    accentColor: Theme.primary
+                    accentContainer: Theme.primaryContainer
                     onCloseRequested: root.hidePopup()
 
-                    WallpaperWidget {
+                    Loader {
                         anchors.fill: parent
-                        controller: systemService
+                        active: root.popupVisible && root.activePopup === "dashboard"
+                            && root.popupScreen === barWindow.modelData.name
+                        sourceComponent: DashboardWidget {
+                            controller: systemService
+                            onSectionRequested: section =>
+                                root.showPopup(section, barWindow.modelData.name)
+                            onCloseRequested: root.hidePopup()
+                        }
                     }
                 }
             }
+
+            PanelWindow {
+                id: volumeOsdWindow
+                screen: barWindow.modelData
+                visible: root.volumeOsdVisible && root.volumeOsdScreen === barWindow.modelData.name
+                color: "transparent"
+                WlrLayershell.namespace: "volume-osd"
+                WlrLayershell.layer: WlrLayer.Overlay
+                exclusiveZone: 0
+                anchors {
+                    right: true
+                }
+                margins {
+                    right: Theme.barContentInset
+                }
+
+                implicitWidth: volumeOsdWidget.implicitWidth
+                implicitHeight: volumeOsdWidget.implicitHeight
+
+                AndroidVolumeOsd {
+                    id: volumeOsdWidget
+                    controller: systemService
+                    shown: root.volumeOsdVisible
+                    onInteractionOccurred: root.triggerVolumeOsd()
+                }
+            }
+
         }
     }
 }

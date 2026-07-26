@@ -25,23 +25,21 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 0
 
-                Text {
+                M3Text {
+                    role: "titleSmall"
                     text: I18n.tr("Thiết bị Bluetooth", "Bluetooth devices")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 13
                     font.weight: Font.DemiBold
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     text: root.controller && root.controller.bluetoothDiscovering
                         ? I18n.tr("Đang tìm thiết bị lân cận…",
                             "Finding nearby devices…")
                         : I18n.tr("Đã ghép đôi và ở gần",
                             "Paired and nearby devices")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                 }
             }
 
@@ -70,7 +68,8 @@ Rectangle {
             width: parent.width
             height: visible ? 64 : 0
 
-            Text {
+            M3Text {
+                role: "labelMedium"
                 anchors.centerIn: parent
                 text: root.controller && !root.controller.bluetoothAvailable
                     ? I18n.tr("Không tìm thấy bộ điều hợp Bluetooth",
@@ -81,8 +80,6 @@ Rectangle {
                         : I18n.tr("Không tìm thấy thiết bị",
                             "No devices found")
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 12
             }
         }
 
@@ -189,18 +186,18 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: Theme.space1
 
-                        Text {
+                        M3Text {
                             width: parent.width
+                            role: "titleSmall"
                             text: deviceRow.displayName
                             color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 13
                             font.weight: Font.DemiBold
                             elide: Text.ElideRight
                         }
 
-                        Text {
+                        M3Text {
                             width: parent.width
+                            role: "labelSmall"
                             text: {
                                 if (modelData.connected) {
                                     if (modelData.batteryAvailable)
@@ -218,8 +215,6 @@ Rectangle {
                                         "Ready to pair");
                             }
                             color: Theme.textSecondary
-                            font.family: Theme.textFont
-                            font.pixelSize: 10
                             elide: Text.ElideRight
                         }
                     }
@@ -314,14 +309,13 @@ Rectangle {
             width: parent.width
             height: 48
 
-            Text {
+            M3Text {
+                role: "labelSmall"
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: I18n.tr("Mã PIN và tùy chọn nâng cao",
                     "PIN and advanced options")
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 11
             }
 
             M3Button {

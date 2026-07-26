@@ -72,22 +72,20 @@ M3BarPill {
             anchors.verticalCenter: parent.verticalCenter
             spacing: -1
 
-            Text {
+            M3Text {
+                role: "labelMedium"
                 text: root.controller && root.controller.weatherAvailable
                     ? root.controller.weatherTemperature + "°" : "--°"
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 13
                 font.weight: Font.Bold
             }
 
-            Text {
+            M3Text {
+                role: "labelSmall"
                 visible: !root.compact
                 text: root.weatherLabel(root.controller
                     ? root.controller.weatherCode : -1)
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 9
                 font.weight: Font.Medium
             }
         }

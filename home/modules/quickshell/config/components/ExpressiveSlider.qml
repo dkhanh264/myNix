@@ -1,8 +1,9 @@
 import QtQuick
 import "../theme"
 
-// M3 Expressive split-track slider. The visual rail stays compact while the
-// full component remains an easy pointer/keyboard target.
+// Material 3 Expressive Slim & Extended Slider.
+// Features a long horizontal track, ultra-slim 6px rail thickness,
+// compact vertical profile (32px), and a spring-morphing capsule handle.
 Item {
     id: root
 
@@ -14,7 +15,7 @@ Item {
     property string accessibleName: "System value"
     property string valueSuffix: "%"
     property bool showValue: true
-    property color activeColor: Theme.primaryContainer
+    property color activeColor: Theme.primary
     property color accentColor: Theme.primary
     property color inactiveColor: Theme.surfaceContainerHighest
     property color foregroundColor: Theme.textPrimary
@@ -26,8 +27,9 @@ Item {
 
     signal moved(real value)
 
-    implicitHeight: 50
+    implicitHeight: Theme.sliderHandleHeight
     opacity: enabled ? 1 : 0.38
+    scale: interacting ? 0.99 : (hovered && enabled ? 1.005 : 1.0)
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.Slider
@@ -45,10 +47,18 @@ Item {
         }
     }
 
+    Behavior on scale {
+        NumberAnimation {
+            duration: Theme.motionShort4
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
+        }
+    }
+
     function updateFromPosition(position) {
-        const travel = Math.max(1, track.width - handle.width);
-        const normalized = Math.max(0, Math.min(1,
-            (position - handle.width / 2) / travel));
+        if (track.width <= 0) return;
+        const relX = position - track.x;
+        const normalized = Math.max(0, Math.min(1, relX / track.width));
         moved(from + normalized * (to - from));
     }
 
@@ -73,30 +83,60 @@ Item {
         }
     }
 
+    // Left Icon (Compact M3 style)
+    MaterialIcon {
+        id: leftIcon
+        visible: root.icon.length > 0
+        anchors.left: parent.left
+        anchors.leftMargin: 2
+        anchors.verticalCenter: parent.verticalCenter
+        text: root.icon
+        iconSize: 16
+        color: root.accentColor
+        filled: true
+    }
+
+    // Right Value Label
+    Text {
+        id: rightValueLabel
+        visible: root.showValue
+        anchors.right: parent.right
+        anchors.rightMargin: 2
+        anchors.verticalCenter: parent.verticalCenter
+        text: Math.round(root.value) + root.valueSuffix
+        color: Theme.textPrimary
+        font.family: Theme.textFont
+        font.pixelSize: 11
+        font.weight: Font.DemiBold
+    }
+
+    // Track Container
     Item {
         id: track
-        anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.left: leftIcon.visible ? leftIcon.right : parent.left
+        anchors.right: rightValueLabel.visible ? rightValueLabel.left : parent.right
+        anchors.leftMargin: leftIcon.visible ? 8 : 4
+        anchors.rightMargin: rightValueLabel.visible ? 8 : 4
         anchors.verticalCenter: parent.verticalCenter
         height: Theme.sliderTrackHeight
 
-        readonly property real handleCenter: handle.width / 2
-            + root.displayProgress * Math.max(1, width - handle.width)
-        readonly property real handleGap: root.interacting ? 10 : 8
+        readonly property real handleCenter: root.displayProgress * width
+        readonly property real handleGap: root.interacting ? 5 : (root.hovered ? 4 : 4)
 
+        // M3 Active Rail (Thick filled segment on the left)
         Rectangle {
             id: activeTrack
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            width: Math.max(0, parent.handleCenter - parent.handleGap / 2)
+            width: Math.max(0, parent.handleCenter - handle.width / 2 - parent.handleGap)
             height: parent.height
-            radius: height / 2
-            topRightRadius: Theme.sliderInnerRadius
-            bottomRightRadius: Theme.sliderInnerRadius
+            radius: Math.min(height / 2, width / 2)
+            topRightRadius: Math.min(Theme.sliderInnerRadius, radius)
+            bottomRightRadius: Math.min(Theme.sliderInnerRadius, radius)
             color: root.interacting
-                ? Theme.blend(root.activeColor, Theme.textPrimary, 0.07)
+                ? Theme.blend(root.activeColor, "#ffffff", 0.20)
                 : root.hovered
-                    ? Theme.blend(root.activeColor, Theme.textPrimary, 0.035)
+                    ? Theme.blend(root.activeColor, "#ffffff", 0.10)
                     : root.activeColor
 
             Behavior on color {
@@ -104,20 +144,20 @@ Item {
             }
         }
 
+        // M3 Inactive Rail (Thick container segment on the right)
         Rectangle {
             id: inactiveTrack
             anchors.verticalCenter: parent.verticalCenter
-            x: Math.min(parent.width,
-                parent.handleCenter + parent.handleGap / 2)
+            x: Math.min(parent.width, parent.handleCenter + handle.width / 2 + parent.handleGap)
             width: Math.max(0, parent.width - x)
             height: parent.height
-            radius: height / 2
-            topLeftRadius: Theme.sliderInnerRadius
-            bottomLeftRadius: Theme.sliderInnerRadius
+            radius: Math.min(height / 2, width / 2)
+            topLeftRadius: Math.min(Theme.sliderInnerRadius, radius)
+            bottomLeftRadius: Math.min(Theme.sliderInnerRadius, radius)
             color: root.interacting
-                ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.07)
+                ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.08)
                 : root.hovered
-                    ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.035)
+                    ? Theme.blend(root.inactiveColor, Theme.textPrimary, 0.04)
                     : root.inactiveColor
 
             Behavior on color {
@@ -125,39 +165,29 @@ Item {
             }
         }
 
-        MaterialIcon {
-            visible: root.icon.length > 0 && activeTrack.width >= 30
-            anchors.left: parent.left
-            anchors.leftMargin: Theme.space2
+        // Terminal stop dot near the end of the inactive track rail
+        Rectangle {
+            id: stopDot
+            width: 4
+            height: 4
+            radius: 2
             anchors.verticalCenter: parent.verticalCenter
-            text: root.icon
-            iconSize: 14
-            color: root.foregroundColor
-            filled: true
-        }
-
-        Text {
-            visible: root.showValue
             anchors.right: parent.right
-            anchors.rightMargin: Theme.space2
-            anchors.verticalCenter: parent.verticalCenter
-            text: Math.round(root.value) + root.valueSuffix
-            color: Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 9
-            font.weight: Font.DemiBold
+            anchors.rightMargin: Math.max(4, parent.height / 2 - 2)
+            color: root.accentColor
+            opacity: root.displayProgress > 0.95 ? (1 - root.displayProgress) / 0.05 : 0.8
+            visible: inactiveTrack.width >= 12
         }
 
+        // Vertical Line Handle / Separator
         Rectangle {
             id: handle
-            width: root.interacting ? 6 : 4
-            height: root.interacting
-                ? Theme.sliderHandleHeight - 4
-                : Theme.sliderHandleHeight
+            width: root.interacting ? 5 : (root.hovered ? 4 : 4)
+            height: root.interacting ? 34 : (root.hovered ? 32 : 30)
             radius: width / 2
             anchors.verticalCenter: parent.verticalCenter
-            x: parent.handleCenter - width / 2
-            color: root.accentColor
+            x: Math.max(0, Math.min(parent.width - width, parent.handleCenter - width / 2))
+            color: root.interacting ? Theme.blend(root.accentColor, "#ffffff", 0.25) : root.accentColor
 
             Behavior on width {
                 NumberAnimation {
@@ -173,9 +203,13 @@ Item {
                     easing.bezierCurve: Theme.springCurve
                 }
             }
+            Behavior on color {
+                ColorAnimation { duration: Theme.motionShort3 }
+            }
         }
     }
 
+    // Touch & Mouse Area covers full component for easy dragging
     MouseArea {
         id: pointer
         anchors.fill: parent
@@ -198,10 +232,7 @@ Item {
     }
 
     Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        height: Theme.sliderHandleHeight + Theme.space1
+        anchors.fill: parent
         radius: Theme.shapeMedium
         color: "transparent"
         border.width: 2
@@ -209,3 +240,6 @@ Item {
         visible: root.activeFocus
     }
 }
+
+
+

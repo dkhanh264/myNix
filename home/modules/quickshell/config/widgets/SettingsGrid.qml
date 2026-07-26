@@ -1,5 +1,6 @@
 import QtQuick
 import "../components"
+import "../theme"
 
 Item {
     id: root
@@ -13,12 +14,11 @@ Item {
         return Math.max(0, Math.min(1, revealProgress));
     }
 
-    ListModel {
-        id: settings
-        ListElement { sectionKey: "appearance"; sectionIcon: "palette"; sectionLabel: "Appearance" }
-        ListElement { sectionKey: "monitor"; sectionIcon: "monitoring"; sectionLabel: "System monitor" }
-        ListElement { sectionKey: "files"; sectionIcon: "folder"; sectionLabel: "Files" }
-    }
+    readonly property var settingsModel: [
+        { sectionKey: "appearance", sectionIcon: "palette", sectionLabel: I18n.tr("Giao diện", "Appearance") },
+        { sectionKey: "monitor", sectionIcon: "monitoring", sectionLabel: I18n.tr("Giám sát", "System monitor") },
+        { sectionKey: "files", sectionIcon: "folder", sectionLabel: I18n.tr("Tập tin", "Files") }
+    ]
 
     Grid {
         id: settingsGrid
@@ -28,27 +28,24 @@ Item {
         rowSpacing: 8
 
         Repeater {
-            model: settings
+            model: root.settingsModel
 
             ActionChip {
                 required property int index
-                required property string sectionKey
-                required property string sectionIcon
-                required property string sectionLabel
-                property real itemProgress: root.stagedProgress(index)
+                required property var modelData
 
                 width: (settingsGrid.width - settingsGrid.columnSpacing * 2) / 3
-                icon: sectionIcon
-                label: sectionLabel
-                opacity: itemProgress
-                presentationScale: 0.9 + 0.1 * itemProgress
+                icon: modelData.sectionIcon
+                label: modelData.sectionLabel
+                opacity: root.stagedProgress(index)
+                presentationScale: 0.9 + 0.1 * root.stagedProgress(index)
                 transformOrigin: Item.Top
                 transform: Translate {
-                    y: (1 - itemProgress) * 12
+                    y: (1 - root.stagedProgress(index)) * 12
                 }
                 onClicked: {
                     if (root.controller)
-                        root.controller.openSettings(sectionKey);
+                        root.controller.openSettings(modelData.sectionKey);
                 }
             }
         }

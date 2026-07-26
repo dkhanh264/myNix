@@ -37,6 +37,17 @@ Scope {
     property int temperatureC: 0
     property bool temperatureAvailable: false
 
+    property real diskBootUsedGib: 0
+    property real diskBootTotalGib: 0
+    property int diskBootPercent: 0
+    property real diskRootUsedGib: diskBootUsedGib
+    property real diskRootTotalGib: diskBootTotalGib
+    property int diskRootPercent: diskBootPercent
+    property real diskHomeUsedGib: 0
+    property real diskHomeTotalGib: 0
+    property int diskHomePercent: 0
+    property bool diskAvailable: false
+
     property int weatherTemperature: 0
     property int weatherCode: -1
     property string weatherIcon: "󰔏"
@@ -67,6 +78,41 @@ Scope {
     property string currentWallpaper: ""
     property string pendingWallpaper: ""
     property bool wallpapersLoading: false
+
+    property var cavaBars: [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0]
+    property bool cavaActive: false
+
+    function applyCavaData(line) {
+        if (!line || line.trim().length === 0)
+            return;
+        const parts = line.trim().split(";");
+        const bars = [];
+        for (let i = 0; i < Math.min(16, parts.length); ++i) {
+            const val = parseInt(parts[i], 10);
+            bars.push(isNaN(val) ? 0 : Math.max(0, Math.min(100, val)));
+        }
+        while (bars.length < 16)
+            bars.push(0);
+        cavaBars = bars;
+    }
+
+    function setCavaActive(active) {
+        if (cavaActive === active)
+            return;
+        cavaActive = active;
+        if (active) {
+            cavaInitProcess.exec([
+                "sh", "-c",
+                "mkdir -p /tmp/cava_qs && cat << 'EOF' > /tmp/cava_qs/config\n"
+                    + "[general]\nbars = 16\nframerate = 30\n"
+                    + "[output]\nmethod = raw\nraw_target = /dev/stdout\ndata_format = ascii\nascii_max_range = 100\nbar_delimiter = 59\n"
+                    + "EOF"
+            ]);
+        } else {
+            cavaProcess.running = false;
+            cavaBars = [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
+        }
+    }
 
     property string message: ""
     property int pendingVolume: 0
@@ -105,8 +151,8 @@ Scope {
     }
 
     readonly property string timeText: Qt.formatDateTime(systemClock.date, "HH:mm")
-    readonly property string shortDateText: Qt.formatDateTime(systemClock.date, "ddd, d MMM")
-    readonly property string longDateText: Qt.formatDateTime(systemClock.date, "dddd, d MMMM yyyy")
+    readonly property string shortDateText: systemClock.date.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), I18n.vietnamese ? "ddd, d MMM" : "ddd, MMM d")
+    readonly property string longDateText: systemClock.date.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), I18n.vietnamese ? "dddd, d MMMM yyyy" : "dddd, MMMM d, yyyy")
 
     ListModel {
         id: wifiNetworkModel
@@ -152,6 +198,13 @@ Scope {
     function showMessage(text) {
         message = text;
         messageTimeout.restart();
+    }
+
+    Timer {
+        id: messageTimeout
+        interval: 3500
+        repeat: false
+        onTriggered: root.message = ""
     }
 
     function refreshAll() {
@@ -210,6 +263,27 @@ Scope {
         temperatureAvailable = millidegrees >= 10000;
         if (temperatureAvailable)
             temperatureC = Math.round(millidegrees / 1000);
+
+        let dfDataIndex = 0;
+        for (let i = 3; i < lines.length; ++i) {
+            const dfFields = lines[i].trim().split(/\s+/);
+            if (dfFields.length >= 6 && !dfFields[0].startsWith("Filesystem")) {
+                const totalKiB = Number(dfFields[1]) || 0;
+                const usedKiB = Number(dfFields[2]) || 0;
+                const pct = parseInt(dfFields[4]) || 0;
+                if (dfDataIndex === 0) {
+                    root.diskBootTotalGib = totalKiB / 1048576;
+                    root.diskBootUsedGib = usedKiB / 1048576;
+                    root.diskBootPercent = pct;
+                    root.diskAvailable = true;
+                } else if (dfDataIndex === 1) {
+                    root.diskHomeTotalGib = totalKiB / 1048576;
+                    root.diskHomeUsedGib = usedKiB / 1048576;
+                    root.diskHomePercent = pct;
+                }
+                dfDataIndex++;
+            }
+        }
     }
 
     function weatherPresentation(code) {
@@ -690,13 +764,33 @@ Scope {
     }
 
     function setPowerProfile(profile) {
-        if (powerProfileCommand.running || profile === powerProfile)
+        if (!profile || powerProfileCommand.running)
             return;
+
+        let cleanProfile = "balanced";
+        if (profile === "performance" || profile === "perf") {
+            cleanProfile = "performance";
+        } else if (profile === "power-saver" || profile === "powersave" || profile === "saver" || profile === "save") {
+            cleanProfile = "power-saver";
+        }
 
         powerProfileBusy = true;
         powerProfileError = "";
-        powerProfile = profile;
-        powerProfileCommand.exec(["powerprofilesctl", "set", profile]);
+        powerProfile = cleanProfile;
+
+        let script = "";
+        if (cleanProfile === "power-saver") {
+            script = "powerprofilesctl set power-saver 2>/dev/null || powerprofilesctl set powersave 2>/dev/null; "
+                + "hyprctl keyword monitor \"eDP-1, 1920x1080@60, auto, 1\" 2>/dev/null || true";
+        } else if (cleanProfile === "performance") {
+            script = "powerprofilesctl set performance 2>/dev/null; "
+                + "hyprctl keyword monitor \"eDP-1, 1920x1080@144, auto, 1\" 2>/dev/null || true";
+        } else {
+            script = "powerprofilesctl set balanced 2>/dev/null; "
+                + "hyprctl keyword monitor \"eDP-1, 1920x1080@144, auto, 1\" 2>/dev/null || true";
+        }
+
+        powerProfileCommand.exec(["sh", "-c", script]);
     }
 
     function refreshBattery() {
@@ -705,9 +799,17 @@ Scope {
     }
 
     function toggleBluetooth() {
-        if (!bluetoothAdapter)
-            return;
-        bluetoothAdapter.enabled = !bluetoothAdapter.enabled;
+        if (bluetoothAdapter) {
+            let nextState = !bluetoothAdapter.enabled;
+            bluetoothAdapter.enabled = nextState;
+            if (nextState) {
+                execDetached(["sh", "-c", "rfkill unblock bluetooth && bluetoothctl power on"]);
+            } else {
+                execDetached(["bluetoothctl", "power", "off"]);
+            }
+        } else {
+            execDetached(["sh", "-c", "rfkill unblock bluetooth && bluetoothctl power on"]);
+        }
     }
 
     function toggleBluetoothScan() {
@@ -748,61 +850,23 @@ Scope {
             + (device.name || I18n.tr("thiết bị", "device")) + "”");
     }
 
-    function refreshNotificationHistory() {
-        if (notificationHistoryQuery.running)
-            return;
-        notificationHistoryLoading = true;
-        notificationHistoryQuery.exec(["makoctl", "history"]);
+    function addNotificationToHistory(summary, appName, body) {
+        notificationHistoryModel.insert(0, {
+            "notificationId": Date.now(),
+            "summary": summary || I18n.tr("Thông báo", "Notification"),
+            "appName": appName || I18n.tr("Hệ thống", "System"),
+            "body": body || ""
+        });
+        if (notificationHistoryModel.count > 50) {
+            notificationHistoryModel.remove(50, notificationHistoryModel.count - 50);
+        }
     }
 
-    function applyNotificationHistory(output) {
-        notificationHistoryModel.clear();
-        let current = null;
-        const lines = output.split("\n");
-
-        function appendCurrent() {
-            if (!current)
-                return;
-            notificationHistoryModel.append({
-                "notificationId": current.notificationId,
-                "summary": current.summary || I18n.tr("Thông báo", "Notification"),
-                "appName": current.appName || I18n.tr("Hệ thống", "System"),
-                "body": current.body || ""
-            });
-        }
-
-        for (let index = 0; index < lines.length; ++index) {
-            const header = lines[index].match(/^Notification\s+(\d+):\s*(.*)$/);
-            if (header) {
-                appendCurrent();
-                current = {
-                    "notificationId": parseInt(header[1]) || 0,
-                    "summary": header[2].trim(),
-                    "appName": "",
-                    "body": ""
-                };
-                continue;
-            }
-            if (!current)
-                continue;
-            const app = lines[index].match(/^\s+App name:\s*(.*)$/);
-            if (app) {
-                current.appName = app[1].trim();
-                continue;
-            }
-            const body = lines[index].match(/^\s+Body:\s*(.*)$/);
-            if (body)
-                current.body = body[1].trim();
-        }
-        appendCurrent();
+    function refreshNotificationHistory() {
         notificationHistoryLoading = false;
     }
 
     function restoreNotification(notificationId) {
-        if (notificationAction.running)
-            return;
-        // Mako exposes restore-latest rather than restore-by-id.
-        notificationAction.exec(["makoctl", "restore"]);
     }
 
     function refreshScreenshots() {
@@ -857,9 +921,19 @@ Scope {
         ]);
     }
 
+    Process {
+        id: detachedProcess
+    }
+
+    function execDetached(command) {
+        if (!command || command.length === 0)
+            return;
+        detachedProcess.exec(command);
+    }
+
     function openScreenshot(path) {
         if (path)
-            Quickshell.execDetached(["xdg-open", path]);
+            execDetached(["xdg-open", path]);
     }
 
     function deleteScreenshot(path) {
@@ -1019,13 +1093,13 @@ Scope {
         default:
             return;
         }
-        Quickshell.execDetached(command);
+        execDetached(command);
     }
 
     function openWeather() {
         const query = weatherLocationAvailable
             ? "thời tiết " + weatherLocation : "thời tiết vị trí hiện tại";
-        Quickshell.execDetached([
+        execDetached([
             "xdg-open",
             "https://www.google.com/search?q=" + encodeURIComponent(query)
         ]);
@@ -1034,16 +1108,16 @@ Scope {
     function sessionAction(action) {
         switch (action) {
         case "lock":
-            Quickshell.execDetached(["hyprlock"]);
+            execDetached(["sh", "-c", "qs ipc call lockscreen lock"]);
             break;
         case "logout":
-            Quickshell.execDetached(["hyprctl", "dispatch", "exit"]);
+            execDetached(["hyprctl", "dispatch", "exit"]);
             break;
         case "reboot":
-            Quickshell.execDetached(["systemctl", "reboot"]);
+            execDetached(["systemctl", "reboot"]);
             break;
         case "shutdown":
-            Quickshell.execDetached(["systemctl", "poweroff"]);
+            execDetached(["systemctl", "poweroff"]);
             break;
         }
     }
@@ -1052,15 +1126,12 @@ Scope {
         id: systemStatsQuery
         command: [
             "sh", "-c",
-            "sed -n '1p' /proc/stat; "
-                + "awk '/MemTotal:/ { total=$2 } /MemAvailable:/ { available=$2 } "
-                + "END { printf \"%s %s\\n\", total, available }' /proc/meminfo; "
-                + "maximum=0; for input in /sys/class/hwmon/hwmon*/temp*_input; do "
-                + "[ -r \"$input\" ] || continue; IFS= read -r value < \"$input\"; "
-                + "case \"$value\" in ''|*[!0-9]*) continue ;; esac; "
-                + "if [ \"$value\" -ge 10000 ] && [ \"$value\" -le 120000 ] "
-                + "&& [ \"$value\" -gt \"$maximum\" ]; then maximum=$value; fi; "
-                + "done; printf '%s\\n' \"$maximum\""
+            "awk 'NR==1 { print }' /proc/stat; "
+                + "awk '/MemTotal:/ { t=$2 } /MemAvailable:/ { a=$2 } END { print t, a }' /proc/meminfo; "
+                + "max=0; for f in /sys/class/hwmon/hwmon*/temp*_input; do "
+                + "[ -r \"$f\" ] && read -r v < \"$f\" 2>/dev/null && [ \"$v\" -ge 10000 2>/dev/null ] && [ \"$v\" -le 120000 ] && [ \"$v\" -gt \"$max\" ] && max=$v; "
+                + "done; echo \"$max\"; "
+                + "df -k /boot /home 2>/dev/null"
         ]
         stdout: StdioCollector {
             onStreamFinished: root.applySystemStats(this.text)
@@ -1467,14 +1538,14 @@ Scope {
     }
 
     Timer {
-        interval: 3000
+        interval: 4000
         running: true
         repeat: true
         onTriggered: root.refreshSystemStats()
     }
 
     Timer {
-        interval: 5000
+        interval: 6000
         running: true
         repeat: true
         onTriggered: {
@@ -1484,7 +1555,7 @@ Scope {
     }
 
     Timer {
-        interval: 12000
+        interval: 15000
         running: true
         repeat: true
         onTriggered: {
@@ -1511,10 +1582,20 @@ Scope {
         }
     }
 
-    Timer {
-        id: messageTimeout
-        interval: 4200
-        onTriggered: root.message = ""
+    Process {
+        id: cavaInitProcess
+        onExited: {
+            if (root.cavaActive && !cavaProcess.running)
+                cavaProcess.running = true;
+        }
+    }
+
+    Process {
+        id: cavaProcess
+        command: ["cava", "-p", "/tmp/cava_qs/config"]
+        stdout: SplitParser {
+            onRead: data => root.applyCavaData(data)
+        }
     }
 
     Component.onCompleted: refreshAll()

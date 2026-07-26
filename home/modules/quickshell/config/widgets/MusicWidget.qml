@@ -6,8 +6,10 @@ import "../theme"
 Rectangle {
     id: root
 
+    property var controller
     readonly property var player: selectPlayer()
     readonly property bool available: player !== null
+    readonly property bool isPlaying: player ? player.isPlaying : false
     readonly property string titleText: player && player.trackTitle
         ? player.trackTitle : (player ? player.identity
             : I18n.tr("Không có nhạc", "Nothing playing"))
@@ -16,9 +18,24 @@ Rectangle {
             "Open a media player to begin")
     property real playbackPosition: 0
 
-    implicitHeight: 232
+    implicitHeight: 245
     radius: Theme.shapeLarge
-    color: Theme.alpha(Theme.secondaryContainer, 0.30)
+    color: "transparent"
+
+    onIsPlayingChanged: {
+        if (controller && controller.setCavaActive)
+            controller.setCavaActive(isPlaying);
+    }
+
+    Component.onCompleted: {
+        if (controller && controller.setCavaActive)
+            controller.setCavaActive(isPlaying);
+    }
+
+    Component.onDestruction: {
+        if (controller && controller.setCavaActive)
+            controller.setCavaActive(false);
+    }
 
     function selectPlayer() {
         const players = Mpris.players.values;
@@ -76,8 +93,8 @@ Rectangle {
             id: record
             anchors.left: parent.left
             anchors.top: parent.top
-            width: 112
-            height: 112
+            width: 104
+            height: 104
             rotation: 0
 
             NumberAnimation on rotation {
@@ -113,48 +130,45 @@ Rectangle {
                     color: Theme.secondary
                 }
 
-                Text {
+                M3Text {
                     anchors.verticalCenter: parent.verticalCenter
+                    role: "labelSmall"
                     text: root.player && root.player.isPlaying
                         ? I18n.tr("Đang phát", "Now playing")
                         : root.available ? I18n.tr("Đã tạm dừng", "Paused")
                         : "Media"
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
 
-            Text {
+            M3Text {
                 width: parent.width
+                role: "titleMedium"
                 text: root.titleText
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 16
                 font.weight: Font.Bold
                 elide: Text.ElideRight
             }
 
-            Text {
+            M3Text {
                 width: parent.width
+                role: "labelSmall"
                 text: root.artistText
                 color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 11
                 elide: Text.ElideRight
             }
 
-            Item { width: 1; height: 3 }
+            Item { width: 1; height: 2 }
 
             Row {
-                height: 52
+                height: 44
                 spacing: 8
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 38
-                    iconSize: 20
+                    buttonSize: 36
+                    iconSize: 19
                     icon: "skip_previous"
                     fillColor: Theme.alpha(Theme.textPrimary, 0.08)
                     foregroundColor: Theme.textPrimary
@@ -163,26 +177,21 @@ Rectangle {
                     onClicked: root.player.previous()
                 }
 
-                IconButton {
+                MediaPlayButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 46
-                    iconSize: 25
-                    icon: root.player && root.player.isPlaying
-                        ? "pause" : "play_arrow"
+                    buttonSize: 42
+                    iconSize: 23
+                    isPlaying: root.player && root.player.isPlaying
                     fillColor: Theme.secondary
-                    hoverColor: Theme.blend(Theme.secondary, "#ffffff", 0.12)
                     foregroundColor: Theme.textPrimary
                     enabled: root.player && root.player.canTogglePlaying
-                    accessibleName: root.player && root.player.isPlaying
-                        ? I18n.tr("Tạm dừng", "Pause")
-                        : I18n.tr("Phát", "Play")
                     onClicked: root.togglePlayback()
                 }
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 38
-                    iconSize: 20
+                    buttonSize: 36
+                    iconSize: 19
                     icon: "skip_next"
                     fillColor: Theme.alpha(Theme.textPrimary, 0.08)
                     foregroundColor: Theme.textPrimary
@@ -198,7 +207,7 @@ Rectangle {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: record.bottom
-            anchors.topMargin: 10
+            anchors.topMargin: 8
             from: 0
             to: root.player && root.player.lengthSupported
                 ? root.player.length : 1
@@ -210,27 +219,66 @@ Rectangle {
             onMoved: value => root.seekTo(value)
         }
 
-        Text {
+        M3Text {
+            id: timeElapsed
+            role: "labelSmall"
             anchors.left: parent.left
             anchors.top: progressWave.bottom
             anchors.topMargin: 2
             text: root.formatTime(root.playbackPosition)
             color: Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 9
             font.weight: Font.Medium
         }
 
-        Text {
+        M3Text {
+            id: timeTotal
+            role: "labelSmall"
             anchors.right: parent.right
             anchors.top: progressWave.bottom
             anchors.topMargin: 2
             text: root.player && root.player.lengthSupported
                 ? root.formatTime(root.player.length) : "--:--"
             color: Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 9
             font.weight: Font.Medium
+        }
+
+        // Cava Spectrum Audio Visualizer Bars at the VERY BOTTOM
+        Row {
+            id: cavaVisualizer
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 0
+            height: 22
+            spacing: 4
+
+            Repeater {
+                model: 16
+                delegate: Rectangle {
+                    required property int index
+                    readonly property real barVal: {
+                        if (!root.controller || !root.controller.cavaBars || root.controller.cavaBars.length <= index)
+                            return 0;
+                        return root.controller.cavaBars[index] || 0;
+                    }
+                    readonly property real targetHeight: Math.max(3, (barVal / 100) * 22)
+
+                    width: Math.max(2, (cavaVisualizer.width - (15 * 4)) / 16)
+                    height: targetHeight
+                    radius: width / 2
+                    anchors.bottom: parent.bottom
+                    color: root.player && root.player.isPlaying
+                        ? Theme.blend(Theme.secondary, Theme.primary, index / 15)
+                        : Theme.alpha(Theme.textPrimary, 0.14)
+
+                    Behavior on height {
+                        NumberAnimation {
+                            duration: Theme.reduceMotion ? 0 : 45
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
+            }
         }
     }
 }

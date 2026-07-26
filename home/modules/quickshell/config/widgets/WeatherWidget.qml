@@ -44,7 +44,7 @@ Rectangle {
         }
     ] : []
 
-    implicitHeight: 448
+    implicitHeight: weatherCol.implicitHeight + Theme.componentPadding * 2
     radius: Theme.cardRadius
     color: Theme.alpha(Theme.tertiaryContainer, 0.34)
 
@@ -123,7 +123,10 @@ Rectangle {
     }
 
     Column {
-        anchors.fill: parent
+        id: weatherCol
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.margins: Theme.componentPadding
         spacing: 8
 
@@ -136,22 +139,20 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 0
 
-                Text {
+                M3Text {
+                    role: "titleSmall"
                     text: I18n.tr("Dự báo 7 ngày", "7-day forecast")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 14
                     font.weight: Font.DemiBold
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     text: root.controller
                         ? root.controller.weatherLocation
                         : I18n.tr("Đang xác định vị trí",
                             "Finding your location")
                     color: Theme.alpha(Theme.textPrimary, 0.78)
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                 }
             }
 
@@ -196,38 +197,35 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
 
-                Text {
+                M3Text {
                     width: parent.width
+                    role: "titleSmall"
                     text: root.selectedForecast
                         ? root.fullDateLabel(root.selectedForecast.dateText)
                         : I18n.tr("Đang tải dự báo", "Loading forecast")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 13
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
 
-                Text {
+                M3Text {
                     width: parent.width
+                    role: "labelSmall"
                     text: root.selectedForecast
                         ? root.weatherLabel(root.selectedForecast.code)
                         : I18n.tr("Đang cập nhật", "Updating")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     elide: Text.ElideRight
                 }
 
-                Text {
+                M3Text {
                     width: parent.width
+                    role: "labelSmall"
                     text: root.selectedForecast
                         ? I18n.tr("Khả năng mưa ", "Rain chance ")
                             + root.selectedForecast.precipitation + "%"
                         : ""
                     color: Theme.tertiary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.Medium
                     elide: Text.ElideRight
                 }
@@ -240,37 +238,34 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: -2
 
-                Text {
+                M3Text {
+                    role: "displayMedium"
                     anchors.right: parent.right
                     text: root.selectedForecast
                         ? root.selectedForecast.maximum + "°" : "--°"
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 36
                     font.weight: Font.Bold
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     anchors.right: parent.right
                     text: root.selectedForecast
                         ? I18n.tr("Thấp nhất ", "Low ")
                             + root.selectedForecast.minimum + "°" : ""
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
         }
 
-        Text {
+        M3Text {
+            role: "labelMedium"
             width: parent.width
             height: 18
             text: I18n.tr("Chọn ngày để xem chi tiết",
                 "Choose a day for details")
             color: Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 11
             font.weight: Font.DemiBold
             verticalAlignment: Text.AlignVCenter
         }
@@ -453,21 +448,19 @@ Rectangle {
                                 filled: true
                             }
 
-                            Text {
+                            M3Text {
+                                role: "labelSmall"
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: modelData.value
                                 color: Theme.textPrimary
-                                font.family: Theme.textFont
-                                font.pixelSize: 9
                                 font.weight: Font.DemiBold
                             }
 
-                            Text {
+                            M3Text {
+                                role: "labelSmall"
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: modelData.label
                                 color: Theme.textSecondary
-                                font.family: Theme.textFont
-                                font.pixelSize: 8
                             }
                         }
                     }
@@ -500,15 +493,14 @@ Rectangle {
                     filled: true
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     text: root.controller && root.controller.weatherRegion
                         ? I18n.tr("Vị trí gần đúng · ", "Approximate location · ")
                             + root.controller.weatherRegion
                         : I18n.tr("Vị trí tự động theo mạng",
                             "Automatic network location")
                     color: Theme.alpha(Theme.textPrimary, 0.82)
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.Medium
                 }
             }

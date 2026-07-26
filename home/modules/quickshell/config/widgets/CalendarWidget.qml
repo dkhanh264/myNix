@@ -88,8 +88,10 @@ Rectangle {
     function addEvent() {
         if (!controller)
             return;
-        if (controller.addCalendarEvent(selectedKey, eventTitle.text,
-                eventTime.text)) {
+        let tVal = eventTime.text.trim();
+        if (!tVal || tVal.length === 0)
+            tVal = Qt.formatDateTime(new Date(), "HH:mm");
+        if (controller.addCalendarEvent(selectedKey, eventTitle.text, tVal)) {
             eventTitle.text = "";
             eventTime.text = "";
         }
@@ -116,19 +118,17 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: -2
 
-                Text {
+                M3Text {
+                    role: "titleLarge"
                     text: Qt.formatDateTime(root.currentDate, "HH:mm")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 26
                     font.weight: Font.Bold
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     text: Qt.formatDate(root.currentDate, "dddd, d MMMM")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 11
                     font.weight: Font.Medium
                 }
             }
@@ -165,14 +165,13 @@ Rectangle {
                 onClicked: root.moveMonth(-1)
             }
 
-            Text {
+            M3Text {
+                role: "titleSmall"
                 anchors.centerIn: parent
                 text: (I18n.vietnamese ? root.viMonths[root.displayDate.getMonth()]
                     : root.enMonths[root.displayDate.getMonth()])
                     + " " + root.displayDate.getFullYear()
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 13
                 font.weight: Font.DemiBold
             }
 
@@ -201,14 +200,13 @@ Rectangle {
                     width: dayHeader.width / 7
                     height: 20
 
-                    Text {
+                    M3Text {
+                        role: "labelSmall"
                         anchors.centerIn: parent
                         text: I18n.vietnamese
                             ? root.viDayNames[parent.index]
                             : root.enDayNames[parent.index]
                         color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 9
                         font.weight: Font.DemiBold
                     }
                 }
@@ -268,12 +266,11 @@ Rectangle {
                         }
                     }
 
-                    Text {
+                    M3Text {
+                        role: "labelMedium"
                         anchors.centerIn: parent
                         text: dateCell.dayNumber > 0 ? dateCell.dayNumber : ""
-                        color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
+                        color: dateCell.selected ? Theme.onPrimary : Theme.textPrimary
                         font.weight: dateCell.selected || dateCell.today
                             ? Font.Bold : Font.Medium
                     }
@@ -313,14 +310,13 @@ Rectangle {
             width: parent.width
             height: 30
 
-            Text {
+            M3Text {
+                role: "titleSmall"
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: I18n.tr("Sự kiện · ", "Events · ")
                     + Qt.formatDate(root.selectedDate, "d/M")
                 color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 12
                 font.weight: Font.DemiBold
             }
 
@@ -346,15 +342,14 @@ Rectangle {
                 width: parent.width
                 spacing: 4
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     visible: root.selectedEventCount() === 0
                     width: parent.width
                     height: visible ? 40 : 0
                     text: I18n.tr("Chưa có sự kiện trong ngày này",
                         "No events for this day")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 11
                     verticalAlignment: Text.AlignVCenter
                 }
 
@@ -362,6 +357,7 @@ Rectangle {
                     model: root.controller ? root.controller.calendarEvents : 0
 
                     Rectangle {
+                        id: eventItemRect
                         required property string eventId
                         required property string dateText
                         required property string title
@@ -373,34 +369,101 @@ Rectangle {
                         radius: Theme.shapeMedium
                         color: Theme.surfaceContainerHigh
 
-                        Text {
+                        Row {
                             anchors.left: parent.left
-                            anchors.leftMargin: 12
+                            anchors.leftMargin: 10
                             anchors.right: removeEvent.left
                             anchors.rightMargin: 6
                             anchors.verticalCenter: parent.verticalCenter
-                            text: (parent.timeText ? parent.timeText + " · " : "")
-                                + parent.title
-                            color: Theme.textPrimary
-                            font.family: Theme.textFont
-                            font.pixelSize: 11
-                            font.weight: Font.Medium
-                            elide: Text.ElideRight
+                            spacing: 8
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: timeBadgeText.implicitWidth + 12
+                                height: 24
+                                radius: 12
+                                color: Theme.primaryContainer
+
+                                M3Text {
+                                    id: timeBadgeText
+                                    role: "labelSmall"
+                                    anchors.centerIn: parent
+                                    text: eventItemRect.timeText && eventItemRect.timeText.length > 0
+                                        ? eventItemRect.timeText
+                                        : I18n.tr("Cả ngày", "All day")
+                                    color: Theme.primary
+                                    font.weight: Font.Bold
+                                }
+                            }
+
+                            M3Text {
+                                role: "labelSmall"
+                                width: parent.width - (timeBadgeText.implicitWidth + 28)
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: eventItemRect.title
+                                color: Theme.textPrimary
+                                font.weight: Font.Medium
+                                elide: Text.ElideRight
+                            }
                         }
 
                         IconButton {
                             id: removeEvent
                             anchors.right: parent.right
-                            anchors.rightMargin: 3
+                            anchors.rightMargin: 4
                             anchors.verticalCenter: parent.verticalCenter
-                            buttonSize: 36
-                            iconSize: 17
+                            buttonSize: 34
+                            iconSize: 16
                             icon: "delete"
                             foregroundColor: Theme.error
                             accessibleName: I18n.tr("Xóa sự kiện", "Delete event")
                             onClicked: root.controller.removeCalendarEvent(
-                                parent.eventId)
+                                eventItemRect.eventId)
                         }
+                    }
+                }
+            }
+        }
+
+        // Quick time selector presets
+        Row {
+            width: parent.width
+            height: 24
+            spacing: 6
+
+            M3Text {
+                role: "labelSmall"
+                anchors.verticalCenter: parent.verticalCenter
+                text: I18n.tr("Chọn giờ:", "Quick time:")
+                color: Theme.textSecondary
+            }
+
+            Repeater {
+                model: ["08:00", "09:00", "12:00", "14:00", "18:00", "20:00"]
+
+                Rectangle {
+                    required property string modelData
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: chipText.implicitWidth + 10
+                    height: 22
+                    radius: 11
+                    color: eventTime.text === modelData ? Theme.primaryContainer : Theme.surfaceContainerHigh
+                    border.width: 1
+                    border.color: eventTime.text === modelData ? Theme.primary : Theme.alpha(Theme.outlineVariant, 0.4)
+
+                    M3Text {
+                        id: chipText
+                        role: "labelSmall"
+                        anchors.centerIn: parent
+                        text: parent.modelData
+                        color: parent.parent.eventTime && parent.parent.eventTime.text === parent.modelData ? Theme.primary : Theme.textPrimary
+                        font.weight: Font.Medium
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: eventTime.text = parent.modelData
                     }
                 }
             }
@@ -413,7 +476,7 @@ Rectangle {
 
             M3TextField {
                 id: eventTitle
-                width: parent.width * 0.66
+                width: parent.width * 0.64
                 height: parent.height
                 label: I18n.tr("Tên sự kiện", "Event title")
                 leadingIcon: "edit_calendar"
@@ -427,6 +490,7 @@ Rectangle {
                 label: I18n.tr("Giờ", "Time")
                 placeholderText: "09:00"
                 leadingIcon: "schedule"
+                showClearButton: true
                 onAccepted: root.addEvent()
             }
         }

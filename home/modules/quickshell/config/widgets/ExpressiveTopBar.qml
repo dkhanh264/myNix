@@ -11,6 +11,15 @@ Item {
     property var screen
     property string activePopup: ""
 
+    property bool toastVisible: false
+    property string toastTitle: ""
+    property string toastBody: ""
+    property string toastIcon: "notifications"
+    property string toastImage: ""
+
+    signal popupRequested(string kind, string screenName)
+    signal toastDismissed
+
     readonly property var monitor: screen ? Hyprland.monitorFor(screen) : null
     // The workspace track deliberately keeps its large node geometry at all
     // widths. Reveal neighbouring groups only when their anchored rows retain
@@ -21,8 +30,6 @@ Item {
     readonly property bool showStatusLabels: width >= 1540
     readonly property bool showSystemStats: width >= 1500
     readonly property bool compactLauncher: width < 1040
-
-    signal popupRequested(string kind, string screenName)
 
     function requestPopup(kind) {
         root.popupRequested(kind, root.screen ? root.screen.name : "");
@@ -55,28 +62,22 @@ Item {
         }
     }
 
-    Row {
-        id: centerGroup
+    MergedCenterPills {
+        id: centerPills
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Theme.space2
-
-        ClockPillM3 {
-            visible: root.showClock
-            anchors.verticalCenter: parent.verticalCenter
-            controller: root.controller
-            checked: root.activePopup === "calendar"
-            onClicked: root.requestPopup("calendar")
-        }
-
-        WeatherPillM3 {
-            visible: root.showWeather
-            anchors.verticalCenter: parent.verticalCenter
-            controller: root.controller
-            compact: root.width < 1380
-            checked: root.activePopup === "weather"
-            onPopupRequested: root.requestPopup("weather")
-        }
+        controller: root.controller
+        showClock: root.showClock
+        showWeather: root.showWeather
+        weatherCompact: root.width < 1380
+        activePopup: root.activePopup
+        toastVisible: root.toastVisible
+        toastTitle: root.toastTitle
+        toastBody: root.toastBody
+        toastIcon: root.toastIcon
+        toastImage: root.toastImage
+        onPopupRequested: kind => root.requestPopup(kind)
+        onToastDismissed: root.toastDismissed()
     }
 
     Row {
@@ -89,8 +90,8 @@ Item {
             visible: root.showSystemStats
             anchors.verticalCenter: parent.verticalCenter
             controller: root.controller
-            checked: root.activePopup === "settings"
-            onPopupRequested: root.requestPopup("settings")
+            checked: root.activePopup === "dashboard" || root.activePopup === "settings"
+            onPopupRequested: root.requestPopup("dashboard")
         }
 
         StatusWidgets {
@@ -101,70 +102,4 @@ Item {
             onPopupRequested: section => root.requestPopup(section)
         }
     }
-
-    Rectangle {
-        id: messageToast
-
-        readonly property bool shown: root.controller
-            && root.controller.message.length > 0
-
-        z: Theme.layerToast
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-        width: Math.min(460, Math.max(180,
-            toastContent.implicitWidth + Theme.space4 * 2))
-        height: Theme.barItemHeight
-        radius: shown ? height / 2 : Theme.shapeMedium
-        color: Theme.popupSurfaceStrong
-        border.width: Theme.barOutlineWidth
-        border.color: Theme.alpha(Theme.primary, 0.45)
-        opacity: shown ? 1 : 0
-        scale: shown ? 1 : 0.96
-        visible: opacity > 0.001
-
-        Row {
-            id: toastContent
-            anchors.centerIn: parent
-            spacing: Theme.space2
-
-            MaterialIcon {
-                anchors.verticalCenter: parent.verticalCenter
-                text: "info"
-                iconSize: 18
-                color: Theme.primary
-                filled: true
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                width: Math.min(390, implicitWidth)
-                text: root.controller ? root.controller.message : ""
-                color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 11
-                font.weight: Font.DemiBold
-                elide: Text.ElideRight
-            }
-        }
-
-        Behavior on opacity {
-            NumberAnimation { duration: Theme.motionShort4 }
-        }
-        Behavior on scale {
-            NumberAnimation {
-                duration: Theme.motionMedium1
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: messageToast.shown
-                    ? Theme.emphasizedDecelerate : Theme.emphasizedAccelerate
-            }
-        }
-        Behavior on radius {
-            NumberAnimation {
-                duration: Theme.motionMedium1
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.springCurve
-            }
-        }
-    }
-
 }

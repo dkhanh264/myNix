@@ -60,6 +60,12 @@
       ];
     };
   };
+
+  # ── Bộ gõ Tiếng Việt Lotus (Fcitx5 Lotus) ────────────────────────────────
+  services.fcitx5-lotus = {
+    enable = true;
+    users = [ "dk" ];
+  };
   #---Android SDK----------------------------------------------------------
   nixpkgs.config.android_sdk.accept_license = true;
   # ── NVIDIA Driver ──────────────────────────────────────────────────────
@@ -114,17 +120,19 @@
   };
 
   security.polkit.enable = true;
+  security.pam.services.quickshell = {};
+  security.pam.services.hyprlock = {};
 
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
-    theme = "sugar-candy";
+    theme = "sugar-dark";
     settings = {
       Theme = {
-        Current = "sugar-candy";
+        Current = "sugar-dark";
         CursorTheme = "Adwaita";
         CursorSize = 24;
-        Font = "JetBrains Mono Nerd Font";
+        Font = "Noto Sans";
       };
     };
   };
@@ -196,7 +204,19 @@
   };
 
   # ── Bluetooth ──────────────────────────────────────────────────────────
-  hardware.bluetooth.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+    settings = {
+      General = {
+        Enable = "Source,Sink,Media,Socket";
+        Experimental = true;
+      };
+      Policy = {
+        AutoEnable = true;
+      };
+    };
+  };
   services.blueman.enable = true;
 
   # ── User Account ───────────────────────────────────────────────────────
@@ -222,11 +242,19 @@
   fonts.packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
+    noto-fonts-color-emoji
     material-symbols
     nerd-fonts.jetbrains-mono
     nerd-fonts.fira-code
     font-awesome
   ];
+
+  fonts.fontconfig.defaultFonts = {
+    sansSerif = [ "Noto Sans" ];
+    serif = [ "Noto Serif" ];
+    monospace = [ "JetBrainsMono Nerd Font Mono" "Noto Sans Mono" ];
+    emoji = [ "Noto Color Emoji" ];
+  };
 
   # ── System Packages ────────────────────────────────────────────────────
   environment.systemPackages = with pkgs; [
@@ -237,6 +265,7 @@
     pciutils
     libimobiledevice
     usbmuxd
+    sddm-sugar-dark
   ];
 
   environment.sessionVariables = {

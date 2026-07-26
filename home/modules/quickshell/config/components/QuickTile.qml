@@ -20,24 +20,25 @@ Item {
 
     implicitHeight: 72
     opacity: enabled ? 1 : 0.42
-    scale: primaryPointer.pressed ? 0.975 : 1
+    scale: primaryPointer.pressed ? 0.97 : 1.0
 
     Rectangle {
         id: tileSurface
         anchors.fill: parent
         radius: primaryPointer.pressed ? Theme.shapeSmall
-            : root.active ? Theme.shapeLarge : Theme.shapeMedium
+            : root.active ? Theme.shapeLarge
+            : primaryPointer.containsMouse ? Theme.shapeExtraLarge : Theme.shapeMedium
         color: {
             if (root.active)
                 return primaryPointer.containsMouse
-                    ? Theme.blend(Theme.primaryContainer, Theme.primary, 0.10)
+                    ? Theme.blend(Theme.primaryContainer, Theme.primary, 0.14)
                     : Theme.primaryContainer;
             return primaryPointer.containsMouse
                 ? Theme.surfaceContainerHigh
                 : Theme.surfaceContainer;
         }
         border.width: root.active ? 0 : 1
-        border.color: Theme.outlineVariant
+        border.color: primaryPointer.containsMouse ? Theme.outline : Theme.outlineVariant
 
         Behavior on radius {
             NumberAnimation {
@@ -75,7 +76,7 @@ Item {
         MaterialIcon {
             anchors.centerIn: parent
             text: root.icon
-            iconSize: 21
+            iconSize: Theme.iconSizeSmall
             color: root.active ? Theme.textPrimary : Theme.textSecondary
         }
 
@@ -106,26 +107,24 @@ Item {
         anchors.right: detailsButton.left
         anchors.rightMargin: root.showDetails ? 4 : 12
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Theme.space1
+        spacing: 1
 
-        Text {
+        M3Text {
             width: parent.width
+            role: "titleSmall"
             text: root.title
-            color: root.active ? Theme.textPrimary : Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 14
+            color: Theme.textPrimary
             font.weight: Font.DemiBold
             elide: Text.ElideRight
         }
 
-        Text {
+        M3Text {
             width: parent.width
+            role: "labelSmall"
             text: root.subtitle
             color: root.active
                 ? Theme.alpha(Theme.textPrimary, 0.76)
                 : Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 11
             elide: Text.ElideRight
         }
     }
@@ -137,8 +136,8 @@ Item {
         anchors.rightMargin: Theme.componentPadding
         anchors.verticalCenter: parent.verticalCenter
         buttonSize: 40
-        iconSize: 16
-        icon: "󰅂"
+        iconSize: Theme.iconSizeExtraSmall
+        icon: "chevron_right"
         rotation: root.expanded ? 90 : 0
         fillColor: "transparent"
         foregroundColor: root.active ? Theme.textPrimary : Theme.textSecondary

@@ -2,7 +2,8 @@
   programs.btop = {
     enable = true;
     settings = {
-      color_theme = "TTY"; 
+      # wal-color-export maintains ~/.config/btop/themes/wal.theme.
+      color_theme = "wal";
       theme_background = false;
       truecolor = true;
       graph_symbol = "braille";

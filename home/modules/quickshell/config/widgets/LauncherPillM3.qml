@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
+import Quickshell.Io
 import "../components"
 import "../theme"
 
@@ -19,6 +20,10 @@ M3BarPill {
         "Open app launcher. Right-click to choose a wallpaper.")
     containerColor: Theme.primaryContainer
     checkedColor: Theme.primaryContainer
+
+    Process {
+        id: launcherProc
+    }
 
     Row {
         id: launcherRow
@@ -52,6 +57,6 @@ M3BarPill {
         }
     }
 
-    onClicked: Quickshell.execDetached(["walker-menu", "apps"])
+    onClicked: launcherProc.exec(["walker-menu", "apps"])
     onSecondaryClicked: root.wallpaperRequested()
 }

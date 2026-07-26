@@ -1,248 +1,454 @@
 import QtQuick
+import QtQuick.Layouts
+import QtQuick.Effects
+import Quickshell
 import "../components"
 import "../theme"
 
-Item {
+// Material 3 Expressive Hero Carousel (Uncontained Wallpaper Picker)
+// Optimized performance (discrete index-based card morphing, 0% scroll stutter),
+// 28dp hardware-accelerated rounded corner clipping via MultiEffect mask,
+// floating header controls without outer card wrapper.
+FocusScope {
     id: root
 
     property var controller
+    property var wallpapersData: []
+    property bool shown: true
+    signal closeRequested
 
-    Item {
-        id: toolbar
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        height: 44
+    focus: true
 
-        Column {
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 0
+    opacity: shown ? 1.0 : 0.0
+    scale: 0.95 + (shown ? 0.05 : 0.0)
 
-            Text {
-                text: root.controller
-                    ? root.controller.wallpapers.count
-                        + I18n.tr(" hình nền", " wallpapers")
-                    : I18n.tr("Hình nền", "Wallpapers")
-                color: Theme.textPrimary
-                font.family: Theme.textFont
-                font.pixelSize: 13
-                font.weight: Font.DemiBold
-            }
-
-            Text {
-                text: "~/Pictures/wallpapers"
-                color: Theme.textSecondary
-                font.family: Theme.textFont
-                font.pixelSize: 9
-            }
+    Behavior on opacity {
+        NumberAnimation {
+            duration: Theme.motionMedium1
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
         }
-
-        IconButton {
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            buttonSize: 38
-            iconSize: 19
-            icon: "refresh"
-            fillColor: Theme.surfaceContainerHigh
-            accessibleName: I18n.tr("Làm mới danh sách hình nền",
-                "Refresh wallpaper list")
-            enabled: root.controller && !root.controller.wallpapersLoading
-            onClicked: root.controller.refreshWallpapers()
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: Theme.motionMedium1
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
         }
     }
 
-    ListView {
-        id: wallpaperList
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: toolbar.bottom
-        anchors.bottom: parent.bottom
-        anchors.topMargin: 8
-        clip: true
-        spacing: 8
-        boundsBehavior: Flickable.StopAtBounds
-        flickDeceleration: 3200
-        model: root.controller ? root.controller.wallpapers : 0
+    onShownChanged: {
+        if (shown) {
+            root.forceActiveFocus();
+            if (carousel) carousel.forceActiveFocus();
+        }
+    }
 
-        delegate: Item {
-            id: wallpaperRow
+    onVisibleChanged: {
+        if (visible) {
+            root.forceActiveFocus();
+            if (carousel) carousel.forceActiveFocus();
+        }
+    }
 
-            required property string filePath
-            required property string fileName
-            required property string fileUrl
-            required property string fileType
-            required property bool isVideo
-            readonly property bool selected: root.controller
-                && root.controller.currentWallpaper === filePath
+    function refreshFilteredData() {
+        if (!root.controller || !root.controller.wallpapers) {
+            wallpapersData = [];
+            return;
+        }
+        const model = root.controller.wallpapers;
+        const list = [];
+        for (let i = 0; i < model.count; ++i) {
+            const item = model.get(i);
+            list.push({
+                filePath: item.filePath,
+                fileName: item.fileName,
+                fileUrl: item.fileUrl,
+                fileType: item.fileType,
+                isVideo: item.isVideo
+            });
+        }
+        wallpapersData = list;
+    }
 
-            width: wallpaperList.width
-            height: 82
-            scale: rowPointer.pressed ? 0.985 : 1
-            activeFocusOnTab: true
+    Connections {
+        target: root.controller ? root.controller.wallpapers : null
+        function onCountChanged() { root.refreshFilteredData(); }
+    }
 
-            Accessible.role: Accessible.Button
-            Accessible.name: fileName + (selected
-                ? I18n.tr(", đang dùng", ", currently used") : "")
-            Accessible.focusable: true
+    onControllerChanged: refreshFilteredData()
+    Component.onCompleted: {
+        refreshFilteredData();
+        root.forceActiveFocus();
+        if (carousel) carousel.forceActiveFocus();
+    }
 
-            Keys.onPressed: event => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
-                        || event.key === Qt.Key_Space) {
-                    root.controller.setWallpaper(wallpaperRow.filePath);
-                    event.accepted = true;
-                }
+    readonly property var currentItem: (wallpapersData.length > 0 && carousel.currentIndex >= 0 && carousel.currentIndex < wallpapersData.length)
+        ? wallpapersData[carousel.currentIndex]
+        : null
+
+    function syncCurrentWallpaper() {
+        if (!root.controller || !root.controller.currentWallpaper || wallpapersData.length === 0)
+            return;
+        for (let i = 0; i < wallpapersData.length; ++i) {
+            if (wallpapersData[i].filePath === root.controller.currentWallpaper) {
+                carousel.currentIndex = i;
+                break;
+            }
+        }
+    }
+
+    onWallpapersDataChanged: {
+        if (wallpapersData.length > 0 && carousel.currentIndex < 0) {
+            carousel.currentIndex = 0;
+        }
+        syncCurrentWallpaper();
+    }
+
+    function applySelectedWallpaper() {
+        if (root.currentItem && root.controller) {
+            root.controller.setWallpaper(root.currentItem.filePath);
+        }
+    }
+
+    function navigatePrev() {
+        if (carousel.currentIndex > 0) {
+            carousel.currentIndex--;
+        }
+    }
+
+    function navigateNext() {
+        if (carousel.currentIndex < root.wallpapersData.length - 1) {
+            carousel.currentIndex++;
+        }
+    }
+
+    // Keyboard Shortcuts
+    Shortcut {
+        sequences: ["Left", "a", "A"]
+        enabled: root.visible
+        onActivated: root.navigatePrev()
+    }
+
+    Shortcut {
+        sequences: ["Right", "d", "D"]
+        enabled: root.visible
+        onActivated: root.navigateNext()
+    }
+
+    Shortcut {
+        sequences: ["Return", "Enter", "Space"]
+        enabled: root.visible
+        onActivated: root.applySelectedWallpaper()
+    }
+
+    Shortcut {
+        sequences: ["Escape"]
+        enabled: root.visible
+        onActivated: root.closeRequested()
+    }
+
+    // FocusScope Keyboard Event Handlers
+    Keys.onLeftPressed: event => {
+        if (carousel.currentIndex > 0) {
+            carousel.currentIndex--;
+            event.accepted = true;
+        }
+    }
+
+    Keys.onRightPressed: event => {
+        if (carousel.currentIndex < root.wallpapersData.length - 1) {
+            carousel.currentIndex++;
+            event.accepted = true;
+        }
+    }
+
+    Keys.onReturnPressed: event => {
+        root.applySelectedWallpaper();
+        event.accepted = true;
+    }
+
+    Keys.onEnterPressed: event => {
+        root.applySelectedWallpaper();
+        event.accepted = true;
+    }
+
+    Keys.onEscapePressed: event => {
+        root.closeRequested();
+        event.accepted = true;
+    }
+
+    // Main Carousel Container (Uncontained, edge-to-edge)
+    Item {
+        anchors.fill: parent
+
+        // Empty state notice
+        Column {
+            anchors.centerIn: parent
+            visible: root.wallpapersData.length === 0 && (!root.controller || !root.controller.wallpapersLoading)
+            spacing: Theme.space3
+            width: Math.min(320, parent.width - 32)
+
+            MaterialIcon {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "wallpaper"
+                iconSize: 48
+                color: Theme.textSecondary
             }
 
-            Rectangle {
+            Text {
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
+                text: I18n.tr("Chưa có hình nền trong ~/Pictures/wallpapers", "No images found in ~/Pictures/wallpapers")
+                color: Theme.textSecondary
+                font.family: Theme.textFont
+                font.pixelSize: 13
+            }
+        }
+
+        // Loading indicator
+        Column {
+            anchors.centerIn: parent
+            visible: root.controller && root.controller.wallpapersLoading
+            spacing: Theme.space3
+
+            Md3CircularProgress {
+                anchors.horizontalCenter: parent.horizontalCenter
+                diameter: 48
+                strokeWidth: 4
+                showValue: false
+            }
+
+            Text {
+                text: I18n.tr("Đang tải danh sách hình nền…", "Loading wallpapers…")
+                color: Theme.textSecondary
+                font.family: Theme.textFont
+                font.pixelSize: 13
+            }
+        }
+
+        // Horizontal M3 Hero Carousel (Bookshelf layout)
+        ListView {
+            id: carousel
+            anchors.fill: parent
+            anchors.topMargin: 0
+            visible: root.wallpapersData.length > 0
+            focus: true
+
+            orientation: ListView.Horizontal
+            spacing: 12
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            flickDeceleration: 3000
+            snapMode: ListView.SnapToItem
+            highlightRangeMode: ListView.StrictlyEnforceRange
+            preferredHighlightBegin: Math.round((width - largeCardWidth) / 2)
+            preferredHighlightEnd: Math.round((width - largeCardWidth) / 2)
+            highlightMoveDuration: Theme.motionMedium2
+
+            property real largeCardWidth: Math.min(540, carousel.width * 0.55)
+            property real mediumCardWidth: Math.min(110, carousel.width * 0.11)
+            property real smallCardWidth: Math.min(60, carousel.width * 0.06)
+
+            model: root.wallpapersData
+
+            // Mouse wheel support
+            MouseArea {
                 anchors.fill: parent
-                radius: Theme.shapeLarge
-                color: wallpaperRow.selected
-                    ? Theme.primaryContainer
-                    : rowPointer.containsMouse
-                        ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow
-
-                Behavior on color {
-                    ColorAnimation { duration: Theme.motionShort3 }
-                }
-            }
-
-            Rectangle {
-                id: preview
-                anchors.left: parent.left
-                anchors.leftMargin: Theme.space2
-                anchors.verticalCenter: parent.verticalCenter
-                width: 104
-                height: 64
-                radius: Theme.shapeMedium
-                color: Theme.surfaceContainerHighest
-                clip: true
-
-                Image {
-                    id: previewImage
-                    anchors.fill: parent
-                    source: wallpaperRow.isVideo ? "" : wallpaperRow.fileUrl
-                    asynchronous: true
-                    cache: true
-                    fillMode: Image.PreserveAspectCrop
-                    sourceSize.width: 208
-                    sourceSize.height: 128
-                    visible: status === Image.Ready
-                }
-
-                MaterialIcon {
-                    anchors.centerIn: parent
-                    visible: !previewImage.visible
-                    text: wallpaperRow.isVideo ? "movie" : "wallpaper"
-                    iconSize: 25
-                    color: Theme.textSecondary
-                }
-
-                Rectangle {
-                    visible: wallpaperRow.isVideo
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.margins: 6
-                    width: 28
-                    height: 28
-                    radius: width / 2
-                    color: Theme.alpha("#000000", 0.72)
-
-                    MaterialIcon {
-                        anchors.centerIn: parent
-                        text: "play_arrow"
-                        iconSize: 17
-                        color: "#ffffff"
-                        filled: true
+                propagateComposedEvents: true
+                onWheel: event => {
+                    if (event.angleDelta.y > 0 || event.angleDelta.x < 0) {
+                        root.navigatePrev();
+                    } else if (event.angleDelta.y < 0 || event.angleDelta.x > 0) {
+                        root.navigateNext();
                     }
                 }
             }
 
-            Column {
-                anchors.left: preview.right
-                anchors.leftMargin: Theme.space3
-                anchors.right: stateIcon.left
-                anchors.rightMargin: Theme.space2
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 3
-
-                Text {
-                    width: parent.width
-                    text: wallpaperRow.fileName
-                    color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 13
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideMiddle
-                }
-
-                Text {
-                    width: parent.width
-                    text: wallpaperRow.selected
-                        ? I18n.tr("Đang dùng · ", "In use · ")
-                            + wallpaperRow.fileType
-                        : I18n.tr("Chọn làm hình nền · ", "Use as wallpaper · ")
-                            + wallpaperRow.fileType
-                    color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
-                    elide: Text.ElideRight
+            // Keyboard navigation inside ListView
+            Keys.onLeftPressed: event => {
+                if (carousel.currentIndex > 0) {
+                    carousel.currentIndex--;
+                    event.accepted = true;
                 }
             }
-
-            MaterialIcon {
-                id: stateIcon
-                anchors.right: parent.right
-                anchors.rightMargin: Theme.space3
-                anchors.verticalCenter: parent.verticalCenter
-                text: wallpaperRow.selected ? "check_circle" : "chevron_right"
-                iconSize: wallpaperRow.selected ? 21 : 19
-                color: wallpaperRow.selected ? Theme.primary : Theme.textSecondary
-                filled: wallpaperRow.selected
-            }
-
-            MouseArea {
-                id: rowPointer
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onPressed: wallpaperRow.focus = false
-                onClicked: root.controller.setWallpaper(wallpaperRow.filePath)
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: 2
-                radius: Theme.shapeLarge
-                color: "transparent"
-                border.width: 2
-                border.color: Theme.primary
-                visible: wallpaperRow.activeFocus
-            }
-
-            Behavior on scale {
-                enabled: !Theme.reduceMotion
-                NumberAnimation {
-                    duration: Theme.motionShort3
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Theme.standardCurve
+            Keys.onRightPressed: event => {
+                if (carousel.currentIndex < root.wallpapersData.length - 1) {
+                    carousel.currentIndex++;
+                    event.accepted = true;
                 }
             }
-        }
+            Keys.onReturnPressed: event => { root.applySelectedWallpaper(); event.accepted = true; }
+            Keys.onEnterPressed: event => { root.applySelectedWallpaper(); event.accepted = true; }
+            Keys.onEscapePressed: event => { root.closeRequested(); event.accepted = true; }
 
-        Text {
-            anchors.centerIn: parent
-            visible: wallpaperList.count === 0
-            width: Math.min(320, parent.width - 40)
-            horizontalAlignment: Text.AlignHCenter
-            wrapMode: Text.Wrap
-            text: root.controller && root.controller.wallpapersLoading
-                ? I18n.tr("Đang tìm hình nền…", "Finding wallpapers…")
-                : I18n.tr("Chưa có ảnh trong ~/Pictures/wallpapers",
-                    "No images in ~/Pictures/wallpapers")
-            color: Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 12
+            delegate: Item {
+                id: cardItem
+
+                required property var modelData
+                required property int index
+
+                readonly property bool isSelected: root.controller
+                    && root.controller.currentWallpaper === modelData.filePath
+                readonly property bool isCurrent: carousel.currentIndex === index
+
+                // Discrete Index Distance Morphing for 60fps Zero-Lag Smooth Motion
+                readonly property int indexDist: Math.abs(index - carousel.currentIndex)
+                readonly property real targetWidth: indexDist === 0 ? carousel.largeCardWidth
+                    : (indexDist === 1 ? carousel.mediumCardWidth : carousel.smallCardWidth)
+
+                width: Math.max(carousel.smallCardWidth, targetWidth)
+                height: carousel.height - 12
+
+                Behavior on width {
+                    enabled: !Theme.reduceMotion && !carousel.moving
+                    NumberAnimation {
+                        duration: Theme.motionMedium2
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: Theme.springCurve
+                    }
+                }
+
+                // 28dp Rounded Mask (M3 Corner Extra Large)
+                Rectangle {
+                    id: maskRect
+                    width: cardItem.width
+                    height: cardItem.height
+                    radius: 28
+                    visible: false
+                    layer.enabled: true
+                }
+
+                // Wallpaper Image Source
+                Image {
+                    id: cardImage
+                    anchors.fill: parent
+                    source: cardItem.modelData.fileUrl ? cardItem.modelData.fileUrl : ("file://" + cardItem.modelData.filePath)
+                    asynchronous: true
+                    cache: true
+                    fillMode: Image.PreserveAspectCrop
+                    sourceSize.width: 800
+                    sourceSize.height: 600
+                    smooth: true
+                    mipmap: true
+                    visible: false
+
+                    MaterialIcon {
+                        anchors.centerIn: parent
+                        visible: cardImage.status !== Image.Ready && !cardItem.modelData.isVideo
+                        text: "image"
+                        iconSize: 44
+                        color: Theme.textSecondary
+                    }
+                }
+
+                // Clipped Image with 28dp Rounded Corners
+                MultiEffect {
+                    anchors.fill: parent
+                    source: cardImage
+                    maskEnabled: true
+                    maskSource: maskRect
+                    autoPaddingEnabled: false
+                }
+
+                // Bottom Scrim Overlay with Title & Badge
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    height: 68
+                    radius: 28
+                    visible: cardItem.width >= carousel.largeCardWidth * 0.7
+
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: "transparent" }
+                        GradientStop { position: 1.0; color: Theme.alpha("#000000", 0.78) }
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 14
+                        spacing: 8
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+
+                             M3Text {
+                                Layout.fillWidth: true
+                                role: "titleSmall"
+                                text: cardItem.modelData.fileName || ""
+                                color: Theme.textPrimary
+                                font.weight: Font.DemiBold
+                                elide: Text.ElideMiddle
+                            }
+
+                            M3Text {
+                                Layout.fillWidth: true
+                                role: "labelSmall"
+                                text: cardItem.isSelected ? I18n.tr("Hình nền hiện tại", "Current Wallpaper")
+                                    : (cardItem.isCurrent ? I18n.tr("Nhấn Enter để chọn", "Press Enter to select") : "")
+                                color: Theme.textSecondary
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        Rectangle {
+                            visible: cardItem.isSelected
+                            width: 24
+                            height: 24
+                            radius: 12
+                            color: Theme.primary
+
+                            MaterialIcon {
+                                anchors.centerIn: parent
+                                text: "check"
+                                iconSize: 16
+                                color: Theme.onPrimary
+                                filled: true
+                            }
+                        }
+                    }
+                }
+
+                // Selection / Focus Border Outline around 28dp rounded card shape
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 28
+                    color: "transparent"
+                    border.width: cardItem.isCurrent ? 3 : (cardItem.isSelected ? 2 : 0)
+                    border.color: cardItem.isCurrent ? Theme.primary
+                        : (cardItem.isSelected ? Theme.tertiary : "transparent")
+                    antialiasing: true
+
+                    Behavior on border.color { ColorAnimation { duration: Theme.motionShort3 } }
+                }
+
+                // Ripple Feedback
+                MaterialRipple {
+                    id: cardRipple
+                    rippleColor: "#ffffff"
+                }
+
+                MouseArea {
+                    id: cardPointer
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: mouse => {
+                        carousel.forceActiveFocus();
+                        cardRipple.burst(mouse.x, mouse.y);
+                    }
+                    onClicked: {
+                        if (carousel.currentIndex !== cardItem.index) {
+                            carousel.currentIndex = cardItem.index;
+                        } else {
+                            root.applySelectedWallpaper();
+                        }
+                    }
+                }
+            }
         }
     }
 }

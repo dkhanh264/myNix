@@ -90,22 +90,20 @@ M3BarPill {
                 width: root.compact ? 64 : 84
                 spacing: 0
 
-                Text {
+                M3Text {
                     width: parent.width
+                    role: "labelSmall"
                     text: root.titleText
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                     font.weight: Font.Bold
                     elide: Text.ElideRight
                 }
 
-                Text {
+                M3Text {
                     width: parent.width
+                    role: "labelSmall"
                     text: root.artistText
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 8
                     font.weight: Font.Medium
                     elide: Text.ElideRight
                 }
@@ -140,16 +138,15 @@ M3BarPill {
             onClicked: root.player.previous()
         }
 
-        IconButton {
+        MediaPlayButton {
             anchors.verticalCenter: parent.verticalCenter
             buttonSize: 30
             iconSize: 17
-            icon: root.player && root.player.isPlaying ? "pause" : "play_arrow"
-            checked: root.player && root.player.isPlaying
+            isPlaying: root.player && root.player.isPlaying
+            fillColor: "transparent"
+            hoverColor: Theme.alpha(Theme.textPrimary, 0.09)
             foregroundColor: Theme.textPrimary
             enabled: root.player && root.player.canTogglePlaying
-            accessibleName: root.player && root.player.isPlaying
-                ? I18n.tr("Tạm dừng", "Pause") : I18n.tr("Phát", "Play")
             onClicked: root.togglePlayback()
         }
 

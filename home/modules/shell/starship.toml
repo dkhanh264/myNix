@@ -3,12 +3,12 @@ command_timeout = 200
 format = "[$directory$git_branch$git_status]($style)$character"
 
 [character]
-error_symbol = "[✗](bold cyan)"
-success_symbol = "[❯](bold cyan)"
+error_symbol = "[✗](bold red)"
+success_symbol = "[❯](bold blue)"
 
 [directory]
 repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
-repo_root_style = "bold cyan"
+repo_root_style = "bold blue"
 truncation_length = 2
 truncation_symbol = "…/"
 read_only = " 󰌾" # Bạn có thể đổi thành icon Nerd Font khác hoặc để trống "" nếu không muốn hiện
@@ -16,7 +16,7 @@ read_only_style = "red"
 
 [git_branch]
 format = "[$branch]($style) "
-style = "italic cyan"
+style = "italic blue"
 
 [git_status]
 ahead = "⇡${count} "
@@ -29,6 +29,6 @@ modified = " "
 renamed = ""
 staged = ""
 stashed = ""
-style = "cyan"
+style = "blue"
 untracked = "? "
 up_to_date = " "

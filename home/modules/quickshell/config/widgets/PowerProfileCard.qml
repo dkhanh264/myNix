@@ -44,15 +44,15 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 0
 
-                Text {
+                M3Text {
+                    role: "titleSmall"
                     text: I18n.tr("Chế độ nguồn", "Power profile")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 14
                     font.weight: Font.DemiBold
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     text: root.controller
                         ? root.controller.powerProfileBusy
                             ? I18n.tr("Đang áp dụng…", "Applying…")
@@ -66,8 +66,6 @@ Rectangle {
                                         "Balance performance and battery"))
                         : I18n.tr("Đang cập nhật…", "Updating…")
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 10
                 }
             }
         }
@@ -101,13 +99,12 @@ Rectangle {
             }
         }
 
-        Text {
+        M3Text {
+            role: "labelSmall"
             visible: root.controller && root.controller.powerProfileError.length > 0
             width: parent.width
             text: root.controller ? root.controller.powerProfileError : ""
             color: Theme.error
-            font.family: Theme.textFont
-            font.pixelSize: 10
             elide: Text.ElideRight
         }
     }

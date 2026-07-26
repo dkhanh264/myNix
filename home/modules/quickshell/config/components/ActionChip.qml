@@ -14,7 +14,7 @@ Item {
 
     implicitHeight: supportingText ? 56 : 48
     opacity: enabled ? 1 : 0.38
-    scale: presentationScale * (pointer.pressed ? 0.96 : 1)
+    scale: presentationScale * (pointer.pressed ? 0.97 : 1.0)
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.Button
@@ -35,12 +35,13 @@ Item {
         id: chipSurface
         anchors.fill: parent
         radius: pointer.pressed ? Theme.shapeSmall
-            : root.selected ? Theme.shapeMedium : height / 2
+            : root.selected ? Theme.shapeMedium
+            : pointer.containsMouse ? Theme.shapeLarge : height / 2
         color: root.selected
             ? Theme.secondaryContainer
             : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow)
         border.width: root.selected ? 0 : 1
-        border.color: Theme.outlineVariant
+        border.color: pointer.containsMouse ? Theme.outline : Theme.outlineVariant
 
         Behavior on color { ColorAnimation { duration: Theme.motionShort } }
         Behavior on radius {
@@ -54,7 +55,7 @@ Item {
 
     MaterialRipple {
         id: ripple
-        rippleColor: root.selected ? Theme.textPrimary : Theme.textPrimary
+        rippleColor: Theme.textPrimary
     }
 
     Rectangle {
@@ -71,7 +72,7 @@ Item {
         MaterialIcon {
             anchors.centerIn: parent
             text: root.icon
-            iconSize: 16
+            iconSize: Theme.iconSizeExtraSmall
             color: root.selected ? Theme.textPrimary : Theme.textSecondary
         }
 
@@ -90,25 +91,23 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: Theme.space2
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Theme.space1
+        spacing: 1
 
-        Text {
+        M3Text {
             width: parent.width
+            role: "labelLarge"
             text: root.label
-            color: root.selected ? Theme.textPrimary : Theme.textPrimary
-            font.family: Theme.textFont
-            font.pixelSize: 13
+            color: Theme.textPrimary
             font.weight: Font.DemiBold
             elide: Text.ElideRight
         }
 
-        Text {
+        M3Text {
             visible: root.supportingText.length > 0
             width: parent.width
+            role: "labelSmall"
             text: root.supportingText
             color: Theme.textSecondary
-            font.family: Theme.textFont
-            font.pixelSize: 10
             elide: Text.ElideRight
         }
     }
@@ -128,8 +127,8 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        anchors.margins: 2
-        radius: Math.max(0, chipSurface.radius - 2)
+        anchors.margins: -2
+        radius: chipSurface.radius + 2
         color: "transparent"
         border.width: 2
         border.color: Theme.primary
@@ -140,7 +139,7 @@ Item {
         NumberAnimation {
             duration: Theme.motionShort4
             easing.type: Easing.BezierSpline
-            easing.bezierCurve: Theme.standardCurve
+            easing.bezierCurve: Theme.springCurve
         }
     }
 }

@@ -56,24 +56,22 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 1
 
-                Text {
+                M3Text {
                     width: parent.width
-                    text: "Âm thanh"
+                    role: "titleSmall"
+                    text: I18n.tr("Âm thanh", "Audio")
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 14
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
 
-                Text {
+                M3Text {
                     width: parent.width
-                    text: !root.controller ? "Đang cập nhật…"
-                        : root.controller.muted ? "Đã tắt tiếng"
+                    role: "labelSmall"
+                    text: !root.controller ? I18n.tr("Đang cập nhật…", "Updating…")
+                        : root.controller.muted ? I18n.tr("Đã tắt tiếng", "Muted")
                         : root.controller.volume + "%"
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 11
                     elide: Text.ElideRight
                 }
             }
@@ -91,7 +89,7 @@ Rectangle {
                         ? "volume_off" : "volume_up"
                     checked: root.controller && root.controller.muted
                     accessibleName: root.controller && root.controller.muted
-                        ? "Bật tiếng" : "Tắt tiếng"
+                        ? I18n.tr("Bật tiếng", "Unmute") : I18n.tr("Tắt tiếng", "Mute")
                     onClicked: {
                         if (root.controller)
                             root.controller.toggleMute();

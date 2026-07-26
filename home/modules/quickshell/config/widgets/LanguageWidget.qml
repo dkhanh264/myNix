@@ -5,12 +5,15 @@ import "../theme"
 Rectangle {
     id: root
 
-    implicitHeight: 220
+    implicitHeight: langCol.implicitHeight + Theme.componentPadding * 2
     radius: Theme.cardRadius
     color: Theme.surfaceContainerLow
 
     Column {
-        anchors.fill: parent
+        id: langCol
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.margins: Theme.componentPadding
         spacing: Theme.space3
 
@@ -47,20 +50,18 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 1
 
-                    Text {
+                    M3Text {
+                        role: "titleSmall"
                         text: I18n.tr("Ngôn ngữ hệ thống",
                             "Interface language")
                         color: Theme.textPrimary
-                        font.family: Theme.textFont
-                        font.pixelSize: 14
                         font.weight: Font.DemiBold
                     }
-                    Text {
+                    M3Text {
+                        role: "labelSmall"
                         text: I18n.tr("Áp dụng ngay cho toàn bộ shell",
                             "Applied to the shell immediately")
                         color: Theme.textSecondary
-                        font.family: Theme.textFont
-                        font.pixelSize: 10
                     }
                 }
             }

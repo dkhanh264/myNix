@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import "../components"
 import "../theme"
 
@@ -6,8 +7,9 @@ Column {
     id: root
 
     property var controller
+    signal sectionRequested(string section)
 
-    spacing: Theme.space4
+    spacing: Theme.space3
 
     function volumeIcon() {
         if (!controller || controller.muted)
@@ -19,6 +21,7 @@ Column {
         return "volume_mute";
     }
 
+    // 1. Volume & Brightness Sliders
     Column {
         width: parent.width
         spacing: Theme.space2
@@ -61,6 +64,92 @@ Column {
         }
     }
 
+    // 2. Quick Action Tiles Grid (4 Tiles: Wi-Fi, Bluetooth, Screen Record, Language)
+    M3Text {
+        role: "titleSmall"
+        text: I18n.tr("Tác vụ nhanh", "Quick Actions")
+        color: Theme.textPrimary
+        font.weight: Font.Bold
+    }
+
+    GridLayout {
+        width: parent.width
+        columns: 2
+        columnSpacing: Theme.space2
+        rowSpacing: Theme.space2
+
+        // Wi-Fi Quick Tile
+        QuickTile {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 1
+            icon: root.controller && root.controller.wifiEnabled ? "wifi" : "wifi_off"
+            title: "Wi-Fi"
+            subtitle: root.controller && root.controller.wifiEnabled
+                ? (root.controller.wifiSsid || I18n.tr("Đã bật", "On"))
+                : I18n.tr("Đã tắt", "Off")
+            active: root.controller && root.controller.wifiEnabled
+            showDetails: true
+            onPrimaryClicked: {
+                if (root.controller && !root.controller.wifiEnabled)
+                    root.controller.toggleWifi();
+                else
+                    root.sectionRequested("wifi");
+            }
+            onDetailsClicked: root.sectionRequested("wifi")
+        }
+
+        // Bluetooth Quick Tile
+        QuickTile {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 1
+            icon: root.controller && root.controller.bluetoothEnabled ? "bluetooth" : "bluetooth_disabled"
+            title: "Bluetooth"
+            subtitle: root.controller && root.controller.bluetoothEnabled
+                ? (root.controller.bluetoothConnectedCount > 0
+                    ? root.controller.bluetoothConnectedCount + I18n.tr(" thiết bị", " devices")
+                    : I18n.tr("Đã bật", "On"))
+                : I18n.tr("Đã tắt", "Off")
+            active: root.controller && root.controller.bluetoothEnabled
+            showDetails: true
+            onPrimaryClicked: {
+                if (root.controller && !root.controller.bluetoothEnabled)
+                    root.controller.toggleBluetooth();
+                else
+                    root.sectionRequested("bluetooth");
+            }
+            onDetailsClicked: root.sectionRequested("bluetooth")
+        }
+
+        // Screen Recorder Quick Tile
+        QuickTile {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 1
+            icon: root.controller && root.controller.recording ? "stop_circle" : "videocam"
+            title: I18n.tr("Ghi màn hình", "Screen Record")
+            subtitle: root.controller && root.controller.recording
+                ? I18n.tr("Đang ghi…", "Recording…")
+                : I18n.tr("Sẵn sàng", "Ready")
+            active: root.controller && root.controller.recording
+            showDetails: true
+            onPrimaryClicked: root.sectionRequested("recorder")
+            onDetailsClicked: root.sectionRequested("recorder")
+        }
+
+        // Language Quick Tile
+        QuickTile {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 1
+            icon: "language"
+            title: I18n.tr("Ngôn ngữ", "Language")
+            subtitle: I18n.language === "vi" ? "Tiếng Việt" : "English"
+            active: false
+            showDetails: true
+            onPrimaryClicked: root.sectionRequested("language")
+            onDetailsClicked: root.sectionRequested("language")
+        }
+    }
+
+    // 3. Audio Devices Routing Section
     AudioRoutingWidget {
         width: parent.width
         controller: root.controller

@@ -13,6 +13,7 @@ Rectangle {
     property string trailingIcon: ""
     property bool trailingChecked: false
     property color accentColor: Theme.primary
+    property color activeColor: root.accentColor
 
     signal moved(real value)
     signal trailingClicked
@@ -69,7 +70,7 @@ Rectangle {
                 MaterialIcon {
                     anchors.centerIn: parent
                     text: root.icon
-                    iconSize: 18
+                    iconSize: Theme.iconSizeSmall
                     color: root.accentColor
                 }
             }
@@ -78,21 +79,19 @@ Rectangle {
                 anchors.left: iconContainer.right
                 anchors.leftMargin: Theme.space2
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 0
+                spacing: 1
 
-                Text {
+                M3Text {
+                    role: "titleSmall"
                     text: root.title
                     color: Theme.textPrimary
-                    font.family: Theme.textFont
-                    font.pixelSize: 14
                     font.weight: Font.DemiBold
                 }
 
-                Text {
+                M3Text {
+                    role: "labelSmall"
                     text: root.valueText
                     color: Theme.textSecondary
-                    font.family: Theme.textFont
-                    font.pixelSize: 11
                 }
             }
 
@@ -101,7 +100,7 @@ Rectangle {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 buttonSize: 38
-                iconSize: 18
+                iconSize: Theme.iconSizeSmall
                 icon: root.trailingIcon
                 checked: root.trailingChecked
                 fillColor: Theme.surfaceContainerHighest
@@ -118,8 +117,7 @@ Rectangle {
             icon: root.icon
             showValue: false
             accessibleName: root.title
-            activeColor: Theme.blend(Theme.surfaceContainerHighest,
-                root.accentColor, 0.30)
+            activeColor: root.activeColor
             accentColor: root.accentColor
             foregroundColor: Theme.textPrimary
             onMoved: value => root.moved(value)

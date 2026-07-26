@@ -12,6 +12,7 @@ Item {
     property bool alert: false
     property bool elevated: false
     property int horizontalPadding: Theme.componentPadding
+    property int verticalPadding: 0
     property int minimumWidth: Theme.barItemHeight
     property string accessibleName: ""
     property color containerColor: Theme.barSurface
@@ -40,7 +41,7 @@ Item {
         content.childrenRect.width + horizontalPadding * 2)
     implicitHeight: Theme.barItemHeight
     activeFocusOnTab: interactive
-    scale: pressed ? 0.96 : 1
+    scale: pressed ? 0.95 : (hovered && interactive ? 1.02 : 1)
 
     Accessible.role: interactive ? Accessible.Button : Accessible.Grouping
     Accessible.name: accessibleName
@@ -56,20 +57,12 @@ Item {
         }
     }
 
-    RectangularShadow {
-        anchors.fill: surface
-        offset: Qt.vector2d(0, root.elevated ? 2 : 1)
-        radius: surface.radius
-        blur: root.elevated ? 7 : 4
-        spread: -1
-        color: Theme.alpha("#000000", Theme.darkPalette ? 0.28 : 0.14)
-        opacity: root.elevated ? 0.9 : 0.55
-    }
-
     Rectangle {
         id: surface
         anchors.fill: parent
-        radius: root.pressed ? Theme.shapeMedium : height / 2
+        radius: root.pressed ? Theme.shapeSmall
+            : root.checked ? Theme.shapeMedium
+            : root.hovered ? Theme.shapeLarge : height / 2
         color: root.resolvedColor
         border.width: Theme.barOutlineWidth
         border.color: root.resolvedOutlineColor
@@ -107,6 +100,8 @@ Item {
         anchors.fill: parent
         anchors.leftMargin: root.horizontalPadding
         anchors.rightMargin: root.horizontalPadding
+        anchors.topMargin: root.verticalPadding
+        anchors.bottomMargin: root.verticalPadding
     }
 
     MaterialRipple {

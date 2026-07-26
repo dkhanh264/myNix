@@ -16,49 +16,74 @@
     };
 
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
-  };
 
-  outputs = { self, nixpkgs, home-manager, nixvim, lanzaboote, codex-cli-nix, ... }:
-  let
-    mkSystem = hostname:
-      nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+    antigravity-nix = {
+      url = "github:jacopone/antigravity-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-        modules = [
-          ./hosts/${hostname}/configuration.nix
-          lanzaboote.nixosModules.lanzaboote
-          home-manager.nixosModules.home-manager
-
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-
-              extraSpecialArgs = { inherit nixvim codex-cli-nix; };
-              
-              sharedModules = [
-                nixvim.homeModules.nixvim
-              ];
-
-              users.dk = { ... }: {
-                imports = [
-                  ./home/home.nix
-                ];
-
-                home = {
-                  username = "dk";
-                  homeDirectory = "/home/dk";
-                  stateVersion = "25.11";
-                };
-              };
-            };
-          }
-        ];
-      };
-  in
-  {
-    nixosConfigurations = {
-      "HiMeo" = mkSystem "laptop";
+    fcitx5-lotus = {
+      url = "github:LotusInputMethod/fcitx5-lotus";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
+
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      nixvim,
+      lanzaboote,
+      codex-cli-nix,
+      antigravity-nix,
+      fcitx5-lotus,
+      ...
+    }@inputs:
+    let
+      mkSystem =
+        hostname:
+        nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { inherit inputs; };
+
+          modules = [
+            ./hosts/${hostname}/configuration.nix
+            lanzaboote.nixosModules.lanzaboote
+            home-manager.nixosModules.home-manager
+            fcitx5-lotus.nixosModules.fcitx5-lotus
+
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                backupFileExtension = "backup";
+
+                extraSpecialArgs = { inherit nixvim codex-cli-nix antigravity-nix; };
+
+                sharedModules = [
+                  nixvim.homeModules.nixvim
+                ];
+
+                users.dk = { ... }: {
+                  imports = [
+                    ./home/home.nix
+                  ];
+
+                  home = {
+                    username = "dk";
+                    homeDirectory = "/home/dk";
+                    stateVersion = "25.11";
+                  };
+                };
+              };
+            }
+          ];
+        };
+    in
+    {
+      nixosConfigurations = {
+        "HiMeo" = mkSystem "laptop";
+      };
+    };
 }
