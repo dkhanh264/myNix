@@ -87,161 +87,347 @@ Item {
             Layout.fillHeight: true
             spacing: Theme.space3
 
-            // ================= LEFT COLUMN: VITALS, CONTROLS & STORAGE =================
+            // ================= LEFT COLUMN: VITALS, STORAGE, CONTROLS, USER & FASTFETCH =================
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
-                // Card 1: LARGE OUTER SQUARE CONTAINER WRAPPING 4 INNER SQUARE VITALS BLOCKS (NO TEXT LABELS)
-                Rectangle {
+                // Row 1: Split Status Section into 2 Equal Cards (Left: Vitals, Right: Water Bottle Disk Storage)
+                RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.preferredHeight: 1.2
-                    radius: Theme.cardRadius
-                    color: Theme.surfaceContainer
-                    border.width: 1
-                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+                    spacing: Theme.space3
 
-                    GridLayout {
-                        anchors.fill: parent
-                        anchors.margins: Theme.space3
-                        columns: 2
-                        columnSpacing: Theme.space2
-                        rowSpacing: Theme.space2
+                    // Card 1A: Vitals (CPU, RAM, Temp, Battery) - Equal Width
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        Layout.fillHeight: true
+                        radius: Theme.cardRadius
+                        color: Theme.surfaceContainer
+                        border.width: 1
+                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
 
-                        // 1. CPU Inner Square Block
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.preferredWidth: 1
-                            radius: Theme.shapeMedium
-                            color: Theme.surfaceContainerHigh
+                        GridLayout {
+                            anchors.fill: parent
+                            anchors.margins: Theme.space3
+                            columns: 2
+                            columnSpacing: Theme.space2
+                            rowSpacing: Theme.space2
 
-                            Item {
-                                anchors.centerIn: parent
-                                implicitWidth: 54
-                                implicitHeight: 54
+                            // 1. CPU Inner Square Block
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Layout.preferredWidth: 1
+                                radius: Theme.shapeMedium
+                                color: Theme.surfaceContainerHigh
 
-                                Md3CircularProgress {
+                                Item {
                                     anchors.centerIn: parent
-                                    diameter: 52
-                                    strokeWidth: 4.5
-                                    value: root.controller ? root.controller.cpuUsage : 0
-                                    showValue: false
-                                    animatedWave: true
-                                    progressColor: Theme.primary
+                                    implicitWidth: 54
+                                    implicitHeight: 54
+
+                                    Md3CircularProgress {
+                                        anchors.centerIn: parent
+                                        diameter: 52
+                                        strokeWidth: 4.5
+                                        value: root.controller ? root.controller.cpuUsage : 0
+                                        showValue: false
+                                        animatedWave: true
+                                        progressColor: Theme.primary
+                                    }
+
+                                    MaterialIcon {
+                                        anchors.centerIn: parent
+                                        text: "memory"
+                                        iconSize: 22
+                                        color: Theme.primary
+                                    }
                                 }
+                            }
 
-                                MaterialIcon {
+                            // 2. RAM Inner Square Block
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Layout.preferredWidth: 1
+                                radius: Theme.shapeMedium
+                                color: Theme.surfaceContainerHigh
+
+                                Item {
                                     anchors.centerIn: parent
-                                    text: "memory"
-                                    iconSize: 22
-                                    color: Theme.primary
+                                    implicitWidth: 54
+                                    implicitHeight: 54
+
+                                    Md3CircularProgress {
+                                        anchors.centerIn: parent
+                                        diameter: 52
+                                        strokeWidth: 4.5
+                                        value: root.controller ? root.controller.memoryPercent : 0
+                                        showValue: false
+                                        animatedWave: true
+                                        progressColor: Theme.secondary
+                                    }
+
+                                    MaterialIcon {
+                                        anchors.centerIn: parent
+                                        text: "sd_card"
+                                        iconSize: 22
+                                        color: Theme.secondary
+                                    }
+                                }
+                            }
+
+                            // 3. CPU Temp Inner Square Block
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Layout.preferredWidth: 1
+                                radius: Theme.shapeMedium
+                                color: root.controller && root.controller.temperatureC >= 80 ? Theme.errorContainer : Theme.surfaceContainerHigh
+
+                                Item {
+                                    anchors.centerIn: parent
+                                    implicitWidth: 54
+                                    implicitHeight: 54
+
+                                    Md3CircularProgress {
+                                        anchors.centerIn: parent
+                                        diameter: 52
+                                        strokeWidth: 4.5
+                                        value: root.controller && root.controller.temperatureAvailable ? Math.min(100, root.controller.temperatureC) : 0
+                                        showValue: false
+                                        animatedWave: true
+                                        progressColor: root.controller && root.controller.temperatureC >= 80 ? Theme.error : Theme.tertiary
+                                    }
+
+                                    MaterialIcon {
+                                        anchors.centerIn: parent
+                                        text: "device_thermostat"
+                                        iconSize: 22
+                                        color: root.controller && root.controller.temperatureC >= 80 ? Theme.error : Theme.tertiary
+                                    }
+                                }
+                            }
+
+                            // 4. Battery Inner Square Block
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Layout.preferredWidth: 1
+                                radius: Theme.shapeMedium
+                                color: Theme.surfaceContainerHigh
+
+                                Item {
+                                    anchors.centerIn: parent
+                                    implicitWidth: 54
+                                    implicitHeight: 54
+
+                                    Md3CircularProgress {
+                                        anchors.centerIn: parent
+                                        diameter: 52
+                                        strokeWidth: 4.5
+                                        value: root.controller && root.controller.batteryAvailable ? root.controller.batteryPercent : 0
+                                        showValue: false
+                                        animatedWave: true
+                                        progressColor: Theme.tertiary
+                                    }
+
+                                    MaterialIcon {
+                                        anchors.centerIn: parent
+                                        text: "battery_full"
+                                        iconSize: 22
+                                        color: Theme.tertiary
+                                    }
                                 }
                             }
                         }
+                    }
 
-                        // 2. RAM Inner Square Block
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.preferredWidth: 1
-                            radius: Theme.shapeMedium
-                            color: Theme.surfaceContainerHigh
+                    // Card 1B: Rectangular Water Bottle Disk Storage Card - Equal Width
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        Layout.fillHeight: true
+                        radius: Theme.cardRadius
+                        color: Theme.surfaceContainer
+                        border.width: 1
+                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
 
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: Theme.space3
+                            spacing: Theme.space3
+
+                            // Upright Rectangular Water Bottle Progress Vessel
                             Item {
-                                anchors.centerIn: parent
-                                implicitWidth: 54
-                                implicitHeight: 54
+                                id: waterBottleVessel
+                                implicitWidth: 46
+                                Layout.fillHeight: true
 
-                                Md3CircularProgress {
-                                    anchors.centerIn: parent
-                                    diameter: 52
-                                    strokeWidth: 4.5
-                                    value: root.controller ? root.controller.memoryPercent : 0
-                                    showValue: false
-                                    animatedWave: true
-                                    progressColor: Theme.secondary
-                                }
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: Theme.shapeMedium
+                                    color: Theme.surfaceContainerHigh
+                                    border.width: 1.5
+                                    border.color: Theme.alpha(Theme.primary, 0.45)
+                                    clip: true
 
-                                MaterialIcon {
-                                    anchors.centerIn: parent
-                                    text: "sd_card"
-                                    iconSize: 22
-                                    color: Theme.secondary
+                                    Canvas {
+                                        id: bottleCanvas
+                                        anchors.fill: parent
+                                        antialiasing: true
+                                        renderStrategy: Canvas.Cooperative
+                                        property real wavePhase: 0
+
+                                        onWavePhaseChanged: requestPaint()
+                                        Component.onCompleted: requestPaint()
+
+                                        NumberAnimation on wavePhase {
+                                            from: 0
+                                            to: Math.PI * 2
+                                            duration: 2200
+                                            loops: Animation.Infinite
+                                            running: root.visible && !Theme.reduceMotion
+                                        }
+
+                                        readonly property real pct: root.controller ? Math.max(0.05, Math.min(0.95, root.controller.diskRootPercent / 100)) : 0.4
+
+                                        onPaint: {
+                                            const ctx = getContext("2d");
+                                            const w = width;
+                                            const h = height;
+                                            if (w <= 0 || h <= 0) return;
+                                            const liquidH = h * pct;
+                                            const surfaceY = h - liquidH;
+                                            const amplitude = 3;
+
+                                            ctx.reset();
+                                            ctx.clearRect(0, 0, w, h);
+
+                                            // Rear liquid wave
+                                            ctx.globalAlpha = 0.35;
+                                            ctx.fillStyle = Theme.primary;
+                                            ctx.beginPath();
+                                            ctx.moveTo(0, h);
+                                            for (let x = 0; x <= w; x += 1) {
+                                                const y = surfaceY + Math.sin((x / w) * Math.PI * 2 - bottleCanvas.wavePhase * 0.8) * amplitude;
+                                                ctx.lineTo(x, y);
+                                            }
+                                            ctx.lineTo(w, h);
+                                            ctx.closePath();
+                                            ctx.fill();
+
+                                            // Front liquid wave
+                                            ctx.globalAlpha = 0.85;
+                                            ctx.fillStyle = Theme.primary;
+                                            ctx.beginPath();
+                                            ctx.moveTo(0, h);
+                                            for (let x = 0; x <= w; x += 1) {
+                                                const y = surfaceY + Math.sin((x / w) * Math.PI * 2 + bottleCanvas.wavePhase) * amplitude;
+                                                ctx.lineTo(x, y);
+                                            }
+                                            ctx.lineTo(w, h);
+                                            ctx.closePath();
+                                            ctx.fill();
+                                        }
+                                    }
+
+                                    Column {
+                                        anchors.centerIn: parent
+                                        spacing: 2
+
+                                        MaterialIcon {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            text: "water_drop"
+                                            iconSize: 16
+                                            color: Theme.textPrimary
+                                        }
+
+                                        M3Text {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            role: "labelSmall"
+                                            text: (root.controller ? root.controller.diskRootPercent : 0) + "%"
+                                            color: Theme.textPrimary
+                                            font.weight: Font.Bold
+                                        }
+                                    }
                                 }
                             }
-                        }
 
-                        // 3. CPU Temp Inner Square Block
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.preferredWidth: 1
-                            radius: Theme.shapeMedium
-                            color: root.controller && root.controller.temperatureC >= 80 ? Theme.errorContainer : Theme.surfaceContainerHigh
+                            // Storage Text Info & Breakdown
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                spacing: 4
 
-                            Item {
-                                anchors.centerIn: parent
-                                implicitWidth: 54
-                                implicitHeight: 54
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: Theme.space1
 
-                                Md3CircularProgress {
-                                    anchors.centerIn: parent
-                                    diameter: 52
-                                    strokeWidth: 4.5
-                                    value: root.controller && root.controller.temperatureAvailable ? Math.min(100, root.controller.temperatureC) : 0
-                                    showValue: false
-                                    animatedWave: true
-                                    progressColor: root.controller && root.controller.temperatureC >= 80 ? Theme.error : Theme.tertiary
+                                    MaterialIcon {
+                                        text: "storage"
+                                        iconSize: Theme.iconSizeSmall
+                                        color: Theme.primary
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "titleSmall"
+                                        text: I18n.tr("Dung lượng", "Storage")
+                                        color: Theme.textPrimary
+                                        font.weight: Font.Bold
+                                    }
                                 }
 
-                                MaterialIcon {
-                                    anchors.centerIn: parent
-                                    text: "device_thermostat"
-                                    iconSize: 22
-                                    color: root.controller && root.controller.temperatureC >= 80 ? Theme.error : Theme.tertiary
-                                }
-                            }
-                        }
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
 
-                        // 4. Battery Inner Square Block
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.preferredWidth: 1
-                            radius: Theme.shapeMedium
-                            color: Theme.surfaceContainerHigh
+                                    M3Text {
+                                        role: "labelSmall"
+                                        text: I18n.tr("Chiếm chỗ: ", "Used: ") + (root.controller && root.controller.diskRootUsedGib ? root.controller.diskRootUsedGib.toFixed(1) + " GB" : "--")
+                                        color: Theme.primary
+                                        font.weight: Font.Bold
+                                    }
 
-                            Item {
-                                anchors.centerIn: parent
-                                implicitWidth: 54
-                                implicitHeight: 54
-
-                                Md3CircularProgress {
-                                    anchors.centerIn: parent
-                                    diameter: 52
-                                    strokeWidth: 4.5
-                                    value: root.controller && root.controller.batteryAvailable ? root.controller.batteryPercent : 0
-                                    showValue: false
-                                    animatedWave: true
-                                    progressColor: Theme.tertiary
+                                    M3Text {
+                                        role: "labelSmall"
+                                        text: I18n.tr("Còn trống: ", "Free: ") + (root.controller && root.controller.diskRootTotalGib ? Math.max(0, root.controller.diskRootTotalGib - root.controller.diskRootUsedGib).toFixed(1) + " GB" : "--")
+                                        color: Theme.textSecondary
+                                        font.weight: Font.Medium
+                                    }
                                 }
 
-                                MaterialIcon {
-                                    anchors.centerIn: parent
-                                    text: "battery_full"
-                                    iconSize: 22
-                                    color: Theme.tertiary
+                                Item { Layout.fillHeight: true }
+
+                                // Root Partition
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 1
+
+                                    M3Text {
+                                        role: "labelSmall"
+                                        text: "Root (/)"
+                                        color: Theme.textSecondary
+                                    }
+                                    Md3LinearProgress {
+                                        Layout.fillWidth: true
+                                        trackHeight: 6
+                                        value: root.controller ? root.controller.diskRootPercent : 0
+                                        progressColor: Theme.primary
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                // Card 2: System Controls (Sliders & Power Profile)
+                // Row 2: System Controls (Sliders & Power Profile)
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -383,51 +569,177 @@ Item {
                     }
                 }
 
-                // Card 3: Disk Storage Breakdown
-                Rectangle {
+                // Row 3: 2 Sub-cards replacing old storage card (User Info & Fastfetch)
+                RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 0.8
-                    radius: Theme.cardRadius
-                    color: Theme.surfaceContainer
-                    border.width: 1
-                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+                    Layout.preferredHeight: 0.95
+                    spacing: Theme.space3
 
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: Theme.space3
-                        spacing: Theme.space2
+                    // Sub-Card 3A: User Info
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        Layout.fillHeight: true
+                        radius: Theme.cardRadius
+                        color: Theme.surfaceContainer
+                        border.width: 1
+                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
 
-                        // Root Partition
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: Theme.space2
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: Theme.space3
+                            spacing: Theme.space1
 
-                            MaterialIcon { text: "storage"; iconSize: Theme.iconSizeSmall; color: Theme.primary }
-                            M3Text { role: "labelSmall"; text: "Root (/)"; color: Theme.textPrimary; font.weight: Font.Bold }
-                            Md3LinearProgress {
+                            RowLayout {
                                 Layout.fillWidth: true
-                                trackHeight: 8
-                                value: root.controller ? root.controller.diskRootPercent : 0
-                                progressColor: Theme.primary
+                                spacing: Theme.space2
+
+                                Rectangle {
+                                    width: 32
+                                    height: 32
+                                    radius: 16
+                                    color: Theme.primaryContainer
+
+                                    MaterialIcon {
+                                        anchors.centerIn: parent
+                                        text: "person"
+                                        iconSize: Theme.iconSizeSmall
+                                        color: Theme.primary
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 0
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "titleSmall"
+                                        text: Quickshell.env("USER") || "dk"
+                                        color: Theme.textPrimary
+                                        font.weight: Font.Bold
+                                        elide: Text.ElideRight
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: "@" + (Quickshell.env("HOSTNAME") || "myNix")
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
+                                }
                             }
-                            M3Text { role: "labelSmall"; text: root.controller ? root.controller.diskRootPercent + "%" : "--%"; color: Theme.primary; font.weight: Font.Bold }
+
+                            Item { Layout.fillHeight: true }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 1
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "Home: " + (Quickshell.env("HOME") || "~")
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideMiddle
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "Shell: " + (Quickshell.env("SHELL") || "/bin/sh").split("/").pop()
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
+                                }
+                            }
                         }
+                    }
 
-                        // Home Partition
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: Theme.space2
+                    // Sub-Card 3B: Fastfetch / System Info
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        Layout.fillHeight: true
+                        radius: Theme.cardRadius
+                        color: Theme.surfaceContainer
+                        border.width: 1
+                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
 
-                            MaterialIcon { text: "folder"; iconSize: Theme.iconSizeSmall; color: Theme.secondary }
-                            M3Text { role: "labelSmall"; text: "Home (/home)"; color: Theme.textPrimary; font.weight: Font.Bold }
-                            Md3LinearProgress {
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: Theme.space3
+                            spacing: Theme.space1
+
+                            RowLayout {
                                 Layout.fillWidth: true
-                                trackHeight: 8
-                                value: root.controller ? (root.controller.diskHomePercent > 0 ? root.controller.diskHomePercent : root.controller.diskRootPercent) : 0
-                                progressColor: Theme.secondary
+                                spacing: Theme.space2
+
+                                MaterialIcon {
+                                    text: "terminal"
+                                    iconSize: Theme.iconSizeSmall
+                                    color: Theme.tertiary
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "titleSmall"
+                                    text: "Fastfetch"
+                                    color: Theme.tertiary
+                                    font.weight: Font.Bold
+                                }
                             }
-                            M3Text { role: "labelSmall"; text: root.controller ? (root.controller.diskHomePercent > 0 ? root.controller.diskHomePercent : root.controller.diskRootPercent) + "%" : "--%"; color: Theme.secondary; font.weight: Font.Bold }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 1
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "OS: NixOS Linux"
+                                    color: Theme.textPrimary
+                                    font.weight: Font.Bold
+                                    elide: Text.ElideRight
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "WM: Hyprland"
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "UI: Quickshell M3"
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            Item { Layout.fillHeight: true }
+
+                            // Fastfetch Color Blocks
+                            Row {
+                                Layout.fillWidth: true
+                                spacing: 4
+
+                                Repeater {
+                                    model: ["#ffb4ab", "#8bd49c", "#f6c453", "#bec2ff", "#c6bfff", "#80d4ff"]
+
+                                    Rectangle {
+                                        required property string modelData
+                                        width: 14
+                                        height: 8
+                                        radius: 3
+                                        color: modelData
+                                    }
+                                }
+                            }
                         }
                     }
                 }

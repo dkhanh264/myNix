@@ -146,9 +146,10 @@ Item {
 
                 // Wi-Fi Icon
                 Item {
-                    implicitWidth: wifiIconComp.implicitWidth
-                    implicitHeight: wifiIconComp.implicitHeight
+                    implicitWidth: 26
+                    implicitHeight: 28
                     anchors.verticalCenter: parent.verticalCenter
+                    z: 1
 
                     MaterialIcon {
                         id: wifiIconComp
@@ -161,7 +162,7 @@ Item {
 
                     MouseArea {
                         anchors.fill: parent
-                        anchors.margins: -4
+                        z: 1
                         cursorShape: Qt.PointingHandCursor
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         onClicked: mouse => {
@@ -177,9 +178,10 @@ Item {
                 // Bluetooth Icon
                 Item {
                     visible: root.controller && root.controller.bluetoothAvailable
-                    implicitWidth: btIconComp.implicitWidth
-                    implicitHeight: btIconComp.implicitHeight
+                    implicitWidth: 26
+                    implicitHeight: 28
                     anchors.verticalCenter: parent.verticalCenter
+                    z: 1
 
                     MaterialIcon {
                         id: btIconComp
@@ -195,7 +197,7 @@ Item {
 
                     MouseArea {
                         anchors.fill: parent
-                        anchors.margins: -4
+                        z: 1
                         cursorShape: Qt.PointingHandCursor
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         onClicked: mouse => {
@@ -211,9 +213,10 @@ Item {
                 // Battery Icon
                 Item {
                     visible: root.controller && root.controller.batteryAvailable
-                    implicitWidth: battIconComp.implicitWidth
-                    implicitHeight: battIconComp.implicitHeight
+                    implicitWidth: 26
+                    implicitHeight: 28
                     anchors.verticalCenter: parent.verticalCenter
+                    z: 1
 
                     MaterialIcon {
                         id: battIconComp
@@ -227,10 +230,16 @@ Item {
 
                     MouseArea {
                         anchors.fill: parent
-                        anchors.margins: -4
+                        z: 1
                         cursorShape: Qt.PointingHandCursor
-                        acceptedButtons: Qt.LeftButton
-                        onClicked: root.popupRequested("power")
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        onClicked: mouse => {
+                            if (mouse.button === Qt.RightButton) {
+                                if (root.controller) root.controller.openSettings("power");
+                            } else {
+                                root.popupRequested("power");
+                            }
+                        }
                     }
                 }
             }

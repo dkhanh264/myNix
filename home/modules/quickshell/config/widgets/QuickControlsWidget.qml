@@ -64,7 +64,7 @@ Column {
         }
     }
 
-    // 2. Quick Action Tiles Grid (4 Tiles: Wi-Fi, Bluetooth, Screen Record, Wallpaper)
+    // 2. Quick Action Tiles Grid (4 Tiles: Wi-Fi, Bluetooth, Screen Record, Language)
     M3Text {
         role: "titleSmall"
         text: I18n.tr("Tác vụ nhanh", "Quick Actions")
@@ -135,17 +135,17 @@ Column {
             onDetailsClicked: root.sectionRequested("recorder")
         }
 
-        // Wallpaper Picker Quick Tile
+        // Language Quick Tile
         QuickTile {
             Layout.fillWidth: true
             Layout.preferredWidth: 1
-            icon: "wallpaper"
-            title: I18n.tr("Hình nền", "Wallpaper")
-            subtitle: I18n.tr("Bộ sưu tập", "Gallery")
+            icon: "language"
+            title: I18n.tr("Ngôn ngữ", "Language")
+            subtitle: I18n.language === "vi" ? "Tiếng Việt" : "English"
             active: false
             showDetails: true
-            onPrimaryClicked: root.sectionRequested("wallpaper")
-            onDetailsClicked: root.sectionRequested("wallpaper")
+            onPrimaryClicked: root.sectionRequested("language")
+            onDetailsClicked: root.sectionRequested("language")
         }
     }
 
