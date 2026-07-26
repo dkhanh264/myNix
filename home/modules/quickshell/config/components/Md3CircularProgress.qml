@@ -176,8 +176,16 @@ Item {
         anchors.centerIn: parent
         spacing: 0
 
+        MaterialIcon {
+            visible: root.icon.length > 0
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: root.icon
+            iconSize: root.diameter <= 24 ? 11 : (root.diameter < 50 ? 16 : (root.diameter < 70 ? 22 : 28))
+            color: root.progressColor
+        }
+
         Text {
-            visible: root.showValue && root.valueText.length > 0
+            visible: root.showValue && root.valueText.length > 0 && root.icon.length === 0
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.valueText
             color: root.textColor

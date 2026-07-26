@@ -13,6 +13,7 @@ Rectangle {
     property string trailingIcon: ""
     property bool trailingChecked: false
     property color accentColor: Theme.primary
+    property color activeColor: root.accentColor
 
     signal moved(real value)
     signal trailingClicked
@@ -116,8 +117,7 @@ Rectangle {
             icon: root.icon
             showValue: false
             accessibleName: root.title
-            activeColor: Theme.blend(Theme.surfaceContainerHighest,
-                root.accentColor, 0.30)
+            activeColor: root.activeColor
             accentColor: root.accentColor
             foregroundColor: Theme.textPrimary
             onMoved: value => root.moved(value)

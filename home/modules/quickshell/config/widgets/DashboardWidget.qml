@@ -328,6 +328,7 @@ Item {
                                         to: 100
                                         value: root.controller ? root.controller.brightness : 75
                                         activeColor: Theme.tertiary
+                                        accentColor: Theme.tertiary
                                         accessibleName: I18n.tr("Độ sáng", "Brightness")
                                         onMoved: val => {
                                             if (root.controller)

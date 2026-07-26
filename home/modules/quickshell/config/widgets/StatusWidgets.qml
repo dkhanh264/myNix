@@ -128,43 +128,110 @@ Item {
         }
 
         M3BarPill {
-            id: wifiPill
+            id: statusGroupPill
 
             interactive: true
-            checked: root.activePopup === "wifi"
-            alert: root.controller && !root.controller.wifiEnabled
-            horizontalPadding: root.showLabels ? Theme.space3 : 0
+            checked: root.activePopup === "wifi" || root.activePopup === "bluetooth" || root.activePopup === "power"
+            alert: (root.controller && root.controller.batteryPercent <= 15 && root.controller.batteryState !== "Charging")
+            horizontalPadding: Theme.space3
             minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
-                wifiRow.implicitWidth + horizontalPadding * 2)
-            accessibleName: root.controller && root.controller.wifiSsid
-                ? I18n.tr("Wi-Fi đã kết nối ", "Wi-Fi connected to ")
-                    + root.controller.wifiSsid
-                : I18n.tr("Điều khiển Wi-Fi", "Wi-Fi controls")
+                statusGroupRow.implicitWidth + horizontalPadding * 2)
+            accessibleName: I18n.tr("Trạng thái Wi-Fi, Bluetooth và Pin", "Wi-Fi, Bluetooth and Battery status")
 
             Row {
-                id: wifiRow
+                id: statusGroupRow
                 anchors.centerIn: parent
                 spacing: Theme.space2
 
-                MaterialIcon {
+                // Wi-Fi Icon
+                Item {
+                    implicitWidth: wifiIconComp.implicitWidth
+                    implicitHeight: wifiIconComp.implicitHeight
                     anchors.verticalCenter: parent.verticalCenter
-                    text: root.wifiIcon()
-                    iconSize: 18
-                    color: root.controller && root.controller.wifiSsid
-                        ? Theme.primary : Theme.textSecondary
+
+                    MaterialIcon {
+                        id: wifiIconComp
+                        anchors.centerIn: parent
+                        text: root.wifiIcon()
+                        iconSize: 18
+                        color: root.controller && root.controller.wifiSsid
+                            ? Theme.primary : Theme.textSecondary
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.margins: -4
+                        cursorShape: Qt.PointingHandCursor
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        onClicked: mouse => {
+                            if (mouse.button === Qt.RightButton) {
+                                if (root.controller) root.controller.openSettings("network");
+                            } else {
+                                root.popupRequested("wifi");
+                            }
+                        }
+                    }
                 }
-                M3Text {
-                    visible: root.showLabels
-                    role: "labelSmall"
+
+                // Bluetooth Icon
+                Item {
+                    visible: root.controller && root.controller.bluetoothAvailable
+                    implicitWidth: btIconComp.implicitWidth
+                    implicitHeight: btIconComp.implicitHeight
                     anchors.verticalCenter: parent.verticalCenter
-                    width: Math.min(92, implicitWidth)
-                    text: root.controller && root.controller.wifiSsid
-                        ? root.controller.wifiSsid
-                        : I18n.tr("Ngoại tuyến", "Offline")
-                    color: Theme.textSecondary
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
+
+                    MaterialIcon {
+                        id: btIconComp
+                        anchors.centerIn: parent
+                        text: root.controller && !root.controller.bluetoothEnabled
+                            ? "bluetooth_disabled"
+                            : root.controller && root.controller.bluetoothConnectedCount > 0
+                                ? "bluetooth_connected" : "bluetooth"
+                        iconSize: 18
+                        color: root.controller && root.controller.bluetoothConnectedCount > 0
+                            ? Theme.tertiary : Theme.textSecondary
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.margins: -4
+                        cursorShape: Qt.PointingHandCursor
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        onClicked: mouse => {
+                            if (mouse.button === Qt.RightButton) {
+                                if (root.controller) root.controller.openSettings("bluetooth");
+                            } else {
+                                root.popupRequested("bluetooth");
+                            }
+                        }
+                    }
+                }
+
+                // Battery Icon
+                Item {
+                    visible: root.controller && root.controller.batteryAvailable
+                    implicitWidth: battIconComp.implicitWidth
+                    implicitHeight: battIconComp.implicitHeight
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    MaterialIcon {
+                        id: battIconComp
+                        anchors.centerIn: parent
+                        text: root.batteryIcon()
+                        iconSize: 18
+                        color: root.controller && root.controller.batteryPercent <= 20
+                            ? Theme.error : Theme.tertiary
+                        filled: true
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.margins: -4
+                        cursorShape: Qt.PointingHandCursor
+                        acceptedButtons: Qt.LeftButton
+                        onClicked: root.popupRequested("power")
+                    }
                 }
             }
 
@@ -173,101 +240,6 @@ Item {
                 if (root.controller)
                     root.controller.openSettings("network");
             }
-        }
-
-        M3BarPill {
-            id: bluetoothPill
-
-            visible: root.controller && root.controller.bluetoothAvailable
-            interactive: true
-            checked: root.activePopup === "bluetooth"
-            horizontalPadding: root.showLabels ? Theme.space3 : 0
-            minimumWidth: Theme.barItemHeight
-            implicitWidth: Math.max(minimumWidth,
-                bluetoothRow.implicitWidth + horizontalPadding * 2)
-            accessibleName: !root.controller
-                ? I18n.tr("Điều khiển Bluetooth", "Bluetooth controls")
-                : !root.controller.bluetoothEnabled
-                    ? I18n.tr("Bluetooth đang tắt", "Bluetooth is off")
-                : root.controller.bluetoothConnectedCount > 0
-                    ? root.controller.bluetoothConnectedCount
-                        + I18n.tr(" thiết bị Bluetooth đã kết nối",
-                            " connected Bluetooth devices")
-                    : I18n.tr("Bluetooth đang bật", "Bluetooth is on")
-
-            Row {
-                id: bluetoothRow
-                anchors.centerIn: parent
-                spacing: Theme.space2
-
-                MaterialIcon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.controller && !root.controller.bluetoothEnabled
-                        ? "bluetooth_disabled"
-                        : root.controller && root.controller.bluetoothConnectedCount > 0
-                            ? "bluetooth_connected" : "bluetooth"
-                    iconSize: 18
-                    color: root.controller && root.controller.bluetoothConnectedCount > 0
-                        ? Theme.tertiary : Theme.textSecondary
-                }
-                M3Text {
-                    visible: root.showLabels
-                    role: "labelSmall"
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.controller && root.controller.bluetoothConnectedCount > 0
-                        ? root.controller.bluetoothConnectedCount.toString()
-                        : root.controller && root.controller.bluetoothEnabled
-                            ? I18n.tr("Bật", "On") : I18n.tr("Tắt", "Off")
-                    color: Theme.textSecondary
-                    font.weight: Font.DemiBold
-                }
-            }
-
-            onClicked: root.popupRequested("bluetooth")
-            onSecondaryClicked: {
-                if (root.controller)
-                    root.controller.openSettings("bluetooth");
-            }
-        }
-
-        M3BarPill {
-            id: batteryPill
-
-            visible: root.controller && root.controller.batteryAvailable
-            interactive: true
-            checked: root.activePopup === "power"
-            horizontalPadding: Theme.space3
-            implicitWidth: batteryRow.implicitWidth + horizontalPadding * 2
-            alert: root.controller && root.controller.batteryPercent <= 15
-                && root.controller.batteryState !== "Charging"
-            accessibleName: root.controller
-                ? "Battery " + root.controller.batteryPercent + " percent, "
-                    + root.controller.batteryState : "Battery"
-
-            Row {
-                id: batteryRow
-                anchors.centerIn: parent
-                spacing: 6
-
-                MaterialIcon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.batteryIcon()
-                    iconSize: 18
-                    color: root.controller && root.controller.batteryPercent <= 20
-                        ? Theme.error : Theme.tertiary
-                    filled: true
-                }
-                M3Text {
-                    role: "labelSmall"
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.controller ? root.controller.batteryPercent + "%" : ""
-                    color: root.controller && root.controller.batteryPercent <= 20
-                        ? Theme.error : Theme.textSecondary
-                    font.weight: Font.DemiBold
-                }
-            }
-
-            onClicked: root.popupRequested("power")
         }
 
         M3BarPill {

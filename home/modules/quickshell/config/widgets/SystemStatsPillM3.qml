@@ -11,6 +11,7 @@ M3BarPill {
     readonly property var statsModel: [
         {
             "label": "CPU",
+            "icon": "memory",
             "valueText": root.controller
                 ? root.controller.cpuUsage + "%" : "--%",
             "progress": root.controller ? root.controller.cpuUsage : 0,
@@ -19,6 +20,7 @@ M3BarPill {
         },
         {
             "label": I18n.tr("Nhiệt", "Temp"),
+            "icon": "device_thermostat",
             "valueText": root.controller
                 && root.controller.temperatureAvailable
                     ? root.controller.temperatureC + "°" : "--°",
@@ -35,6 +37,7 @@ M3BarPill {
         },
         {
             "label": "RAM",
+            "icon": "sd_card",
             "valueText": root.controller
                 ? root.controller.memoryUsedGib.toFixed(1) + "G" : "--G",
             "progress": root.controller
@@ -63,45 +66,32 @@ M3BarPill {
         Repeater {
             model: root.statsModel
 
-            delegate: Item {
+            delegate: Row {
                 required property var modelData
 
                 visible: modelData.visible
-                width: modelData.label === "RAM" ? 62 : 56
+                spacing: Theme.space1
                 height: 30
 
                 Md3CircularProgress {
                     id: gauge
-                    anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     diameter: 22
-                    strokeWidth: 3.5
+                    strokeWidth: 3
                     value: modelData.progress
                     showValue: false
                     animatedWave: false
                     progressColor: modelData.color
                     accessibleName: modelData.label
+                    icon: modelData.icon
                 }
 
-                Column {
-                    anchors.left: gauge.right
-                    anchors.leftMargin: Theme.space1
+                M3Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: -1
-
-                    M3Text {
-                        role: "labelSmall"
-                        text: modelData.valueText
-                        color: Theme.textPrimary
-                        font.weight: Font.Bold
-                    }
-
-                    M3Text {
-                        role: "labelSmall"
-                        text: modelData.label
-                        color: Theme.textSecondary
-                        font.weight: Font.Medium
-                    }
+                    role: "labelSmall"
+                    text: modelData.valueText
+                    color: Theme.textPrimary
+                    font.weight: Font.Bold
                 }
             }
         }
