@@ -263,9 +263,9 @@ Item {
                             anchors.margins: Theme.space2
                             spacing: Theme.space2
 
-                            // 1. Water Bottle 1: Root Partition (/)
+                            // 1. Water Bottle 1: Boot Partition (/boot)
                             Rectangle {
-                                id: rootBottleVessel
+                                id: bootBottleVessel
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 1
                                 Layout.fillHeight: true
@@ -276,7 +276,7 @@ Item {
                                 clip: true
 
                                 Canvas {
-                                    id: rootBottleCanvas
+                                    id: bootBottleCanvas
                                     anchors.fill: parent
                                     antialiasing: true
                                     renderStrategy: Canvas.Cooperative
@@ -293,7 +293,7 @@ Item {
                                         running: root.visible && !Theme.reduceMotion
                                     }
 
-                                    readonly property real pct: root.controller ? Math.max(0.05, Math.min(0.95, root.controller.diskRootPercent / 100)) : 0.45
+                                    readonly property real pct: root.controller ? Math.max(0.05, Math.min(0.95, root.controller.diskBootPercent / 100)) : 0.45
 
                                     onPaint: {
                                         const ctx = getContext("2d");
@@ -324,7 +324,7 @@ Item {
                                         ctx.beginPath();
                                         ctx.moveTo(0, h);
                                         for (let x = 0; x <= w; x += 1) {
-                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 - rootBottleCanvas.wavePhase * 0.8) * amplitude;
+                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 - bootBottleCanvas.wavePhase * 0.8) * amplitude;
                                             ctx.lineTo(x, y);
                                         }
                                         ctx.lineTo(w, h);
@@ -337,7 +337,7 @@ Item {
                                         ctx.beginPath();
                                         ctx.moveTo(0, h);
                                         for (let x = 0; x <= w; x += 1) {
-                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 + rootBottleCanvas.wavePhase) * amplitude;
+                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 + bootBottleCanvas.wavePhase) * amplitude;
                                             ctx.lineTo(x, y);
                                         }
                                         ctx.lineTo(w, h);
@@ -346,55 +346,55 @@ Item {
                                     }
                                 }
 
-                                Rectangle {
+                                ColumnLayout {
                                     anchors.fill: parent
                                     anchors.margins: Theme.space2
-                                    color: Theme.alpha(Theme.surface, 0.35)
-                                    radius: Theme.shapeMedium - 2
+                                    spacing: 2
 
-                                    ColumnLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 4
-                                        spacing: 2
+                                    RowLayout {
+                                        Layout.alignment: Qt.AlignHCenter
+                                        spacing: 4
 
-                                        RowLayout {
-                                            Layout.alignment: Qt.AlignHCenter
-                                            spacing: 4
-
-                                            MaterialIcon {
-                                                text: "storage"
-                                                iconSize: 14
-                                                color: Theme.primary
-                                            }
-
-                                            M3Text {
-                                                role: "labelMedium"
-                                                text: "Root (/)"
-                                                color: Theme.textPrimary
-                                                font.weight: Font.Bold
-                                            }
+                                        MaterialIcon {
+                                            text: "storage"
+                                            iconSize: 14
+                                            color: Theme.primary
                                         }
 
-                                        Item { Layout.fillHeight: true }
-
                                         M3Text {
-                                            Layout.alignment: Qt.AlignHCenter
-                                            role: "titleLarge"
-                                            text: (root.controller ? root.controller.diskRootPercent : 0) + "%"
+                                            role: "labelMedium"
+                                            text: "Boot (/boot)"
                                             color: Theme.textPrimary
                                             font.weight: Font.Bold
                                         }
-
-                                        M3Text {
-                                            Layout.alignment: Qt.AlignHCenter
-                                            role: "labelSmall"
-                                            text: (root.controller && root.controller.diskRootUsedGib ? root.controller.diskRootUsedGib.toFixed(1) : "--") + " / " + (root.controller && root.controller.diskRootTotalGib ? root.controller.diskRootTotalGib.toFixed(1) : "--") + " GB"
-                                            color: Theme.textSecondary
-                                            font.weight: Font.Medium
-                                        }
-
-                                        Item { Layout.fillHeight: true }
                                     }
+
+                                    Item { Layout.fillHeight: true }
+
+                                    M3Text {
+                                        Layout.alignment: Qt.AlignHCenter
+                                        role: "titleLarge"
+                                        text: (root.controller ? root.controller.diskBootPercent : 0) + "%"
+                                        color: Theme.textPrimary
+                                        font.weight: Font.Bold
+                                    }
+
+                                    M3Text {
+                                        Layout.alignment: Qt.AlignHCenter
+                                        role: "labelSmall"
+                                        text: {
+                                            if (!root.controller || !root.controller.diskBootTotalGib) return "--";
+                                            const used = root.controller.diskBootUsedGib;
+                                            const total = root.controller.diskBootTotalGib;
+                                            const usedStr = total < 1 ? used.toFixed(2) : used.toFixed(1);
+                                            const totalStr = total < 1 ? total.toFixed(2) : total.toFixed(1);
+                                            return usedStr + " / " + totalStr + " GB";
+                                        }
+                                        color: Theme.textSecondary
+                                        font.weight: Font.Medium
+                                    }
+
+                                    Item { Layout.fillHeight: true }
                                 }
                             }
 
@@ -430,7 +430,7 @@ Item {
 
                                     readonly property real pct: {
                                         if (!root.controller) return 0.40;
-                                        const p = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomePercent : root.controller.diskRootPercent;
+                                        const p = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomePercent : root.controller.diskBootPercent;
                                         return Math.max(0.05, Math.min(0.95, p / 100));
                                     }
 
@@ -485,64 +485,59 @@ Item {
                                     }
                                 }
 
-                                Rectangle {
+                                ColumnLayout {
                                     anchors.fill: parent
                                     anchors.margins: Theme.space2
-                                    color: Theme.alpha(Theme.surface, 0.35)
-                                    radius: Theme.shapeMedium - 2
+                                    spacing: 2
 
-                                    ColumnLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 4
-                                        spacing: 2
+                                    RowLayout {
+                                        Layout.alignment: Qt.AlignHCenter
+                                        spacing: 4
 
-                                        RowLayout {
-                                            Layout.alignment: Qt.AlignHCenter
-                                            spacing: 4
-
-                                            MaterialIcon {
-                                                text: "folder_special"
-                                                iconSize: 14
-                                                color: Theme.tertiary
-                                            }
-
-                                            M3Text {
-                                                role: "labelMedium"
-                                                text: "Home (/home)"
-                                                color: Theme.textPrimary
-                                                font.weight: Font.Bold
-                                            }
+                                        MaterialIcon {
+                                            text: "folder_special"
+                                            iconSize: 14
+                                            color: Theme.tertiary
                                         }
 
-                                        Item { Layout.fillHeight: true }
-
                                         M3Text {
-                                            Layout.alignment: Qt.AlignHCenter
-                                            role: "titleLarge"
-                                            text: {
-                                                if (!root.controller) return "0%";
-                                                const p = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomePercent : root.controller.diskRootPercent;
-                                                return p + "%";
-                                            }
+                                            role: "labelMedium"
+                                            text: "Home (/home)"
                                             color: Theme.textPrimary
                                             font.weight: Font.Bold
                                         }
-
-                                        M3Text {
-                                            Layout.alignment: Qt.AlignHCenter
-                                            role: "labelSmall"
-                                            text: {
-                                                if (!root.controller) return "--";
-                                                const used = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomeUsedGib : root.controller.diskRootUsedGib;
-                                                const total = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomeTotalGib : root.controller.diskRootTotalGib;
-                                                return (used ? used.toFixed(1) : "--") + " / " + (total ? total.toFixed(1) : "--") + " GB";
-                                            }
-                                            color: Theme.textSecondary
-                                            font.weight: Font.Medium
-                                        }
-
-                                        Item { Layout.fillHeight: true }
                                     }
+
+                                    Item { Layout.fillHeight: true }
+
+                                    M3Text {
+                                        Layout.alignment: Qt.AlignHCenter
+                                        role: "titleLarge"
+                                        text: {
+                                            if (!root.controller) return "0%";
+                                            const p = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomePercent : root.controller.diskBootPercent;
+                                            return p + "%";
+                                        }
+                                        color: Theme.textPrimary
+                                        font.weight: Font.Bold
+                                    }
+
+                                    M3Text {
+                                        Layout.alignment: Qt.AlignHCenter
+                                        role: "labelSmall"
+                                        text: {
+                                            if (!root.controller) return "--";
+                                            const used = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomeUsedGib : root.controller.diskBootUsedGib;
+                                            const total = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomeTotalGib : root.controller.diskBootTotalGib;
+                                            const usedStr = total < 1 ? used.toFixed(2) : used.toFixed(1);
+                                            const totalStr = total < 1 ? total.toFixed(2) : total.toFixed(1);
+                                            return (used ? usedStr : "--") + " / " + (total ? totalStr : "--") + " GB";
+                                        }
+                                        color: Theme.textSecondary
+                                        font.weight: Font.Medium
+                                    }
+
+                                    Item { Layout.fillHeight: true }
                                 }
                             }
                         }

@@ -37,9 +37,12 @@ Scope {
     property int temperatureC: 0
     property bool temperatureAvailable: false
 
-    property real diskRootUsedGib: 0
-    property real diskRootTotalGib: 0
-    property int diskRootPercent: 0
+    property real diskBootUsedGib: 0
+    property real diskBootTotalGib: 0
+    property int diskBootPercent: 0
+    property real diskRootUsedGib: diskBootUsedGib
+    property real diskRootTotalGib: diskBootTotalGib
+    property int diskRootPercent: diskBootPercent
     property real diskHomeUsedGib: 0
     property real diskHomeTotalGib: 0
     property int diskHomePercent: 0
@@ -269,9 +272,9 @@ Scope {
                 const usedKiB = Number(dfFields[2]) || 0;
                 const pct = parseInt(dfFields[4]) || 0;
                 if (dfDataIndex === 0) {
-                    root.diskRootTotalGib = totalKiB / 1048576;
-                    root.diskRootUsedGib = usedKiB / 1048576;
-                    root.diskRootPercent = pct;
+                    root.diskBootTotalGib = totalKiB / 1048576;
+                    root.diskBootUsedGib = usedKiB / 1048576;
+                    root.diskBootPercent = pct;
                     root.diskAvailable = true;
                 } else if (dfDataIndex === 1) {
                     root.diskHomeTotalGib = totalKiB / 1048576;
@@ -1128,7 +1131,7 @@ Scope {
                 + "max=0; for f in /sys/class/hwmon/hwmon*/temp*_input; do "
                 + "[ -r \"$f\" ] && read -r v < \"$f\" 2>/dev/null && [ \"$v\" -ge 10000 2>/dev/null ] && [ \"$v\" -le 120000 ] && [ \"$v\" -gt \"$max\" ] && max=$v; "
                 + "done; echo \"$max\"; "
-                + "df -k / /home 2>/dev/null"
+                + "df -k /boot /home 2>/dev/null"
         ]
         stdout: StdioCollector {
             onStreamFinished: root.applySystemStats(this.text)
