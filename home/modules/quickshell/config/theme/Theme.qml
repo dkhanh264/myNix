@@ -306,9 +306,9 @@ Singleton {
     readonly property int popupEdgeInset: space3
     readonly property int popupWindowInset: 6
     readonly property int popupContentPadding: space4
-    readonly property int popupHeaderHeight: 68
+    readonly property int popupHeaderHeight: 0
     readonly property int popupVerticalChrome: popupWindowInset * 2
-        + popupHeaderHeight + space3 + popupContentPadding
+        + popupContentPadding * 2
     readonly property int barOutlineWidth: 2
     readonly property int sliderTrackHeight: 20
     readonly property int sliderHandleHeight: 38

@@ -879,8 +879,8 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "dashboard"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(1320, barWindow.width - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(640, barWindow.modelData.height - barWindow.implicitHeight - 32)
+                popupWidth: Math.min(1080, barWindow.width - Theme.popupEdgeInset * 2)
+                popupHeight: Math.min(500, barWindow.modelData.height - barWindow.implicitHeight - 32)
                 popupX: Math.round((barWindow.width - popupWidth) / 2)
                 popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
                 onDismissed: root.popupDismissed("dashboard")

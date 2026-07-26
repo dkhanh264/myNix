@@ -19,8 +19,6 @@ Item {
     implicitWidth: mainLayout.implicitWidth
     implicitHeight: mainLayout.implicitHeight
 
-    property date currentDate: new Date()
-
     // MPRIS Media Player Integration
     readonly property var player: selectMprisPlayer()
     readonly property bool hasPlayer: player !== null
@@ -318,20 +316,7 @@ Item {
                                         ctx.closePath();
                                         ctx.clip();
 
-                                        // Rear liquid wave
-                                        ctx.globalAlpha = 0.30;
-                                        ctx.fillStyle = Theme.primary;
-                                        ctx.beginPath();
-                                        ctx.moveTo(0, h);
-                                        for (let x = 0; x <= w; x += 1) {
-                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 - bootBottleCanvas.wavePhase * 0.8) * amplitude;
-                                            ctx.lineTo(x, y);
-                                        }
-                                        ctx.lineTo(w, h);
-                                        ctx.closePath();
-                                        ctx.fill();
-
-                                        // Front liquid wave
+                                        // Single liquid wave
                                         ctx.globalAlpha = 0.80;
                                         ctx.fillStyle = Theme.primary;
                                         ctx.beginPath();
@@ -457,20 +442,7 @@ Item {
                                         ctx.closePath();
                                         ctx.clip();
 
-                                        // Rear liquid wave
-                                        ctx.globalAlpha = 0.30;
-                                        ctx.fillStyle = Theme.tertiary;
-                                        ctx.beginPath();
-                                        ctx.moveTo(0, h);
-                                        for (let x = 0; x <= w; x += 1) {
-                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 - homeBottleCanvas.wavePhase * 0.8) * amplitude;
-                                            ctx.lineTo(x, y);
-                                        }
-                                        ctx.lineTo(w, h);
-                                        ctx.closePath();
-                                        ctx.fill();
-
-                                        // Front liquid wave
+                                        // Single liquid wave
                                         ctx.globalAlpha = 0.80;
                                         ctx.fillStyle = Theme.tertiary;
                                         ctx.beginPath();
@@ -848,258 +820,22 @@ Item {
                 }
             }
 
-            // ================= RIGHT COLUMN: MUSIC, WEATHER & CALENDAR =================
+            // ================= RIGHT COLUMN: WEATHER & MUSIC =================
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
-                // Row of 2 Equal Square Cards: Weather & Music
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: 1
-                    spacing: Theme.space3
-
-                    // 1. SQUARE WEATHER CARD WITH DYNAMIC WEATHER CONDITION ICON (SUNNY, RAINY, CLOUDY)
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
-                        Layout.fillHeight: true
-                        radius: Theme.cardRadius
-                        color: Theme.tertiaryContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.tertiary, 0.40)
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: Theme.space3
-                            spacing: Theme.space2
-
-                            RowLayout {
-                                Layout.fillWidth: true
-
-                                // DYNAMIC WEATHER STICKER ICON (SUNNY / RAINY / CLOUDY)
-                                Rectangle {
-                                    id: weatherStickerContainer
-                                    width: 60
-                                    height: 60
-                                    radius: Theme.shapeLarge
-                                    color: Theme.surfaceContainerHigh
-                                    scale: 1
-
-                                    SequentialAnimation on scale {
-                                        loops: Animation.Infinite
-                                        running: !Theme.reduceMotion
-                                        NumberAnimation { to: 1.06; duration: 2400; easing.type: Easing.InOutQuad }
-                                        NumberAnimation { to: 0.94; duration: 2400; easing.type: Easing.InOutQuad }
-                                    }
-
-                                    MaterialIcon {
-                                        anchors.centerIn: parent
-                                        text: root.getWeatherIcon(root.controller ? root.controller.weatherCode : -1)
-                                        iconSize: 38
-                                        color: Theme.tertiary
-                                        filled: true
-                                    }
-                                }
-
-                                Item { Layout.fillWidth: true }
-
-                                IconButton {
-                                    buttonSize: 26
-                                    iconSize: Theme.iconSizeExtraSmall
-                                    icon: "refresh"
-                                    accessibleName: I18n.tr("Làm mới thời tiết", "Refresh weather")
-                                    onClicked: {
-                                        if (root.controller)
-                                            root.controller.refreshWeather(true);
-                                    }
-                                }
-                            }
-
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                Layout.fillHeight: true
-                                spacing: 0
-
-                                M3Text {
-                                    role: "headlineMedium"
-                                    text: root.controller && root.controller.weatherTemperature !== undefined ? root.controller.weatherTemperature + "°C" : "--°C"
-                                    color: Theme.textPrimary
-                                    font.weight: Font.Bold
-                                }
-
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "titleSmall"
-                                    text: root.controller && root.controller.weatherDescription ? root.controller.weatherDescription : I18n.tr("Thời tiết", "Weather")
-                                    color: Theme.tertiary
-                                    font.weight: Font.Bold
-                                    elide: Text.ElideRight
-                                }
-
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: root.controller && root.controller.weatherLocation ? root.controller.weatherLocation : I18n.tr("Hệ thống", "System")
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
-                                }
-                            }
-                        }
-                    }
-
-                    // 2. SQUARE MUSIC PLAYER CARD (PROPORTIONALLY BALANCED COMPONENT SIZES)
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
-                        Layout.fillHeight: true
-                        radius: Theme.cardRadius
-                        color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: Theme.space3
-                            spacing: Theme.space1
-
-                            // Top Header with Spinning Disc
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: Theme.space2
-
-                                // Spinning Vinyl Disc / Album Cover (PROPORTIONAL 44x44)
-                                Item {
-                                    id: spinningRecord
-                                    width: 44
-                                    height: 44
-                                    rotation: 0
-
-                                    NumberAnimation on rotation {
-                                        from: 0
-                                        to: 360
-                                        duration: 8000
-                                        loops: Animation.Infinite
-                                        running: root.isPlaying && !Theme.reduceMotion
-                                    }
-
-                                    CircularAlbumArt {
-                                        anchors.fill: parent
-                                        source: root.player ? root.player.trackArtUrl : ""
-                                        accentColor: Theme.secondary
-                                    }
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 0
-
-                                    M3Text {
-                                        Layout.fillWidth: true
-                                        role: "titleSmall"
-                                        text: root.trackTitle
-                                        color: Theme.textPrimary
-                                        font.weight: Font.Bold
-                                        elide: Text.ElideRight
-                                    }
-
-                                    M3Text {
-                                        Layout.fillWidth: true
-                                        role: "labelSmall"
-                                        text: root.trackArtist
-                                        color: Theme.textSecondary
-                                        elide: Text.ElideRight
-                                    }
-                                }
-                            }
-
-                            // Controls Row
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter
-                                spacing: 4
-
-                                IconButton {
-                                    buttonSize: 26
-                                    iconSize: 14
-                                    icon: "skip_previous"
-                                    enabled: root.player && root.player.canGoPrevious
-                                    onClicked: root.player ? root.player.previous() : null
-                                }
-
-                                IconButton {
-                                    buttonSize: 30
-                                    iconSize: 16
-                                    icon: root.isPlaying ? "pause" : "play_arrow"
-                                    fillColor: Theme.primary
-                                    foregroundColor: Theme.onPrimary
-                                    enabled: root.player && root.player.canTogglePlaying
-                                    onClicked: root.player ? root.player.togglePlaying() : null
-                                }
-
-                                IconButton {
-                                    buttonSize: 26
-                                    iconSize: 14
-                                    icon: "skip_next"
-                                    enabled: root.player && root.player.canGoNext
-                                    onClicked: root.player ? root.player.next() : null
-                                }
-                            }
-
-                            Item { Layout.fillHeight: true }
-
-                            // Cava Spectrum Audio Visualizer Bars at Bottom
-                            Row {
-                                id: cavaRow
-                                Layout.fillWidth: true
-                                height: 16
-                                spacing: 3
-
-                                Repeater {
-                                    model: 12
-
-                                    Rectangle {
-                                        required property int index
-                                        readonly property real barVal: {
-                                            if (!root.controller || !root.controller.cavaBars || root.controller.cavaBars.length <= index)
-                                                return 0;
-                                            return root.controller.cavaBars[index] || 0;
-                                        }
-                                        readonly property real targetHeight: Math.max(3, (barVal / 100) * 16)
-
-                                        width: Math.max(2, (cavaRow.width - (11 * 3)) / 12)
-                                        height: targetHeight
-                                        radius: width / 2
-                                        anchors.bottom: parent.bottom
-                                        color: root.isPlaying
-                                            ? Theme.blend(Theme.primary, Theme.secondary, index / 11)
-                                            : Theme.alpha(Theme.textPrimary, 0.14)
-
-                                        Behavior on height {
-                                            NumberAnimation {
-                                                duration: Theme.reduceMotion ? 0 : 45
-                                                easing.type: Easing.OutCubic
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 3. COMPACT MONTH CALENDAR CARD (SHRUNK INTO A PERFECT SQUARE BLOCK)
+                // 1. WEATHER CARD WITH DYNAMIC WEATHER CONDITION ICON
                 Rectangle {
                     Layout.fillWidth: true
+                    Layout.preferredWidth: 1
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 1
                     radius: Theme.cardRadius
-                    color: Theme.surfaceContainer
+                    color: Theme.tertiaryContainer
                     border.width: 1
-                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+                    border.color: Theme.alpha(Theme.tertiary, 0.40)
 
                     ColumnLayout {
                         anchors.fill: parent
@@ -1109,94 +845,208 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
 
-                            MaterialIcon {
-                                text: "calendar_month"
-                                iconSize: Theme.iconSizeSmall
-                                color: Theme.primary
+                            // DYNAMIC WEATHER STICKER ICON (SUNNY / RAINY / CLOUDY)
+                            Rectangle {
+                                id: weatherStickerContainer
+                                width: 60
+                                height: 60
+                                radius: Theme.shapeLarge
+                                color: Theme.surfaceContainerHigh
+                                scale: 1
+
+                                SequentialAnimation on scale {
+                                    loops: Animation.Infinite
+                                    running: !Theme.reduceMotion
+                                    NumberAnimation { to: 1.06; duration: 2400; easing.type: Easing.InOutQuad }
+                                    NumberAnimation { to: 0.94; duration: 2400; easing.type: Easing.InOutQuad }
+                                }
+
+                                MaterialIcon {
+                                    anchors.centerIn: parent
+                                    text: root.getWeatherIcon(root.controller ? root.controller.weatherCode : -1)
+                                    iconSize: 38
+                                    color: Theme.tertiary
+                                    filled: true
+                                }
                             }
 
-                            M3Text {
-                                Layout.fillWidth: true
-                                role: "titleMedium"
-                                text: root.currentDate.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), "MMMM yyyy")
-                                color: Theme.primary
-                                font.weight: Font.Bold
-                            }
+                            Item { Layout.fillWidth: true }
 
-                            M3Text {
-                                role: "labelSmall"
-                                text: I18n.tr("Hôm nay: ", "Today: ") + root.currentDate.getDate()
-                                color: Theme.textSecondary
-                                font.weight: Font.Bold
-                            }
-                        }
-
-                        // Days of Week Header Row
-                        GridLayout {
-                            Layout.fillWidth: true
-                            columns: 7
-                            columnSpacing: 0
-                            rowSpacing: 0
-
-                            Repeater {
-                                model: [I18n.tr("CN", "Sun"), I18n.tr("T2", "Mon"), I18n.tr("T3", "Tue"), I18n.tr("T4", "Wed"), I18n.tr("T5", "Thu"), I18n.tr("T6", "Fri"), I18n.tr("T7", "Sat")]
-
-                                M3Text {
-                                    required property string modelData
-                                    Layout.fillWidth: true
-                                    Layout.preferredWidth: 1
-                                    horizontalAlignment: Text.AlignHCenter
-                                    role: "labelSmall"
-                                    text: modelData
-                                    color: Theme.textSecondary
-                                    font.weight: Font.Bold
+                            IconButton {
+                                buttonSize: 26
+                                iconSize: Theme.iconSizeExtraSmall
+                                icon: "refresh"
+                                accessibleName: I18n.tr("Làm mới thời tiết", "Refresh weather")
+                                onClicked: {
+                                    if (root.controller)
+                                        root.controller.refreshWeather(true);
                                 }
                             }
                         }
 
-                        // Days Grid
-                        GridLayout {
+                        ColumnLayout {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            columns: 7
-                            columnSpacing: 2
-                            rowSpacing: 2
+                            spacing: 0
 
-                            readonly property int year: root.currentDate.getFullYear()
-                            readonly property int month: root.currentDate.getMonth()
-                            readonly property int firstDayOfWeek: new Date(year, month, 1).getDay()
-                            readonly property int daysInMonth: new Date(year, month + 1, 0).getDate()
-                            readonly property int totalCells: Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7
+                            M3Text {
+                                role: "headlineMedium"
+                                text: root.controller && root.controller.weatherTemperature !== undefined ? root.controller.weatherTemperature + "°C" : "--°C"
+                                color: Theme.textPrimary
+                                font.weight: Font.Bold
+                            }
+
+                            M3Text {
+                                Layout.fillWidth: true
+                                role: "titleSmall"
+                                text: root.controller && root.controller.weatherDescription ? root.controller.weatherDescription : I18n.tr("Thời tiết", "Weather")
+                                color: Theme.tertiary
+                                font.weight: Font.Bold
+                                elide: Text.ElideRight
+                            }
+
+                            M3Text {
+                                Layout.fillWidth: true
+                                role: "labelSmall"
+                                text: root.controller && root.controller.weatherLocation ? root.controller.weatherLocation : I18n.tr("Hệ thống", "System")
+                                color: Theme.textSecondary
+                                elide: Text.ElideRight
+                            }
+                        }
+                    }
+                }
+
+                // 2. MUSIC PLAYER CARD (UNDERNEATH WEATHER CARD)
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    Layout.fillHeight: true
+                    radius: Theme.cardRadius
+                    color: Theme.surfaceContainer
+                    border.width: 1
+                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: Theme.space3
+                        spacing: Theme.space1
+
+                        // Top Header with Spinning Disc
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Theme.space2
+
+                            // Spinning Vinyl Disc / Album Cover (PROPORTIONAL 44x44)
+                            Item {
+                                id: spinningRecord
+                                width: 44
+                                height: 44
+                                rotation: 0
+
+                                NumberAnimation on rotation {
+                                    from: 0
+                                    to: 360
+                                    duration: 8000
+                                    loops: Animation.Infinite
+                                    running: root.isPlaying && !Theme.reduceMotion
+                                }
+
+                                CircularAlbumArt {
+                                    anchors.fill: parent
+                                    source: root.player ? root.player.trackArtUrl : ""
+                                    accentColor: Theme.secondary
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "titleSmall"
+                                    text: root.trackTitle
+                                    color: Theme.textPrimary
+                                    font.weight: Font.Bold
+                                    elide: Text.ElideRight
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: root.trackArtist
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
+                                }
+                            }
+                        }
+
+                        // Controls Row
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignHCenter
+                            spacing: 4
+
+                            IconButton {
+                                buttonSize: 26
+                                iconSize: 14
+                                icon: "skip_previous"
+                                enabled: root.player && root.player.canGoPrevious
+                                onClicked: root.player ? root.player.previous() : null
+                            }
+
+                            IconButton {
+                                buttonSize: 30
+                                iconSize: 16
+                                icon: root.isPlaying ? "pause" : "play_arrow"
+                                fillColor: Theme.primary
+                                foregroundColor: Theme.onPrimary
+                                enabled: root.player && root.player.canTogglePlaying
+                                onClicked: root.player ? root.player.togglePlaying() : null
+                            }
+
+                            IconButton {
+                                buttonSize: 26
+                                iconSize: 14
+                                icon: "skip_next"
+                                enabled: root.player && root.player.canGoNext
+                                onClicked: root.player ? root.player.next() : null
+                            }
+                        }
+
+                        Item { Layout.fillHeight: true }
+
+                        // Cava Spectrum Audio Visualizer Bars at Bottom
+                        Row {
+                            id: cavaRow
+                            Layout.fillWidth: true
+                            height: 16
+                            spacing: 3
 
                             Repeater {
-                                model: parent.totalCells
+                                model: 12
 
-                                Item {
-                                    id: dayCell
+                                Rectangle {
                                     required property int index
+                                    readonly property real barVal: {
+                                        if (!root.controller || !root.controller.cavaBars || root.controller.cavaBars.length <= index)
+                                            return 0;
+                                        return root.controller.cavaBars[index] || 0;
+                                    }
+                                    readonly property real targetHeight: Math.max(3, (barVal / 100) * 16)
 
-                                    readonly property int dayNumber: index - parent.firstDayOfWeek + 1
-                                    readonly property bool isValidDay: dayNumber >= 1 && dayNumber <= parent.daysInMonth
-                                    readonly property bool isToday: isValidDay && dayNumber === root.currentDate.getDate()
+                                    width: Math.max(2, (cavaRow.width - (11 * 3)) / 12)
+                                    height: targetHeight
+                                    radius: width / 2
+                                    anchors.bottom: parent.bottom
+                                    color: root.isPlaying
+                                        ? Theme.blend(Theme.primary, Theme.secondary, index / 11)
+                                        : Theme.alpha(Theme.textPrimary, 0.14)
 
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    Layout.preferredWidth: 1
-
-                                    Rectangle {
-                                        anchors.centerIn: parent
-                                        width: Math.min(parent.width, parent.height, 18)
-                                        height: width
-                                        radius: width / 2
-                                        color: dayCell.isToday ? Theme.primary : "transparent"
-                                        visible: dayCell.isValidDay
-
-                                        M3Text {
-                                            anchors.centerIn: parent
-                                            role: "labelSmall"
-                                            text: dayCell.isValidDay ? dayCell.dayNumber : ""
-                                            color: dayCell.isToday ? Theme.onPrimary : Theme.textPrimary
-                                            font.weight: dayCell.isToday ? Font.Bold : Font.Normal
+                                    Behavior on height {
+                                        NumberAnimation {
+                                            duration: Theme.reduceMotion ? 0 : 45
+                                            easing.type: Easing.OutCubic
                                         }
                                     }
                                 }

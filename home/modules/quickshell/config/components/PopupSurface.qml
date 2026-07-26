@@ -57,68 +57,8 @@ Item {
     }
 
     Item {
-        id: header
-        anchors.left: panel.left
-        anchors.right: panel.right
-        anchors.top: panel.top
-        height: Theme.popupHeaderHeight
-
-        Rectangle {
-            id: headerIcon
-            anchors.left: parent.left
-            anchors.leftMargin: Theme.popupContentPadding
-            anchors.verticalCenter: parent.verticalCenter
-            width: 40
-            height: 40
-            radius: Theme.shapeMedium
-            color: root.accentContainer
-
-            MaterialIcon {
-                anchors.centerIn: parent
-                text: root.icon
-                iconSize: Theme.iconSizeMedium
-                color: root.accentColor
-                filled: true
-            }
-        }
-
-        Column {
-            anchors.left: headerIcon.right
-            anchors.leftMargin: Theme.space3
-            anchors.right: parent.right
-            anchors.rightMargin: Theme.popupContentPadding
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 2
-
-            M3Text {
-                width: parent.width
-                role: "titleMedium"
-                text: root.title
-                color: Theme.textPrimary
-                font.weight: Font.Bold
-                elide: Text.ElideRight
-            }
-
-            M3Text {
-                visible: root.subtitle.length > 0
-                width: parent.width
-                role: "labelSmall"
-                text: root.subtitle
-                color: Theme.textSecondary
-                elide: Text.ElideRight
-            }
-        }
-    }
-
-    Item {
         id: contentHost
-        anchors.left: panel.left
-        anchors.right: panel.right
-        anchors.top: header.bottom
-        anchors.bottom: panel.bottom
-        anchors.leftMargin: Theme.popupContentPadding
-        anchors.rightMargin: Theme.popupContentPadding
-        anchors.topMargin: Theme.space2
-        anchors.bottomMargin: Theme.popupContentPadding
+        anchors.fill: panel
+        anchors.margins: Theme.popupContentPadding
     }
 }
