@@ -269,7 +269,7 @@ Item {
                         RowLayout {
                             anchors.fill: parent
                             anchors.margins: Theme.space3
-                            spacing: Theme.space3
+                            spacing: Theme.space2
 
                             // Left Part: User Avatar (Square 1:1 Aspect Ratio)
                             Item {
@@ -433,7 +433,7 @@ Item {
                         RowLayout {
                             anchors.fill: parent
                             anchors.margins: Theme.space3
-                            spacing: Theme.space3
+                            spacing: Theme.space2
 
                             // Left Part: NixOS Snowflake Logo (Square 1:1 Aspect Ratio)
                             Item {
