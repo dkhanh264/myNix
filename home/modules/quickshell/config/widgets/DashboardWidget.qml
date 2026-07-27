@@ -68,9 +68,10 @@ Item {
         ]
         running: true
         stdout: StdioCollector {
-            onStreamFinished: text => {
+            onStreamFinished: {
+                const text = this.text;
                 if (!text) return;
-                const lines = text.trim().split("\n");
+                const lines = text.split("\n");
                 if (lines.length > 0 && lines[0].trim().length > 0) root.sysOsName = lines[0].trim();
                 if (lines.length > 1 && lines[1].trim().length > 0) root.sysKernelVersion = lines[1].trim();
                 if (lines.length > 2 && lines[2].trim().length > 0) root.sysUptimeStr = lines[2].trim();
@@ -94,6 +95,12 @@ Item {
             if (!sysInfoProcess.running) {
                 sysInfoProcess.running = true;
             }
+        }
+    }
+
+    onVisibleChanged: {
+        if (visible && !sysInfoProcess.running) {
+            sysInfoProcess.running = true;
         }
     }
 
@@ -125,7 +132,8 @@ Item {
     Process {
         id: lyricsProcess
         stdout: StdioCollector {
-            onStreamFinished: text => {
+            onStreamFinished: {
+                const text = this.text;
                 try {
                     const parsed = JSON.parse(text);
                     if (parsed && (parsed.plainLyrics || parsed.syncedLyrics)) {
@@ -158,6 +166,8 @@ Item {
     Component.onCompleted: {
         if (controller && controller.setCavaActive)
             controller.setCavaActive(isPlaying);
+        if (!sysInfoProcess.running)
+            sysInfoProcess.running = true;
     }
 
     Component.onDestruction: {
@@ -256,7 +266,7 @@ Item {
                                     Image {
                                         id: userAvatarImg
                                         anchors.fill: parent
-                                        source: root.sysUserAvatar !== "" ? "file://" + root.sysUserAvatar : ("file://" + (root.sysHomeDir || Quickshell.env("HOME") || "/home/" + (root.sysUserName || Quickshell.env("USER") || "dk")) + "/.face")
+                                        source: root.sysUserAvatar !== "" ? (root.sysUserAvatar.startsWith("file://") ? root.sysUserAvatar : "file://" + root.sysUserAvatar) : ("file://" + (root.sysHomeDir || Quickshell.env("HOME") || "/home/" + (root.sysUserName || Quickshell.env("USER") || "dk")) + "/.face")
                                         fillMode: Image.PreserveAspectCrop
                                         smooth: true
                                         mipmap: true
