@@ -44,6 +44,8 @@ Item {
     property string sysUserShell: ""
     property string sysWmName: ""
     property string sysUserAvatar: ""
+    property string sysCpuName: ""
+    property string sysGpuName: ""
 
     Process {
         id: sysInfoProcess
@@ -64,7 +66,9 @@ Item {
             "elif [ -d \"$HOME_DIR/.face\" ]; then find \"$HOME_DIR/.face\" -maxdepth 1 -type f \\( -name \"*.jpg\" -o -name \"*.png\" -o -name \"*.jpeg\" -o -name \"*.webp\" -o -name \"*.svg\" \\) 2>/dev/null | head -n 1; " +
             "elif [ -f \"$HOME_DIR/.face.icon\" ]; then echo \"$HOME_DIR/.face.icon\"; " +
             "elif [ -f \"/var/lib/AccountsService/icons/$USER_NAME\" ]; then echo \"/var/lib/AccountsService/icons/$USER_NAME\"; " +
-            "fi"
+            "else echo \"\"; fi; " +
+            "grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed -e 's/^[ \t]*//' -e 's/(R)//g' -e 's/(TM)//g' -e 's/  */ /g' || echo \"\"; " +
+            "lspci 2>/dev/null | grep -iE 'vga|3d|display' | head -n 1 | cut -d: -f3 | sed -e 's/^[ \t]*//' -e 's/Corporation //g' -e 's/\\[//g' -e 's/\\]//g' -e 's/(rev ..)//g' -e 's/  */ /g' || echo \"\""
         ]
         running: true
         stdout: StdioCollector {
@@ -82,6 +86,8 @@ Item {
                 if (lines.length > 7 && lines[7].trim().length > 0) root.sysUserShell = lines[7].trim();
                 if (lines.length > 8 && lines[8].trim().length > 0) root.sysWmName = lines[8].trim();
                 if (lines.length > 9 && lines[9].trim().length > 0) root.sysUserAvatar = lines[9].trim();
+                if (lines.length > 10 && lines[10].trim().length > 0) root.sysCpuName = lines[10].trim();
+                if (lines.length > 11 && lines[11].trim().length > 0) root.sysGpuName = lines[11].trim();
             }
         }
     }
@@ -261,7 +267,14 @@ Item {
                                     color: Theme.primaryContainer
                                     border.width: 1.5
                                     border.color: Theme.alpha(Theme.primary, 0.4)
-                                    clip: true
+
+                                    Rectangle {
+                                        id: avatarMask
+                                        anchors.fill: parent
+                                        radius: avatarBg.radius
+                                        color: "black"
+                                        visible: false
+                                    }
 
                                     Image {
                                         id: userAvatarImg
@@ -270,7 +283,16 @@ Item {
                                         fillMode: Image.PreserveAspectCrop
                                         smooth: true
                                         mipmap: true
-                                        visible: status === Image.Ready
+                                        visible: false
+                                    }
+
+                                    MultiEffect {
+                                        anchors.fill: parent
+                                        source: userAvatarImg
+                                        maskEnabled: true
+                                        maskSource: avatarMask
+                                        autoPaddingEnabled: false
+                                        visible: userAvatarImg.status === Image.Ready
                                     }
 
                                     MaterialIcon {
@@ -387,21 +409,12 @@ Item {
                                 }
                             }
 
-                            // Right Part: System Information + Basic Pywal Colors (50% Layout Width)
+                            // Right Part: System Information (50% Layout Width)
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 1
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: 1
-
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "titleSmall"
-                                    text: "System Info"
-                                    color: Theme.tertiary
-                                    font.weight: Font.Bold
-                                    elide: Text.ElideRight
-                                }
 
                                 M3Text {
                                     Layout.fillWidth: true
@@ -431,29 +444,25 @@ Item {
                                 M3Text {
                                     Layout.fillWidth: true
                                     role: "labelSmall"
-                                    text: "Uptime: " + (root.sysUptimeStr || "--")
+                                    text: "CPU: " + (root.sysCpuName || "--")
                                     color: Theme.textSecondary
                                     elide: Text.ElideRight
                                 }
 
-                                Item { Layout.preferredHeight: 3 }
-
-                                // Basic Pywal Color Strip (Right Side Only, 6 Core Accent Colors)
-                                RowLayout {
+                                M3Text {
                                     Layout.fillWidth: true
-                                    spacing: 3
+                                    role: "labelSmall"
+                                    text: "GPU: " + (root.sysGpuName || "--")
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
+                                }
 
-                                    Repeater {
-                                        model: Theme.pywalColors.length >= 7 ? Theme.pywalColors.slice(1, 7) : Theme.pywalColors
-
-                                        Rectangle {
-                                            required property string modelData
-                                            Layout.fillWidth: true
-                                            height: 6
-                                            radius: 3
-                                            color: modelData
-                                        }
-                                    }
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "Uptime: " + (root.sysUptimeStr || "--")
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
                                 }
                             }
                         }
