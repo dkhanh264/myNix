@@ -253,7 +253,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 0.9
+                    Layout.preferredHeight: 0.7
                     spacing: Theme.space3
 
                     // Sub-Card 3A: User Info (Reduced width ratio for compact display)
@@ -721,7 +721,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 1.15
+                    Layout.preferredHeight: 1.35
                     spacing: Theme.space3
 
                     // Card 1A: Vitals (CPU, RAM, Temp, Battery) - Equal Width
