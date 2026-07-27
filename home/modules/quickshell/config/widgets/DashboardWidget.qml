@@ -259,7 +259,7 @@ Item {
             // ================= LEFT COLUMN: VITALS, STORAGE, CONTROLS, USER & FASTFETCH =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: 1
+                Layout.preferredWidth: 1.1
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
@@ -270,10 +270,10 @@ Item {
                     Layout.preferredHeight: 1.0
                     spacing: Theme.space3
 
-                    // Sub-Card 3A: User Info (Equal 50% width)
+                    // Sub-Card 3A: User Info (Reduced width ratio for compact display)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 1
+                        Layout.preferredWidth: 0.75
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -434,10 +434,10 @@ Item {
                         }
                     }
 
-                    // Sub-Card 3B: System Info (Equal 50% width)
+                    // Sub-Card 3B: System Info (Increased width ratio to fit hardware & system details)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 1
+                        Layout.preferredWidth: 1.25
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -1157,7 +1157,7 @@ Item {
             // ================= RIGHT COLUMN: WEATHER & CALENDAR (TOP) / MUSIC & LYRICS (BOTTOM) =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: 1
+                Layout.preferredWidth: 0.9
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
