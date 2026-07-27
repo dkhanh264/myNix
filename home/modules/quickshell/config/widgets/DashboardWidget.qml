@@ -214,6 +214,37 @@ Item {
         return "partly_cloudy_day";
     }
 
+    function simplifyCpuName(name) {
+        if (!name) return "--";
+        let s = name;
+        s = s.replace(/\([^)]*\)/g, "");
+        s = s.replace(/\b(10th|11th|12th|13th|14th|15th)\s+Gen\b/gi, "");
+        s = s.replace(/Processor/gi, "");
+        s = s.replace(/CPU/gi, "");
+        s = s.replace(/@.*$/g, "");
+        s = s.replace(/\b\d+-Core\b/gi, "");
+        s = s.replace(/with\s+.*Graphics/gi, "");
+        s = s.replace(/\s+/g, " ").trim();
+        return s || "--";
+    }
+
+    function simplifyGpuName(name) {
+        if (!name) return "--";
+        let s = name;
+        s = s.replace(/Corporation/gi, "");
+        s = s.replace(/Advanced Micro Devices, Inc\./gi, "AMD");
+        s = s.replace(/\[AMD\/ATI\]/gi, "");
+        s = s.replace(/\[.*?\]/g, "");
+        s = s.replace(/\(rev ..\)/gi, "");
+        s = s.replace(/\b[A-Z]{2}\d{3}[A-Z]?\b/g, "");
+        s = s.replace(/Max-Q \/ Mobile/gi, "");
+        s = s.replace(/Max-Q/gi, "");
+        s = s.replace(/Mobile/gi, "");
+        s = s.replace(/GeForce\s+/gi, "");
+        s = s.replace(/\s+/g, " ").trim();
+        return s || "--";
+    }
+
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent
@@ -272,14 +303,17 @@ Item {
                                         id: avatarMask
                                         anchors.fill: parent
                                         radius: avatarBg.radius
-                                        color: "black"
+                                        color: "white"
                                         visible: false
+                                        layer.enabled: true
+                                        layer.smooth: true
+                                        layer.samples: 4
                                     }
 
                                     Image {
                                         id: userAvatarImg
                                         anchors.fill: parent
-                                        source: root.sysUserAvatar !== "" ? (root.sysUserAvatar.startsWith("file://") ? root.sysUserAvatar : "file://" + root.sysUserAvatar) : ("file://" + (root.sysHomeDir || Quickshell.env("HOME") || "/home/" + (root.sysUserName || Quickshell.env("USER") || "dk")) + "/.face")
+                                        source: root.sysUserAvatar !== "" ? (root.sysUserAvatar.startsWith("file://") ? root.sysUserAvatar : "file://" + root.sysUserAvatar) : ""
                                         fillMode: Image.PreserveAspectCrop
                                         smooth: true
                                         mipmap: true
@@ -321,29 +355,81 @@ Item {
                                     elide: Text.ElideRight
                                 }
 
-                                M3Text {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "@" + (root.sysHostName || Quickshell.env("HOSTNAME") || "myNix")
-                                    color: Theme.primary
-                                    font.weight: Font.Medium
-                                    elide: Text.ElideRight
+                                    spacing: 4
+
+                                    MaterialIcon {
+                                        text: "alternate_email"
+                                        iconSize: 13
+                                        color: Theme.primary
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: root.sysHostName || Quickshell.env("HOSTNAME") || "myNix"
+                                        color: Theme.primary
+                                        font.weight: Font.Medium
+                                        elide: Text.ElideRight
+                                    }
                                 }
 
-                                M3Text {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "Home: " + (root.sysHomeDir || Quickshell.env("HOME") || "~")
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideMiddle
+                                    spacing: 4
+
+                                    MaterialIcon {
+                                        text: "folder"
+                                        iconSize: 13
+                                        color: Theme.textSecondary
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: root.sysHomeDir || Quickshell.env("HOME") || "~"
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideMiddle
+                                    }
                                 }
 
-                                M3Text {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "Shell: " + (root.sysUserShell || (Quickshell.env("SHELL") || "/bin/sh").split("/").pop())
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
+                                    spacing: 4
+
+                                    MaterialIcon {
+                                        text: "terminal"
+                                        iconSize: 13
+                                        color: Theme.textSecondary
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: root.sysUserShell || (Quickshell.env("SHELL") || "/bin/sh").split("/").pop()
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 4
+
+                                    MaterialIcon {
+                                        text: "schedule"
+                                        iconSize: 13
+                                        color: Theme.textSecondary
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: root.sysUptimeStr || "--"
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
                                 }
                             }
                         }
@@ -416,53 +502,100 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: 1
 
-                                M3Text {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "OS: " + (root.sysOsName || "Linux")
-                                    color: Theme.textPrimary
-                                    font.weight: Font.Bold
-                                    elide: Text.ElideRight
+                                    spacing: 4
+
+                                    MaterialIcon {
+                                        text: "computer"
+                                        iconSize: 13
+                                        color: Theme.textPrimary
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: root.sysOsName || "Linux"
+                                        color: Theme.textPrimary
+                                        font.weight: Font.Bold
+                                        elide: Text.ElideRight
+                                    }
                                 }
 
-                                M3Text {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "WM: " + (root.sysWmName || Quickshell.env("XDG_CURRENT_DESKTOP") || Quickshell.env("XDG_SESSION_DESKTOP") || "Hyprland")
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
+                                    spacing: 4
+
+                                    MaterialIcon {
+                                        text: "dashboard"
+                                        iconSize: 13
+                                        color: Theme.textSecondary
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: root.sysWmName || Quickshell.env("XDG_CURRENT_DESKTOP") || Quickshell.env("XDG_SESSION_DESKTOP") || "Hyprland"
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
                                 }
 
-                                M3Text {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "Kernel: " + (root.sysKernelVersion || "Linux")
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
+                                    spacing: 4
+
+                                    MaterialIcon {
+                                        text: "tune"
+                                        iconSize: 13
+                                        color: Theme.textSecondary
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: root.sysKernelVersion || "Linux"
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
                                 }
 
-                                M3Text {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "CPU: " + (root.sysCpuName || "--")
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
+                                    spacing: 4
+
+                                    MaterialIcon {
+                                        text: "memory"
+                                        iconSize: 13
+                                        color: Theme.textSecondary
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: root.simplifyCpuName(root.sysCpuName)
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
                                 }
 
-                                M3Text {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "GPU: " + (root.sysGpuName || "--")
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
-                                }
+                                    spacing: 4
 
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "Uptime: " + (root.sysUptimeStr || "--")
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
+                                    MaterialIcon {
+                                        text: "aspect_ratio"
+                                        iconSize: 13
+                                        color: Theme.textSecondary
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: root.simplifyGpuName(root.sysGpuName)
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
                                 }
                             }
                         }
