@@ -29,7 +29,67 @@ Item {
 
     property string currentLyricsTrack: ""
     property string lyricsQuery: ""
+    property string sptlrxCurrentLine: ""
+    property var syncedLyricsData: []
+    property int activeLyricIndex: -1
     property var lyricsList: [I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"), I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")]
+
+    property real currentPlaybackPosition: 0
+
+    // sptlrx CLI Integration (sptlrx pipe -p mpris)
+    Process {
+        id: sptlrxProcess
+        command: ["sptlrx", "pipe", "-p", "mpris"]
+        running: root.visible && root.isPlaying
+        stdout: SplitParser {
+            onRead: data => {
+                const line = (data || "").trim();
+                if (line.length > 0) {
+                    root.sptlrxCurrentLine = line;
+                    if (root.lyricsList && root.lyricsList.length > 0) {
+                        for (let i = 0; i < root.lyricsList.length; i++) {
+                            const l = root.lyricsList[i].trim();
+                            if (l === line || (line.length > 5 && l.includes(line)) || (l.length > 5 && line.includes(l))) {
+                                if (root.activeLyricIndex !== i) {
+                                    root.activeLyricIndex = i;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: lyricsPosTimer
+        interval: 200
+        repeat: true
+        running: root.visible && root.isPlaying && root.syncedLyricsData.length > 0
+        onTriggered: {
+            if (root.player) {
+                root.currentPlaybackPosition = root.player.position;
+            }
+        }
+    }
+
+    onCurrentPlaybackPositionChanged: {
+        if (!syncedLyricsData || syncedLyricsData.length === 0)
+            return;
+        const pos = currentPlaybackPosition;
+        let idx = -1;
+        for (let i = 0; i < syncedLyricsData.length; i++) {
+            if (pos >= syncedLyricsData[i].time) {
+                idx = i;
+            } else {
+                break;
+            }
+        }
+        if (idx !== activeLyricIndex) {
+            activeLyricIndex = idx;
+        }
+    }
 
     // Dynamic System Info Properties
     property string sysOsName: ""
@@ -111,8 +171,36 @@ Item {
         onTriggered: fetchLyrics()
     }
 
+    function parseLrc(syncedText) {
+        if (!syncedText)
+            return [];
+        const lines = syncedText.split("\n");
+        const list = [];
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            const match = line.match(/^\[(\d+):(\d+)(?:[\.\:](\d+))?\]\s*(.*)$/);
+            if (match) {
+                const min = parseInt(match[1]) || 0;
+                const sec = parseInt(match[2]) || 0;
+                const msStr = match[3] || "0";
+                const ms = parseInt(msStr) / (msStr.length === 2 ? 100 : 1000);
+                const time = min * 60 + sec + ms;
+                const txt = match[4].trim();
+                if (txt.length > 0) {
+                    list.push({
+                        time: time,
+                        text: txt
+                    });
+                }
+            }
+        }
+        return list;
+    }
+
     function fetchLyrics() {
         if (!player || !player.trackTitle || player.trackTitle === I18n.tr("Không có nhạc", "Nothing playing")) {
+            syncedLyricsData = [];
+            activeLyricIndex = -1;
             lyricsList = [I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"), I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")];
             return;
         }
@@ -122,11 +210,6 @@ Item {
 
         if (!query || query.length === 0)
             return;
-
-        const currentKey = title + " - " + artist;
-        if (currentLyricsTrack === currentKey && lyricsList.length > 2 && !lyricsList[2].includes("Đang tải"))
-            return;
-        currentLyricsTrack = currentKey;
 
         lyricsList = ["♫ " + title, "Ca sĩ: " + (artist || "Chưa rõ"), "Đang tải lời bài hát..."];
 
@@ -145,17 +228,31 @@ Item {
                             target = parsed;
                         }
 
-                        if (target && (target.plainLyrics || target.syncedLyrics)) {
-                            let raw = target.plainLyrics || target.syncedLyrics;
-                            raw = raw.replace(/\[\d+:\d+[\.\:]\d+\]/g, "");
-                            const lines = raw.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-                            if (lines.length > 0) {
-                                root.lyricsList = lines;
-                                return;
+                        if (target) {
+                            if (target.syncedLyrics && target.syncedLyrics.length > 0) {
+                                const lrcData = parseLrc(target.syncedLyrics);
+                                if (lrcData.length > 0) {
+                                    root.syncedLyricsData = lrcData;
+                                    root.activeLyricIndex = -1;
+                                    root.lyricsList = lrcData.map(item => item.text);
+                                    return;
+                                }
+                            }
+                            if (target.plainLyrics && target.plainLyrics.length > 0) {
+                                root.syncedLyricsData = [];
+                                root.activeLyricIndex = -1;
+                                let raw = target.plainLyrics.replace(/\[\d+:\d+[\.\:]\d+\]/g, "");
+                                const lines = raw.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+                                if (lines.length > 0) {
+                                    root.lyricsList = lines;
+                                    return;
+                                }
                             }
                         }
                     } catch (e) {}
                 }
+                root.syncedLyricsData = [];
+                root.activeLyricIndex = -1;
                 root.lyricsList = ["♫ " + title, "Ca sĩ: " + (artist || "Chưa rõ"), "", "Chưa tìm thấy lời bài hát trực tuyến.", "Hãy tận hưởng những giai điệu âm nhạc tuyệt vời!"];
             }
         };
@@ -1381,6 +1478,25 @@ Item {
                                     font.weight: Font.Bold
                                 }
 
+                                Rectangle {
+                                    visible: root.sptlrxCurrentLine !== ""
+                                    height: 18
+                                    radius: 9
+                                    color: Theme.alpha(Theme.primary, 0.15)
+                                    border.width: 1
+                                    border.color: Theme.alpha(Theme.primary, 0.3)
+                                    implicitWidth: sptlrxBadgeText.implicitWidth + 12
+
+                                    M3Text {
+                                        id: sptlrxBadgeText
+                                        anchors.centerIn: parent
+                                        role: "labelSmall"
+                                        text: "sptlrx sync"
+                                        color: Theme.primary
+                                        font.weight: Font.Bold
+                                    }
+                                }
+
                                 Item {
                                     Layout.fillWidth: true
                                 }
@@ -1395,6 +1511,7 @@ Item {
                             }
 
                             Flickable {
+                                id: lyricsFlickable
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 contentWidth: lyricsColumn.width
@@ -1402,23 +1519,59 @@ Item {
                                 clip: true
                                 boundsBehavior: Flickable.StopAtBounds
 
+                                Behavior on contentY {
+                                    NumberAnimation {
+                                        duration: 350
+                                        easing.type: Easing.OutQuad
+                                    }
+                                }
+
                                 Column {
                                     id: lyricsColumn
-                                    width: parent.width
-                                    spacing: 4
+                                    width: lyricsFlickable.width
+                                    spacing: 8
 
                                     Repeater {
+                                        id: lyricsRepeater
                                         model: root.lyricsList
 
-                                        M3Text {
+                                        RowLayout {
                                             required property string modelData
                                             required property int index
                                             width: lyricsColumn.width
-                                            role: (index === 0 && root.isPlaying) ? "titleSmall" : "labelMedium"
-                                            text: modelData
-                                            color: (index === 0 && root.isPlaying) ? Theme.primary : Theme.textSecondary
-                                            font.weight: (index === 0 && root.isPlaying) ? Font.Bold : Font.Normal
-                                            wrapMode: Text.WordWrap
+                                            spacing: 6
+
+                                            readonly property bool isActive: root.syncedLyricsData.length > 0 ? (index === root.activeLyricIndex) : (index === 0 && root.isPlaying)
+
+                                            onIsActiveChanged: {
+                                                if (isActive && root.syncedLyricsData.length > 0) {
+                                                    const targetY = y - (lyricsFlickable.height / 2) + (height / 2);
+                                                    lyricsFlickable.contentY = Math.max(0, Math.min(lyricsColumn.height - lyricsFlickable.height, targetY));
+                                                }
+                                            }
+
+                                            Rectangle {
+                                                width: 6
+                                                height: 6
+                                                radius: 3
+                                                color: Theme.primary
+                                                visible: parent.isActive
+                                                Layout.alignment: Qt.AlignVCenter
+                                            }
+
+                                            M3Text {
+                                                Layout.fillWidth: true
+                                                role: parent.isActive ? "titleSmall" : "labelMedium"
+                                                text: modelData
+                                                color: parent.isActive ? Theme.primary : Theme.textSecondary
+                                                font.weight: parent.isActive ? Font.Bold : Font.Normal
+                                                opacity: parent.isActive ? 1.0 : 0.65
+                                                wrapMode: Text.WordWrap
+
+                                                Behavior on color {
+                                                    ColorAnimation { duration: 200 }
+                                                }
+                                            }
                                         }
                                     }
                                 }

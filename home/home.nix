@@ -17,5 +17,6 @@
     ./modules/media
     ./modules/browser
     ./modules/quickshell
+    ./modules/sptlrx
   ];
 }
