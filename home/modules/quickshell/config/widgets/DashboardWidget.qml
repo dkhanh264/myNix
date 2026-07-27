@@ -259,21 +259,21 @@ Item {
             // ================= LEFT COLUMN: VITALS, STORAGE, CONTROLS, USER & FASTFETCH =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: 0.65
+                Layout.preferredWidth: 1
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
                 // Row 3: 2 Sub-cards replacing old storage card (User Info & System Info)
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.fillHeight: false
-                    implicitHeight: 108
+                    Layout.fillHeight: true
+                    Layout.preferredHeight: 1.0
                     spacing: Theme.space3
 
-                    // Sub-Card 3A: User Info (Narrower width to give room to System Info)
+                    // Sub-Card 3A: User Info (Equal 50% width)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 0.9
+                        Layout.preferredWidth: 1
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -434,10 +434,10 @@ Item {
                         }
                     }
 
-                    // Sub-Card 3B: System Info (Wider width to fit system info)
+                    // Sub-Card 3B: System Info (Equal 50% width)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 1.1
+                        Layout.preferredWidth: 1
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -603,8 +603,8 @@ Item {
 // Row 2: System Controls (Sliders & Power Profile)
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.fillHeight: false
-                    implicitHeight: 104
+                    Layout.fillHeight: true
+                    Layout.preferredHeight: 0.95
                     radius: Theme.cardRadius
                     color: Theme.surfaceContainer
                     border.width: 1
@@ -732,7 +732,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 1.2
+                    Layout.preferredHeight: 1.05
                     spacing: Theme.space3
 
                     // Card 1A: Vitals (CPU, RAM, Temp, Battery) - Equal Width
@@ -1165,7 +1165,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 1.2
+                    Layout.preferredHeight: 1.35
                     spacing: Theme.space3
 
                     // Sub-Card 1A: Weather Card (Nửa bên trái: Thẻ thời tiết)
@@ -1390,7 +1390,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 1.8
+                    Layout.preferredHeight: 1.65
                     spacing: Theme.space3
 
                     // Sub-Card 2A: Music Player Controls (Nửa bên trái: Title bài hát, đĩa nhạc, nút điều hướng, sóng nhạc)
