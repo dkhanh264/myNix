@@ -19,6 +19,8 @@ Singleton {
     property color wallpaperSecondary: "#c6bfff"
     property color wallpaperTertiary: "#ffb1c8"
 
+    property var pywalColors: ["#ffb4ab", "#8bd49c", "#f6c453", "#bec2ff", "#c6bfff", "#80d4ff", "#e3e2e9", "#111318"]
+
     readonly property string amoledPreference: String(
         Quickshell.env("QS_AMOLED") || "").toLowerCase()
     readonly property bool pureBlackMode: amoledPreference === "1"
@@ -460,6 +462,17 @@ Singleton {
                 wallpaperPrimary = palette.colors.color4 || wallpaperPrimary;
                 wallpaperSecondary = palette.colors.color5 || wallpaperSecondary;
                 wallpaperTertiary = palette.colors.color6 || wallpaperTertiary;
+
+                const extracted = [];
+                for (let i = 0; i < 16; i++) {
+                    const key = "color" + i;
+                    if (palette.colors[key]) {
+                        extracted.push(palette.colors[key]);
+                    }
+                }
+                if (extracted.length > 0) {
+                    pywalColors = extracted;
+                }
             }
         } catch (error) {
             console.warn("Unable to read the Pywal palette:", error);

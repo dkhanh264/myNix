@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Mpris
@@ -31,6 +32,35 @@ Item {
         I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"),
         I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")
     ]
+
+    // Dynamic System Info Properties
+    property string sysOsName: "NixOS Linux"
+    property string sysKernelVersion: ""
+    property string sysUptimeStr: ""
+    property string sysHostName: Quickshell.env("HOSTNAME") || ""
+    property string sysUserName: Quickshell.env("USER") || ""
+
+    Process {
+        id: sysInfoProcess
+        command: [
+            "sh", "-c",
+            "awk -F= '/^PRETTY_NAME=/ {gsub(/\"/,\"\"); print $2}' /etc/os-release 2>/dev/null || uname -s; " +
+            "uname -r; " +
+            "awk '{h=int($1/3600); m=int(($1%3600)/60); if(h>0) print h\"h \"m\"m\"; else print m\"m\"}' /proc/uptime 2>/dev/null; " +
+            "cat /etc/hostname 2>/dev/null || hostname 2>/dev/null"
+        ]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: text => {
+                if (!text) return;
+                const lines = text.trim().split("\n");
+                if (lines.length > 0 && lines[0].trim().length > 0) root.sysOsName = lines[0].trim();
+                if (lines.length > 1 && lines[1].trim().length > 0) root.sysKernelVersion = lines[1].trim();
+                if (lines.length > 2 && lines[2].trim().length > 0) root.sysUptimeStr = lines[2].trim();
+                if (lines.length > 3 && lines[3].trim().length > 0 && !root.sysHostName) root.sysHostName = lines[3].trim();
+            }
+        }
+    }
 
     function fetchLyrics() {
         if (!player || !player.trackTitle || player.trackTitle === I18n.tr("Không có nhạc", "Nothing playing")) {
@@ -151,7 +181,369 @@ Item {
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
-                // Row 1: Split Status Section into 2 Equal Cards (Left: Vitals, Right: Water Bottle Disk Storage)
+                // Row 3: 2 Sub-cards replacing old storage card (User Info & System Info)
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.preferredHeight: 0.95
+                    spacing: Theme.space3
+
+                    // Sub-Card 3A: User Info (50% Left Avatar, 50% Right Info)
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        Layout.fillHeight: true
+                        radius: Theme.cardRadius
+                        color: Theme.surfaceContainer
+                        border.width: 1
+                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: Theme.space3
+                            spacing: Theme.space3
+
+                            // Left Part: User Avatar (50% Layout Width)
+                            Item {
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 1
+                                Layout.fillHeight: true
+
+                                Rectangle {
+                                    id: avatarBg
+                                    anchors.fill: parent
+                                    radius: Theme.cardRadius - 4
+                                    color: Theme.primaryContainer
+                                    border.width: 1.5
+                                    border.color: Theme.alpha(Theme.primary, 0.4)
+                                    clip: true
+
+                                    Image {
+                                        id: userAvatarImg
+                                        anchors.fill: parent
+                                        source: "file://" + (Quickshell.env("HOME") || "/home/" + (Quickshell.env("USER") || "dk")) + "/.face"
+                                        fillMode: Image.PreserveAspectCrop
+                                        smooth: true
+                                        mipmap: true
+                                        visible: status === Image.Ready
+                                    }
+
+                                    MaterialIcon {
+                                        anchors.centerIn: parent
+                                        visible: userAvatarImg.status !== Image.Ready
+                                        text: "person"
+                                        iconSize: 42
+                                        color: Theme.primary
+                                    }
+                                }
+                            }
+
+                            // Right Part: User Details (50% Layout Width)
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 1
+                                Layout.alignment: Qt.AlignVCenter
+                                spacing: 1
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "titleSmall"
+                                    text: root.sysUserName || Quickshell.env("USER") || "dk"
+                                    color: Theme.textPrimary
+                                    font.weight: Font.Bold
+                                    elide: Text.ElideRight
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "@" + (root.sysHostName || Quickshell.env("HOSTNAME") || "myNix")
+                                    color: Theme.primary
+                                    font.weight: Font.Medium
+                                    elide: Text.ElideRight
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "Home: " + (Quickshell.env("HOME") || "~")
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideMiddle
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "Shell: " + (Quickshell.env("SHELL") || "/bin/sh").split("/").pop()
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
+                                }
+                            }
+                        }
+                    }
+
+                    // Sub-Card 3B: System Info (50% Left NixOS Logo, 50% Right Info + Pywal Basic Colors)
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        Layout.fillHeight: true
+                        radius: Theme.cardRadius
+                        color: Theme.surfaceContainer
+                        border.width: 1
+                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: Theme.space3
+                            spacing: Theme.space3
+
+                            // Left Part: NixOS Snowflake Logo (50% Layout Width)
+                            Item {
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 1
+                                Layout.fillHeight: true
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: Theme.cardRadius - 4
+                                    color: Theme.alpha(Theme.tertiary, 0.12)
+                                    border.width: 1.5
+                                    border.color: Theme.alpha(Theme.tertiary, 0.35)
+
+                                    Image {
+                                        id: nixLogoImg
+                                        anchors.centerIn: parent
+                                        width: Math.min(parent.width, parent.height) * 0.65
+                                        height: width
+                                        source: "file:///run/current-system/sw/share/icons/hicolor/scalable/apps/nix-snowflake-white.svg"
+                                        sourceSize.width: 128
+                                        sourceSize.height: 128
+                                        fillMode: Image.PreserveAspectFit
+                                        smooth: true
+                                        mipmap: true
+                                        visible: status === Image.Ready
+                                    }
+
+                                    MultiEffect {
+                                        anchors.fill: nixLogoImg
+                                        source: nixLogoImg
+                                        colorization: 1.0
+                                        colorizationColor: Theme.tertiary
+                                        visible: nixLogoImg.status === Image.Ready
+                                    }
+
+                                    MaterialIcon {
+                                        anchors.centerIn: parent
+                                        visible: nixLogoImg.status !== Image.Ready
+                                        text: "memory"
+                                        iconSize: 42
+                                        color: Theme.tertiary
+                                    }
+                                }
+                            }
+
+                            // Right Part: System Information + Basic Pywal Colors (50% Layout Width)
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 1
+                                Layout.alignment: Qt.AlignVCenter
+                                spacing: 1
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "titleSmall"
+                                    text: "System Info"
+                                    color: Theme.tertiary
+                                    font.weight: Font.Bold
+                                    elide: Text.ElideRight
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "OS: " + root.sysOsName
+                                    color: Theme.textPrimary
+                                    font.weight: Font.Bold
+                                    elide: Text.ElideRight
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "WM: " + (Quickshell.env("XDG_CURRENT_DESKTOP") || Quickshell.env("XDG_SESSION_DESKTOP") || "Hyprland")
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "Kernel: " + (root.sysKernelVersion || "Linux")
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
+                                }
+
+                                M3Text {
+                                    Layout.fillWidth: true
+                                    role: "labelSmall"
+                                    text: "Uptime: " + (root.sysUptimeStr || "--")
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
+                                }
+
+                                Item { Layout.preferredHeight: 3 }
+
+                                // Basic Pywal Color Strip (Right Side Only, 6 Core Accent Colors)
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 3
+
+                                    Repeater {
+                                        model: Theme.pywalColors.length >= 7 ? Theme.pywalColors.slice(1, 7) : Theme.pywalColors
+
+                                        Rectangle {
+                                            required property string modelData
+                                            Layout.fillWidth: true
+                                            height: 6
+                                            radius: 3
+                                            color: modelData
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+// Row 2: System Controls (Sliders & Power Profile)
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.preferredHeight: 1
+                    radius: Theme.cardRadius
+                    color: Theme.surfaceContainer
+                    border.width: 1
+                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: Theme.space3
+                        spacing: Theme.space2
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Theme.space2
+
+                            // Volume Slider
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 1
+                                implicitHeight: 38
+                                radius: Theme.shapeMedium
+                                color: Theme.surfaceContainerHigh
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: Theme.space2
+                                    anchors.rightMargin: Theme.space2
+                                    spacing: Theme.space2
+
+                                    MaterialIcon {
+                                        text: root.volumeIcon()
+                                        iconSize: Theme.iconSizeSmall
+                                        color: Theme.primary
+                                    }
+
+                                    ExpressiveSlider {
+                                        Layout.fillWidth: true
+                                        from: 0
+                                        to: 100
+                                        value: root.controller ? root.controller.volume : 50
+                                        activeColor: Theme.primary
+                                        accessibleName: I18n.tr("Âm lượng", "Volume")
+                                        onMoved: val => {
+                                            if (root.controller)
+                                                root.controller.setVolume(val);
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Brightness Slider
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 1
+                                implicitHeight: 38
+                                radius: Theme.shapeMedium
+                                color: Theme.surfaceContainerHigh
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: Theme.space2
+                                    anchors.rightMargin: Theme.space2
+                                    spacing: Theme.space2
+
+                                    MaterialIcon {
+                                        text: "brightness_6"
+                                        iconSize: Theme.iconSizeSmall
+                                        color: Theme.tertiary
+                                    }
+
+                                    ExpressiveSlider {
+                                        Layout.fillWidth: true
+                                        from: 1
+                                        to: 100
+                                        value: root.controller ? root.controller.brightness : 75
+                                        activeColor: Theme.tertiary
+                                        accentColor: Theme.tertiary
+                                        accessibleName: I18n.tr("Độ sáng", "Brightness")
+                                        onMoved: val => {
+                                            if (root.controller)
+                                                root.controller.setBrightness(val);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Theme.space2
+
+                            ActionChip {
+                                Layout.fillWidth: true
+                                icon: "eco"
+                                label: I18n.tr("Tiết kiệm", "Saver")
+                                selected: root.controller && root.controller.powerProfile === "power-saver"
+                                onClicked: {
+                                    if (root.controller) root.controller.setPowerProfile("power-saver");
+                                }
+                            }
+
+                            ActionChip {
+                                Layout.fillWidth: true
+                                icon: "balance"
+                                label: I18n.tr("Cân bằng", "Balanced")
+                                selected: root.controller && root.controller.powerProfile === "balanced"
+                                onClicked: {
+                                    if (root.controller) root.controller.setPowerProfile("balanced");
+                                }
+                            }
+
+                            ActionChip {
+                                Layout.fillWidth: true
+                                icon: "bolt"
+                                label: I18n.tr("Hiệu năng", "Perf")
+                                selected: root.controller && root.controller.powerProfile === "performance"
+                                onClicked: {
+                                    if (root.controller) root.controller.setPowerProfile("performance");
+                                }
+                            }
+                        }
+                    }
+                }
+
+// Row 1: Split Status Section into 2 Equal Cards (Left: Vitals, Right: Water Bottle Disk Storage)
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -575,309 +967,7 @@ Item {
                     }
                 }
 
-                // Row 2: System Controls (Sliders & Power Profile)
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: 1
-                    radius: Theme.cardRadius
-                    color: Theme.surfaceContainer
-                    border.width: 1
-                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
-
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: Theme.space3
-                        spacing: Theme.space2
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: Theme.space2
-
-                            // Volume Slider
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredWidth: 1
-                                implicitHeight: 38
-                                radius: Theme.shapeMedium
-                                color: Theme.surfaceContainerHigh
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: Theme.space2
-                                    anchors.rightMargin: Theme.space2
-                                    spacing: Theme.space2
-
-                                    MaterialIcon {
-                                        text: root.volumeIcon()
-                                        iconSize: Theme.iconSizeSmall
-                                        color: Theme.primary
-                                    }
-
-                                    ExpressiveSlider {
-                                        Layout.fillWidth: true
-                                        from: 0
-                                        to: 100
-                                        value: root.controller ? root.controller.volume : 50
-                                        activeColor: Theme.primary
-                                        accessibleName: I18n.tr("Âm lượng", "Volume")
-                                        onMoved: val => {
-                                            if (root.controller)
-                                                root.controller.setVolume(val);
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Brightness Slider
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredWidth: 1
-                                implicitHeight: 38
-                                radius: Theme.shapeMedium
-                                color: Theme.surfaceContainerHigh
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: Theme.space2
-                                    anchors.rightMargin: Theme.space2
-                                    spacing: Theme.space2
-
-                                    MaterialIcon {
-                                        text: "brightness_6"
-                                        iconSize: Theme.iconSizeSmall
-                                        color: Theme.tertiary
-                                    }
-
-                                    ExpressiveSlider {
-                                        Layout.fillWidth: true
-                                        from: 1
-                                        to: 100
-                                        value: root.controller ? root.controller.brightness : 75
-                                        activeColor: Theme.tertiary
-                                        accentColor: Theme.tertiary
-                                        accessibleName: I18n.tr("Độ sáng", "Brightness")
-                                        onMoved: val => {
-                                            if (root.controller)
-                                                root.controller.setBrightness(val);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: Theme.space2
-
-                            ActionChip {
-                                Layout.fillWidth: true
-                                icon: "eco"
-                                label: I18n.tr("Tiết kiệm", "Saver")
-                                selected: root.controller && root.controller.powerProfile === "power-saver"
-                                onClicked: {
-                                    if (root.controller) root.controller.setPowerProfile("power-saver");
-                                }
-                            }
-
-                            ActionChip {
-                                Layout.fillWidth: true
-                                icon: "balance"
-                                label: I18n.tr("Cân bằng", "Balanced")
-                                selected: root.controller && root.controller.powerProfile === "balanced"
-                                onClicked: {
-                                    if (root.controller) root.controller.setPowerProfile("balanced");
-                                }
-                            }
-
-                            ActionChip {
-                                Layout.fillWidth: true
-                                icon: "bolt"
-                                label: I18n.tr("Hiệu năng", "Perf")
-                                selected: root.controller && root.controller.powerProfile === "performance"
-                                onClicked: {
-                                    if (root.controller) root.controller.setPowerProfile("performance");
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Row 3: 2 Sub-cards replacing old storage card (User Info & Fastfetch)
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: 0.95
-                    spacing: Theme.space3
-
-                    // Sub-Card 3A: User Info
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
-                        Layout.fillHeight: true
-                        radius: Theme.cardRadius
-                        color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: Theme.space3
-                            spacing: Theme.space1
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: Theme.space2
-
-                                Rectangle {
-                                    width: 32
-                                    height: 32
-                                    radius: 16
-                                    color: Theme.primaryContainer
-
-                                    MaterialIcon {
-                                        anchors.centerIn: parent
-                                        text: "person"
-                                        iconSize: Theme.iconSizeSmall
-                                        color: Theme.primary
-                                    }
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 0
-
-                                    M3Text {
-                                        Layout.fillWidth: true
-                                        role: "titleSmall"
-                                        text: Quickshell.env("USER") || "dk"
-                                        color: Theme.textPrimary
-                                        font.weight: Font.Bold
-                                        elide: Text.ElideRight
-                                    }
-
-                                    M3Text {
-                                        Layout.fillWidth: true
-                                        role: "labelSmall"
-                                        text: "@" + (Quickshell.env("HOSTNAME") || "myNix")
-                                        color: Theme.textSecondary
-                                        elide: Text.ElideRight
-                                    }
-                                }
-                            }
-
-                            Item { Layout.fillHeight: true }
-
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 1
-
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "Home: " + (Quickshell.env("HOME") || "~")
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideMiddle
-                                }
-
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "Shell: " + (Quickshell.env("SHELL") || "/bin/sh").split("/").pop()
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
-                                }
-                            }
-                        }
-                    }
-
-                    // Sub-Card 3B: Fastfetch / System Info
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
-                        Layout.fillHeight: true
-                        radius: Theme.cardRadius
-                        color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: Theme.space3
-                            spacing: Theme.space1
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: Theme.space2
-
-                                MaterialIcon {
-                                    text: "terminal"
-                                    iconSize: Theme.iconSizeSmall
-                                    color: Theme.tertiary
-                                }
-
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "titleSmall"
-                                    text: "Fastfetch"
-                                    color: Theme.tertiary
-                                    font.weight: Font.Bold
-                                }
-                            }
-
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 1
-
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "OS: NixOS Linux"
-                                    color: Theme.textPrimary
-                                    font.weight: Font.Bold
-                                    elide: Text.ElideRight
-                                }
-
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "WM: Hyprland"
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
-                                }
-
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "labelSmall"
-                                    text: "UI: Quickshell M3"
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
-                                }
-                            }
-
-                            Item { Layout.fillHeight: true }
-
-                            // Fastfetch Color Blocks
-                            Row {
-                                Layout.fillWidth: true
-                                spacing: 4
-
-                                Repeater {
-                                    model: ["#ffb4ab", "#8bd49c", "#f6c453", "#bec2ff", "#c6bfff", "#80d4ff"]
-
-                                    Rectangle {
-                                        required property string modelData
-                                        width: 14
-                                        height: 8
-                                        radius: 3
-                                        color: modelData
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+}
 
             // ================= RIGHT COLUMN: WEATHER & CALENDAR (TOP) / MUSIC & LYRICS (BOTTOM) =================
             ColumnLayout {
