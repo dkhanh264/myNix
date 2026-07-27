@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   # Keep every command used by the control center in the same module. Nix
@@ -20,7 +20,7 @@
   ];
 
   xdg.configFile."quickshell" = {
-    source = ./config;
+    source = config.lib.file.mkOutOfStoreSymlink "/home/dk/Test/myNix/home/modules/quickshell/config";
     force = true;
   };
 

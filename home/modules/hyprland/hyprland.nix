@@ -281,6 +281,7 @@ in
         "$mainMod, escape,    exec, walker-menu system"
         "$mainMod CTRL, space, exec, cycle-background"
         "$mainMod, P, exec, walker-menu profile"
+        "$mainMod SHIFT, R,   exec, systemctl --user restart quickshell"
         
         "ALT, F4,         killactive"
         "$mainMod, V,         togglefloating"
