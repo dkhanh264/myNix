@@ -259,7 +259,7 @@ Item {
                     // Sub-Card 3A: User Info (Reduced width ratio for compact display)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: (parent.width - parent.spacing) * 0.4
+                        Layout.preferredWidth: (parent.width - parent.spacing) * 0.45
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -423,7 +423,7 @@ Item {
                     // Sub-Card 3B: System Info (Increased width ratio to fit hardware & system details)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: (parent.width - parent.spacing) * 0.6
+                        Layout.preferredWidth: (parent.width - parent.spacing) * 0.55
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
