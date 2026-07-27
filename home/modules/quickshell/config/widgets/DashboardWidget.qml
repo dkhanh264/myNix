@@ -253,7 +253,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 0.7
+                    Layout.preferredHeight: 0.75
                     spacing: Theme.space3
 
                     // Sub-Card 3A: User Info (Reduced width ratio for compact display)
@@ -269,7 +269,7 @@ Item {
                         RowLayout {
                             anchors.fill: parent
                             anchors.margins: Theme.space3
-                            spacing: Theme.space2
+                            spacing: Theme.space3
 
                             // Left Part: User Avatar (Square 1:1 Aspect Ratio)
                             Item {
@@ -590,7 +590,7 @@ Item {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 0.95
+                    Layout.preferredHeight: 0.9
                     radius: Theme.cardRadius
                     color: Theme.surfaceContainer
                     border.width: 1
