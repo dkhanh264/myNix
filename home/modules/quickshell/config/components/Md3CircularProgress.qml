@@ -25,6 +25,8 @@ Item {
     property color trackColor: Theme.alpha(progressColor, 0.16)
     property color textColor: Theme.textPrimary
     property string icon: ""
+    property real waveFrequency: 12.0
+    property real waveAmplitude: 1.5
 
     readonly property real normalizedLevel: to <= from ? 0
         : Math.max(0, Math.min(1, (value - from) / (to - from)))
@@ -66,7 +68,7 @@ Item {
         NumberAnimation on wavePhase {
             from: 0
             to: Math.PI * 2
-            duration: 2200
+            duration: 1500
             loops: Animation.Infinite
             running: root.animatedWave && root.visible && (root.Window.window ? root.Window.window.visible : true) && !Theme.reduceMotion
         }
@@ -134,16 +136,15 @@ Item {
                 ctx.lineJoin = "round";
 
                 if (root.animatedWave && level > 0.03) {
-                    const steps = Math.max(24, Math.floor(activeSweep * 24));
-                    const amplitude = 1.2;
-                    const frequency = 6.0;
+                    const steps = Math.max(48, Math.floor(activeSweep * 64));
+                    const amplitude = root.waveAmplitude;
+                    const frequency = root.waveFrequency;
 
                     ctx.beginPath();
                     for (let i = 0; i <= steps; i++) {
                         const t = i / steps;
                         const angle = startAngle + t * activeSweep;
-                        const envelope = Math.sin(t * Math.PI);
-                        const r = baseRadius + Math.sin(angle * frequency + progressCanvas.wavePhase) * amplitude * envelope;
+                        const r = baseRadius + Math.sin(angle * frequency + progressCanvas.wavePhase) * amplitude;
                         const x = centerX + Math.cos(angle) * r;
                         const y = centerY + Math.sin(angle) * r;
 

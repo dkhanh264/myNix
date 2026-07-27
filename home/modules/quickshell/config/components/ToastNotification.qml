@@ -116,12 +116,12 @@ Item {
                 visible: root.imageSource.length > 0 && status === Image.Ready
             }
 
-            Md3ExpressiveShape {
+            Md3LoadingIndicator {
                 visible: !notifImg.visible
                 anchors.centerIn: parent
                 size: 26
-                shapeType: root.getShapeTypeForNotification(root.iconName, root.title)
                 color: root.accentColor
+                active: visible && root.shown
             }
         }
 

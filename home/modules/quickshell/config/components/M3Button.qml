@@ -15,6 +15,8 @@ Item {
     property bool destructive: false
     property bool compact: false
     property bool selected: false
+    property bool disableShapeMorph: true
+    property real customRadius: -1
     readonly property bool hovered: pointer.containsMouse
     signal clicked
 
@@ -22,7 +24,7 @@ Item {
         buttonContent.implicitWidth + (compact ? 20 : 32))
     implicitHeight: compact ? 36 : 40
     opacity: enabled ? 1 : 0.38
-    scale: pointer.pressed ? 0.95 : (hovered && enabled ? 1.02 : 1)
+    scale: pointer.pressed ? 0.96 : 1.0
     activeFocusOnTab: enabled
 
     Accessible.role: Accessible.Button
@@ -73,14 +75,17 @@ Item {
     Rectangle {
         id: container
         anchors.fill: parent
-        radius: pointer.pressed ? Theme.shapeSmall
-            : root.selected ? Theme.shapeMedium
-            : pointer.containsMouse ? Theme.shapeLarge : height / 2
+        radius: root.customRadius >= 0 ? root.customRadius
+            : (root.disableShapeMorph ? height / 2
+                : (pointer.pressed ? Theme.shapeSmall
+                    : root.selected ? Theme.shapeMedium
+                    : pointer.containsMouse ? Theme.shapeLarge : height / 2))
         color: root.getBackgroundColor()
         border.width: root.variant === "outlined" && !root.selected ? 1 : 0
         border.color: pointer.containsMouse ? Theme.primary : Theme.outline
 
         Behavior on radius {
+            enabled: !root.disableShapeMorph
             NumberAnimation {
                 duration: Theme.motionMedium1
                 easing.type: Easing.BezierSpline
@@ -109,6 +114,7 @@ Item {
         }
 
         Behavior on radius {
+            enabled: !root.disableShapeMorph
             NumberAnimation {
                 duration: Theme.motionMedium1
                 easing.type: Easing.BezierSpline

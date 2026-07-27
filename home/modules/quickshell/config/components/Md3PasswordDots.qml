@@ -31,9 +31,9 @@ Row {
         }
         while (list.length < passwordLength) {
             list.push({
-                shapeType: Math.floor(Math.random() * 8),
+                shapeType: Math.floor(Math.random() * 35),
                 colIdx: Math.floor(Math.random() * md3Colors.length),
-                rotation: Math.floor(Math.random() * 4) * 45
+                rotation: Math.floor(Math.random() * 8) * 45
             });
         }
         if (list.length > passwordLength) {

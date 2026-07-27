@@ -403,9 +403,9 @@ ShellRoot {
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "music"
                     && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(420, barWindow.width
+                popupWidth: Math.min(400, barWindow.width
                     - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(350,
+                popupHeight: Math.min(188,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("music", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("music")

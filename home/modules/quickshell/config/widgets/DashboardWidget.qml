@@ -28,6 +28,7 @@ Item {
     readonly property string trackArtist: player && player.trackArtist ? player.trackArtist : I18n.tr("Trình phát nhạc", "Media Player")
 
     property string currentLyricsTrack: ""
+    property string lyricsQuery: ""
     property var lyricsList: [I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"), I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")]
 
     // Dynamic System Info Properties
@@ -95,9 +96,19 @@ Item {
     }
 
     onVisibleChanged: {
-        if (visible && !sysInfoProcess.running) {
-            sysInfoProcess.running = true;
+        if (visible) {
+            if (!sysInfoProcess.running)
+                sysInfoProcess.running = true;
+            fetchLyrics();
         }
+    }
+
+    Timer {
+        id: initLyricsTimer
+        interval: 300
+        repeat: false
+        running: true
+        onTriggered: fetchLyrics()
     }
 
     function fetchLyrics() {
@@ -105,41 +116,54 @@ Item {
             lyricsList = [I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"), I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")];
             return;
         }
-        const key = player.trackTitle + " - " + (player.trackArtist || "");
-        if (currentLyricsTrack === key && lyricsList.length > 2)
+        const title = player.trackTitle || "";
+        const artist = (player.trackArtist && player.trackArtist !== I18n.tr("Trình phát nhạc", "Media Player")) ? player.trackArtist : "";
+        const query = (title + " " + artist).trim();
+
+        if (!query || query.length === 0)
             return;
-        currentLyricsTrack = key;
 
-        lyricsList = ["♫ " + player.trackTitle, "Ca sĩ: " + (player.trackArtist || "Chưa rõ"), "Đang tải lời bài hát..."];
+        const currentKey = title + " - " + artist;
+        if (currentLyricsTrack === currentKey && lyricsList.length > 2 && !lyricsList[2].includes("Đang tải"))
+            return;
+        currentLyricsTrack = currentKey;
 
-        lyricsProcess.exec(["curl", "-s", "https://lrclib.net/api/get?artist_name=" + encodeURIComponent(player.trackArtist || "") + "&track_name=" + encodeURIComponent(player.trackTitle || "")]);
+        lyricsList = ["♫ " + title, "Ca sĩ: " + (artist || "Chưa rõ"), "Đang tải lời bài hát..."];
+
+        const searchUrl = "https://lrclib.net/api/search?q=" + encodeURIComponent(query);
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", searchUrl);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200 && xhr.responseText) {
+                    try {
+                        const parsed = JSON.parse(xhr.responseText);
+                        let target = null;
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            target = parsed[0];
+                        } else if (parsed && (parsed.plainLyrics || parsed.syncedLyrics)) {
+                            target = parsed;
+                        }
+
+                        if (target && (target.plainLyrics || target.syncedLyrics)) {
+                            let raw = target.plainLyrics || target.syncedLyrics;
+                            raw = raw.replace(/\[\d+:\d+[\.\:]\d+\]/g, "");
+                            const lines = raw.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+                            if (lines.length > 0) {
+                                root.lyricsList = lines;
+                                return;
+                            }
+                        }
+                    } catch (e) {}
+                }
+                root.lyricsList = ["♫ " + title, "Ca sĩ: " + (artist || "Chưa rõ"), "", "Chưa tìm thấy lời bài hát trực tuyến.", "Hãy tận hưởng những giai điệu âm nhạc tuyệt vời!"];
+            }
+        };
+        xhr.send();
     }
 
     onTrackTitleChanged: fetchLyrics()
     onTrackArtistChanged: fetchLyrics()
-
-    Process {
-        id: lyricsProcess
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const text = this.text;
-                try {
-                    const parsed = JSON.parse(text);
-                    if (parsed && (parsed.plainLyrics || parsed.syncedLyrics)) {
-                        let raw = parsed.plainLyrics || parsed.syncedLyrics;
-                        raw = raw.replace(/\[\d+:\d+\.\d+\]/g, "");
-                        const lines = raw.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-                        if (lines.length > 0) {
-                            root.lyricsList = lines;
-                            return;
-                        }
-                    }
-                } catch (e) {}
-
-                root.lyricsList = ["♫ " + (root.player ? root.player.trackTitle : ""), "Ca sĩ: " + (root.player ? root.player.trackArtist : "Chưa rõ"), "", "Chưa tìm thấy lời bài hát trực tuyến.", "Hãy tận hưởng những giai điệu âm nhạc tuyệt vời!"];
-            }
-        }
-    }
 
     onIsPlayingChanged: {
         if (controller && controller.setCavaActive)
@@ -151,6 +175,7 @@ Item {
             controller.setCavaActive(isPlaying);
         if (!sysInfoProcess.running)
             sysInfoProcess.running = true;
+        fetchLyrics();
     }
 
     Component.onDestruction: {
@@ -625,6 +650,13 @@ Item {
                                         color: Theme.primary
                                     }
 
+                                    M3Text {
+                                        role: "labelSmall"
+                                        text: (root.controller ? root.controller.volume : 50) + "%"
+                                        color: Theme.textSecondary
+                                        font.weight: Font.DemiBold
+                                    }
+
                                     ExpressiveSlider {
                                         Layout.fillWidth: true
                                         from: 0
@@ -658,6 +690,13 @@ Item {
                                         text: "brightness_6"
                                         iconSize: Theme.iconSizeSmall
                                         color: Theme.tertiary
+                                    }
+
+                                    M3Text {
+                                        role: "labelSmall"
+                                        text: (root.controller ? root.controller.brightness : 75) + "%"
+                                        color: Theme.textSecondary
+                                        font.weight: Font.DemiBold
                                     }
 
                                     ExpressiveSlider {
@@ -1156,24 +1195,249 @@ Item {
                 }
             }
 
-            // ================= RIGHT COLUMN: WEATHER & CALENDAR (TOP) / MUSIC & LYRICS (BOTTOM) =================
+            // ================= RIGHT COLUMN: MASTER MEDIA (TOP) & WEATHER + CALENDAR (BOTTOM) =================
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.preferredWidth: (parent.width - parent.spacing) * 0.5
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
-                // 1. TOP ROW: WEATHER CARD (LEFT HALF) & CALENDAR CARD (RIGHT HALF)
+                // 1. TOP ROW: UNIFIED MASTER MUSIC & LYRICS CARD
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.preferredHeight: 1.45
+                    radius: Theme.cardRadius
+                    color: Theme.surfaceContainer
+                    border.width: 1
+                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: Theme.space3
+                        spacing: Theme.space3
+
+                        // Left Part of Music Card: Album Art, Info & Controls
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 0.48
+                            Layout.fillHeight: true
+                            spacing: Theme.space2
+
+                            // Top Header with Spinning Record & Track Info
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: Theme.space2
+
+                                Item {
+                                    id: spinningRecord
+                                    width: 48
+                                    height: 48
+                                    rotation: 0
+
+                                    NumberAnimation on rotation {
+                                        from: 0
+                                        to: 360
+                                        duration: 8000
+                                        loops: Animation.Infinite
+                                        running: root.isPlaying && !Theme.reduceMotion
+                                    }
+
+                                    CircularAlbumArt {
+                                        anchors.fill: parent
+                                        source: root.player ? root.player.trackArtUrl : ""
+                                        accentColor: Theme.secondary
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 0
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "titleMedium"
+                                        text: root.trackTitle
+                                        color: Theme.textPrimary
+                                        font.weight: Font.Bold
+                                        elide: Text.ElideRight
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelMedium"
+                                        text: root.trackArtist
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
+                                }
+                            }
+
+                            Item {
+                                Layout.fillHeight: true
+                            }
+
+                            // Navigation Controls Row
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignHCenter
+                                spacing: Theme.space2
+
+                                IconButton {
+                                    buttonSize: 32
+                                    iconSize: 18
+                                    icon: "skip_previous"
+                                    enabled: root.player && root.player.canGoPrevious
+                                    onClicked: root.player ? root.player.previous() : null
+                                }
+
+                                IconButton {
+                                    buttonSize: 38
+                                    iconSize: 22
+                                    icon: root.isPlaying ? "pause" : "play_arrow"
+                                    fillColor: Theme.primary
+                                    foregroundColor: Theme.onPrimary
+                                    enabled: root.player && root.player.canTogglePlaying
+                                    onClicked: root.player ? root.player.togglePlaying() : null
+                                }
+
+                                IconButton {
+                                    buttonSize: 32
+                                    iconSize: 18
+                                    icon: "skip_next"
+                                    enabled: root.player && root.player.canGoNext
+                                    onClicked: root.player ? root.player.next() : null
+                                }
+                            }
+
+                            Item {
+                                Layout.fillHeight: true
+                            }
+
+                            // Cava Spectrum Audio Visualizer Bars
+                            Row {
+                                id: cavaRow
+                                Layout.fillWidth: true
+                                height: 18
+                                spacing: 3
+
+                                Repeater {
+                                    model: 12
+
+                                    Rectangle {
+                                        required property int index
+                                        readonly property real barVal: {
+                                            if (!root.controller || !root.controller.cavaBars || root.controller.cavaBars.length <= index)
+                                                return 0;
+                                            return root.controller.cavaBars[index] || 0;
+                                        }
+                                        readonly property real targetHeight: Math.max(3, (barVal / 100) * 18)
+
+                                        width: Math.max(2, (cavaRow.width - (11 * 3)) / 12)
+                                        height: targetHeight
+                                        radius: width / 2
+                                        anchors.bottom: parent.bottom
+                                        color: root.isPlaying ? Theme.blend(Theme.primary, Theme.secondary, index / 11) : Theme.alpha(Theme.textPrimary, 0.14)
+
+                                        Behavior on height {
+                                            NumberAnimation {
+                                                duration: Theme.reduceMotion ? 0 : 45
+                                                easing.type: Easing.OutCubic
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Vertical Divider Line between Music & Lyrics
+                        Rectangle {
+                            Layout.fillHeight: true
+                            width: 1
+                            color: Theme.alpha(Theme.outlineVariant, 0.3)
+                        }
+
+                        // Right Part of Music Card: Live Lyrics Column
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 0.52
+                            Layout.fillHeight: true
+                            spacing: Theme.space1
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 4
+
+                                MaterialIcon {
+                                    text: "lyrics"
+                                    iconSize: 16
+                                    color: Theme.secondary
+                                }
+
+                                M3Text {
+                                    role: "titleSmall"
+                                    text: I18n.tr("Lời bài hát", "Lyrics")
+                                    color: Theme.textPrimary
+                                    font.weight: Font.Bold
+                                }
+
+                                Item {
+                                    Layout.fillWidth: true
+                                }
+
+                                IconButton {
+                                    buttonSize: 22
+                                    iconSize: 13
+                                    icon: "refresh"
+                                    accessibleName: I18n.tr("Tải lại lời bài hát", "Reload lyrics")
+                                    onClicked: root.fetchLyrics()
+                                }
+                            }
+
+                            Flickable {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                contentWidth: lyricsColumn.width
+                                contentHeight: lyricsColumn.height
+                                clip: true
+                                boundsBehavior: Flickable.StopAtBounds
+
+                                Column {
+                                    id: lyricsColumn
+                                    width: parent.width
+                                    spacing: 4
+
+                                    Repeater {
+                                        model: root.lyricsList
+
+                                        M3Text {
+                                            required property string modelData
+                                            required property int index
+                                            width: lyricsColumn.width
+                                            role: (index === 0 && root.isPlaying) ? "titleSmall" : "labelMedium"
+                                            text: modelData
+                                            color: (index === 0 && root.isPlaying) ? Theme.primary : Theme.textSecondary
+                                            font.weight: (index === 0 && root.isPlaying) ? Font.Bold : Font.Normal
+                                            wrapMode: Text.WordWrap
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 2. BOTTOM ROW: WEATHER CARD (36% WIDTH) & CALENDAR CARD (64% WIDTH)
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 1.35
+                    Layout.preferredHeight: 1.55
                     spacing: Theme.space3
 
-                    // Sub-Card 1A: Weather Card (Nửa bên trái: Thẻ thời tiết)
+                    // Sub-Card 2A: Weather Card (~36% width)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 1
+                        Layout.preferredWidth: 0.36
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -1185,7 +1449,7 @@ Item {
                             anchors.margins: Theme.space3
                             spacing: Theme.space1
 
-                            // Top Header: Weather Sticker Icon + Refresh Button
+                            // Top Header: Weather Icon + Refresh Button
                             RowLayout {
                                 Layout.fillWidth: true
 
@@ -1246,7 +1510,7 @@ Item {
                                 spacing: 0
 
                                 M3Text {
-                                    role: "headlineSmall"
+                                    role: "headlineMedium"
                                     text: root.controller && root.controller.weatherTemperature !== undefined ? root.controller.weatherTemperature + "°C" : "--°C"
                                     color: Theme.textPrimary
                                     font.weight: Font.Bold
@@ -1272,11 +1536,11 @@ Item {
                         }
                     }
 
-                    // Sub-Card 1B: Calendar Card (Nửa bên phải: Thẻ lịch)
+                    // Sub-Card 2B: Calendar Card (~64% width, spacious & clean)
                     Rectangle {
                         id: miniCalendarCard
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 1
+                        Layout.preferredWidth: 0.64
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -1294,9 +1558,9 @@ Item {
                         ColumnLayout {
                             anchors.fill: parent
                             anchors.margins: Theme.space3
-                            spacing: 2
+                            spacing: 4
 
-                            // Calendar Header (Month + Nav buttons)
+                            // Calendar Header
                             RowLayout {
                                 Layout.fillWidth: true
                                 spacing: 4
@@ -1346,7 +1610,7 @@ Item {
                                     Item {
                                         required property int index
                                         Layout.fillWidth: true
-                                        implicitHeight: 16
+                                        implicitHeight: 18
 
                                         M3Text {
                                             anchors.centerIn: parent
@@ -1359,13 +1623,13 @@ Item {
                                 }
                             }
 
-                            // Calendar Days Grid (7 Columns x 5 Rows = 35 Cells)
+                            // Calendar Days Grid
                             GridLayout {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 columns: 7
-                                columnSpacing: 0
-                                rowSpacing: 0
+                                columnSpacing: 2
+                                rowSpacing: 2
 
                                 Repeater {
                                     model: 35
@@ -1381,248 +1645,19 @@ Item {
 
                                         Rectangle {
                                             anchors.centerIn: parent
-                                            width: Math.min(parent.width, parent.height) - 2
+                                            width: Math.min(parent.width, parent.height)
                                             height: width
                                             radius: width / 2
                                             color: isToday ? Theme.primary : "transparent"
 
                                             M3Text {
                                                 anchors.centerIn: parent
-                                                role: "labelSmall"
+                                                role: "labelMedium"
                                                 text: parent.parent.isValid ? parent.parent.dayNum : ""
                                                 color: parent.parent.isToday ? Theme.onPrimary : (parent.parent.index % 7 >= 5 ? Theme.primary : Theme.textPrimary)
-                                                font.weight: parent.parent.isToday ? Font.Bold : Font.Normal
+                                                font.weight: parent.parent.isToday ? Font.Bold : Font.Medium
                                                 opacity: parent.parent.isValid ? 1.0 : 0.0
                                             }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 2. BOTTOM ROW: MUSIC CONTROLS (LEFT HALF) & LYRICS CARD (RIGHT HALF)
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: 1.65
-                    spacing: Theme.space3
-
-                    // Sub-Card 2A: Music Player Controls (Nửa bên trái: Title bài hát, đĩa nhạc, nút điều hướng, sóng nhạc)
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
-                        Layout.fillHeight: true
-                        radius: Theme.cardRadius
-                        color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: Theme.space3
-                            spacing: Theme.space1
-
-                            // Top Header with Spinning Record & Song Info
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: Theme.space2
-
-                                Item {
-                                    id: spinningRecord
-                                    width: 44
-                                    height: 44
-                                    rotation: 0
-
-                                    NumberAnimation on rotation {
-                                        from: 0
-                                        to: 360
-                                        duration: 8000
-                                        loops: Animation.Infinite
-                                        running: root.isPlaying && !Theme.reduceMotion
-                                    }
-
-                                    CircularAlbumArt {
-                                        anchors.fill: parent
-                                        source: root.player ? root.player.trackArtUrl : ""
-                                        accentColor: Theme.secondary
-                                    }
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 0
-
-                                    M3Text {
-                                        Layout.fillWidth: true
-                                        role: "titleSmall"
-                                        text: root.trackTitle
-                                        color: Theme.textPrimary
-                                        font.weight: Font.Bold
-                                        elide: Text.ElideRight
-                                    }
-
-                                    M3Text {
-                                        Layout.fillWidth: true
-                                        role: "labelSmall"
-                                        text: root.trackArtist
-                                        color: Theme.textSecondary
-                                        elide: Text.ElideRight
-                                    }
-                                }
-                            }
-
-                            Item {
-                                Layout.fillHeight: true
-                            }
-
-                            // Navigation Controls Row
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter
-                                spacing: Theme.space1
-
-                                IconButton {
-                                    buttonSize: 28
-                                    iconSize: 15
-                                    icon: "skip_previous"
-                                    enabled: root.player && root.player.canGoPrevious
-                                    onClicked: root.player ? root.player.previous() : null
-                                }
-
-                                IconButton {
-                                    buttonSize: 32
-                                    iconSize: 18
-                                    icon: root.isPlaying ? "pause" : "play_arrow"
-                                    fillColor: Theme.primary
-                                    foregroundColor: Theme.onPrimary
-                                    enabled: root.player && root.player.canTogglePlaying
-                                    onClicked: root.player ? root.player.togglePlaying() : null
-                                }
-
-                                IconButton {
-                                    buttonSize: 28
-                                    iconSize: 15
-                                    icon: "skip_next"
-                                    enabled: root.player && root.player.canGoNext
-                                    onClicked: root.player ? root.player.next() : null
-                                }
-                            }
-
-                            Item {
-                                Layout.fillHeight: true
-                            }
-
-                            // Cava Spectrum Audio Visualizer Bars (Sóng nhạc)
-                            Row {
-                                id: cavaRow
-                                Layout.fillWidth: true
-                                height: 18
-                                spacing: 3
-
-                                Repeater {
-                                    model: 10
-
-                                    Rectangle {
-                                        required property int index
-                                        readonly property real barVal: {
-                                            if (!root.controller || !root.controller.cavaBars || root.controller.cavaBars.length <= index)
-                                                return 0;
-                                            return root.controller.cavaBars[index] || 0;
-                                        }
-                                        readonly property real targetHeight: Math.max(3, (barVal / 100) * 18)
-
-                                        width: Math.max(2, (cavaRow.width - (9 * 3)) / 10)
-                                        height: targetHeight
-                                        radius: width / 2
-                                        anchors.bottom: parent.bottom
-                                        color: root.isPlaying ? Theme.blend(Theme.primary, Theme.secondary, index / 9) : Theme.alpha(Theme.textPrimary, 0.14)
-
-                                        Behavior on height {
-                                            NumberAnimation {
-                                                duration: Theme.reduceMotion ? 0 : 45
-                                                easing.type: Easing.OutCubic
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Sub-Card 2B: Lyrics Display (Nửa bên phải: Lyrics / Lời bài hát)
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
-                        Layout.fillHeight: true
-                        radius: Theme.cardRadius
-                        color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: Theme.space3
-                            spacing: Theme.space1
-
-                            // Lyrics Header
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 4
-
-                                MaterialIcon {
-                                    text: "lyrics"
-                                    iconSize: 16
-                                    color: Theme.secondary
-                                }
-
-                                M3Text {
-                                    role: "titleSmall"
-                                    text: I18n.tr("Lời bài hát", "Lyrics")
-                                    color: Theme.textPrimary
-                                    font.weight: Font.Bold
-                                }
-
-                                Item {
-                                    Layout.fillWidth: true
-                                }
-
-                                IconButton {
-                                    buttonSize: 22
-                                    iconSize: 13
-                                    icon: "refresh"
-                                    accessibleName: I18n.tr("Tải lại lời bài hát", "Reload lyrics")
-                                    onClicked: root.fetchLyrics()
-                                }
-                            }
-
-                            // Lyrics List (Scrollable)
-                            Flickable {
-                                Layout.fillWidth: true
-                                Layout.fillHeight: true
-                                contentWidth: lyricsColumn.width
-                                contentHeight: lyricsColumn.height
-                                clip: true
-                                boundsBehavior: Flickable.StopAtBounds
-
-                                Column {
-                                    id: lyricsColumn
-                                    width: parent.width
-                                    spacing: 4
-
-                                    Repeater {
-                                        model: root.lyricsList
-
-                                        M3Text {
-                                            required property string modelData
-                                            required property int index
-                                            width: lyricsColumn.width
-                                            role: (index === 0 && root.isPlaying) ? "titleSmall" : "labelMedium"
-                                            text: modelData
-                                            color: (index === 0 && root.isPlaying) ? Theme.primary : Theme.textSecondary
-                                            font.weight: (index === 0 && root.isPlaying) ? Font.Bold : Font.Normal
-                                            wrapMode: Text.WordWrap
                                         }
                                     }
                                 }

@@ -11,11 +11,25 @@ Rectangle {
 
     signal expansionRequested(bool expanded)
 
-    implicitHeight: Theme.componentPadding * 2 + summary.height
-        + detailsProgress * (Theme.space2 + bluetoothDetails.implicitHeight)
+    implicitHeight: 88 + detailsProgress * (bluetoothDetails.implicitHeight + 8)
     radius: Theme.shapeLarge
     color: Theme.surfaceContainerLow
+    border.width: 1
+    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
     clip: true
+
+    function bluetoothIcon() {
+        if (!controller || !controller.bluetoothEnabled)
+            return "bluetooth_disabled";
+        if (controller.bluetoothConnectedCount > 0)
+            return "bluetooth_connected";
+        return "bluetooth";
+    }
+
+    onExpandedChanged: {
+        if (expanded && controller && controller.toggleBluetoothScan)
+            controller.toggleBluetoothScan();
+    }
 
     Behavior on detailsProgress {
         NumberAnimation {
@@ -28,9 +42,9 @@ Rectangle {
 
     Item {
         id: summary
-        x: Theme.componentPadding
-        y: Theme.componentPadding
-        width: parent.width - Theme.componentPadding * 2
+        x: 12
+        y: 12
+        width: parent.width - 24
         height: 64
         activeFocusOnTab: true
 
@@ -47,7 +61,6 @@ Rectangle {
                 : I18n.tr("Bluetooth đang bật", "Bluetooth is on")
 
         Rectangle {
-            id: summarySurface
             anchors.fill: parent
             radius: Theme.shapeMedium
             color: summaryPointer.containsMouse
@@ -61,33 +74,31 @@ Rectangle {
         Rectangle {
             id: iconContainer
             anchors.left: parent.left
+            anchors.leftMargin: 4
             anchors.verticalCenter: parent.verticalCenter
-            width: 48
-            height: 48
+            width: 46
+            height: 46
             radius: Theme.shapeMedium
             color: root.controller && root.controller.bluetoothEnabled
-                ? Theme.tertiaryContainer : Theme.surfaceContainerHighest
+                ? Theme.primaryContainer : Theme.surfaceContainerHighest
 
             MaterialIcon {
                 anchors.centerIn: parent
-                text: root.controller && !root.controller.bluetoothEnabled
-                    ? "bluetooth_disabled"
-                    : root.controller && root.controller.bluetoothConnectedCount > 0
-                        ? "bluetooth_connected" : "bluetooth"
+                text: root.bluetoothIcon()
                 iconSize: 24
                 color: root.controller && root.controller.bluetoothEnabled
-                    ? Theme.tertiary : Theme.textSecondary
+                    ? Theme.primary : Theme.textSecondary
                 filled: root.controller && root.controller.bluetoothConnectedCount > 0
             }
         }
 
         Column {
             anchors.left: iconContainer.right
-            anchors.leftMargin: Theme.space3
+            anchors.leftMargin: 12
             anchors.right: controls.left
-            anchors.rightMargin: Theme.space2
+            anchors.rightMargin: 10
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 0
+            spacing: 2
 
             M3Text {
                 width: parent.width
@@ -110,8 +121,7 @@ Rectangle {
                     : root.controller.bluetoothConnectedCount > 0
                         ? root.controller.bluetoothConnectedCount
                             + I18n.tr(" đã kết nối", " connected")
-                        : I18n.tr("Chưa có thiết bị kết nối",
-                            "No connected devices")
+                        : I18n.tr("Chưa kết nối", "Not connected")
                 color: Theme.textSecondary
                 elide: Text.ElideRight
             }
@@ -121,7 +131,7 @@ Rectangle {
             id: controls
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: Theme.space2
+            spacing: 6
 
             ToggleSwitch {
                 anchors.verticalCenter: parent.verticalCenter
@@ -141,10 +151,8 @@ Rectangle {
                 icon: root.expanded ? "expand_less" : "expand_more"
                 enabled: root.controller && root.controller.bluetoothAvailable
                 accessibleName: root.expanded
-                    ? I18n.tr("Ẩn thiết bị Bluetooth",
-                        "Hide Bluetooth devices")
-                    : I18n.tr("Hiện thiết bị Bluetooth",
-                        "Show Bluetooth devices")
+                    ? I18n.tr("Ẩn thiết bị Bluetooth", "Hide Bluetooth devices")
+                    : I18n.tr("Hiện thiết bị Bluetooth", "Show Bluetooth devices")
                 onClicked: root.expansionRequested(!root.expanded)
             }
         }
@@ -165,7 +173,7 @@ Rectangle {
         Rectangle {
             anchors.fill: parent
             anchors.margins: 2
-            radius: Math.max(0, summarySurface.radius - 2)
+            radius: Theme.shapeLarge
             color: "transparent"
             border.width: 2
             border.color: Theme.primary
@@ -174,9 +182,9 @@ Rectangle {
     }
 
     Item {
-        x: Theme.componentPadding
-        y: summary.y + summary.height + Theme.space2
-        width: parent.width - Theme.componentPadding * 2
+        x: 12
+        y: 84
+        width: parent.width - 24
         height: bluetoothDetails.implicitHeight * root.detailsProgress
         opacity: root.detailsProgress
         clip: true
@@ -186,7 +194,7 @@ Rectangle {
             width: parent.width
             controller: root.controller
             transform: Translate {
-                y: (1 - root.detailsProgress) * -Theme.space2
+                y: (1 - root.detailsProgress) * -8
             }
         }
     }

@@ -16,26 +16,13 @@ Rectangle {
     readonly property string artistText: player && player.trackArtist
         ? player.trackArtist : I18n.tr("Mở một trình phát để bắt đầu",
             "Open a media player to begin")
+    readonly property string albumText: player && player.trackAlbum
+        ? player.trackAlbum : ""
     property real playbackPosition: 0
 
-    implicitHeight: 245
+    implicitHeight: 146
     radius: Theme.shapeLarge
     color: "transparent"
-
-    onIsPlayingChanged: {
-        if (controller && controller.setCavaActive)
-            controller.setCavaActive(isPlaying);
-    }
-
-    Component.onCompleted: {
-        if (controller && controller.setCavaActive)
-            controller.setCavaActive(isPlaying);
-    }
-
-    Component.onDestruction: {
-        if (controller && controller.setCavaActive)
-            controller.setCavaActive(false);
-    }
 
     function selectPlayer() {
         const players = Mpris.players.values;
@@ -89,58 +76,83 @@ Rectangle {
         anchors.fill: parent
         anchors.margins: Theme.componentPadding
 
+        // 1. Spinning Album Art Vinyl with Ambient Glow
         Item {
             id: record
             anchors.left: parent.left
             anchors.top: parent.top
-            width: 104
-            height: 104
-            rotation: 0
+            width: 96
+            height: 96
 
-            NumberAnimation on rotation {
-                from: 0
-                to: 360
-                duration: 10000
-                loops: Animation.Infinite
-                running: root.player && root.player.isPlaying && !Theme.reduceMotion
+            Rectangle {
+                anchors.fill: parent
+                radius: width / 2
+                color: Theme.alpha(Theme.secondary, 0.20)
+                scale: 1.05
+                visible: root.isPlaying
             }
 
-            CircularAlbumArt {
+            Item {
                 anchors.fill: parent
-                source: root.player ? root.player.trackArtUrl : ""
-                accentColor: Theme.secondary
+
+                NumberAnimation on rotation {
+                    from: 0
+                    to: 360
+                    duration: 10000
+                    loops: Animation.Infinite
+                    running: root.player && root.player.isPlaying && !Theme.reduceMotion
+                }
+
+                CircularAlbumArt {
+                    anchors.fill: parent
+                    source: root.player ? root.player.trackArtUrl : ""
+                    accentColor: Theme.secondary
+                }
             }
         }
 
-        Column {
-            anchors.left: record.right
-            anchors.leftMargin: Theme.componentPadding
+        // 2. Player Source Chip (Top Right)
+        Rectangle {
+            id: playerChip
             anchors.right: parent.right
             anchors.top: parent.top
-            spacing: 4
+            implicitWidth: playerChipRow.implicitWidth + 12
+            implicitHeight: 22
+            radius: height / 2
+            color: Theme.alpha(Theme.secondary, 0.12)
+            border.width: 1
+            border.color: Theme.alpha(Theme.secondary, 0.25)
 
             Row {
-                spacing: 6
+                id: playerChipRow
+                anchors.centerIn: parent
+                spacing: 4
 
                 MaterialIcon {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: root.player && root.player.isPlaying
-                        ? "graphic_eq" : "pause_circle"
-                    iconSize: 17
+                    text: root.isPlaying ? "graphic_eq" : "music_note"
+                    iconSize: 13
                     color: Theme.secondary
                 }
 
                 M3Text {
                     anchors.verticalCenter: parent.verticalCenter
                     role: "labelSmall"
-                    text: root.player && root.player.isPlaying
-                        ? I18n.tr("Đang phát", "Now playing")
-                        : root.available ? I18n.tr("Đã tạm dừng", "Paused")
-                        : "Media"
-                    color: Theme.textSecondary
+                    text: root.player ? (root.player.identity || "Media") : "Media"
+                    color: Theme.secondary
                     font.weight: Font.DemiBold
                 }
             }
+        }
+
+        // 3. Track Metadata & Control Buttons Column
+        Column {
+            anchors.left: record.right
+            anchors.leftMargin: Theme.componentPadding
+            anchors.right: parent.right
+            anchors.rightMargin: playerChip.width + 4
+            anchors.top: parent.top
+            spacing: 2
 
             M3Text {
                 width: parent.width
@@ -153,22 +165,35 @@ Rectangle {
 
             M3Text {
                 width: parent.width
-                role: "labelSmall"
-                text: root.artistText
+                role: "labelMedium"
+                text: root.artistText + (root.albumText ? " • " + root.albumText : "")
                 color: Theme.textSecondary
                 elide: Text.ElideRight
             }
 
-            Item { width: 1; height: 2 }
+            Item { width: 1; height: 6 }
 
+            // 5 Media Controls Row (Shuffle, Prev, Play/Pause, Next, Repeat)
             Row {
-                height: 44
-                spacing: 8
+                height: 38
+                spacing: 6
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 36
-                    iconSize: 19
+                    buttonSize: 30
+                    iconSize: 16
+                    icon: "shuffle"
+                    fillColor: root.player && root.player.shuffle ? Theme.alpha(Theme.secondary, 0.22) : Theme.alpha(Theme.textPrimary, 0.06)
+                    foregroundColor: root.player && root.player.shuffle ? Theme.secondary : Theme.alpha(Theme.textPrimary, 0.55)
+                    enabled: root.player && root.player.shuffleSupported
+                    accessibleName: "Shuffle"
+                    onClicked: if (root.player) root.player.shuffle = !root.player.shuffle
+                }
+
+                IconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    buttonSize: 34
+                    iconSize: 18
                     icon: "skip_previous"
                     fillColor: Theme.alpha(Theme.textPrimary, 0.08)
                     foregroundColor: Theme.textPrimary
@@ -179,8 +204,8 @@ Rectangle {
 
                 MediaPlayButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 42
-                    iconSize: 23
+                    buttonSize: 38
+                    iconSize: 21
                     isPlaying: root.player && root.player.isPlaying
                     fillColor: Theme.secondary
                     foregroundColor: Theme.textPrimary
@@ -190,8 +215,8 @@ Rectangle {
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 36
-                    iconSize: 19
+                    buttonSize: 34
+                    iconSize: 18
                     icon: "skip_next"
                     fillColor: Theme.alpha(Theme.textPrimary, 0.08)
                     foregroundColor: Theme.textPrimary
@@ -199,85 +224,67 @@ Rectangle {
                     accessibleName: I18n.tr("Bài tiếp theo", "Next track")
                     onClicked: root.player.next()
                 }
+
+                IconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    buttonSize: 30
+                    iconSize: 16
+                    icon: root.player && root.player.loopStatus === "Track" ? "repeat_one" : "repeat"
+                    fillColor: root.player && root.player.loopStatus && root.player.loopStatus !== "None" ? Theme.alpha(Theme.secondary, 0.22) : Theme.alpha(Theme.textPrimary, 0.06)
+                    foregroundColor: root.player && root.player.loopStatus && root.player.loopStatus !== "None" ? Theme.secondary : Theme.alpha(Theme.textPrimary, 0.55)
+                    enabled: root.player && root.player.loopSupported
+                    accessibleName: "Repeat"
+                    onClicked: {
+                        if (!root.player) return;
+                        const next = root.player.loopStatus === "None" ? "Playlist" : (root.player.loopStatus === "Playlist" ? "Track" : "None");
+                        root.player.loopStatus = next;
+                    }
+                }
             }
         }
 
-        WaveformSlider {
-            id: progressWave
+        // 4. Inline Progress Bar Row (Time Elapsed ── Waveform Track ── Time Total)
+        Row {
+            id: progressRow
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: record.bottom
-            anchors.topMargin: 8
-            from: 0
-            to: root.player && root.player.lengthSupported
-                ? root.player.length : 1
-            value: root.playbackPosition
-            enabled: root.player && root.player.canSeek
-                && root.player.lengthSupported && root.player.length > 0
-            animated: root.player && root.player.isPlaying
-            activeColor: Theme.secondary
-            onMoved: value => root.seekTo(value)
-        }
+            anchors.topMargin: 4
+            height: 24
+            spacing: 8
 
-        M3Text {
-            id: timeElapsed
-            role: "labelSmall"
-            anchors.left: parent.left
-            anchors.top: progressWave.bottom
-            anchors.topMargin: 2
-            text: root.formatTime(root.playbackPosition)
-            color: Theme.textSecondary
-            font.weight: Font.Medium
-        }
+            M3Text {
+                id: timeElapsed
+                anchors.verticalCenter: parent.verticalCenter
+                role: "labelSmall"
+                text: root.formatTime(root.playbackPosition)
+                color: Theme.textSecondary
+                font.weight: Font.Medium
+            }
 
-        M3Text {
-            id: timeTotal
-            role: "labelSmall"
-            anchors.right: parent.right
-            anchors.top: progressWave.bottom
-            anchors.topMargin: 2
-            text: root.player && root.player.lengthSupported
-                ? root.formatTime(root.player.length) : "--:--"
-            color: Theme.textSecondary
-            font.weight: Font.Medium
-        }
+            WaveformSlider {
+                id: progressWave
+                width: parent.width - timeElapsed.implicitWidth - timeTotal.implicitWidth - (parent.spacing * 2)
+                anchors.verticalCenter: parent.verticalCenter
+                from: 0
+                to: root.player && root.player.lengthSupported
+                    ? root.player.length : 1
+                value: root.playbackPosition
+                enabled: root.player && root.player.canSeek
+                    && root.player.lengthSupported && root.player.length > 0
+                animated: root.player && root.player.isPlaying
+                activeColor: Theme.secondary
+                onMoved: value => root.seekTo(value)
+            }
 
-        // Cava Spectrum Audio Visualizer Bars at the VERY BOTTOM
-        Row {
-            id: cavaVisualizer
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 0
-            height: 22
-            spacing: 4
-
-            Repeater {
-                model: 16
-                delegate: Rectangle {
-                    required property int index
-                    readonly property real barVal: {
-                        if (!root.controller || !root.controller.cavaBars || root.controller.cavaBars.length <= index)
-                            return 0;
-                        return root.controller.cavaBars[index] || 0;
-                    }
-                    readonly property real targetHeight: Math.max(3, (barVal / 100) * 22)
-
-                    width: Math.max(2, (cavaVisualizer.width - (15 * 4)) / 16)
-                    height: targetHeight
-                    radius: width / 2
-                    anchors.bottom: parent.bottom
-                    color: root.player && root.player.isPlaying
-                        ? Theme.blend(Theme.secondary, Theme.primary, index / 15)
-                        : Theme.alpha(Theme.textPrimary, 0.14)
-
-                    Behavior on height {
-                        NumberAnimation {
-                            duration: Theme.reduceMotion ? 0 : 45
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-                }
+            M3Text {
+                id: timeTotal
+                anchors.verticalCenter: parent.verticalCenter
+                role: "labelSmall"
+                text: root.player && root.player.lengthSupported
+                    ? root.formatTime(root.player.length) : "--:--"
+                color: Theme.textSecondary
+                font.weight: Font.Medium
             }
         }
     }

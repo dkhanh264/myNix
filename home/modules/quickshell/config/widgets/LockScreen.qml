@@ -110,12 +110,12 @@ WlSessionLock {
                     id: floatingShapes
                     anchors.fill: parent
 
-                    // Shape 1: Top-Left Flower Shape
+                    // Shape 1: Top-Left Sunny Shape
                     Md3ExpressiveShape {
                         x: lockBg.width * 0.07
                         y: lockBg.height * 0.10
                         size: 140
-                        shapeType: 7 // Flower shape
+                        shapeName: "sunny"
                         color: Theme.alpha(Theme.wallpaperPrimary, 0.14)
 
                         SequentialAnimation on rotation {
@@ -125,12 +125,12 @@ WlSessionLock {
                         }
                     }
 
-                    // Shape 2: Top-Right Clover/Star Shape
+                    // Shape 2: Top-Right Clover Shape
                     Md3ExpressiveShape {
                         x: lockBg.width * 0.78
                         y: lockBg.height * 0.14
                         size: 120
-                        shapeType: 5 // Star / Clover shape
+                        shapeName: "clover"
                         color: Theme.alpha(Theme.wallpaperSecondary, 0.15)
 
                         SequentialAnimation on y {
@@ -147,12 +147,12 @@ WlSessionLock {
                         }
                     }
 
-                    // Shape 3: Center-Right Diamond Shape
+                    // Shape 3: Center-Right Gem Shape
                     Md3ExpressiveShape {
                         x: lockBg.width * 0.82
                         y: lockBg.height * 0.50
                         size: 95
-                        shapeType: 4 // Diamond shape
+                        shapeName: "gem"
                         color: Theme.alpha(Theme.tertiary, 0.13)
 
                         SequentialAnimation on scale {
@@ -163,12 +163,12 @@ WlSessionLock {
                         }
                     }
 
-                    // Shape 4: Bottom-Left Oval Shape
+                    // Shape 4: Bottom-Left Ghostish Shape
                     Md3ExpressiveShape {
                         x: lockBg.width * 0.05
                         y: lockBg.height * 0.65
                         size: 130
-                        shapeType: 6 // Oval shape
+                        shapeName: "ghostish"
                         color: Theme.alpha(Theme.wallpaperPrimary, 0.13)
 
                         SequentialAnimation on x {
@@ -179,12 +179,12 @@ WlSessionLock {
                         }
                     }
 
-                    // Shape 5: Bottom-Right Flower/Cookie Shape
+                    // Shape 5: Bottom-Right Cookie Shape
                     Md3ExpressiveShape {
                         x: lockBg.width * 0.74
                         y: lockBg.height * 0.72
                         size: 150
-                        shapeType: 7 // Flower shape
+                        shapeName: "cookie6"
                         color: Theme.alpha(Theme.wallpaperSecondary, 0.12)
 
                         SequentialAnimation on rotation {
@@ -199,7 +199,7 @@ WlSessionLock {
                         x: lockBg.width * 0.10
                         y: lockBg.height * 0.40
                         size: 105
-                        shapeType: 2 // Pill Horiz
+                        shapeName: "pill"
                         color: Theme.alpha(Theme.primary, 0.12)
 
                         SequentialAnimation on y {

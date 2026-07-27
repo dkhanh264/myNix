@@ -28,6 +28,8 @@ Rectangle {
     implicitHeight: 518
     radius: Theme.cardRadius
     color: Theme.surfaceContainerLow
+    border.width: 1
+    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
 
     function dayForCell(index) {
         const day = index - firstDayOffset + 1;
@@ -109,6 +111,7 @@ Rectangle {
         anchors.margins: Theme.componentPadding
         spacing: 8
 
+        // Top Clock & Header Card
         Item {
             width: parent.width
             height: 48
@@ -139,7 +142,9 @@ Rectangle {
                 width: 42
                 height: 42
                 radius: Theme.shapeLarge
-                color: Theme.primaryContainer
+                color: Theme.alpha(Theme.primary, 0.15)
+                border.width: 1
+                border.color: Theme.alpha(Theme.primary, 0.3)
 
                 MaterialIcon {
                     anchors.centerIn: parent
@@ -151,6 +156,7 @@ Rectangle {
             }
         }
 
+        // Month Navigation Row with Today Quick Reset Chip
         Item {
             width: parent.width
             height: 36
@@ -165,14 +171,45 @@ Rectangle {
                 onClicked: root.moveMonth(-1)
             }
 
-            M3Text {
-                role: "titleSmall"
+            Row {
                 anchors.centerIn: parent
-                text: (I18n.vietnamese ? root.viMonths[root.displayDate.getMonth()]
-                    : root.enMonths[root.displayDate.getMonth()])
-                    + " " + root.displayDate.getFullYear()
-                color: Theme.textPrimary
-                font.weight: Font.DemiBold
+                spacing: 8
+
+                M3Text {
+                    role: "titleSmall"
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: (I18n.vietnamese ? root.viMonths[root.displayDate.getMonth()]
+                        : root.enMonths[root.displayDate.getMonth()])
+                        + " " + root.displayDate.getFullYear()
+                    color: Theme.textPrimary
+                    font.weight: Font.Bold
+                }
+
+                Rectangle {
+                    visible: root.monthOffset !== 0
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: todayChipText.implicitWidth + 12
+                    height: 22
+                    radius: 11
+                    color: Theme.alpha(Theme.primary, 0.16)
+                    border.width: 1
+                    border.color: Theme.alpha(Theme.primary, 0.35)
+
+                    M3Text {
+                        id: todayChipText
+                        role: "labelSmall"
+                        anchors.centerIn: parent
+                        text: I18n.tr("Hôm nay", "Today")
+                        color: Theme.primary
+                        font.weight: Font.Bold
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.resetToToday()
+                    }
+                }
             }
 
             IconButton {
@@ -186,6 +223,7 @@ Rectangle {
             }
         }
 
+        // Days Header Row (T2 -> CN)
         Grid {
             id: dayHeader
             width: parent.width
@@ -207,12 +245,13 @@ Rectangle {
                             ? root.viDayNames[parent.index]
                             : root.enDayNames[parent.index]
                         color: Theme.textSecondary
-                        font.weight: Font.DemiBold
+                        font.weight: Font.Bold
                     }
                 }
             }
         }
 
+        // 42-Cell Date Grid
         Grid {
             id: dateGrid
             width: parent.width
@@ -245,9 +284,9 @@ Rectangle {
                             ? Theme.shapeMedium : height / 2
                         color: dateCell.selected ? Theme.primary
                             : datePointer.containsMouse
-                                ? Theme.alpha(Theme.textPrimary, 0.07)
+                                ? Theme.alpha(Theme.textPrimary, 0.08)
                                 : "transparent"
-                        border.width: dateCell.today && !dateCell.selected ? 1 : 0
+                        border.width: dateCell.today && !dateCell.selected ? 1.5 : 0
                         border.color: Theme.primary
 
                         Behavior on width {
@@ -280,11 +319,11 @@ Rectangle {
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: 1
-                        width: 3
-                        height: 3
+                        width: 4
+                        height: 4
                         radius: 2
                         color: dateCell.selected
-                            ? Theme.textPrimary : Theme.tertiary
+                            ? Theme.onPrimary : Theme.tertiary
                     }
 
                     MouseArea {
@@ -303,21 +342,21 @@ Rectangle {
         Rectangle {
             width: parent.width
             height: 1
-            color: Theme.outlineVariant
+            color: Theme.alpha(Theme.outlineVariant, 0.4)
         }
 
         Item {
             width: parent.width
-            height: 30
+            height: 28
 
             M3Text {
                 role: "titleSmall"
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: I18n.tr("Sự kiện · ", "Events · ")
-                    + Qt.formatDate(root.selectedDate, "d/M")
+                    + Qt.formatDate(root.selectedDate, "dd/MM/yyyy")
                 color: Theme.textPrimary
-                font.weight: Font.DemiBold
+                font.weight: Font.Bold
             }
 
             MaterialIcon {
@@ -325,7 +364,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 text: "event"
                 iconSize: 18
-                color: Theme.tertiary
+                color: Theme.secondary
             }
         }
 
@@ -347,8 +386,8 @@ Rectangle {
                     visible: root.selectedEventCount() === 0
                     width: parent.width
                     height: visible ? 40 : 0
-                    text: I18n.tr("Chưa có sự kiện trong ngày này",
-                        "No events for this day")
+                    text: I18n.tr("Chưa có sự kiện cho ngày này",
+                        "No events for this date")
                     color: Theme.textSecondary
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -368,6 +407,8 @@ Rectangle {
                         height: visible ? 44 : 0
                         radius: Theme.shapeMedium
                         color: Theme.surfaceContainerHigh
+                        border.width: 1
+                        border.color: Theme.alpha(Theme.outlineVariant, 0.3)
 
                         Row {
                             anchors.left: parent.left
@@ -382,7 +423,9 @@ Rectangle {
                                 width: timeBadgeText.implicitWidth + 12
                                 height: 24
                                 radius: 12
-                                color: Theme.primaryContainer
+                                color: Theme.alpha(Theme.primary, 0.16)
+                                border.width: 1
+                                border.color: Theme.alpha(Theme.primary, 0.3)
 
                                 M3Text {
                                     id: timeBadgeText
@@ -402,7 +445,7 @@ Rectangle {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: eventItemRect.title
                                 color: Theme.textPrimary
-                                font.weight: Font.Medium
+                                font.weight: Font.Bold
                                 elide: Text.ElideRight
                             }
                         }
@@ -447,7 +490,7 @@ Rectangle {
                     width: chipText.implicitWidth + 10
                     height: 22
                     radius: 11
-                    color: eventTime.text === modelData ? Theme.primaryContainer : Theme.surfaceContainerHigh
+                    color: eventTime.text === modelData ? Theme.alpha(Theme.primary, 0.20) : Theme.surfaceContainerHigh
                     border.width: 1
                     border.color: eventTime.text === modelData ? Theme.primary : Theme.alpha(Theme.outlineVariant, 0.4)
 
@@ -456,8 +499,8 @@ Rectangle {
                         role: "labelSmall"
                         anchors.centerIn: parent
                         text: parent.modelData
-                        color: parent.parent.eventTime && parent.parent.eventTime.text === parent.modelData ? Theme.primary : Theme.textPrimary
-                        font.weight: Font.Medium
+                        color: eventTime.text === parent.modelData ? Theme.primary : Theme.textPrimary
+                        font.weight: Font.Bold
                     }
 
                     MouseArea {

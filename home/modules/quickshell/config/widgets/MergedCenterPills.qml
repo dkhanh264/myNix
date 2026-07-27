@@ -29,15 +29,6 @@ Item {
         return str;
     }
 
-    function sanitizeIconName(rawIcon) {
-        if (!rawIcon || rawIcon.length === 0)
-            return "notifications";
-        let str = String(rawIcon).trim();
-        if (str.startsWith("/") || str.startsWith("file://") || str.startsWith("http"))
-            return "notifications";
-        return str;
-    }
-
     function getShapeTypeForNotification(iconStr, titleStr) {
         let str = (iconStr || "") + (titleStr || "");
         if (str.length === 0)
@@ -49,22 +40,18 @@ Item {
         return hash % 8;
     }
 
-    // Animation progress (0.0 = Idle 2 pills, 1.0 = Notification pill active)
-    property real animProgress: 0.0
-
-    Behavior on animProgress {
-        NumberAnimation {
-            duration: Theme.reduceMotion ? 0 : 420
-            easing.type: Easing.BezierSpline
-            easing.bezierCurve: root.toastVisible
-                ? [0.34, 1.35, 0.64, 1.0]
-                : [0.34, 1.25, 0.64, 1.0]
-        }
-    }
-
-    onToastVisibleChanged: {
-        root.animProgress = root.toastVisible ? 1.0 : 0.0;
-    }
+    // ── Water Drop State Machine ──
+    // Phase 0: IDLE (2 separate pills)
+    // Phase 1: MERGING (2 pills move to center, liquid neck connects them)
+    // Phase 2: EXPANDING (Pill expands to notifWidth)
+    // Phase 3: SHOWING (Notification text & icon displayed)
+    // Phase 4: EMPTYING (Notification text fades out -> Empty pill)
+    // Phase 5: SHRINKING (Empty pill shrinks to normalWidth)
+    // Phase 6: SPLITTING (Liquid neck stretches & splits 2 pills back to idle)
+    property int animPhase: 0
+    property real mergeProgress: 0.0 // 0.0 = separated, 1.0 = merged at center
+    property real widthProgress: 0.0 // 0.0 = normalWidth, 1.0 = notifWidth
+    property real notifOpacity: 0.0  // 0.0 = empty, 1.0 = text visible
 
     readonly property real clockImplicitWidth: clockPill.implicitWidth
     readonly property real weatherImplicitWidth: weatherPill.implicitWidth
@@ -89,44 +76,128 @@ Item {
     readonly property real notifContentWidth: 28 + 8 + calcTextWidth + 24
     readonly property real notifWidth: Math.max(140, Math.min(440, notifContentWidth))
 
-    implicitWidth: normalWidth + (notifWidth - normalWidth) * animProgress
+    implicitWidth: normalWidth + (notifWidth - normalWidth) * widthProgress
     implicitHeight: Theme.barItemHeight
 
-    // Liquid surface background (visible only during morph transition & notification display)
+    onToastVisibleChanged: {
+        showAnim.stop();
+        hideAnim.stop();
+        if (toastVisible)
+            showAnim.restart();
+        else
+            hideAnim.restart();
+    }
+
+    // ── Sequence 1: Show Notification (Merge -> Expand -> Show Text) ──
+    SequentialAnimation {
+        id: showAnim
+
+        // Step 1: 2 pills move together and merge into a droplet blob
+        ScriptAction { script: root.animPhase = 1 }
+        NumberAnimation {
+            target: root
+            property: "mergeProgress"
+            to: 1.0
+            duration: Theme.reduceMotion ? 0 : 200
+            easing.type: Easing.InOutQuad
+        }
+
+        // Step 2: Liquid droplet expands horizontally
+        ScriptAction { script: root.animPhase = 2 }
+        NumberAnimation {
+            target: root
+            property: "widthProgress"
+            to: 1.0
+            duration: Theme.reduceMotion ? 0 : 260
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.springCurve
+        }
+
+        // Step 3: Notification text & icon fade in
+        ScriptAction { script: root.animPhase = 3 }
+        NumberAnimation {
+            target: root
+            property: "notifOpacity"
+            to: 1.0
+            duration: Theme.reduceMotion ? 0 : 160
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    // ── Sequence 2: Hide Notification (Empty Text -> Shrink Empty Pill -> Split Pills) ──
+    SequentialAnimation {
+        id: hideAnim
+
+        // Step 1: Text & icon fade out completely -> Empty Pill!
+        ScriptAction { script: root.animPhase = 4 }
+        NumberAnimation {
+            target: root
+            property: "notifOpacity"
+            to: 0.0
+            duration: Theme.reduceMotion ? 0 : 160
+            easing.type: Easing.OutQuad
+        }
+
+        // Step 2: Empty pill shrinks back to normalWidth
+        ScriptAction { script: root.animPhase = 5 }
+        NumberAnimation {
+            target: root
+            property: "widthProgress"
+            to: 0.0
+            duration: Theme.reduceMotion ? 0 : 240
+            easing.type: Easing.InOutCubic
+        }
+
+        // Step 3: Liquid neck stretches & splits 2 pills back apart
+        ScriptAction { script: root.animPhase = 6 }
+        NumberAnimation {
+            target: root
+            property: "mergeProgress"
+            to: 0.0
+            duration: Theme.reduceMotion ? 0 : 220
+            easing.type: Easing.InOutQuad
+        }
+
+        // Step 4: Back to IDLE
+        ScriptAction { script: root.animPhase = 0 }
+    }
+
+    // ── Liquid Surface Background ──
     Rectangle {
         id: morphSurface
         anchors.fill: parent
         radius: height / 2
-        color: Theme.blend(Theme.barSurface, Theme.primaryContainer, root.animProgress)
+        color: Theme.blend(Theme.barSurface, Theme.primaryContainer, Math.max(root.mergeProgress, root.widthProgress))
         border.width: Theme.barOutlineWidth
-        border.color: Theme.blend(Theme.barOutline, Theme.primary, root.animProgress)
-        opacity: root.animProgress
+        border.color: Theme.blend(Theme.barOutline, Theme.primary, Math.max(root.mergeProgress, root.widthProgress))
+        opacity: Math.max(root.mergeProgress, root.widthProgress)
         visible: opacity > 0.001
 
         // Water drop squish and stretch dynamic physics during liquid state transition
         transform: Scale {
             origin.x: morphSurface.width / 2
             origin.y: morphSurface.height / 2
-            xScale: 1.0 + 0.035 * Math.sin(root.animProgress * Math.PI)
-            yScale: 1.0 - 0.075 * Math.sin(root.animProgress * Math.PI)
+            xScale: 1.0 + 0.04 * Math.sin(root.mergeProgress * Math.PI)
+            yScale: 1.0 - 0.08 * Math.sin(root.mergeProgress * Math.PI)
         }
 
-        Behavior on color { ColorAnimation { duration: 200 } }
-        Behavior on border.color { ColorAnimation { duration: 200 } }
+        Behavior on color { ColorAnimation { duration: 180 } }
+        Behavior on border.color { ColorAnimation { duration: 180 } }
     }
 
-    // Liquid Droplet Neck/Bridge (visual water drop joining effect)
+    // ── Liquid Droplet Neck/Bridge (water drop joining/splitting effect) ──
     Rectangle {
         id: liquidNeck
         anchors.centerIn: parent
-        height: parent.height * (1.0 - 0.15 * Math.sin(root.animProgress * Math.PI))
-        width: Math.max(0, (root.normalWidth - 20) * Math.sin(root.animProgress * Math.PI))
+        height: parent.height * (1.0 - 0.12 * Math.sin(root.mergeProgress * Math.PI))
+        width: Math.max(0, (root.normalWidth - 16) * Math.sin(root.mergeProgress * Math.PI))
         radius: height / 2
-        color: Theme.blend(Theme.barSurfaceActive, Theme.primaryContainer, root.animProgress)
-        opacity: Math.sin(root.animProgress * Math.PI) * 0.85
+        color: Theme.blend(Theme.barSurfaceActive, Theme.primaryContainer, root.mergeProgress)
+        opacity: Math.sin(root.mergeProgress * Math.PI) * 0.90
         visible: opacity > 0.01
     }
 
+    // ── Clock & Weather Pills Item ──
     Item {
         id: pillsContainer
         anchors.fill: parent
@@ -138,17 +209,16 @@ Item {
             checked: root.activePopup === "calendar"
             anchors.verticalCenter: parent.verticalCenter
 
-            // X-position morphing from left towards center as pills merge
             x: {
                 if (!root.showWeather)
-                    return (parent.width - width) / 2 * root.animProgress;
+                    return (parent.width - width) / 2 * root.mergeProgress;
                 const idleX = 0;
                 const mergedX = (parent.width - width) / 2;
-                return idleX + (mergedX - idleX) * Math.min(1.0, root.animProgress * 1.5);
+                return idleX + (mergedX - idleX) * root.mergeProgress;
             }
 
-            opacity: Math.max(0, 1.0 - root.animProgress * 2.5)
-            scale: 1.0 - root.animProgress * 0.25
+            opacity: Math.max(0, 1.0 - root.mergeProgress * 1.5)
+            scale: 1.0 - root.mergeProgress * 0.20
 
             onClicked: root.popupRequested("calendar")
         }
@@ -161,29 +231,28 @@ Item {
             checked: root.activePopup === "weather"
             anchors.verticalCenter: parent.verticalCenter
 
-            // X-position morphing from right towards center as pills merge
             x: {
                 if (!root.showClock)
-                    return (parent.width - width) / 2 * root.animProgress;
+                    return (parent.width - width) / 2 * root.mergeProgress;
                 const idleX = clockPill.width + root.spacingGap;
                 const mergedX = (parent.width - width) / 2;
-                return idleX + (mergedX - idleX) * Math.min(1.0, root.animProgress * 1.5);
+                return idleX + (mergedX - idleX) * root.mergeProgress;
             }
 
-            opacity: Math.max(0, 1.0 - root.animProgress * 2.5)
-            scale: 1.0 - root.animProgress * 0.25
+            opacity: Math.max(0, 1.0 - root.mergeProgress * 1.5)
+            scale: 1.0 - root.mergeProgress * 0.20
 
             onPopupRequested: root.popupRequested("weather")
         }
     }
 
-    // Notification Pill Content (Music pill style layout without media controls)
+    // ── Notification Content ──
     Item {
         id: notifContent
         anchors.fill: parent
-        visible: root.animProgress > 0.05
-        opacity: Math.max(0, (root.animProgress - 0.35) * 1.54)
-        scale: 0.82 + 0.18 * Math.min(1.0, Math.max(0.0, (root.animProgress - 0.2) * 1.25))
+        visible: root.notifOpacity > 0.001
+        opacity: root.notifOpacity
+        scale: 0.85 + 0.15 * root.notifOpacity
 
         MouseArea {
             anchors.fill: parent
@@ -221,12 +290,12 @@ Item {
                     }
                 }
 
-                Md3ExpressiveShape {
+                Md3LoadingIndicator {
                     visible: !notifImg.visible
                     anchors.centerIn: parent
                     size: 20
-                    shapeType: root.getShapeTypeForNotification(root.toastIcon, root.toastTitle)
                     color: Theme.primary
+                    active: visible && root.notifOpacity > 0.01
                 }
             }
 

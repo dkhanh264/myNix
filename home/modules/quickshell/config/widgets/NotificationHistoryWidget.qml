@@ -8,6 +8,15 @@ Rectangle {
     property var controller
     property int selectedTab: 0
 
+    function calcShapeIndex(str) {
+        if (!str || str.length === 0) return 0;
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash * 31 + str.charCodeAt(i)) & 0x7FFFFFFF;
+        }
+        return hash % 35;
+    }
+
     implicitHeight: 480
     radius: Theme.cardRadius
     color: Theme.surfaceContainerLow
@@ -145,7 +154,7 @@ Rectangle {
                                 Md3ExpressiveShape {
                                     anchors.centerIn: parent
                                     size: 24
-                                    shapeType: (summary + appName).length % 8
+                                    shapeType: root.calcShapeIndex(summary + appName)
                                     color: Theme.primary
                                 }
                             }

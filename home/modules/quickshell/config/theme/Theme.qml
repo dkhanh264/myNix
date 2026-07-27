@@ -43,20 +43,20 @@ Singleton {
     readonly property color surfaceVariant: blend(surfaceContainerHigh, wallpaperSecondary, 0.11)
 
     // Primary, Secondary, Tertiary Accent Roles
-    readonly property color primary: tone(wallpaperPrimary, 0.38)
-    readonly property color onPrimary: Qt.rgba(1, 1, 1, 1)
-    readonly property color primaryContainer: blend(surfaceContainerHigh, primary, 0.36)
-    readonly property color onPrimaryContainer: Qt.rgba(1, 1, 1, 1)
+    readonly property color primary: wallpaperPrimary
+    readonly property color onPrimary: pureBlackMode ? "#000000" : "#111318"
+    readonly property color primaryContainer: blend(surfaceContainerHigh, wallpaperPrimary, 0.28)
+    readonly property color onPrimaryContainer: wallpaperForeground
 
-    readonly property color secondary: tone(wallpaperSecondary, 0.40)
-    readonly property color onSecondary: Qt.rgba(1, 1, 1, 1)
-    readonly property color secondaryContainer: blend(surfaceContainerHigh, secondary, 0.32)
-    readonly property color onSecondaryContainer: Qt.rgba(1, 1, 1, 1)
+    readonly property color secondary: wallpaperSecondary
+    readonly property color onSecondary: pureBlackMode ? "#000000" : "#111318"
+    readonly property color secondaryContainer: blend(surfaceContainerHigh, wallpaperSecondary, 0.28)
+    readonly property color onSecondaryContainer: wallpaperForeground
 
-    readonly property color tertiary: tone(wallpaperTertiary, 0.40)
-    readonly property color onTertiary: Qt.rgba(1, 1, 1, 1)
-    readonly property color tertiaryContainer: blend(surfaceContainerHigh, tertiary, 0.30)
-    readonly property color onTertiaryContainer: Qt.rgba(1, 1, 1, 1)
+    readonly property color tertiary: wallpaperTertiary
+    readonly property color onTertiary: pureBlackMode ? "#000000" : "#111318"
+    readonly property color tertiaryContainer: blend(surfaceContainerHigh, wallpaperTertiary, 0.28)
+    readonly property color onTertiaryContainer: wallpaperForeground
 
     // Inverse & Utility Roles
     readonly property color inverseSurface: pureBlackMode ? "#e3e2e9" : "#e2e2e9"

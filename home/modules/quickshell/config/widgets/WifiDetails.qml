@@ -106,8 +106,10 @@ Rectangle {
                 readonly property bool showPassword: selected && !openNetwork
                     && (!saved || editingPassword)
 
+                visible: true
                 width: content.width
-                height: 58 + (selected ? actionPanel.implicitHeight + 8 : 0)
+                height: 58 + (selected ? actionPanelContainer.implicitHeight + 8 : 0)
+                clip: true
                 activeFocusOnTab: root.controller && !root.controller.wifiBusy
 
                 Accessible.role: Accessible.Button
@@ -234,97 +236,141 @@ Rectangle {
                         iconSize: 18
                         color: networkRow.active
                             ? Theme.secondary : Theme.textSecondary
+
+                        Behavior on rotation {
+                            NumberAnimation {
+                                duration: 200
+                                easing.type: Easing.BezierSpline
+                                easing.bezierCurve: Theme.springCurve
+                            }
+                        }
                     }
                 }
 
-                Column {
-                    id: actionPanel
+                Item {
+                    id: actionPanelContainer
                     anchors.left: parent.left
                     anchors.leftMargin: 8
                     anchors.right: parent.right
                     anchors.rightMargin: 8
                     anchors.top: summaryRow.bottom
-                    spacing: 8
-                    opacity: networkRow.selected ? 1 : 0
+                    anchors.topMargin: 2
+                    implicitHeight: actionPanel.implicitHeight
+                    height: selected ? actionPanel.implicitHeight : 0
+                    opacity: selected ? 1 : 0
+                    clip: true
 
-                    M3TextField {
-                        id: passwordField
-                        visible: networkRow.showPassword
-                        width: parent.width
-                        height: visible ? implicitHeight : 0
-                        label: networkRow.saved
-                            ? I18n.tr("Mật khẩu mới", "New password")
-                            : I18n.tr("Mật khẩu Wi‑Fi", "Wi-Fi password")
-                        placeholderText: I18n.tr("Nhập mật khẩu",
-                            "Enter password")
-                        leadingIcon: "password"
-                        echoMode: TextInput.Password
-                        onAccepted: primaryAction.clicked()
+                    transform: Translate {
+                        y: selected ? 0 : -8
                     }
 
-                    Row {
-                        width: parent.width
-                        height: 44
-                        spacing: Theme.space2
+                    Behavior on height {
+                        NumberAnimation {
+                            duration: Theme.reduceMotion ? 0 : 260
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Theme.springCurve
+                        }
+                    }
 
-                        M3Button {
-                            id: primaryAction
-                            height: parent.height
-                            width: networkRow.saved
-                                ? Math.max(94, (parent.width - parent.spacing * 2) / 3)
-                                : parent.width
-                            icon: networkRow.active ? "link_off"
-                                : networkRow.editingPassword ? "save" : "link"
-                            text: networkRow.active
-                                ? I18n.tr("Ngắt", "Disconnect")
-                                : networkRow.editingPassword
-                                    ? I18n.tr("Lưu", "Save")
-                                    : I18n.tr("Kết nối", "Connect")
-                            enabled: !root.controller.wifiBusy
-                                && (networkRow.active
-                                    || !networkRow.showPassword
-                                    || passwordField.text.length >= 8)
-                            onClicked: {
-                                if (networkRow.active) {
-                                    root.controller.disconnectWifi(
-                                        networkRow.connectionName);
-                                } else if (networkRow.editingPassword) {
-                                    root.controller.updateWifiPassword(
-                                        networkRow.connectionName,
-                                        passwordField.text);
-                                } else {
-                                    root.controller.connectWifi(networkRow.ssid,
-                                        passwordField.text,
-                                        networkRow.saved
-                                            ? networkRow.connectionName : "");
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: Theme.reduceMotion ? 0 : 180
+                            easing.type: Easing.OutQuad
+                        }
+                    }
+
+                    Behavior on transform {
+                        NumberAnimation {
+                            duration: Theme.reduceMotion ? 0 : 260
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Theme.springCurve
+                        }
+                    }
+
+                    Column {
+                        id: actionPanel
+                        width: parent.width
+                        spacing: 8
+
+                        M3TextField {
+                            id: passwordField
+                            visible: networkRow.showPassword
+                            width: parent.width
+                            height: visible ? implicitHeight : 0
+                            label: networkRow.saved
+                                ? I18n.tr("Mật khẩu mới", "New password")
+                                : I18n.tr("Mật khẩu Wi‑Fi", "Wi-Fi password")
+                            placeholderText: I18n.tr("Nhập mật khẩu",
+                                "Enter password")
+                            leadingIcon: "password"
+                            echoMode: TextInput.Password
+                            onAccepted: primaryAction.clicked()
+                        }
+
+                        Row {
+                            width: parent.width
+                            height: 44
+                            spacing: Theme.space2
+
+                            M3Button {
+                                id: primaryAction
+                                height: parent.height
+                                width: networkRow.saved
+                                    ? Math.max(94, (parent.width - parent.spacing * 2) / 3)
+                                    : parent.width
+                                icon: networkRow.active ? "link_off"
+                                    : networkRow.editingPassword ? "save" : "link"
+                                text: networkRow.active
+                                    ? I18n.tr("Ngắt", "Disconnect")
+                                    : networkRow.editingPassword
+                                        ? I18n.tr("Lưu", "Save")
+                                        : I18n.tr("Kết nối", "Connect")
+                                enabled: !root.controller.wifiBusy
+                                    && (networkRow.active
+                                        || !networkRow.showPassword
+                                        || passwordField.text.length >= 8)
+                                onClicked: {
+                                    if (networkRow.active) {
+                                        root.controller.disconnectWifi(
+                                            networkRow.connectionName);
+                                    } else if (networkRow.editingPassword) {
+                                        root.controller.updateWifiPassword(
+                                            networkRow.connectionName,
+                                            passwordField.text);
+                                    } else {
+                                        root.controller.connectWifi(networkRow.ssid,
+                                            passwordField.text,
+                                            networkRow.saved
+                                                ? networkRow.connectionName : "");
+                                    }
                                 }
                             }
-                        }
 
-                        M3Button {
-                            visible: networkRow.saved
-                            height: parent.height
-                            width: visible
-                                ? (parent.width - parent.spacing * 2) / 3 : 0
-                            icon: "edit"
-                            text: I18n.tr("Sửa", "Edit")
-                            tonal: true
-                            enabled: !root.controller.wifiBusy
-                            onClicked: networkRow.editingPassword
-                                = !networkRow.editingPassword
-                        }
+                            M3Button {
+                                visible: networkRow.saved
+                                height: parent.height
+                                width: visible
+                                    ? (parent.width - parent.spacing * 2) / 3 : 0
+                                icon: "edit"
+                                text: I18n.tr("Sửa", "Edit")
+                                tonal: true
+                                enabled: !root.controller.wifiBusy
+                                onClicked: networkRow.editingPassword
+                                    = !networkRow.editingPassword
+                            }
 
-                        M3Button {
-                            visible: networkRow.saved
-                            height: parent.height
-                            width: visible
-                                ? (parent.width - parent.spacing * 2) / 3 : 0
-                            icon: "delete"
-                            text: I18n.tr("Xóa", "Forget")
-                            destructive: true
-                            enabled: !root.controller.wifiBusy
-                            onClicked: root.controller.forgetWifi(
-                                networkRow.connectionName)
+                            M3Button {
+                                visible: networkRow.saved
+                                height: parent.height
+                                width: visible
+                                    ? (parent.width - parent.spacing * 2) / 3 : 0
+                                icon: "delete"
+                                text: I18n.tr("Xóa", "Forget")
+                                destructive: true
+                                enabled: !root.controller.wifiBusy
+                                onClicked: root.controller.forgetWifi(
+                                    networkRow.connectionName)
+                            }
                         }
                     }
                 }
@@ -355,11 +401,9 @@ Rectangle {
                 Behavior on height {
                     enabled: !Theme.reduceMotion
                     NumberAnimation {
-                        duration: Theme.motionMedium2
+                        duration: 260
                         easing.type: Easing.BezierSpline
-                        easing.bezierCurve: networkRow.selected
-                            ? Theme.emphasizedDecelerate
-                            : Theme.emphasizedAccelerate
+                        easing.bezierCurve: Theme.springCurve
                     }
                 }
             }
