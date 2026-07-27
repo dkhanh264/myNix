@@ -259,7 +259,7 @@ Item {
             // ================= LEFT COLUMN: VITALS, STORAGE, CONTROLS, USER & FASTFETCH =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: 1.18
+                Layout.preferredWidth: 1.08
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
@@ -270,10 +270,10 @@ Item {
                     Layout.preferredHeight: 0.95
                     spacing: Theme.space3
 
-                    // Sub-Card 3A: User Info (50% Left Avatar, 50% Right Info)
+                    // Sub-Card 3A: User Info (Narrower width to give room to System Info)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 1
+                        Layout.preferredWidth: 0.82
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -285,11 +285,11 @@ Item {
                             anchors.margins: Theme.space3
                             spacing: Theme.space3
 
-                            // Left Part: User Avatar (50% Layout Width)
+                            // Left Part: User Avatar (Square 1:1 Aspect Ratio)
                             Item {
-                                Layout.fillWidth: true
-                                Layout.preferredWidth: 1
                                 Layout.fillHeight: true
+                                Layout.preferredWidth: height
+                                implicitWidth: height
 
                                 Rectangle {
                                     id: avatarBg
@@ -339,10 +339,9 @@ Item {
                                 }
                             }
 
-                            // Right Part: User Details (50% Layout Width)
+                            // Right Part: User Details (Fills remaining card width)
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredWidth: 1
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: 1
 
@@ -435,10 +434,10 @@ Item {
                         }
                     }
 
-                    // Sub-Card 3B: System Info (50% Left NixOS Logo, 50% Right Info + Pywal Basic Colors)
+                    // Sub-Card 3B: System Info (Wider width to fit system info)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 1
+                        Layout.preferredWidth: 1.18
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -450,11 +449,11 @@ Item {
                             anchors.margins: Theme.space3
                             spacing: Theme.space3
 
-                            // Left Part: NixOS Snowflake Logo (50% Layout Width)
+                            // Left Part: NixOS Snowflake Logo (Square 1:1 Aspect Ratio)
                             Item {
-                                Layout.fillWidth: true
-                                Layout.preferredWidth: 1
                                 Layout.fillHeight: true
+                                Layout.preferredWidth: height
+                                implicitWidth: height
 
                                 Rectangle {
                                     anchors.fill: parent
@@ -495,10 +494,9 @@ Item {
                                 }
                             }
 
-                            // Right Part: System Information (50% Layout Width)
+                            // Right Part: System Information (Fills remaining card width)
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredWidth: 1
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: 1
 
