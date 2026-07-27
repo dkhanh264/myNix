@@ -34,11 +34,16 @@ Item {
     ]
 
     // Dynamic System Info Properties
-    property string sysOsName: "NixOS Linux"
+    property string sysOsName: ""
     property string sysKernelVersion: ""
     property string sysUptimeStr: ""
     property string sysHostName: Quickshell.env("HOSTNAME") || ""
     property string sysUserName: Quickshell.env("USER") || ""
+    property string sysRealName: ""
+    property string sysHomeDir: Quickshell.env("HOME") || ""
+    property string sysUserShell: ""
+    property string sysWmName: ""
+    property string sysUserAvatar: ""
 
     Process {
         id: sysInfoProcess
@@ -47,7 +52,19 @@ Item {
             "awk -F= '/^PRETTY_NAME=/ {gsub(/\"/,\"\"); print $2}' /etc/os-release 2>/dev/null || uname -s; " +
             "uname -r; " +
             "awk '{h=int($1/3600); m=int(($1%3600)/60); if(h>0) print h\"h \"m\"m\"; else print m\"m\"}' /proc/uptime 2>/dev/null; " +
-            "cat /etc/hostname 2>/dev/null || hostname 2>/dev/null"
+            "cat /etc/hostname 2>/dev/null || hostname 2>/dev/null || echo \"$HOSTNAME\"; " +
+            "whoami 2>/dev/null || echo \"$USER\"; " +
+            "getent passwd $(whoami 2>/dev/null || echo \"$USER\") 2>/dev/null | cut -d: -f5 | cut -d, -f1; " +
+            "echo \"${HOME:-/home/$(whoami)}\"; " +
+            "getent passwd $(whoami 2>/dev/null || echo \"$USER\") 2>/dev/null | cut -d: -f7 | awk -F/ '{print $NF}' || basename \"${SHELL:-/bin/sh}\"; " +
+            "echo \"${XDG_CURRENT_DESKTOP:-${XDG_SESSION_DESKTOP:-${DESKTOP_SESSION:-Hyprland}}}\"; " +
+            "USER_NAME=\"$(whoami 2>/dev/null || echo \"$USER\")\"; " +
+            "HOME_DIR=\"${HOME:-/home/$USER_NAME}\"; " +
+            "if [ -f \"$HOME_DIR/.face\" ]; then echo \"$HOME_DIR/.face\"; " +
+            "elif [ -d \"$HOME_DIR/.face\" ]; then find \"$HOME_DIR/.face\" -maxdepth 1 -type f \\( -name \"*.jpg\" -o -name \"*.png\" -o -name \"*.jpeg\" -o -name \"*.webp\" -o -name \"*.svg\" \\) 2>/dev/null | head -n 1; " +
+            "elif [ -f \"$HOME_DIR/.face.icon\" ]; then echo \"$HOME_DIR/.face.icon\"; " +
+            "elif [ -f \"/var/lib/AccountsService/icons/$USER_NAME\" ]; then echo \"/var/lib/AccountsService/icons/$USER_NAME\"; " +
+            "fi"
         ]
         running: true
         stdout: StdioCollector {
@@ -57,7 +74,25 @@ Item {
                 if (lines.length > 0 && lines[0].trim().length > 0) root.sysOsName = lines[0].trim();
                 if (lines.length > 1 && lines[1].trim().length > 0) root.sysKernelVersion = lines[1].trim();
                 if (lines.length > 2 && lines[2].trim().length > 0) root.sysUptimeStr = lines[2].trim();
-                if (lines.length > 3 && lines[3].trim().length > 0 && !root.sysHostName) root.sysHostName = lines[3].trim();
+                if (lines.length > 3 && lines[3].trim().length > 0) root.sysHostName = lines[3].trim();
+                if (lines.length > 4 && lines[4].trim().length > 0) root.sysUserName = lines[4].trim();
+                if (lines.length > 5 && lines[5].trim().length > 0) root.sysRealName = lines[5].trim();
+                if (lines.length > 6 && lines[6].trim().length > 0) root.sysHomeDir = lines[6].trim();
+                if (lines.length > 7 && lines[7].trim().length > 0) root.sysUserShell = lines[7].trim();
+                if (lines.length > 8 && lines[8].trim().length > 0) root.sysWmName = lines[8].trim();
+                if (lines.length > 9 && lines[9].trim().length > 0) root.sysUserAvatar = lines[9].trim();
+            }
+        }
+    }
+
+    Timer {
+        id: sysInfoTimer
+        interval: 30000
+        running: root.visible
+        repeat: true
+        onTriggered: {
+            if (!sysInfoProcess.running) {
+                sysInfoProcess.running = true;
             }
         }
     }
@@ -221,7 +256,7 @@ Item {
                                     Image {
                                         id: userAvatarImg
                                         anchors.fill: parent
-                                        source: "file://" + (Quickshell.env("HOME") || "/home/" + (Quickshell.env("USER") || "dk")) + "/.face"
+                                        source: root.sysUserAvatar !== "" ? "file://" + root.sysUserAvatar : ("file://" + (root.sysHomeDir || Quickshell.env("HOME") || "/home/" + (root.sysUserName || Quickshell.env("USER") || "dk")) + "/.face")
                                         fillMode: Image.PreserveAspectCrop
                                         smooth: true
                                         mipmap: true
@@ -248,7 +283,7 @@ Item {
                                 M3Text {
                                     Layout.fillWidth: true
                                     role: "titleSmall"
-                                    text: root.sysUserName || Quickshell.env("USER") || "dk"
+                                    text: root.sysRealName || root.sysUserName || Quickshell.env("USER") || "dk"
                                     color: Theme.textPrimary
                                     font.weight: Font.Bold
                                     elide: Text.ElideRight
@@ -266,7 +301,7 @@ Item {
                                 M3Text {
                                     Layout.fillWidth: true
                                     role: "labelSmall"
-                                    text: "Home: " + (Quickshell.env("HOME") || "~")
+                                    text: "Home: " + (root.sysHomeDir || Quickshell.env("HOME") || "~")
                                     color: Theme.textSecondary
                                     elide: Text.ElideMiddle
                                 }
@@ -274,7 +309,7 @@ Item {
                                 M3Text {
                                     Layout.fillWidth: true
                                     role: "labelSmall"
-                                    text: "Shell: " + (Quickshell.env("SHELL") || "/bin/sh").split("/").pop()
+                                    text: "Shell: " + (root.sysUserShell || (Quickshell.env("SHELL") || "/bin/sh").split("/").pop())
                                     color: Theme.textSecondary
                                     elide: Text.ElideRight
                                 }
@@ -361,7 +396,7 @@ Item {
                                 M3Text {
                                     Layout.fillWidth: true
                                     role: "labelSmall"
-                                    text: "OS: " + root.sysOsName
+                                    text: "OS: " + (root.sysOsName || "Linux")
                                     color: Theme.textPrimary
                                     font.weight: Font.Bold
                                     elide: Text.ElideRight
@@ -370,7 +405,7 @@ Item {
                                 M3Text {
                                     Layout.fillWidth: true
                                     role: "labelSmall"
-                                    text: "WM: " + (Quickshell.env("XDG_CURRENT_DESKTOP") || Quickshell.env("XDG_SESSION_DESKTOP") || "Hyprland")
+                                    text: "WM: " + (root.sysWmName || Quickshell.env("XDG_CURRENT_DESKTOP") || Quickshell.env("XDG_SESSION_DESKTOP") || "Hyprland")
                                     color: Theme.textSecondary
                                     elide: Text.ElideRight
                                 }
