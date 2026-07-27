@@ -28,10 +28,7 @@ Item {
     readonly property string trackArtist: player && player.trackArtist ? player.trackArtist : I18n.tr("Trình phát nhạc", "Media Player")
 
     property string currentLyricsTrack: ""
-    property var lyricsList: [
-        I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"),
-        I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")
-    ]
+    property var lyricsList: [I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"), I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")]
 
     // Dynamic System Info Properties
     property string sysOsName: ""
@@ -49,45 +46,38 @@ Item {
 
     Process {
         id: sysInfoProcess
-        command: [
-            "sh", "-c",
-            "awk -F= '/^PRETTY_NAME=/ {gsub(/\"/,\"\"); print $2}' /etc/os-release 2>/dev/null || uname -s; " +
-            "uname -r; " +
-            "awk '{h=int($1/3600); m=int(($1%3600)/60); if(h>0) print h\"h \"m\"m\"; else print m\"m\"}' /proc/uptime 2>/dev/null; " +
-            "cat /etc/hostname 2>/dev/null || hostname 2>/dev/null || echo \"$HOSTNAME\"; " +
-            "whoami 2>/dev/null || echo \"$USER\"; " +
-            "getent passwd $(whoami 2>/dev/null || echo \"$USER\") 2>/dev/null | cut -d: -f5 | cut -d, -f1; " +
-            "echo \"${HOME:-/home/$(whoami)}\"; " +
-            "getent passwd $(whoami 2>/dev/null || echo \"$USER\") 2>/dev/null | cut -d: -f7 | awk -F/ '{print $NF}' || basename \"${SHELL:-/bin/sh}\"; " +
-            "echo \"${XDG_CURRENT_DESKTOP:-${XDG_SESSION_DESKTOP:-${DESKTOP_SESSION:-Hyprland}}}\"; " +
-            "USER_NAME=\"$(whoami 2>/dev/null || echo \"$USER\")\"; " +
-            "HOME_DIR=\"${HOME:-/home/$USER_NAME}\"; " +
-            "if [ -f \"$HOME_DIR/.face\" ]; then echo \"$HOME_DIR/.face\"; " +
-            "elif [ -d \"$HOME_DIR/.face\" ]; then find \"$HOME_DIR/.face\" -maxdepth 1 -type f \\( -name \"*.jpg\" -o -name \"*.png\" -o -name \"*.jpeg\" -o -name \"*.webp\" -o -name \"*.svg\" \\) 2>/dev/null | head -n 1; " +
-            "elif [ -f \"$HOME_DIR/.face.icon\" ]; then echo \"$HOME_DIR/.face.icon\"; " +
-            "elif [ -f \"/var/lib/AccountsService/icons/$USER_NAME\" ]; then echo \"/var/lib/AccountsService/icons/$USER_NAME\"; " +
-            "else echo \"\"; fi; " +
-            "grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed -e 's/^[ \t]*//' -e 's/(R)//g' -e 's/(TM)//g' -e 's/  */ /g' || echo \"\"; " +
-            "lspci 2>/dev/null | grep -iE 'vga|3d|display' | head -n 1 | cut -d: -f3 | sed -e 's/^[ \t]*//' -e 's/Corporation //g' -e 's/\\[//g' -e 's/\\]//g' -e 's/(rev ..)//g' -e 's/  */ /g' || echo \"\""
-        ]
+        command: ["sh", "-c", "awk -F= '/^PRETTY_NAME=/ {gsub(/\"/,\"\"); print $2}' /etc/os-release 2>/dev/null || uname -s; " + "uname -r; " + "awk '{h=int($1/3600); m=int(($1%3600)/60); if(h>0) print h\"h \"m\"m\"; else print m\"m\"}' /proc/uptime 2>/dev/null; " + "cat /etc/hostname 2>/dev/null || hostname 2>/dev/null || echo \"$HOSTNAME\"; " + "whoami 2>/dev/null || echo \"$USER\"; " + "getent passwd $(whoami 2>/dev/null || echo \"$USER\") 2>/dev/null | cut -d: -f5 | cut -d, -f1; " + "echo \"${HOME:-/home/$(whoami)}\"; " + "getent passwd $(whoami 2>/dev/null || echo \"$USER\") 2>/dev/null | cut -d: -f7 | awk -F/ '{print $NF}' || basename \"${SHELL:-/bin/sh}\"; " + "echo \"${XDG_CURRENT_DESKTOP:-${XDG_SESSION_DESKTOP:-${DESKTOP_SESSION:-Hyprland}}}\"; " + "USER_NAME=\"$(whoami 2>/dev/null || echo \"$USER\")\"; " + "HOME_DIR=\"${HOME:-/home/$USER_NAME}\"; " + "if [ -f \"$HOME_DIR/.face\" ]; then echo \"$HOME_DIR/.face\"; " + "elif [ -d \"$HOME_DIR/.face\" ]; then find \"$HOME_DIR/.face\" -maxdepth 1 -type f \\( -name \"*.jpg\" -o -name \"*.png\" -o -name \"*.jpeg\" -o -name \"*.webp\" -o -name \"*.svg\" \\) 2>/dev/null | head -n 1; " + "elif [ -f \"$HOME_DIR/.face.icon\" ]; then echo \"$HOME_DIR/.face.icon\"; " + "elif [ -f \"/var/lib/AccountsService/icons/$USER_NAME\" ]; then echo \"/var/lib/AccountsService/icons/$USER_NAME\"; " + "else echo \"\"; fi; " + "grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed -e 's/^[ \t]*//' -e 's/(R)//g' -e 's/(TM)//g' -e 's/  */ /g' || echo \"\"; " + "lspci 2>/dev/null | grep -iE 'vga|3d|display' | head -n 1 | cut -d: -f3 | sed -e 's/^[ \t]*//' -e 's/Corporation //g' -e 's/\\[//g' -e 's/\\]//g' -e 's/(rev ..)//g' -e 's/  */ /g' || echo \"\""]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
                 const text = this.text;
-                if (!text) return;
+                if (!text)
+                    return;
                 const lines = text.split("\n");
-                if (lines.length > 0 && lines[0].trim().length > 0) root.sysOsName = lines[0].trim();
-                if (lines.length > 1 && lines[1].trim().length > 0) root.sysKernelVersion = lines[1].trim();
-                if (lines.length > 2 && lines[2].trim().length > 0) root.sysUptimeStr = lines[2].trim();
-                if (lines.length > 3 && lines[3].trim().length > 0) root.sysHostName = lines[3].trim();
-                if (lines.length > 4 && lines[4].trim().length > 0) root.sysUserName = lines[4].trim();
-                if (lines.length > 5 && lines[5].trim().length > 0) root.sysRealName = lines[5].trim();
-                if (lines.length > 6 && lines[6].trim().length > 0) root.sysHomeDir = lines[6].trim();
-                if (lines.length > 7 && lines[7].trim().length > 0) root.sysUserShell = lines[7].trim();
-                if (lines.length > 8 && lines[8].trim().length > 0) root.sysWmName = lines[8].trim();
-                if (lines.length > 9 && lines[9].trim().length > 0) root.sysUserAvatar = lines[9].trim();
-                if (lines.length > 10 && lines[10].trim().length > 0) root.sysCpuName = lines[10].trim();
-                if (lines.length > 11 && lines[11].trim().length > 0) root.sysGpuName = lines[11].trim();
+                if (lines.length > 0 && lines[0].trim().length > 0)
+                    root.sysOsName = lines[0].trim();
+                if (lines.length > 1 && lines[1].trim().length > 0)
+                    root.sysKernelVersion = lines[1].trim();
+                if (lines.length > 2 && lines[2].trim().length > 0)
+                    root.sysUptimeStr = lines[2].trim();
+                if (lines.length > 3 && lines[3].trim().length > 0)
+                    root.sysHostName = lines[3].trim();
+                if (lines.length > 4 && lines[4].trim().length > 0)
+                    root.sysUserName = lines[4].trim();
+                if (lines.length > 5 && lines[5].trim().length > 0)
+                    root.sysRealName = lines[5].trim();
+                if (lines.length > 6 && lines[6].trim().length > 0)
+                    root.sysHomeDir = lines[6].trim();
+                if (lines.length > 7 && lines[7].trim().length > 0)
+                    root.sysUserShell = lines[7].trim();
+                if (lines.length > 8 && lines[8].trim().length > 0)
+                    root.sysWmName = lines[8].trim();
+                if (lines.length > 9 && lines[9].trim().length > 0)
+                    root.sysUserAvatar = lines[9].trim();
+                if (lines.length > 10 && lines[10].trim().length > 0)
+                    root.sysCpuName = lines[10].trim();
+                if (lines.length > 11 && lines[11].trim().length > 0)
+                    root.sysGpuName = lines[11].trim();
             }
         }
     }
@@ -112,10 +102,7 @@ Item {
 
     function fetchLyrics() {
         if (!player || !player.trackTitle || player.trackTitle === I18n.tr("Không có nhạc", "Nothing playing")) {
-            lyricsList = [
-                I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"),
-                I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")
-            ];
+            lyricsList = [I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"), I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")];
             return;
         }
         const key = player.trackTitle + " - " + (player.trackArtist || "");
@@ -123,11 +110,7 @@ Item {
             return;
         currentLyricsTrack = key;
 
-        lyricsList = [
-            "♫ " + player.trackTitle,
-            "Ca sĩ: " + (player.trackArtist || "Chưa rõ"),
-            "Đang tải lời bài hát..."
-        ];
+        lyricsList = ["♫ " + player.trackTitle, "Ca sĩ: " + (player.trackArtist || "Chưa rõ"), "Đang tải lời bài hát..."];
 
         lyricsProcess.exec(["curl", "-s", "https://lrclib.net/api/get?artist_name=" + encodeURIComponent(player.trackArtist || "") + "&track_name=" + encodeURIComponent(player.trackTitle || "")]);
     }
@@ -153,13 +136,7 @@ Item {
                     }
                 } catch (e) {}
 
-                root.lyricsList = [
-                    "♫ " + (root.player ? root.player.trackTitle : ""),
-                    "Ca sĩ: " + (root.player ? root.player.trackArtist : "Chưa rõ"),
-                    "",
-                    "Chưa tìm thấy lời bài hát trực tuyến.",
-                    "Hãy tận hưởng những giai điệu âm nhạc tuyệt vời!"
-                ];
+                root.lyricsList = ["♫ " + (root.player ? root.player.trackTitle : ""), "Ca sĩ: " + (root.player ? root.player.trackArtist : "Chưa rõ"), "", "Chưa tìm thấy lời bài hát trực tuyến.", "Hãy tận hưởng những giai điệu âm nhạc tuyệt vời!"];
             }
         }
     }
@@ -204,18 +181,26 @@ Item {
     }
 
     function getWeatherIcon(code) {
-        if (code === 0) return "sunny";
-        if (code === 1 || code === 2) return "partly_cloudy_day";
-        if (code === 3) return "cloud";
-        if (code === 45 || code === 48) return "foggy";
-        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return "rainy";
-        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "weather_snowy";
-        if (code >= 95) return "thunderstorm";
+        if (code === 0)
+            return "sunny";
+        if (code === 1 || code === 2)
+            return "partly_cloudy_day";
+        if (code === 3)
+            return "cloud";
+        if (code === 45 || code === 48)
+            return "foggy";
+        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82))
+            return "rainy";
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86)
+            return "weather_snowy";
+        if (code >= 95)
+            return "thunderstorm";
         return "partly_cloudy_day";
     }
 
     function simplifyCpuName(name) {
-        if (!name) return "--";
+        if (!name)
+            return "--";
         let s = name;
         s = s.replace(/\([^)]*\)/g, "");
         s = s.replace(/\b(10th|11th|12th|13th|14th|15th)\s+Gen\b/gi, "");
@@ -229,7 +214,8 @@ Item {
     }
 
     function simplifyGpuName(name) {
-        if (!name) return "--";
+        if (!name)
+            return "--";
         let s = name;
         s = s.replace(/Corporation/gi, "");
         s = s.replace(/Advanced Micro Devices, Inc\./gi, "AMD");
@@ -259,7 +245,7 @@ Item {
             // ================= LEFT COLUMN: VITALS, STORAGE, CONTROLS, USER & FASTFETCH =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: 1.1
+                Layout.preferredWidth: 1.05
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
@@ -600,7 +586,7 @@ Item {
                     }
                 }
 
-// Row 2: System Controls (Sliders & Power Profile)
+                // Row 2: System Controls (Sliders & Power Profile)
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -701,7 +687,8 @@ Item {
                                 label: I18n.tr("Tiết kiệm", "Saver")
                                 selected: root.controller && root.controller.powerProfile === "power-saver"
                                 onClicked: {
-                                    if (root.controller) root.controller.setPowerProfile("power-saver");
+                                    if (root.controller)
+                                        root.controller.setPowerProfile("power-saver");
                                 }
                             }
 
@@ -711,7 +698,8 @@ Item {
                                 label: I18n.tr("Cân bằng", "Balanced")
                                 selected: root.controller && root.controller.powerProfile === "balanced"
                                 onClicked: {
-                                    if (root.controller) root.controller.setPowerProfile("balanced");
+                                    if (root.controller)
+                                        root.controller.setPowerProfile("balanced");
                                 }
                             }
 
@@ -721,14 +709,15 @@ Item {
                                 label: I18n.tr("Hiệu năng", "Perf")
                                 selected: root.controller && root.controller.powerProfile === "performance"
                                 onClicked: {
-                                    if (root.controller) root.controller.setPowerProfile("performance");
+                                    if (root.controller)
+                                        root.controller.setPowerProfile("performance");
                                 }
                             }
                         }
                     }
                 }
 
-// Row 1: Split Status Section into 2 Equal Cards (Left: Vitals, Right: Water Bottle Disk Storage)
+                // Row 1: Split Status Section into 2 Equal Cards (Left: Vitals, Right: Water Bottle Disk Storage)
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -933,7 +922,8 @@ Item {
                                         const ctx = getContext("2d");
                                         const w = width;
                                         const h = height;
-                                        if (w <= 0 || h <= 0) return;
+                                        if (w <= 0 || h <= 0)
+                                            return;
                                         const liquidH = h * pct;
                                         const surfaceY = h - liquidH;
                                         const amplitude = 3.5;
@@ -990,7 +980,9 @@ Item {
                                         }
                                     }
 
-                                    Item { Layout.fillHeight: true }
+                                    Item {
+                                        Layout.fillHeight: true
+                                    }
 
                                     M3Text {
                                         Layout.alignment: Qt.AlignHCenter
@@ -1004,7 +996,8 @@ Item {
                                         Layout.alignment: Qt.AlignHCenter
                                         role: "labelSmall"
                                         text: {
-                                            if (!root.controller || !root.controller.diskBootTotalGib) return "--";
+                                            if (!root.controller || !root.controller.diskBootTotalGib)
+                                                return "--";
                                             const used = root.controller.diskBootUsedGib;
                                             const total = root.controller.diskBootTotalGib;
                                             const usedStr = total < 1 ? used.toFixed(2) : used.toFixed(1);
@@ -1015,7 +1008,9 @@ Item {
                                         font.weight: Font.Medium
                                     }
 
-                                    Item { Layout.fillHeight: true }
+                                    Item {
+                                        Layout.fillHeight: true
+                                    }
                                 }
                             }
 
@@ -1050,7 +1045,8 @@ Item {
                                     }
 
                                     readonly property real pct: {
-                                        if (!root.controller) return 0.40;
+                                        if (!root.controller)
+                                            return 0.40;
                                         const p = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomePercent : root.controller.diskBootPercent;
                                         return Math.max(0.05, Math.min(0.95, p / 100));
                                     }
@@ -1059,7 +1055,8 @@ Item {
                                         const ctx = getContext("2d");
                                         const w = width;
                                         const h = height;
-                                        if (w <= 0 || h <= 0) return;
+                                        if (w <= 0 || h <= 0)
+                                            return;
                                         const liquidH = h * pct;
                                         const surfaceY = h - liquidH;
                                         const amplitude = 3.5;
@@ -1116,13 +1113,16 @@ Item {
                                         }
                                     }
 
-                                    Item { Layout.fillHeight: true }
+                                    Item {
+                                        Layout.fillHeight: true
+                                    }
 
                                     M3Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         role: "titleLarge"
                                         text: {
-                                            if (!root.controller) return "0%";
+                                            if (!root.controller)
+                                                return "0%";
                                             const p = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomePercent : root.controller.diskBootPercent;
                                             return p + "%";
                                         }
@@ -1134,7 +1134,8 @@ Item {
                                         Layout.alignment: Qt.AlignHCenter
                                         role: "labelSmall"
                                         text: {
-                                            if (!root.controller) return "--";
+                                            if (!root.controller)
+                                                return "--";
                                             const used = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomeUsedGib : root.controller.diskBootUsedGib;
                                             const total = (root.controller.diskHomeTotalGib > 0) ? root.controller.diskHomeTotalGib : root.controller.diskBootTotalGib;
                                             const usedStr = total < 1 ? used.toFixed(2) : used.toFixed(1);
@@ -1145,19 +1146,20 @@ Item {
                                         font.weight: Font.Medium
                                     }
 
-                                    Item { Layout.fillHeight: true }
+                                    Item {
+                                        Layout.fillHeight: true
+                                    }
                                 }
                             }
                         }
                     }
                 }
-
-}
+            }
 
             // ================= RIGHT COLUMN: WEATHER & CALENDAR (TOP) / MUSIC & LYRICS (BOTTOM) =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: 0.9
+                Layout.preferredWidth: 0.95
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
@@ -1198,8 +1200,16 @@ Item {
                                     SequentialAnimation on scale {
                                         loops: Animation.Infinite
                                         running: !Theme.reduceMotion
-                                        NumberAnimation { to: 1.06; duration: 2400; easing.type: Easing.InOutQuad }
-                                        NumberAnimation { to: 0.94; duration: 2400; easing.type: Easing.InOutQuad }
+                                        NumberAnimation {
+                                            to: 1.06
+                                            duration: 2400
+                                            easing.type: Easing.InOutQuad
+                                        }
+                                        NumberAnimation {
+                                            to: 0.94
+                                            duration: 2400
+                                            easing.type: Easing.InOutQuad
+                                        }
                                     }
 
                                     MaterialIcon {
@@ -1211,7 +1221,9 @@ Item {
                                     }
                                 }
 
-                                Item { Layout.fillWidth: true }
+                                Item {
+                                    Layout.fillWidth: true
+                                }
 
                                 IconButton {
                                     buttonSize: 24
@@ -1225,7 +1237,9 @@ Item {
                                 }
                             }
 
-                            Item { Layout.fillHeight: true }
+                            Item {
+                                Layout.fillHeight: true
+                            }
 
                             ColumnLayout {
                                 Layout.fillWidth: true
@@ -1300,7 +1314,9 @@ Item {
                                     font.weight: Font.Bold
                                 }
 
-                                Item { Layout.fillWidth: true }
+                                Item {
+                                    Layout.fillWidth: true
+                                }
 
                                 IconButton {
                                     buttonSize: 22
@@ -1457,7 +1473,9 @@ Item {
                                 }
                             }
 
-                            Item { Layout.fillHeight: true }
+                            Item {
+                                Layout.fillHeight: true
+                            }
 
                             // Navigation Controls Row
                             RowLayout {
@@ -1492,7 +1510,9 @@ Item {
                                 }
                             }
 
-                            Item { Layout.fillHeight: true }
+                            Item {
+                                Layout.fillHeight: true
+                            }
 
                             // Cava Spectrum Audio Visualizer Bars (Sóng nhạc)
                             Row {
@@ -1517,9 +1537,7 @@ Item {
                                         height: targetHeight
                                         radius: width / 2
                                         anchors.bottom: parent.bottom
-                                        color: root.isPlaying
-                                            ? Theme.blend(Theme.primary, Theme.secondary, index / 9)
-                                            : Theme.alpha(Theme.textPrimary, 0.14)
+                                        color: root.isPlaying ? Theme.blend(Theme.primary, Theme.secondary, index / 9) : Theme.alpha(Theme.textPrimary, 0.14)
 
                                         Behavior on height {
                                             NumberAnimation {
@@ -1566,7 +1584,9 @@ Item {
                                     font.weight: Font.Bold
                                 }
 
-                                Item { Layout.fillWidth: true }
+                                Item {
+                                    Layout.fillWidth: true
+                                }
 
                                 IconButton {
                                     buttonSize: 22
