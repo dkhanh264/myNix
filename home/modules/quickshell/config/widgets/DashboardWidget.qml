@@ -268,8 +268,8 @@ Item {
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.margins: Theme.space3
-                            spacing: Theme.space3
+                            anchors.margins: Theme.space2
+                            spacing: Theme.space2
 
                             // Left Part: User Avatar (Square 1:1 Aspect Ratio)
                             Item {
@@ -432,7 +432,7 @@ Item {
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.margins: Theme.space3
+                            anchors.margins: Theme.space2
                             spacing: Theme.space2
 
                             // Left Part: NixOS Snowflake Logo (Square 1:1 Aspect Ratio)
@@ -599,7 +599,7 @@ Item {
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: Theme.space3
-                        spacing: Theme.space2
+                        spacing: Theme.space3
 
                         RowLayout {
                             Layout.fillWidth: true
@@ -736,7 +736,7 @@ Item {
 
                         GridLayout {
                             anchors.fill: parent
-                            anchors.margins: Theme.space3
+                            anchors.margins: Theme.space2
                             columns: 2
                             columnSpacing: Theme.space2
                             rowSpacing: Theme.space2
