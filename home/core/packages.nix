@@ -15,6 +15,7 @@
     zoxide
     cava
     clock-rs
+    sptlrx
 
     # Wayland essentials
     wl-clipboard
