@@ -259,7 +259,7 @@ Item {
             // ================= LEFT COLUMN: VITALS, STORAGE, CONTROLS, USER & FASTFETCH =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: 1
+                Layout.preferredWidth: 1.18
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
