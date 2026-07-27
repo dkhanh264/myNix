@@ -245,7 +245,7 @@ Item {
             // ================= LEFT COLUMN: VITALS, STORAGE, CONTROLS, USER & FASTFETCH =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: (parent.width - parent.spacing) * 0.55
+                Layout.preferredWidth: (parent.width - parent.spacing) * 0.5
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
@@ -1159,7 +1159,7 @@ Item {
             // ================= RIGHT COLUMN: WEATHER & CALENDAR (TOP) / MUSIC & LYRICS (BOTTOM) =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: (parent.width - parent.spacing) * 0.45
+                Layout.preferredWidth: (parent.width - parent.spacing) * 0.5
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
