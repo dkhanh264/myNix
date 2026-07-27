@@ -259,21 +259,21 @@ Item {
             // ================= LEFT COLUMN: VITALS, STORAGE, CONTROLS, USER & FASTFETCH =================
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: 1.08
+                Layout.preferredWidth: 0.65
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
                 // Row 3: 2 Sub-cards replacing old storage card (User Info & System Info)
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: 0.95
+                    Layout.fillHeight: false
+                    implicitHeight: 108
                     spacing: Theme.space3
 
                     // Sub-Card 3A: User Info (Narrower width to give room to System Info)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 0.82
+                        Layout.preferredWidth: 0.9
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -437,7 +437,7 @@ Item {
                     // Sub-Card 3B: System Info (Wider width to fit system info)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 1.18
+                        Layout.preferredWidth: 1.1
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -603,8 +603,8 @@ Item {
 // Row 2: System Controls (Sliders & Power Profile)
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: 1
+                    Layout.fillHeight: false
+                    implicitHeight: 104
                     radius: Theme.cardRadius
                     color: Theme.surfaceContainer
                     border.width: 1
