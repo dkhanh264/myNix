@@ -727,7 +727,7 @@ Item {
                     // Card 1A: Vitals (CPU, RAM, Temp, Battery) - Equal Width
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 1
+                        Layout.preferredWidth: 0.95
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
@@ -874,7 +874,7 @@ Item {
                     // Card 1B: Dual Water Bottle Disk Storage Card - 2 Equal Water Bottles Filling Parent Card
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 1
+                        Layout.preferredWidth: 1.05
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
