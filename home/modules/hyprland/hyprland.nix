@@ -150,17 +150,18 @@ in
         };
         blur = {
           enabled            = true;
-          size               = 16;
-          passes             = 2;
+          # Smaller samples over more passes avoid blocky Kawase blur artifacts.
+          size               = 10;
+          passes             = 3;
           new_optimizations  = true;
           ignore_opacity     = true;
           popups             = true;
           popups_ignorealpha = 0.05;
-          noise              = 0.008;
-          contrast           = 1.02;
-          brightness         = 1.02;
-          vibrancy           = 0.20;
-          vibrancy_darkness  = 0.08;
+          noise              = 0.003;
+          contrast           = 0.92;
+          brightness         = 1.08;
+          vibrancy           = 0.08;
+          vibrancy_darkness  = 0.00;
         };
       };
 

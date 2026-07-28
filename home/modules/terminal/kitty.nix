@@ -7,9 +7,9 @@
       size = 11;
     };
     settings = {
-      # Let the compositor blur show through while keeping glyphs fully opaque.
-      # A lighter tint avoids the dark "smoke" layer over the wallpaper.
-      background_opacity = "0.58";
+      # Let the smoother compositor blur show through while glyphs stay opaque.
+      # Keep the near-black palette from becoming a heavy "smoke" layer.
+      background_opacity = "0.46";
       confirm_os_window_close = 0;
       enable_audio_bell = false;
       cursor_shape = "beam";
