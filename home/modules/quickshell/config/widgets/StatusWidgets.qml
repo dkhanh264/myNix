@@ -133,20 +133,27 @@ Item {
             interactive: true
             checked: root.activePopup === "wifi" || root.activePopup === "bluetooth" || root.activePopup === "power"
             alert: (root.controller && root.controller.batteryPercent <= 15 && root.controller.batteryState !== "Charging")
-            horizontalPadding: Theme.space3
+            horizontalPadding: Theme.space2
             minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
                 statusGroupRow.implicitWidth + horizontalPadding * 2)
-            accessibleName: I18n.tr("Trạng thái Wi-Fi, Bluetooth và Pin", "Wi-Fi, Bluetooth and Battery status")
+            accessibleName: I18n.tr(
+                "Trạng thái Wi-Fi, Bluetooth và pin",
+                "Wi-Fi, Bluetooth and battery status")
+                + (root.controller && root.controller.batteryAvailable
+                    ? I18n.tr(", pin ", ", battery ")
+                        + root.controller.batteryPercent
+                        + I18n.tr(" phần trăm", " percent")
+                    : "")
 
             Row {
                 id: statusGroupRow
                 anchors.centerIn: parent
-                spacing: Theme.space2
+                spacing: Theme.space1
 
                 // Wi-Fi Icon
                 Item {
-                    implicitWidth: 26
+                    implicitWidth: Theme.space6
                     implicitHeight: 28
                     anchors.verticalCenter: parent.verticalCenter
                     z: 1
@@ -178,7 +185,7 @@ Item {
                 // Bluetooth Icon
                 Item {
                     visible: root.controller && root.controller.bluetoothAvailable
-                    implicitWidth: 26
+                    implicitWidth: Theme.space6
                     implicitHeight: 28
                     anchors.verticalCenter: parent.verticalCenter
                     z: 1
@@ -213,7 +220,7 @@ Item {
                 // Battery Icon (Horizontal Pill Style)
                 Item {
                     visible: root.controller && root.controller.batteryAvailable
-                    implicitWidth: 36
+                    implicitWidth: battIconComp.width
                     implicitHeight: 28
                     anchors.verticalCenter: parent.verticalCenter
                     z: 1

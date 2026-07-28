@@ -1605,7 +1605,7 @@ Item {
                         }
                     }
 
-                    // Sub-Card 1B: Calendar Card (Spacious & Clean, Bottom)
+                    // Sub-Card 1B: compact six-week calendar.
                     Rectangle {
                         id: miniCalendarCard
                         Layout.fillWidth: true
@@ -1618,142 +1618,100 @@ Item {
 
                         property date currentDate: new Date()
                         property int monthOffset: 0
-                        readonly property date displayDate: new Date(currentDate.getFullYear(), currentDate.getMonth() + monthOffset, 1)
-                        readonly property int firstDayOffset: (displayDate.getDay() + 6) % 7
-                        readonly property int daysInMonth: new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 0).getDate()
-                        readonly property var viDayNames: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
-                        readonly property var viMonths: ["Thg 1", "Thg 2", "Thg 3", "Thg 4", "Thg 5", "Thg 6", "Thg 7", "Thg 8", "Thg 9", "Thg 10", "Thg 11", "Thg 12"]
+                        readonly property date displayDate: new Date(
+                            currentDate.getFullYear(),
+                            currentDate.getMonth() + monthOffset, 1)
+                        readonly property var calendarLocale:
+                            Qt.locale(I18n.vietnamese
+                                ? "vi_VN" : "en_US")
 
-                        function hasEvents(day) {
-                            if (!root.controller || day <= 0) return false;
-                            const y = displayDate.getFullYear();
-                            const m = String(displayDate.getMonth() + 1).padStart(2, "0");
-                            const d = String(day).padStart(2, "0");
-                            const key = `${y}-${m}-${d}`;
-                            if (root.controller.calendarEvents) {
-                                for (let i = 0; i < root.controller.calendarEvents.count; ++i) {
-                                    if (root.controller.calendarEvents.get(i).dateText === key)
-                                        return true;
-                                }
-                            }
-                            return false;
+                        Timer {
+                            interval: 30000
+                            running: miniCalendarCard.visible
+                            repeat: true
+                            onTriggered:
+                                miniCalendarCard.currentDate = new Date()
                         }
 
                         ColumnLayout {
                             anchors.fill: parent
                             anchors.margins: Theme.space3
-                            spacing: 4
+                            spacing: Theme.space1
 
-                            // Calendar Header
                             RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 4
+                                Layout.preferredHeight: Theme.space8
+                                spacing: Theme.space1
 
                                 MaterialIcon {
                                     text: "calendar_month"
-                                    iconSize: 16
+                                    iconSize: Theme.iconSizeSmall
                                     color: Theme.primary
+                                    filled: true
                                 }
 
                                 M3Text {
                                     role: "titleSmall"
-                                    text: miniCalendarCard.viMonths[miniCalendarCard.displayDate.getMonth()] + " " + miniCalendarCard.displayDate.getFullYear()
+                                    Layout.fillWidth: true
+                                    text: miniCalendarCard.calendarLocale
+                                        .standaloneMonthName(
+                                            miniCalendarCard.displayDate
+                                                .getMonth(),
+                                            Locale.LongFormat)
+                                        + " · "
+                                        + miniCalendarCard.displayDate
+                                            .getFullYear()
                                     color: Theme.textPrimary
                                     font.weight: Font.Bold
-                                }
-
-                                Item {
-                                    Layout.fillWidth: true
+                                    elide: Text.ElideRight
                                 }
 
                                 IconButton {
-                                    buttonSize: 22
-                                    iconSize: 13
+                                    visible:
+                                        miniCalendarCard.monthOffset !== 0
+                                    buttonSize: Theme.space8
+                                    iconSize: Theme.iconSizeExtraSmall
+                                    icon: "today"
+                                    variant: "tonal"
+                                    accessibleName: I18n.tr(
+                                        "Về tháng hiện tại",
+                                        "Return to current month")
+                                    onClicked:
+                                        miniCalendarCard.monthOffset = 0
+                                }
+
+                                IconButton {
+                                    buttonSize: Theme.space8
+                                    iconSize: Theme.iconSizeExtraSmall
                                     icon: "chevron_left"
-                                    accessibleName: "Tháng trước"
-                                    onClicked: miniCalendarCard.monthOffset -= 1
+                                    accessibleName: I18n.tr(
+                                        "Tháng trước", "Previous month")
+                                    onClicked:
+                                        miniCalendarCard.monthOffset -= 1
                                 }
 
                                 IconButton {
-                                    buttonSize: 22
-                                    iconSize: 13
+                                    buttonSize: Theme.space8
+                                    iconSize: Theme.iconSizeExtraSmall
                                     icon: "chevron_right"
-                                    accessibleName: "Tháng sau"
-                                    onClicked: miniCalendarCard.monthOffset += 1
+                                    accessibleName: I18n.tr(
+                                        "Tháng sau", "Next month")
+                                    onClicked:
+                                        miniCalendarCard.monthOffset += 1
                                 }
                             }
 
-                            // Days of Week Row
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 0
-
-                                Repeater {
-                                    model: 7
-
-                                    Item {
-                                        required property int index
-                                        Layout.fillWidth: true
-                                        implicitHeight: 18
-
-                                        M3Text {
-                                            anchors.centerIn: parent
-                                            role: "labelSmall"
-                                            text: miniCalendarCard.viDayNames[index]
-                                            color: index >= 5 ? Theme.primary : Theme.textSecondary
-                                            font.weight: Font.Bold
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Calendar Days Grid
-                            GridLayout {
+                            CalendarMonthGrid {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
-                                columns: 7
-                                columnSpacing: 2
-                                rowSpacing: 2
-
-                                Repeater {
-                                    model: 35
-
-                                    Item {
-                                        id: dayCell
-                                        required property int index
-                                        Layout.fillWidth: true
-                                        Layout.fillHeight: true
-
-                                        readonly property int dayNum: index - miniCalendarCard.firstDayOffset + 1
-                                        readonly property bool isValid: dayNum >= 1 && dayNum <= miniCalendarCard.daysInMonth
-                                        readonly property bool isToday: isValid && miniCalendarCard.monthOffset === 0 && dayNum === miniCalendarCard.currentDate.getDate()
-                                        readonly property bool hasEvent: isValid && miniCalendarCard.hasEvents(dayNum)
-
-                                        Item {
-                                            anchors.centerIn: parent
-                                            width: Math.min(parent.width, parent.height)
-                                            height: width
-
-                                            // MD3 Expressive Shape Background for Today or Event Days
-                                            Md3ExpressiveShape {
-                                                anchors.centerIn: parent
-                                                size: Math.min(parent.width, parent.height) * 0.90
-                                                shapeName: dayCell.isToday ? "cookie4" : (dayCell.hasEvent ? "softSquare" : "circle")
-                                                color: dayCell.isToday ? Theme.primary : (dayCell.hasEvent ? Theme.alpha(Theme.primary, 0.25) : "transparent")
-                                                visible: dayCell.isValid && (dayCell.isToday || dayCell.hasEvent)
-                                            }
-
-                                            M3Text {
-                                                anchors.centerIn: parent
-                                                role: "labelMedium"
-                                                text: dayCell.isValid ? dayCell.dayNum : ""
-                                                color: dayCell.isToday ? Theme.onPrimary : (dayCell.hasEvent ? Theme.primary : (dayCell.index % 7 >= 5 ? Theme.primary : Theme.textPrimary))
-                                                font.weight: (dayCell.isToday || dayCell.hasEvent) ? Font.Bold : Font.Medium
-                                                opacity: dayCell.isValid ? 1.0 : 0.0
-                                            }
-                                        }
-                                    }
-                                }
+                                controller: root.controller
+                                displayDate:
+                                    miniCalendarCard.displayDate
+                                currentDate:
+                                    miniCalendarCard.currentDate
+                                interactive: false
+                                fillToday: true
+                                compact: true
                             }
                         }
                     }

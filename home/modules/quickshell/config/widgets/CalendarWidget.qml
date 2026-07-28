@@ -10,20 +10,12 @@ Rectangle {
     property date currentDate: new Date()
     property int monthOffset: 0
     property date selectedDate: new Date()
+    property bool editorOpen: false
     readonly property date displayDate: new Date(
         currentDate.getFullYear(), currentDate.getMonth() + monthOffset, 1)
-    readonly property int firstDayOffset: (displayDate.getDay() + 6) % 7
-    readonly property int daysInMonth: new Date(
-        displayDate.getFullYear(), displayDate.getMonth() + 1, 0).getDate()
     readonly property string selectedKey: Qt.formatDate(selectedDate, "yyyy-MM-dd")
-    readonly property var viDayNames: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
-    readonly property var enDayNames: ["M", "T", "W", "T", "F", "S", "S"]
-    readonly property var viMonths: ["Tháng 1", "Tháng 2", "Tháng 3",
-        "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8",
-        "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"]
-    readonly property var enMonths: ["January", "February", "March", "April",
-        "May", "June", "July", "August", "September", "October",
-        "November", "December"]
+    readonly property var calendarLocale:
+        Qt.locale(I18n.vietnamese ? "vi_VN" : "en_US")
 
     implicitHeight: 518
     radius: Theme.cardRadius
@@ -31,30 +23,10 @@ Rectangle {
     border.width: 1
     border.color: Theme.alpha(Theme.outlineVariant, 0.35)
 
-    function dayForCell(index) {
-        const day = index - firstDayOffset + 1;
-        return day >= 1 && day <= daysInMonth ? day : 0;
-    }
-
-    function dateForDay(day) {
-        return new Date(displayDate.getFullYear(), displayDate.getMonth(), day);
-    }
-
     function sameDay(first, second) {
         return first.getFullYear() === second.getFullYear()
             && first.getMonth() === second.getMonth()
             && first.getDate() === second.getDate();
-    }
-
-    function hasEvents(day) {
-        if (!controller || day <= 0)
-            return false;
-        const key = Qt.formatDate(dateForDay(day), "yyyy-MM-dd");
-        for (let index = 0; index < controller.calendarEvents.count; ++index) {
-            if (controller.calendarEvents.get(index).dateText === key)
-                return true;
-        }
-        return false;
     }
 
     function selectedEventCount() {
@@ -73,6 +45,7 @@ Rectangle {
         monthOffset = 0;
         selectedDate = new Date(currentDate.getFullYear(),
             currentDate.getMonth(), currentDate.getDate());
+        editorOpen = false;
     }
 
     onPopupActiveChanged: {
@@ -82,20 +55,29 @@ Rectangle {
 
     function moveMonth(delta) {
         const targetOffset = monthOffset + delta;
-        monthOffset = targetOffset;
-        selectedDate = new Date(currentDate.getFullYear(),
+        const targetMonth = new Date(currentDate.getFullYear(),
             currentDate.getMonth() + targetOffset, 1);
+        const lastDay = new Date(targetMonth.getFullYear(),
+            targetMonth.getMonth() + 1, 0).getDate();
+        monthOffset = targetOffset;
+        selectedDate = new Date(targetMonth.getFullYear(),
+            targetMonth.getMonth(),
+            Math.min(selectedDate.getDate(), lastDay));
     }
 
     function addEvent() {
         if (!controller)
             return;
         let tVal = eventTime.text.trim();
-        if (!tVal || tVal.length === 0)
-            tVal = Qt.formatDateTime(new Date(), "HH:mm");
+        const validTime = tVal.length === 0
+            || /^([01]\d|2[0-3]):[0-5]\d$/.test(tVal);
+        eventTime.error = !validTime;
+        if (!validTime)
+            return;
         if (controller.addCalendarEvent(selectedKey, eventTitle.text, tVal)) {
             eventTitle.text = "";
             eventTime.text = "";
+            editorOpen = false;
         }
     }
 
@@ -109,234 +91,107 @@ Rectangle {
     Column {
         anchors.fill: parent
         anchors.margins: Theme.componentPadding
-        spacing: 8
+        spacing: Theme.space2
 
-        // Top Clock & Header Card
+        // Selected date, displayed month, and month navigation share one
+        // compact header instead of repeating the top bar's clock.
         Item {
             width: parent.width
-            height: 48
+            height: 56
 
-            Column {
+            Rectangle {
+                id: selectedDateBadge
+
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: -2
+                width: Theme.space10
+                height: width
+                radius: Theme.shapeMedium
+                color: Theme.primaryContainer
 
                 M3Text {
+                    anchors.centerIn: parent
                     role: "titleLarge"
-                    text: Qt.formatDateTime(root.currentDate, "HH:mm")
+                    text: root.selectedDate.getDate()
+                    color: Theme.primary
+                    font.weight: Font.Bold
+                }
+            }
+
+            Column {
+                anchors.left: selectedDateBadge.right
+                anchors.leftMargin: Theme.space2
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: Theme.space0
+
+                M3Text {
+                    role: "titleMedium"
+                    text: root.calendarLocale.standaloneMonthName(
+                        root.displayDate.getMonth(),
+                        Locale.LongFormat)
+                        + " · " + root.displayDate.getFullYear()
                     color: Theme.textPrimary
                     font.weight: Font.Bold
                 }
 
                 M3Text {
-                    role: "labelSmall"
-                    text: Qt.formatDate(root.currentDate, "dddd, d MMMM")
+                    role: "labelMedium"
+                    text: root.selectedDate.toLocaleDateString(
+                        I18n.vietnamese
+                            ? Qt.locale("vi_VN") : Qt.locale("en_US"),
+                        I18n.vietnamese
+                            ? "dddd, d MMMM" : "dddd, MMMM d")
                     color: Theme.textSecondary
                     font.weight: Font.Medium
                 }
             }
 
-            Rectangle {
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                width: 42
-                height: 42
-                radius: Theme.shapeLarge
-                color: Theme.alpha(Theme.primary, 0.15)
-                border.width: 1
-                border.color: Theme.alpha(Theme.primary, 0.3)
-
-                MaterialIcon {
-                    anchors.centerIn: parent
-                    text: "calendar_month"
-                    iconSize: 22
-                    color: Theme.primary
-                    filled: true
-                }
-            }
-        }
-
-        // Month Navigation Row with Today Quick Reset Chip
-        Item {
-            width: parent.width
-            height: 36
-
-            IconButton {
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                buttonSize: 34
-                iconSize: 18
-                icon: "chevron_left"
-                accessibleName: I18n.tr("Tháng trước", "Previous month")
-                onClicked: root.moveMonth(-1)
-            }
-
             Row {
-                anchors.centerIn: parent
-                spacing: 8
-
-                M3Text {
-                    role: "titleSmall"
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: (I18n.vietnamese ? root.viMonths[root.displayDate.getMonth()]
-                        : root.enMonths[root.displayDate.getMonth()])
-                        + " " + root.displayDate.getFullYear()
-                    color: Theme.textPrimary
-                    font.weight: Font.Bold
-                }
-
-                Rectangle {
-                    visible: root.monthOffset !== 0
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: todayChipText.implicitWidth + 12
-                    height: 22
-                    radius: 11
-                    color: Theme.alpha(Theme.primary, 0.16)
-                    border.width: 1
-                    border.color: Theme.alpha(Theme.primary, 0.35)
-
-                    M3Text {
-                        id: todayChipText
-                        role: "labelSmall"
-                        anchors.centerIn: parent
-                        text: I18n.tr("Hôm nay", "Today")
-                        color: Theme.primary
-                        font.weight: Font.Bold
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.resetToToday()
-                    }
-                }
-            }
-
-            IconButton {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                buttonSize: 34
-                iconSize: 18
-                icon: "chevron_right"
-                accessibleName: I18n.tr("Tháng sau", "Next month")
-                onClicked: root.moveMonth(1)
-            }
-        }
+                spacing: Theme.space0
 
-        // Days Header Row (T2 -> CN)
-        Grid {
-            id: dayHeader
-            width: parent.width
-            height: 20
-            columns: 7
+                IconButton {
+                    buttonSize: Theme.space9
+                    iconSize: Theme.iconSizeSmall
+                    icon: "chevron_left"
+                    accessibleName: I18n.tr(
+                        "Tháng trước", "Previous month")
+                    onClicked: root.moveMonth(-1)
+                }
 
-            Repeater {
-                model: 7
+                IconButton {
+                    buttonSize: Theme.space9
+                    iconSize: Theme.iconSizeSmall
+                    icon: "today"
+                    variant: "tonal"
+                    checked: root.monthOffset === 0
+                        && root.sameDay(root.selectedDate, root.currentDate)
+                    accessibleName: I18n.tr(
+                        "Về hôm nay", "Return to today")
+                    onClicked: root.resetToToday()
+                }
 
-                Item {
-                    required property int index
-                    width: dayHeader.width / 7
-                    height: 20
-
-                    M3Text {
-                        role: "labelSmall"
-                        anchors.centerIn: parent
-                        text: I18n.vietnamese
-                            ? root.viDayNames[parent.index]
-                            : root.enDayNames[parent.index]
-                        color: Theme.textSecondary
-                        font.weight: Font.Bold
-                    }
+                IconButton {
+                    buttonSize: Theme.space9
+                    iconSize: Theme.iconSizeSmall
+                    icon: "chevron_right"
+                    accessibleName: I18n.tr(
+                        "Tháng sau", "Next month")
+                    onClicked: root.moveMonth(1)
                 }
             }
         }
 
-        // 42-Cell Date Grid
-        Grid {
-            id: dateGrid
+        CalendarMonthGrid {
             width: parent.width
-            height: 180
-            columns: 7
-
-            Repeater {
-                model: 42
-
-                Item {
-                    id: dateCell
-
-                    required property int index
-                    readonly property int dayNumber: root.dayForCell(index)
-                    readonly property date cellDate: root.dateForDay(dayNumber || 1)
-                    readonly property bool today: dayNumber > 0
-                        && root.sameDay(cellDate, root.currentDate)
-                    readonly property bool selected: dayNumber > 0
-                        && root.sameDay(cellDate, root.selectedDate)
-
-                    width: dateGrid.width / 7
-                    height: 30
-                    activeFocusOnTab: dayNumber > 0
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: dateCell.selected ? 32 : 27
-                        height: 27
-                        radius: dateCell.selected
-                            ? Theme.shapeMedium : height / 2
-                        color: dateCell.selected ? Theme.primary
-                            : datePointer.containsMouse
-                                ? Theme.alpha(Theme.textPrimary, 0.08)
-                                : "transparent"
-                        border.width: dateCell.today && !dateCell.selected ? 1.5 : 0
-                        border.color: Theme.primary
-
-                        Behavior on width {
-                            NumberAnimation {
-                                duration: Theme.motionMedium1
-                                easing.type: Easing.BezierSpline
-                                easing.bezierCurve: Theme.springCurve
-                            }
-                        }
-                        Behavior on radius {
-                            NumberAnimation {
-                                duration: Theme.motionMedium1
-                                easing.type: Easing.BezierSpline
-                                easing.bezierCurve: Theme.springCurve
-                            }
-                        }
-                    }
-
-                    M3Text {
-                        role: "labelMedium"
-                        anchors.centerIn: parent
-                        text: dateCell.dayNumber > 0 ? dateCell.dayNumber : ""
-                        color: dateCell.selected ? Theme.onPrimary : Theme.textPrimary
-                        font.weight: dateCell.selected || dateCell.today
-                            ? Font.Bold : Font.Medium
-                    }
-
-                    Rectangle {
-                        visible: root.hasEvents(dateCell.dayNumber)
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.bottom: parent.bottom
-                        anchors.bottomMargin: 1
-                        width: 4
-                        height: 4
-                        radius: 2
-                        color: dateCell.selected
-                            ? Theme.onPrimary : Theme.tertiary
-                    }
-
-                    MouseArea {
-                        id: datePointer
-                        anchors.fill: parent
-                        enabled: dateCell.dayNumber > 0
-                        hoverEnabled: true
-                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                        onPressed: dateCell.focus = false
-                        onClicked: root.selectedDate = dateCell.cellDate
-                    }
-                }
-            }
+            height: 220
+            controller: root.controller
+            displayDate: root.displayDate
+            currentDate: root.currentDate
+            selectedDate: root.selectedDate
+            onDateSelected: value => root.selectedDate = value
+            onMonthMoveRequested: delta => root.moveMonth(delta)
         }
 
         Rectangle {
@@ -347,204 +202,257 @@ Rectangle {
 
         Item {
             width: parent.width
-            height: 28
+            height: Theme.space9
 
             M3Text {
                 role: "titleSmall"
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: I18n.tr("Sự kiện · ", "Events · ")
+                text: (root.editorOpen
+                    ? I18n.tr("Thêm sự kiện · ", "Add event · ")
+                    : I18n.tr("Lịch trình · ", "Agenda · "))
                     + Qt.formatDate(root.selectedDate, "dd/MM/yyyy")
                 color: Theme.textPrimary
                 font.weight: Font.Bold
             }
 
-            MaterialIcon {
+            IconButton {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: "event"
-                iconSize: 18
-                color: Theme.secondary
+                buttonSize: Theme.space9
+                iconSize: Theme.iconSizeSmall
+                icon: root.editorOpen ? "close" : "add"
+                variant: "tonal"
+                checked: root.editorOpen
+                accessibleName: root.editorOpen
+                    ? I18n.tr("Đóng trình soạn sự kiện",
+                        "Close event editor")
+                    : I18n.tr("Thêm sự kiện", "Add event")
+                onClicked: {
+                    root.editorOpen = !root.editorOpen;
+                    eventTime.error = false;
+                }
             }
         }
 
-        Flickable {
+        Item {
             width: parent.width
-            height: 54
-            contentWidth: width
-            contentHeight: eventList.implicitHeight
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
+            height: Math.max(0, parent.height - y)
 
-            Column {
-                id: eventList
-                width: parent.width
-                spacing: 4
+            Flickable {
+                visible: !root.editorOpen
+                anchors.fill: parent
+                contentWidth: width
+                contentHeight: Math.max(height, eventList.implicitHeight)
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
 
-                M3Text {
-                    role: "labelSmall"
+                Column {
+                    id: emptyAgenda
+
                     visible: root.selectedEventCount() === 0
-                    width: parent.width
-                    height: visible ? 40 : 0
-                    text: I18n.tr("Chưa có sự kiện cho ngày này",
-                        "No events for this date")
-                    color: Theme.textSecondary
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                Repeater {
-                    model: root.controller ? root.controller.calendarEvents : 0
+                    anchors.centerIn: parent
+                    spacing: Theme.space2
 
                     Rectangle {
-                        id: eventItemRect
-                        required property string eventId
-                        required property string dateText
-                        required property string title
-                        required property string timeText
-
-                        visible: dateText === root.selectedKey
-                        width: eventList.width
-                        height: visible ? 44 : 0
-                        radius: Theme.shapeMedium
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: Theme.space10
+                        height: width
+                        radius: width / 2
                         color: Theme.surfaceContainerHigh
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.3)
 
-                        Row {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 10
-                            anchors.right: removeEvent.left
-                            anchors.rightMargin: 6
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 8
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: "event_available"
+                            iconSize: Theme.iconSizeMedium
+                            color: Theme.secondary
+                        }
+                    }
 
-                            Rectangle {
+                    M3Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        role: "bodyMedium"
+                        text: I18n.tr(
+                            "Ngày này chưa có sự kiện",
+                            "Nothing scheduled for this date")
+                        color: Theme.textSecondary
+                    }
+                }
+
+                Column {
+                    id: eventList
+
+                    width: parent.width
+                    spacing: Theme.space2
+
+                    Repeater {
+                        model: root.controller
+                            ? root.controller.calendarEvents : 0
+
+                        Rectangle {
+                            id: eventItemRect
+                            required property string eventId
+                            required property string dateText
+                            required property string title
+                            required property string timeText
+
+                            visible: dateText === root.selectedKey
+                            width: eventList.width
+                            height: visible ? Theme.space10 : 0
+                            radius: Theme.shapeMedium
+                            color: Theme.surfaceContainerHigh
+
+                            Row {
+                                anchors.left: parent.left
+                                anchors.leftMargin: Theme.space2
+                                anchors.right: removeEvent.left
+                                anchors.rightMargin: Theme.space1
                                 anchors.verticalCenter: parent.verticalCenter
-                                width: timeBadgeText.implicitWidth + 12
-                                height: 24
-                                radius: 12
-                                color: Theme.alpha(Theme.primary, 0.16)
-                                border.width: 1
-                                border.color: Theme.alpha(Theme.primary, 0.3)
+                                spacing: Theme.space2
+
+                                Rectangle {
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+                                    width: timeBadgeText.implicitWidth
+                                        + Theme.space3
+                                    height: Theme.space6
+                                    radius: height / 2
+                                    color: Theme.primaryContainer
+
+                                    M3Text {
+                                        id: timeBadgeText
+                                        role: "labelSmall"
+                                        anchors.centerIn: parent
+                                        text: eventItemRect.timeText
+                                            && eventItemRect.timeText.length > 0
+                                                ? eventItemRect.timeText
+                                                : I18n.tr(
+                                                    "Cả ngày", "All day")
+                                        color: Theme.primary
+                                        font.weight: Font.Bold
+                                    }
+                                }
 
                                 M3Text {
-                                    id: timeBadgeText
-                                    role: "labelSmall"
-                                    anchors.centerIn: parent
-                                    text: eventItemRect.timeText && eventItemRect.timeText.length > 0
-                                        ? eventItemRect.timeText
-                                        : I18n.tr("Cả ngày", "All day")
-                                    color: Theme.primary
-                                    font.weight: Font.Bold
+                                    role: "bodyMedium"
+                                    width: parent.width
+                                        - (timeBadgeText.implicitWidth
+                                            + Theme.space7)
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+                                    text: eventItemRect.title
+                                    color: Theme.textPrimary
+                                    font.weight: Font.DemiBold
+                                    elide: Text.ElideRight
                                 }
                             }
 
-                            M3Text {
-                                role: "labelSmall"
-                                width: parent.width - (timeBadgeText.implicitWidth + 28)
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: eventItemRect.title
-                                color: Theme.textPrimary
-                                font.weight: Font.Bold
-                                elide: Text.ElideRight
+                            IconButton {
+                                id: removeEvent
+                                anchors.right: parent.right
+                                anchors.rightMargin: Theme.space1
+                                anchors.verticalCenter:
+                                    parent.verticalCenter
+                                buttonSize: Theme.space9
+                                iconSize: Theme.iconSizeExtraSmall
+                                icon: "delete"
+                                foregroundColor: Theme.error
+                                accessibleName: I18n.tr(
+                                    "Xóa sự kiện", "Delete event")
+                                onClicked:
+                                    root.controller.removeCalendarEvent(
+                                        eventItemRect.eventId)
                             }
                         }
+                    }
+                }
+            }
 
-                        IconButton {
-                            id: removeEvent
-                            anchors.right: parent.right
-                            anchors.rightMargin: 4
-                            anchors.verticalCenter: parent.verticalCenter
-                            buttonSize: 34
-                            iconSize: 16
-                            icon: "delete"
-                            foregroundColor: Theme.error
-                            accessibleName: I18n.tr("Xóa sự kiện", "Delete event")
-                            onClicked: root.controller.removeCalendarEvent(
-                                eventItemRect.eventId)
+            Column {
+                visible: root.editorOpen
+                anchors.fill: parent
+                spacing: Theme.space2
+
+                Row {
+                    width: parent.width
+                    height: 56
+                    spacing: Theme.space2
+
+                    M3TextField {
+                        id: eventTitle
+                        width: parent.width * 0.64
+                        height: parent.height
+                        label: I18n.tr(
+                            "Tên sự kiện", "Event title")
+                        leadingIcon: "edit_calendar"
+                        onAccepted: root.addEvent()
+                    }
+
+                    M3TextField {
+                        id: eventTime
+                        width: parent.width - eventTitle.width
+                            - parent.spacing
+                        height: parent.height
+                        label: I18n.tr("Giờ", "Time")
+                        placeholderText: "09:00"
+                        leadingIcon: "schedule"
+                        showClearButton: true
+                        onTextChanged: error = false
+                        onAccepted: root.addEvent()
+                    }
+                }
+
+                M3Text {
+                    width: parent.width
+                    role: "bodySmall"
+                    text: eventTime.error
+                        ? I18n.tr("Dùng định dạng giờ HH:mm.",
+                            "Use HH:mm time format.")
+                        : I18n.tr(
+                            "Để trống giờ để tạo sự kiện cả ngày.",
+                            "Leave time empty for an all-day event.")
+                    color: eventTime.error
+                        ? Theme.error : Theme.textSecondary
+                }
+
+                Item {
+                    width: parent.width
+                    height: Math.max(0,
+                        parent.height - y - actionRow.height
+                            - parent.spacing)
+                }
+
+                Row {
+                    id: actionRow
+
+                    width: parent.width
+                    height: Theme.space10
+                    spacing: Theme.space2
+
+                    M3Button {
+                        id: cancelEventButton
+
+                        width: (parent.width - parent.spacing) * 0.36
+                        height: parent.height
+                        variant: "text"
+                        text: I18n.tr("Hủy", "Cancel")
+                        onClicked: {
+                            root.editorOpen = false;
+                            eventTime.error = false;
                         }
                     }
-                }
-            }
-        }
 
-        // Quick time selector presets
-        Row {
-            width: parent.width
-            height: 24
-            spacing: 6
-
-            M3Text {
-                role: "labelSmall"
-                anchors.verticalCenter: parent.verticalCenter
-                text: I18n.tr("Chọn giờ:", "Quick time:")
-                color: Theme.textSecondary
-            }
-
-            Repeater {
-                model: ["08:00", "09:00", "12:00", "14:00", "18:00", "20:00"]
-
-                Rectangle {
-                    required property string modelData
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: chipText.implicitWidth + 10
-                    height: 22
-                    radius: 11
-                    color: eventTime.text === modelData ? Theme.alpha(Theme.primary, 0.20) : Theme.surfaceContainerHigh
-                    border.width: 1
-                    border.color: eventTime.text === modelData ? Theme.primary : Theme.alpha(Theme.outlineVariant, 0.4)
-
-                    M3Text {
-                        id: chipText
-                        role: "labelSmall"
-                        anchors.centerIn: parent
-                        text: parent.modelData
-                        color: eventTime.text === parent.modelData ? Theme.primary : Theme.textPrimary
-                        font.weight: Font.Bold
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: eventTime.text = parent.modelData
+                    M3Button {
+                        width: parent.width - parent.spacing
+                            - cancelEventButton.width
+                        height: parent.height
+                        icon: "add"
+                        text: I18n.tr("Lưu sự kiện", "Save event")
+                        enabled: eventTitle.text.trim().length > 0
+                        onClicked: root.addEvent()
                     }
                 }
             }
-        }
-
-        Row {
-            width: parent.width
-            height: 56
-            spacing: 8
-
-            M3TextField {
-                id: eventTitle
-                width: parent.width * 0.64
-                height: parent.height
-                label: I18n.tr("Tên sự kiện", "Event title")
-                leadingIcon: "edit_calendar"
-                onAccepted: root.addEvent()
-            }
-
-            M3TextField {
-                id: eventTime
-                width: parent.width - eventTitle.width - parent.spacing
-                height: parent.height
-                label: I18n.tr("Giờ", "Time")
-                placeholderText: "09:00"
-                leadingIcon: "schedule"
-                showClearButton: true
-                onAccepted: root.addEvent()
-            }
-        }
-
-        M3Button {
-            width: parent.width
-            height: 42
-            icon: "add"
-            text: I18n.tr("Thêm sự kiện", "Add event")
-            enabled: eventTitle.text.trim().length > 0
-            onClicked: root.addEvent()
         }
     }
 }

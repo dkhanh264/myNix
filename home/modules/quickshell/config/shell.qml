@@ -460,7 +460,7 @@ ShellRoot {
                     && root.popupScreen === barWindow.modelData.name
                 popupWidth: Math.min(440, barWindow.width
                     - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(680,
+                popupHeight: Math.min(620,
                     barWindow.modelData.height - barWindow.implicitHeight - 16)
                 popupX: root.popupAnchor("calendar", barWindow.width, popupWidth)
                 onDismissed: root.popupDismissed("calendar")

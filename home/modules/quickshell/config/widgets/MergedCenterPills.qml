@@ -291,11 +291,23 @@ Item {
                 }
 
                 Md3LoadingIndicator {
-                    visible: !notifImg.visible
+                    visible: root.toastImage.length > 0
+                        && notifImg.status === Image.Loading
                     anchors.centerIn: parent
                     size: 20
                     color: Theme.primary
                     active: visible && root.notifOpacity > 0.01
+                }
+
+                MaterialIcon {
+                    visible: !notifImg.visible
+                        && !(root.toastImage.length > 0
+                            && notifImg.status === Image.Loading)
+                    anchors.centerIn: parent
+                    text: "notifications"
+                    iconSize: Theme.iconSizeSmall
+                    color: Theme.primary
+                    filled: true
                 }
             }
 
