@@ -308,6 +308,85 @@ Item {
         return "partly_cloudy_day";
     }
 
+    readonly property var todayWeather: {
+        const forecast = controller ? controller.weatherForecast : null;
+        return forecast && forecast.count > 0 ? forecast.get(0) : null;
+    }
+
+    function weatherMetricText(role, suffix, precision) {
+        const today = todayWeather;
+        if (!today || today[role] === undefined || today[role] === null)
+            return "--";
+        const numeric = Number(today[role]);
+        if (!Number.isFinite(numeric))
+            return "--";
+        const digits = precision || 0;
+        const formatted = digits > 0
+            ? numeric.toFixed(digits).replace(/\.0+$/, "")
+            : Math.round(numeric).toString();
+        return formatted + suffix;
+    }
+
+    function apparentTemperatureRange() {
+        const today = todayWeather;
+        if (!today || today.apparentMinimum === undefined
+                || today.apparentMaximum === undefined)
+            return "--";
+        return Math.round(Number(today.apparentMinimum)) + "–"
+            + Math.round(Number(today.apparentMaximum)) + "°";
+    }
+
+    function shortWeatherTime(rawValue) {
+        const raw = String(rawValue || "");
+        const separator = raw.indexOf("T");
+        if (separator >= 0 && raw.length >= separator + 6)
+            return raw.slice(separator + 1, separator + 6);
+        return raw.length >= 5 ? raw.slice(-5) : "--:--";
+    }
+
+    component WeatherMetric: Item {
+        property string iconName: ""
+        property string valueText: "--"
+        property string accessibleLabel: ""
+        property bool iconOnRight: false
+        property color accentColor: Theme.tertiary
+
+        implicitWidth: 72
+        implicitHeight: 20
+
+        Accessible.name: accessibleLabel + ": " + valueText
+
+        Row {
+            anchors.centerIn: parent
+            width: parent.width
+            height: parent.height
+            spacing: Theme.space1
+            layoutDirection: parent.iconOnRight
+                ? Qt.RightToLeft : Qt.LeftToRight
+
+            MaterialIcon {
+                anchors.verticalCenter: parent.verticalCenter
+                text: parent.parent.iconName
+                iconSize: Theme.iconSizeExtraSmall
+                color: parent.parent.accentColor
+                filled: true
+            }
+
+            M3Text {
+                anchors.verticalCenter: parent.verticalCenter
+                width: parent.width - Theme.iconSizeExtraSmall
+                    - Theme.space1
+                role: "labelMedium"
+                text: parent.parent.valueText
+                color: Theme.textPrimary
+                font.weight: Font.DemiBold
+                horizontalAlignment: parent.parent.iconOnRight
+                    ? Text.AlignRight : Text.AlignLeft
+                elide: Text.ElideRight
+            }
+        }
+    }
+
     function simplifyCpuName(name) {
         if (!name)
             return "--";
@@ -1324,6 +1403,7 @@ Item {
 
                     // Sub-Card 1A: Weather Card (Spacious & Clean, Top)
                     Rectangle {
+                        id: weatherCard
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.preferredHeight: 1
@@ -1331,97 +1411,196 @@ Item {
                         color: Theme.surfaceContainer
                         border.width: 1
                         border.color: Theme.alpha(Theme.tertiary, 0.40)
+                        readonly property bool compactOrbit:
+                            width < 232 || height < 208
 
-                        ColumnLayout {
+                        Item {
                             anchors.fill: parent
                             anchors.margins: Theme.space3
-                            spacing: Theme.space2
 
-                            // Top Header: Weather Icon Sticker + Refresh Button
-                            RowLayout {
-                                Layout.fillWidth: true
+                            M3Text {
+                                anchors.top: parent.top
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                width: parent.width - Theme.space10 * 2
+                                    - Theme.space2
+                                role: "titleSmall"
+                                text: root.controller
+                                    && root.controller.weatherDescription
+                                    ? root.controller.weatherDescription
+                                    : I18n.tr("Thời tiết", "Weather")
+                                color: Theme.tertiary
+                                font.weight: Font.Bold
+                                horizontalAlignment: Text.AlignHCenter
+                                elide: Text.ElideRight
+                            }
 
-                                Rectangle {
-                                    id: weatherStickerContainer
-                                    width: 44
-                                    height: 44
-                                    radius: Theme.shapeMedium
-                                    color: Theme.surfaceContainerHigh
-                                    property real pulsePhase: 0
-                                    scale: Theme.reduceMotion ? 1
-                                        : 1 + Math.sin(pulsePhase) * 0.06
+                            IconButton {
+                                anchors.top: parent.top
+                                anchors.right: parent.right
+                                buttonSize: Theme.space10
+                                iconSize: Theme.iconSizeSmall
+                                icon: "refresh"
+                                accessibleName: I18n.tr(
+                                    "Làm mới thời tiết", "Refresh weather")
+                                onClicked: {
+                                    if (root.controller)
+                                        root.controller.refreshWeather(true);
+                                }
+                            }
 
-                                    Timer {
-                                        interval: Theme.ambientMotionInterval
-                                        repeat: true
-                                        running: root.visible
-                                            && (root.Window.window
-                                                ? root.Window.window.visible : true)
-                                            && !Theme.reduceMotion
-                                        onTriggered:
-                                            weatherStickerContainer.pulsePhase =
-                                                (weatherStickerContainer.pulsePhase
-                                                    + Math.PI * 2 * interval
-                                                        / 4800)
-                                                    % (Math.PI * 2)
-                                    }
+                            Rectangle {
+                                id: weatherStickerContainer
+                                anchors.centerIn: parent
+                                width: weatherCard.compactOrbit
+                                    ? Theme.space7 * 2 : Theme.space8 * 2
+                                height: width
+                                radius: Theme.shapeMedium
+                                color: Theme.tertiaryContainer
+                                border.width: 1
+                                border.color: Theme.alpha(Theme.tertiary, 0.45)
+                                property real pulsePhase: 0
+                                scale: Theme.reduceMotion ? 1
+                                    : 1 + Math.sin(pulsePhase) * 0.05
+
+                                Timer {
+                                    interval: Theme.ambientMotionInterval
+                                    repeat: true
+                                    running: root.visible
+                                        && (root.Window.window
+                                            ? root.Window.window.visible : true)
+                                        && !Theme.reduceMotion
+                                    onTriggered:
+                                        weatherStickerContainer.pulsePhase =
+                                            (weatherStickerContainer.pulsePhase
+                                                + Math.PI * 2 * interval
+                                                    / 4800)
+                                                % (Math.PI * 2)
+                                }
+
+                                Column {
+                                    anchors.centerIn: parent
+                                    spacing: Theme.space0
 
                                     MaterialIcon {
-                                        anchors.centerIn: parent
-                                        text: root.getWeatherIcon(root.controller ? root.controller.weatherCode : -1)
-                                        iconSize: 26
+                                        anchors.horizontalCenter:
+                                            parent.horizontalCenter
+                                        text: root.getWeatherIcon(
+                                            root.controller
+                                                ? root.controller.weatherCode
+                                                : -1)
+                                        iconSize: Theme.iconSizeLarge
                                         color: Theme.tertiary
                                         filled: true
                                     }
-                                }
 
-                                Item {
-                                    Layout.fillWidth: true
-                                }
-
-                                IconButton {
-                                    buttonSize: 24
-                                    iconSize: Theme.iconSizeExtraSmall
-                                    icon: "refresh"
-                                    accessibleName: I18n.tr("Làm mới thời tiết", "Refresh weather")
-                                    onClicked: {
-                                        if (root.controller)
-                                            root.controller.refreshWeather(true);
+                                    M3Text {
+                                        anchors.horizontalCenter:
+                                            parent.horizontalCenter
+                                        role: "titleMedium"
+                                        text: root.controller
+                                            && root.controller.weatherAvailable
+                                            ? root.controller.weatherTemperature
+                                                + "°"
+                                            : "--°"
+                                        color: Theme.textPrimary
+                                        font.weight: Font.Bold
                                     }
                                 }
                             }
 
-                            Item {
-                                Layout.fillHeight: true
+                            WeatherMetric {
+                                anchors.right: weatherStickerContainer.left
+                                anchors.rightMargin: Theme.space2
+                                anchors.bottom: weatherStickerContainer.top
+                                iconName: "device_thermostat"
+                                valueText: root.apparentTemperatureRange()
+                                accessibleLabel: I18n.tr(
+                                    "Khoảng nhiệt độ cảm nhận",
+                                    "Apparent temperature range")
+                                iconOnRight: true
                             }
 
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 2
+                            WeatherMetric {
+                                anchors.left: weatherStickerContainer.right
+                                anchors.leftMargin: Theme.space2
+                                anchors.bottom: weatherStickerContainer.top
+                                iconName: "water_drop"
+                                valueText: root.weatherMetricText(
+                                    "precipitation", "%", 0)
+                                accessibleLabel: I18n.tr(
+                                    "Khả năng mưa tối đa",
+                                    "Maximum precipitation chance")
+                            }
 
-                                M3Text {
-                                    role: "displaySmall"
-                                    text: root.controller && root.controller.weatherTemperature !== undefined ? root.controller.weatherTemperature + "°C" : "--°C"
-                                    color: Theme.textPrimary
-                                    font.weight: Font.Bold
-                                }
+                            WeatherMetric {
+                                anchors.right: weatherStickerContainer.left
+                                anchors.rightMargin: Theme.space2
+                                anchors.verticalCenter:
+                                    weatherStickerContainer.verticalCenter
+                                iconName: "air"
+                                valueText: root.weatherMetricText(
+                                    "windMaximum", " km/h", 0)
+                                accessibleLabel: I18n.tr(
+                                    "Gió tối đa", "Maximum wind")
+                                iconOnRight: true
+                                accentColor: Theme.secondary
+                            }
 
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "titleMedium"
-                                    text: root.controller && root.controller.weatherDescription ? root.controller.weatherDescription : I18n.tr("Thời tiết", "Weather")
-                                    color: Theme.tertiary
-                                    font.weight: Font.Bold
-                                    elide: Text.ElideRight
-                                }
+                            WeatherMetric {
+                                anchors.left: weatherStickerContainer.right
+                                anchors.leftMargin: Theme.space2
+                                anchors.verticalCenter:
+                                    weatherStickerContainer.verticalCenter
+                                iconName: "sunny"
+                                valueText: root.weatherMetricText(
+                                    "uvIndex", " UV", 1)
+                                accessibleLabel: I18n.tr(
+                                    "Chỉ số UV tối đa", "Maximum UV index")
+                                accentColor: Theme.warning
+                            }
 
-                                M3Text {
-                                    Layout.fillWidth: true
-                                    role: "labelMedium"
-                                    text: root.controller && root.controller.weatherLocation ? root.controller.weatherLocation : I18n.tr("Hệ thống", "System")
-                                    color: Theme.textSecondary
-                                    elide: Text.ElideRight
-                                }
+                            WeatherMetric {
+                                visible: !weatherCard.compactOrbit
+                                anchors.right: weatherStickerContainer.left
+                                anchors.rightMargin: Theme.space2
+                                anchors.top: weatherStickerContainer.bottom
+                                iconName: "wb_twilight"
+                                valueText: root.shortWeatherTime(
+                                    root.todayWeather
+                                        ? root.todayWeather.sunriseTime : "")
+                                accessibleLabel: I18n.tr(
+                                    "Mặt trời mọc", "Sunrise")
+                                iconOnRight: true
+                                accentColor: Theme.secondary
+                            }
+
+                            WeatherMetric {
+                                visible: !weatherCard.compactOrbit
+                                anchors.left: weatherStickerContainer.right
+                                anchors.leftMargin: Theme.space2
+                                anchors.top: weatherStickerContainer.bottom
+                                iconName: "bedtime"
+                                valueText: root.shortWeatherTime(
+                                    root.todayWeather
+                                        ? root.todayWeather.sunsetTime : "")
+                                accessibleLabel: I18n.tr(
+                                    "Mặt trời lặn", "Sunset")
+                                accentColor: Theme.tertiary
+                            }
+
+                            M3Text {
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.bottom: parent.bottom
+                                role: "labelSmall"
+                                text: root.controller
+                                    && root.controller.weatherLocation
+                                    ? root.controller.weatherLocation
+                                    : I18n.tr("Đang xác định vị trí",
+                                        "Locating")
+                                color: Theme.textSecondary
+                                horizontalAlignment: Text.AlignHCenter
+                                elide: Text.ElideRight
                             }
                         }
                     }

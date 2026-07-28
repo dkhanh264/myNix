@@ -7,7 +7,9 @@
       size = 11;
     };
     settings = {
-      background_opacity = "0.4";
+      # Keep the wallpaper blur visible without letting it compete with text.
+      # Window-level opacity stays at 100%, so only the background is tinted.
+      background_opacity = "0.72";
       confirm_os_window_close = 0;
       enable_audio_bell = false;
       cursor_shape = "beam";
@@ -15,9 +17,6 @@
     };
     themeFile = "tokyo_night_night";
     extraConfig = ''
-      # Enable bold text rendering with bright colors (like Alacritty)
-      draw_bold_text_with_bright_colors yes
-      
       # Window padding (14px uniform padding like Alacritty x=14 y=14)
       window_padding_width 14
 

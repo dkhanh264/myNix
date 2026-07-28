@@ -249,7 +249,6 @@ in
         "float, title:^(Picture-in-Picture)$"
         "pin,   title:^(Picture-in-Picture)$"
         "opacity 0.95 0.90, class:^(firefox)$"
-        "opacity 0.94 0.90, class:^(kitty)$"
         "opacity 0.95 0.92, class:^(org\\.gnome\\.Nautilus)$"
         "opacity 0.95 0.90, class:^(google-chrome)$"
         "opacity 0.95 0.90, class:^(discord)$"
