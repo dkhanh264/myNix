@@ -107,9 +107,6 @@
       intel-media-driver
       libva-vdpau-driver
       libvdpau-va-gl
-      vulkan-tools
-      vulkan-loader
-      mesa
     ];
   };
 
@@ -195,14 +192,6 @@
 
   security.rtkit.enable = true;
 
-  xdg.portal = {
-    enable = true;
-    extraPortals = with pkgs; [
-      xdg-desktop-portal-hyprland
-      xdg-desktop-portal-gtk
-    ];
-  };
-
   # ── Bluetooth ──────────────────────────────────────────────────────────
   hardware.bluetooth = {
     enable = true;
@@ -242,7 +231,6 @@
   fonts.packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
-    noto-fonts-color-emoji
     material-symbols
     nerd-fonts.jetbrains-mono
     nerd-fonts.fira-code
@@ -261,10 +249,8 @@
     vim
     git
     wget
-    curl
     pciutils
     libimobiledevice
-    usbmuxd
     sddm-sugar-dark
   ];
 

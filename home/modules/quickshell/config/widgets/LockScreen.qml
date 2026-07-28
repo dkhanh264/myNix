@@ -118,11 +118,6 @@ WlSessionLock {
                         shapeName: "sunny"
                         color: Theme.alpha(Theme.wallpaperPrimary, 0.14)
 
-                        SequentialAnimation on rotation {
-                            loops: Animation.Infinite
-                            running: lock.locked && !Theme.reduceMotion
-                            NumberAnimation { from: 0; to: 360; duration: 28000 }
-                        }
                     }
 
                     // Shape 2: Top-Right Clover Shape
@@ -133,18 +128,6 @@ WlSessionLock {
                         shapeName: "clover"
                         color: Theme.alpha(Theme.wallpaperSecondary, 0.15)
 
-                        SequentialAnimation on y {
-                            loops: Animation.Infinite
-                            running: lock.locked && !Theme.reduceMotion
-                            NumberAnimation { to: lockBg.height * 0.14 - 18; duration: 4000; easing.type: Easing.InOutSine }
-                            NumberAnimation { to: lockBg.height * 0.14 + 18; duration: 4000; easing.type: Easing.InOutSine }
-                        }
-
-                        SequentialAnimation on rotation {
-                            loops: Animation.Infinite
-                            running: lock.locked && !Theme.reduceMotion
-                            NumberAnimation { from: 0; to: -360; duration: 34000 }
-                        }
                     }
 
                     // Shape 3: Center-Right Gem Shape
@@ -155,12 +138,6 @@ WlSessionLock {
                         shapeName: "gem"
                         color: Theme.alpha(Theme.tertiary, 0.13)
 
-                        SequentialAnimation on scale {
-                            loops: Animation.Infinite
-                            running: lock.locked && !Theme.reduceMotion
-                            NumberAnimation { to: 1.18; duration: 3200; easing.type: Easing.InOutQuad }
-                            NumberAnimation { to: 0.92; duration: 3200; easing.type: Easing.InOutQuad }
-                        }
                     }
 
                     // Shape 4: Bottom-Left Ghostish Shape
@@ -171,12 +148,6 @@ WlSessionLock {
                         shapeName: "ghostish"
                         color: Theme.alpha(Theme.wallpaperPrimary, 0.13)
 
-                        SequentialAnimation on x {
-                            loops: Animation.Infinite
-                            running: lock.locked && !Theme.reduceMotion
-                            NumberAnimation { to: lockBg.width * 0.05 + 24; duration: 5000; easing.type: Easing.InOutSine }
-                            NumberAnimation { to: lockBg.width * 0.05 - 12; duration: 5000; easing.type: Easing.InOutSine }
-                        }
                     }
 
                     // Shape 5: Bottom-Right Cookie Shape
@@ -187,11 +158,6 @@ WlSessionLock {
                         shapeName: "cookie6"
                         color: Theme.alpha(Theme.wallpaperSecondary, 0.12)
 
-                        SequentialAnimation on rotation {
-                            loops: Animation.Infinite
-                            running: lock.locked && !Theme.reduceMotion
-                            NumberAnimation { from: 0; to: 360; duration: 40000 }
-                        }
                     }
 
                     // Shape 6: Mid-Left Horizontal Pill Shape
@@ -202,12 +168,6 @@ WlSessionLock {
                         shapeName: "pill"
                         color: Theme.alpha(Theme.primary, 0.12)
 
-                        SequentialAnimation on y {
-                            loops: Animation.Infinite
-                            running: lock.locked && !Theme.reduceMotion
-                            NumberAnimation { to: lockBg.height * 0.40 + 20; duration: 4500; easing.type: Easing.InOutSine }
-                            NumberAnimation { to: lockBg.height * 0.40 - 15; duration: 4500; easing.type: Easing.InOutSine }
-                        }
                     }
                 }
 

@@ -69,7 +69,7 @@ let
       set_refresh_rate() {
         local refresh_rate="$1"
         hyprctl keyword monitor \
-          "eDP-1, 1920x1080@''${refresh_rate}, auto, 1" >/dev/null 2>&1 || true
+          "eDP-1, 1920x1080@''${refresh_rate}, 1920x0, 1" >/dev/null 2>&1 || true
       }
 
       restore_brightness() {

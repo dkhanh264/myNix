@@ -48,7 +48,7 @@ Item {
     Behavior on displayProgress {
         enabled: !root.interacting && !Theme.reduceMotion
         NumberAnimation {
-            duration: Theme.motionMedium2
+            duration: Theme.motionShort3
             easing.type: Easing.BezierSpline
             easing.bezierCurve: Theme.emphasizedDecelerate
         }
@@ -99,25 +99,22 @@ Item {
         anchors.fill: parent
         antialiasing: true
         smooth: true
-        renderTarget: Canvas.FramebufferObject
         renderStrategy: Canvas.Cooperative
         property real wavePhase: 0
-
-        layer.enabled: true
-        layer.smooth: true
-        layer.mipmap: true
-        layer.samples: 8
 
         onWavePhaseChanged: requestPaint()
         Component.onCompleted: requestPaint()
 
-        NumberAnimation on wavePhase {
-            from: 0
-            to: Math.PI * 2
-            duration: 1800
-            loops: Animation.Infinite
-            running: root.animated && root.visible && root.enabled
+        Timer {
+            interval: Theme.continuousMotionInterval
+            repeat: true
+            running: root.animated && root.displayProgress > 0.002
+                && root.visible && root.enabled
+                && (root.Window.window ? root.Window.window.visible : true)
                 && !Theme.reduceMotion
+            onTriggered: waveform.wavePhase =
+                (waveform.wavePhase
+                    + Math.PI * 2 * interval / 1800) % (Math.PI * 2)
         }
 
         onPaint: {
@@ -125,7 +122,7 @@ Item {
             const edge = root.edge;
             const centerY = height / 2;
             const progressX = root.handleCenter;
-            const handleW = handle.width;
+            const handleW = root.interacting ? 4 : 3;
             const gapSize = root.interacting ? 14 : (root.hovered ? 12 : 10);
             const gap = handleW + gapSize;
             const activeEnd = Math.max(edge, progressX - gap / 2);
@@ -142,15 +139,17 @@ Item {
                 ctx.strokeStyle = root.activeColor;
                 ctx.lineWidth = root.interacting ? 4.4 : 3.8;
                 ctx.beginPath();
-                for (let x = edge; x <= activeEnd; x += 0.5) {
+                ctx.moveTo(edge, centerY + Math.sin(waveform.wavePhase)
+                    * amplitude);
+                for (let x = edge + 2; x < activeEnd; x += 2) {
                     const y = centerY + Math.sin(
                         (x - edge) * frequency + waveform.wavePhase)
                         * amplitude;
-                    if (x === edge)
-                        ctx.moveTo(x, y);
-                    else
-                        ctx.lineTo(x, y);
+                    ctx.lineTo(x, y);
                 }
+                ctx.lineTo(activeEnd, centerY + Math.sin(
+                    (activeEnd - edge) * frequency + waveform.wavePhase)
+                    * amplitude);
                 ctx.stroke();
             }
 

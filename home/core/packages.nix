@@ -11,8 +11,6 @@
     fd
     bat
     eza
-    fzf
-    zoxide
     cava
     clock-rs
     sptlrx
@@ -20,24 +18,16 @@
     # Wayland essentials
     wl-clipboard
     cliphist
-    grim
-    slurp
-
     # System tray & GUI tools
-    networkmanagerapplet
-    pavucontrol
     nautilus
     mesa-demos
-    nwg-look
     gnome-clocks
 
     # Media
     imv
     gnome-sound-recorder
-    gpu-screen-recorder
 
     # Hardware control
-    brightnessctl
     playerctl
 
     # Archive
@@ -65,13 +55,7 @@
 
     # Thêm các công cụ từ nixparency-dots
     walker # Thay thế Rofi làm launcher
-    swaybg # Đặt hình nền tĩnh (dự phòng)
-    swww # Đặt hình nền tĩnh với hiệu ứng chuyển cảnh
-    mpvpaper # Đặt hình nền động (video)
-    ffmpeg # Cần cho script trích xuất ảnh từ video
     libqalculate # Cho module máy tính của walker
-    jq # Cần cho các script xử lý JSON
-    libnotify
 
   ];
 }

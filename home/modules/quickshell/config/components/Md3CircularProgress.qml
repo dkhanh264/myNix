@@ -43,6 +43,10 @@ Item {
     onProgressColorChanged: progressCanvas.requestPaint()
     onTrackColorChanged: progressCanvas.requestPaint()
     onStrokeWidthChanged: progressCanvas.requestPaint()
+    onAnimatedWaveChanged: progressCanvas.requestPaint()
+    onShowStopIndicatorChanged: progressCanvas.requestPaint()
+    onWaveFrequencyChanged: progressCanvas.requestPaint()
+    onWaveAmplitudeChanged: progressCanvas.requestPaint()
     onWidthChanged: progressCanvas.requestPaint()
     onHeightChanged: progressCanvas.requestPaint()
 
@@ -65,12 +69,16 @@ Item {
         onWavePhaseChanged: requestPaint()
         Component.onCompleted: requestPaint()
 
-        NumberAnimation on wavePhase {
-            from: 0
-            to: Math.PI * 2
-            duration: 1500
-            loops: Animation.Infinite
-            running: root.animatedWave && root.visible && (root.Window.window ? root.Window.window.visible : true) && !Theme.reduceMotion
+        Timer {
+            interval: Theme.ambientMotionInterval
+            repeat: true
+            running: root.animatedWave && root.displayLevel > 0.03
+                && root.displayLevel < 0.999 && root.visible
+                && (root.Window.window ? root.Window.window.visible : true)
+                && !Theme.reduceMotion
+            onTriggered: progressCanvas.wavePhase =
+                (progressCanvas.wavePhase
+                    + Math.PI * 2 * interval / 1500) % (Math.PI * 2)
         }
 
         onPaint: {
@@ -136,9 +144,12 @@ Item {
                 ctx.lineJoin = "round";
 
                 if (root.animatedWave && level > 0.03) {
-                    const steps = Math.max(48, Math.floor(activeSweep * 64));
                     const amplitude = root.waveAmplitude;
                     const frequency = root.waveFrequency;
+                    const arcPixels = activeSweep * baseRadius;
+                    const cycles = activeSweep * frequency / fullSweep;
+                    const steps = Math.max(12, Math.min(128,
+                        Math.ceil(Math.max(arcPixels / 1.5, cycles * 8))));
 
                     ctx.beginPath();
                     for (let i = 0; i <= steps; i++) {

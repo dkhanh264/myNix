@@ -32,6 +32,14 @@ Item {
     property int activeLyricIndex: -1
     property var lyricsList: []
     property real currentPlaybackPosition: 0
+    property int lyricsRequestGeneration: 0
+
+    Timer {
+        id: lyricsFetchDebounce
+        interval: 120
+        repeat: false
+        onTriggered: root.fetchLyrics()
+    }
 
     Timer {
         id: playbackPosTimer
@@ -114,10 +122,14 @@ Item {
             return;
 
         const searchUrl = "https://lrclib.net/api/search?q=" + encodeURIComponent(query);
+        const requestGeneration = ++lyricsRequestGeneration;
         const xhr = new XMLHttpRequest();
         xhr.open("GET", searchUrl);
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (!root
+                        || requestGeneration !== root.lyricsRequestGeneration)
+                    return;
                 if (xhr.status === 200 && xhr.responseText) {
                     try {
                         const parsed = JSON.parse(xhr.responseText);
@@ -159,8 +171,8 @@ Item {
         xhr.send();
     }
 
-    onTrackTitleChanged: fetchLyrics()
-    onTrackArtistChanged: fetchLyrics()
+    onTrackTitleChanged: lyricsFetchDebounce.restart()
+    onTrackArtistChanged: lyricsFetchDebounce.restart()
 
     function formatTime(seconds) {
         const safe = Math.max(0, Math.floor(Number(seconds) || 0));
@@ -192,7 +204,6 @@ Item {
     Process {
         id: sysInfoProcess
         command: ["sh", "-c", "awk -F= '/^PRETTY_NAME=/ {gsub(/\"/,\"\"); print $2}' /etc/os-release 2>/dev/null || uname -s; " + "uname -r; " + "awk '{h=int($1/3600); m=int(($1%3600)/60); if(h>0) print h\"h \"m\"m\"; else print m\"m\"}' /proc/uptime 2>/dev/null; " + "cat /etc/hostname 2>/dev/null || hostname 2>/dev/null || echo \"$HOSTNAME\"; " + "whoami 2>/dev/null || echo \"$USER\"; " + "getent passwd $(whoami 2>/dev/null || echo \"$USER\") 2>/dev/null | cut -d: -f5 | cut -d, -f1; " + "echo \"${HOME:-/home/$(whoami)}\"; " + "getent passwd $(whoami 2>/dev/null || echo \"$USER\") 2>/dev/null | cut -d: -f7 | awk -F/ '{print $NF}' || basename \"${SHELL:-/bin/sh}\"; " + "echo \"${XDG_CURRENT_DESKTOP:-${XDG_SESSION_DESKTOP:-${DESKTOP_SESSION:-Hyprland}}}\"; " + "USER_NAME=\"$(whoami 2>/dev/null || echo \"$USER\")\"; " + "HOME_DIR=\"${HOME:-/home/$USER_NAME}\"; " + "if [ -f \"$HOME_DIR/.face\" ]; then echo \"$HOME_DIR/.face\"; " + "elif [ -d \"$HOME_DIR/.face\" ]; then find \"$HOME_DIR/.face\" -maxdepth 1 -type f \\( -name \"*.jpg\" -o -name \"*.png\" -o -name \"*.jpeg\" -o -name \"*.webp\" -o -name \"*.svg\" \\) 2>/dev/null | head -n 1; " + "elif [ -f \"$HOME_DIR/.face.icon\" ]; then echo \"$HOME_DIR/.face.icon\"; " + "elif [ -f \"/var/lib/AccountsService/icons/$USER_NAME\" ]; then echo \"/var/lib/AccountsService/icons/$USER_NAME\"; " + "else echo \"\"; fi; " + "grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed -e 's/^[ \t]*//' -e 's/(R)//g' -e 's/(TM)//g' -e 's/  */ /g' || echo \"\"; " + "lspci 2>/dev/null | grep -iE 'vga|3d|display' | head -n 1 | cut -d: -f3 | sed -e 's/^[ \t]*//' -e 's/Corporation //g' -e 's/\\[//g' -e 's/\\]//g' -e 's/(rev ..)//g' -e 's/  */ /g' || echo \"\""]
-        running: true
         stdout: StdioCollector {
             onStreamFinished: {
                 const text = this.text;
@@ -229,7 +240,7 @@ Item {
 
     Timer {
         id: sysInfoTimer
-        interval: 30000
+        interval: 60000
         running: root.visible
         repeat: true
         onTriggered: {
@@ -247,22 +258,14 @@ Item {
         }
     }
 
-    onIsPlayingChanged: {
-        if (controller && controller.setCavaActive)
-            controller.setCavaActive(isPlaying);
-    }
-
     Component.onCompleted: {
-        if (controller && controller.setCavaActive)
-            controller.setCavaActive(isPlaying);
         if (!sysInfoProcess.running)
             sysInfoProcess.running = true;
         fetchLyrics();
     }
 
     Component.onDestruction: {
-        if (controller && controller.setCavaActive)
-            controller.setCavaActive(false);
+        lyricsRequestGeneration++;
     }
 
     function selectMprisPlayer() {
@@ -1027,14 +1030,20 @@ Item {
                                     property real wavePhase: 0
 
                                     onWavePhaseChanged: requestPaint()
+                                    onPctChanged: requestPaint()
                                     Component.onCompleted: requestPaint()
 
-                                    NumberAnimation on wavePhase {
-                                        from: 0
-                                        to: Math.PI * 2
-                                        duration: 2200
-                                        loops: Animation.Infinite
-                                        running: root.visible && !Theme.reduceMotion
+                                    Timer {
+                                        interval: Theme.ambientMotionInterval
+                                        repeat: true
+                                        running: root.visible
+                                            && (root.Window.window
+                                                ? root.Window.window.visible : true)
+                                            && !Theme.reduceMotion
+                                        onTriggered: bootBottleCanvas.wavePhase =
+                                            (bootBottleCanvas.wavePhase
+                                                + Math.PI * 2 * interval / 2200)
+                                                % (Math.PI * 2)
                                     }
 
                                     readonly property real pct: root.controller ? Math.max(0.05, Math.min(0.95, root.controller.diskBootPercent / 100)) : 0.45
@@ -1068,8 +1077,16 @@ Item {
                                         ctx.fillStyle = Theme.primary;
                                         ctx.beginPath();
                                         ctx.moveTo(0, h);
-                                        for (let x = 0; x <= w; x += 1) {
-                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 + bootBottleCanvas.wavePhase) * amplitude;
+                                        const segments = Math.max(24, Math.min(48,
+                                            Math.ceil(w / 4)));
+                                        const xStep = w / segments;
+                                        const phaseStep = Math.PI * 2 / segments;
+                                        for (let i = 0; i <= segments; i++) {
+                                            const x = i * xStep;
+                                            const y = surfaceY + Math.sin(
+                                                i * phaseStep
+                                                    + bootBottleCanvas.wavePhase)
+                                                    * amplitude;
                                             ctx.lineTo(x, y);
                                         }
                                         ctx.lineTo(w, h);
@@ -1155,14 +1172,20 @@ Item {
                                     property real wavePhase: 0
 
                                     onWavePhaseChanged: requestPaint()
+                                    onPctChanged: requestPaint()
                                     Component.onCompleted: requestPaint()
 
-                                    NumberAnimation on wavePhase {
-                                        from: 0
-                                        to: Math.PI * 2
-                                        duration: 2600
-                                        loops: Animation.Infinite
-                                        running: root.visible && !Theme.reduceMotion
+                                    Timer {
+                                        interval: Theme.ambientMotionInterval
+                                        repeat: true
+                                        running: root.visible
+                                            && (root.Window.window
+                                                ? root.Window.window.visible : true)
+                                            && !Theme.reduceMotion
+                                        onTriggered: homeBottleCanvas.wavePhase =
+                                            (homeBottleCanvas.wavePhase
+                                                + Math.PI * 2 * interval / 2600)
+                                                % (Math.PI * 2)
                                     }
 
                                     readonly property real pct: {
@@ -1201,8 +1224,16 @@ Item {
                                         ctx.fillStyle = Theme.tertiary;
                                         ctx.beginPath();
                                         ctx.moveTo(0, h);
-                                        for (let x = 0; x <= w; x += 1) {
-                                            const y = surfaceY + Math.sin((x / w) * Math.PI * 2 + homeBottleCanvas.wavePhase) * amplitude;
+                                        const segments = Math.max(24, Math.min(48,
+                                            Math.ceil(w / 4)));
+                                        const xStep = w / segments;
+                                        const phaseStep = Math.PI * 2 / segments;
+                                        for (let i = 0; i <= segments; i++) {
+                                            const x = i * xStep;
+                                            const y = surfaceY + Math.sin(
+                                                i * phaseStep
+                                                    + homeBottleCanvas.wavePhase)
+                                                    * amplitude;
                                             ctx.lineTo(x, y);
                                         }
                                         ctx.lineTo(w, h);
@@ -1316,21 +1347,23 @@ Item {
                                     height: 44
                                     radius: Theme.shapeMedium
                                     color: Theme.surfaceContainerHigh
-                                    scale: 1
+                                    property real pulsePhase: 0
+                                    scale: Theme.reduceMotion ? 1
+                                        : 1 + Math.sin(pulsePhase) * 0.06
 
-                                    SequentialAnimation on scale {
-                                        loops: Animation.Infinite
-                                        running: !Theme.reduceMotion
-                                        NumberAnimation {
-                                            to: 1.06
-                                            duration: 2400
-                                            easing.type: Easing.InOutQuad
-                                        }
-                                        NumberAnimation {
-                                            to: 0.94
-                                            duration: 2400
-                                            easing.type: Easing.InOutQuad
-                                        }
+                                    Timer {
+                                        interval: Theme.ambientMotionInterval
+                                        repeat: true
+                                        running: root.visible
+                                            && (root.Window.window
+                                                ? root.Window.window.visible : true)
+                                            && !Theme.reduceMotion
+                                        onTriggered:
+                                            weatherStickerContainer.pulsePhase =
+                                                (weatherStickerContainer.pulsePhase
+                                                    + Math.PI * 2 * interval
+                                                        / 4800)
+                                                    % (Math.PI * 2)
                                     }
 
                                     MaterialIcon {
@@ -1620,7 +1653,9 @@ Item {
                                     text: "music_note"
                                     iconSize: 42
                                     color: Theme.alpha(Theme.textSecondary, 0.4)
-                                    visible: !albumArtImage.visible
+                                    visible: albumArtImage.status !== Image.Ready
+                                        || !root.player
+                                        || !root.player.trackArtUrl
                                 }
 
                                 // Dark Dimming Overlay when Lyrics exist (Matching 12px Inner Radius)

@@ -23,8 +23,8 @@ let
     runtimeInputs = with pkgs; [ brightnessctl libnotify ];
     text = ''
       case "''${1:-}" in
-        up) brightnessctl set 10%+ >/dev/null ;;
-        down) brightnessctl set 10%- >/dev/null ;;
+        up) brightness_output="$(brightnessctl -m set 10%+)" ;;
+        down) brightness_output="$(brightnessctl -m set 10%-)" ;;
         *)
           printf 'Usage: brightness-osd {up|down}\n' >&2
           exit 2
@@ -32,7 +32,7 @@ let
       esac
 
       IFS=, read -r _device _class _current percentage _maximum \
-        <<< "$(brightnessctl -m info)"
+        <<< "$brightness_output"
       percentage="''${percentage%%%}"
       [[ "$percentage" =~ ^[0-9]+$ ]] || percentage=0
 

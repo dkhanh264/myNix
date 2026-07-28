@@ -22,10 +22,6 @@ let
   };
 in
 {
-  home.packages = with pkgs; [
-    pywal
-  ];
-
   gtk = {
     enable = true;
 

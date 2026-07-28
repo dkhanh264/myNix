@@ -1,8 +1,0 @@
-@import url("file:///home/dk/.config/walker/themes/transparent-system.css");
-child:selected,
-child:hover {
-  background: alpha(@selected-text, 0.22);
-}
-#text {
-  font-weight: 600;
-}

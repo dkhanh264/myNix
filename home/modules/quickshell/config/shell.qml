@@ -85,10 +85,28 @@ ShellRoot {
     Timer {
         id: toastTimer
         interval: 3500
-        onTriggered: root.toastVisible = false
+        onTriggered: {
+            root.toastVisible = false;
+            toastCleanupTimer.restart();
+        }
+    }
+
+    Timer {
+        id: toastCleanupTimer
+        interval: Theme.reduceMotion ? 0 : 320
+        onTriggered: {
+            if (root.toastVisible)
+                return;
+            root.toastTitle = "";
+            root.toastBody = "";
+            root.toastIcon = "notifications";
+            root.toastImage = "";
+            root.toastScreen = "";
+        }
     }
 
     function showToast(title, body, icon, image) {
+        toastCleanupTimer.stop();
         toastTitle = title || "";
         toastBody = body || "";
         toastIcon = icon || "notifications";
@@ -101,6 +119,7 @@ ShellRoot {
     function hideToast() {
         toastTimer.stop();
         toastVisible = false;
+        toastCleanupTimer.restart();
     }
 
     function focusedScreenName() {
@@ -135,7 +154,6 @@ ShellRoot {
                 systemService.toggleBluetoothScan();
             break;
         case "power":
-            systemService.refreshBattery();
             systemService.refreshPowerProfile();
             break;
         case "weather":
@@ -150,7 +168,6 @@ ShellRoot {
             break;
         case "settings":
             systemService.refreshSystemStats();
-            systemService.refreshBattery();
             break;
         }
     }
@@ -398,7 +415,11 @@ ShellRoot {
                     root.togglePopup(kind, screenName)
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "music"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: musicPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "music"
@@ -425,9 +446,14 @@ ShellRoot {
                         controller: systemService
                     }
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "calendar"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: calendarPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "calendar"
@@ -454,9 +480,14 @@ ShellRoot {
                             && root.activePopup === "calendar"
                     }
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "weather"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: weatherPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "weather"
@@ -483,9 +514,14 @@ ShellRoot {
                         controller: systemService
                     }
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "controls"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: controlsPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible
@@ -526,9 +562,14 @@ ShellRoot {
                         }
                     }
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "wifi"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: wifiPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "wifi"
@@ -567,9 +608,14 @@ ShellRoot {
                         }
                     }
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "bluetooth"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: bluetoothPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "bluetooth"
@@ -616,9 +662,14 @@ ShellRoot {
                         }
                     }
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "power"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: powerPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "power"
@@ -717,9 +768,14 @@ ShellRoot {
                         }
                     }
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "activity"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: activityPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible
@@ -748,9 +804,14 @@ ShellRoot {
                         controller: systemService
                     }
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "recorder"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: recorderPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible
@@ -786,9 +847,14 @@ ShellRoot {
                         controller: systemService
                     }
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "language"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: languagePopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible
@@ -816,9 +882,14 @@ ShellRoot {
                         height: implicitHeight
                     }
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "settings"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: settingsPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "settings"
@@ -839,18 +910,19 @@ ShellRoot {
                     icon: "settings"
                     onCloseRequested: root.hidePopup()
 
-                    Loader {
+                    SettingsGrid {
                         anchors.fill: parent
-                        active: root.popupVisible && root.activePopup === "settings"
-                            && root.popupScreen === barWindow.modelData.name
-                        sourceComponent: SettingsGrid {
-                            controller: systemService
-                        }
+                        controller: systemService
                     }
+                }
                 }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "wallpaper"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: wallpaperPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "wallpaper"
@@ -872,9 +944,14 @@ ShellRoot {
                     onCloseRequested: root.hidePopup()
                     Component.onCompleted: forceActiveFocus()
                 }
+                }
             }
 
-            AnchoredPopup {
+            LazyLoader {
+                active: root.popupVisible && root.activePopup === "dashboard"
+                    && root.popupScreen === barWindow.modelData.name
+
+                AnchoredPopup {
                 id: dashboardPopup
                 anchorWindow: barWindow
                 requestedVisible: root.popupVisible && root.activePopup === "dashboard"
@@ -896,18 +973,15 @@ ShellRoot {
                     accentContainer: Theme.primaryContainer
                     onCloseRequested: root.hidePopup()
 
-                    Loader {
+                    DashboardWidget {
                         anchors.fill: parent
-                        active: root.popupVisible && root.activePopup === "dashboard"
-                            && root.popupScreen === barWindow.modelData.name
-                        sourceComponent: DashboardWidget {
-                            controller: systemService
-                            onSectionRequested: section =>
-                                root.showPopup(section, barWindow.modelData.name)
-                            onCloseRequested: root.hidePopup()
-                        }
+                        controller: systemService
+                        onSectionRequested: section =>
+                            root.showPopup(section, barWindow.modelData.name)
+                        onCloseRequested: root.hidePopup()
                     }
                 }
+            }
             }
 
             PanelWindow {

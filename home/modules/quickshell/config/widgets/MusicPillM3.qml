@@ -65,14 +65,18 @@ M3BarPill {
                 anchors.verticalCenter: parent.verticalCenter
                 width: 30
                 height: 30
+                property real spinAngle: 0
+                rotation: spinAngle
 
-                NumberAnimation on rotation {
-                    from: 0
-                    to: 360
-                    duration: 9000
-                    loops: Animation.Infinite
-                    running: root.player && root.player.isPlaying
+                Timer {
+                    interval: Theme.continuousMotionInterval
+                    repeat: true
+                    running: root.visible && root.player
+                        && root.player.isPlaying
+                        && (root.Window.window ? root.Window.window.visible : true)
                         && !Theme.reduceMotion
+                    onTriggered: record.spinAngle =
+                        (record.spinAngle + 360 * interval / 9000) % 360
                 }
 
                 CircularAlbumArt {

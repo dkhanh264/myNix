@@ -83,11 +83,7 @@ in
       fi
     '';
 
-  # Các package chuyên biệt cho Hyprland
-  home.packages = with pkgs; [
-    hypridle
-    captureScreen
-  ];
+  home.packages = [ captureScreen ];
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -120,7 +116,7 @@ in
         "rfkill unblock bluetooth"
         "wl-paste --type text --watch cliphist store"
         "fcitx5 -d"
-        "swww-daemon"  # Daemon cho hình nền có hiệu ứng chuyển cảnh
+        "${pkgs.swww}/bin/swww-daemon"
       ];
 
       # ── General ───────────────────────────────────────────────────────
@@ -154,8 +150,8 @@ in
         };
         blur = {
           enabled            = true;
-          size               = 18;
-          passes             = 4;
+          size               = 12;
+          passes             = 2;
           new_optimizations  = true;
           ignore_opacity     = true;
           popups             = true;
@@ -208,14 +204,11 @@ in
         bezier = [
           "m3Standard, 0.2, 0.0, 0.0, 1.0"
           "m3Emphasized, 0.05, 0.7, 0.1, 1.0"
-          "linear, 0.0, 0.0, 1.0, 1.0"
-          "expressiveBounce, 0.34, 1.56, 0.64, 1.0"
         ];
         animation = [
           "border,        1, 5, m3Standard"
-          "borderangle,   1, 30, linear, loop"
           "windows,       1, 6, m3Emphasized"
-          "windowsIn,     1, 6, expressiveBounce, popin 94%"
+          "windowsIn,     1, 6, m3Emphasized, popin 94%"
           "windowsOut,    1, 5, m3Standard, popin 88%"
           "fadeIn,        1, 5, m3Emphasized"
           "fadeOut,       1, 4, m3Standard"

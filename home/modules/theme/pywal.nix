@@ -192,6 +192,7 @@ let
       changed_any=0
       css_changed=0
       kitty_changed=0
+      btop_changed=0
       cava_changed=0
       hypr_changed=0
 
@@ -327,6 +328,7 @@ EOF
 EOF
       then
         changed_any=1
+        btop_changed=1
       fi
 
       # Cava reads colors from this standalone theme, so SIGUSR2 can update the
@@ -392,8 +394,9 @@ EOF
       if (( hypr_changed )); then
         hyprctl reload config-only >/dev/null 2>&1 || true
       fi
-
-      pkill -USR2 -x btop >/dev/null 2>&1 || true
+      if (( btop_changed )); then
+        pkill -USR2 -x btop >/dev/null 2>&1 || true
+      fi
     '';
   };
 
@@ -408,6 +411,7 @@ EOF
       procps
       pywal
       swww
+      util-linux
     ];
     text = ''
       set -Eeuo pipefail
@@ -417,6 +421,19 @@ EOF
       TEMP_FRAME=""
       TEMP_LINK_DIR=""
       declare -a TEMP_FILES=()
+
+      if [[ -n "''${XDG_RUNTIME_DIR:-}" ]]; then
+        LOCK_DIR="$XDG_RUNTIME_DIR/m3-shell"
+      else
+        LOCK_DIR="/tmp/m3-shell-$UID"
+      fi
+      mkdir -p -- "$LOCK_DIR"
+      exec 9>"$LOCK_DIR/set-background.lock"
+      if ! flock -n 9; then
+        notify-send -a "Wallpaper" -u low -t 1800 \
+          "Wallpaper" "A wallpaper update is already running." || true
+        exit 0
+      fi
 
       cleanup() {
         [[ -z "$TEMP_FRAME" ]] || rm -f -- "$TEMP_FRAME"
@@ -488,11 +505,11 @@ EOF
       esac
 
       pkill -x mpvpaper >/dev/null 2>&1 || true
-      pkill -x swaybg >/dev/null 2>&1 || true
 
       if is_video "$NEW_BACKGROUND"; then
-        swww kill >/dev/null 2>&1 || true
-        pkill -x swww-daemon >/dev/null 2>&1 || true
+        swww kill >/dev/null 2>&1 \
+          || pkill -x swww-daemon >/dev/null 2>&1 \
+          || true
 
         mpvpaper "*" --mpv-options "loop no-audio" \
           "$NEW_BACKGROUND" >/dev/null 2>&1 &
@@ -503,15 +520,21 @@ EOF
         wal -i "$TEMP_FRAME" -n --saturate 0.7 -q \
           -o ${walColorExport}/bin/wal-color-export
       else
-        if ! swww query >/dev/null 2>&1; then
+        daemon_ready=0
+        if swww query >/dev/null 2>&1; then
+          daemon_ready=1
+        else
           swww-daemon >/dev/null 2>&1 &
           for _ in {1..20}; do
-            swww query >/dev/null 2>&1 && break
+            if swww query >/dev/null 2>&1; then
+              daemon_ready=1
+              break
+            fi
             sleep 0.05
           done
         fi
 
-        if ! swww query >/dev/null 2>&1; then
+        if (( ! daemon_ready )); then
           notify_wallpaper_error "The wallpaper daemon did not become ready."
           exit 1
         fi

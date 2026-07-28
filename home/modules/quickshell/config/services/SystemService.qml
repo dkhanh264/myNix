@@ -23,6 +23,7 @@ Scope {
     property bool wifiBusy: false
     property string lastWifiListOutput: ""
     property var savedWifiConnections: ({})
+    property bool savedWifiConnectionsLoaded: false
 
     property string powerProfile: "balanced"
     property bool powerProfileBusy: false
@@ -78,41 +79,6 @@ Scope {
     property string currentWallpaper: ""
     property string pendingWallpaper: ""
     property bool wallpapersLoading: false
-
-    property var cavaBars: [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0]
-    property bool cavaActive: false
-
-    function applyCavaData(line) {
-        if (!line || line.trim().length === 0)
-            return;
-        const parts = line.trim().split(";");
-        const bars = [];
-        for (let i = 0; i < Math.min(16, parts.length); ++i) {
-            const val = parseInt(parts[i], 10);
-            bars.push(isNaN(val) ? 0 : Math.max(0, Math.min(100, val)));
-        }
-        while (bars.length < 16)
-            bars.push(0);
-        cavaBars = bars;
-    }
-
-    function setCavaActive(active) {
-        if (cavaActive === active)
-            return;
-        cavaActive = active;
-        if (active) {
-            cavaInitProcess.exec([
-                "sh", "-c",
-                "mkdir -p /tmp/cava_qs && cat << 'EOF' > /tmp/cava_qs/config\n"
-                    + "[general]\nbars = 16\nframerate = 30\n"
-                    + "[output]\nmethod = raw\nraw_target = /dev/stdout\ndata_format = ascii\nascii_max_range = 100\nbar_delimiter = 59\n"
-                    + "EOF"
-            ]);
-        } else {
-            cavaProcess.running = false;
-            cavaBars = [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
-        }
-    }
 
     property string message: ""
     property int pendingVolume: 0
@@ -210,62 +176,68 @@ Scope {
     function refreshAll() {
         refreshVolume();
         refreshBrightness();
-        refreshAudioDevices();
         refreshWifi(false);
-        refreshPowerProfile();
         refreshBattery();
         refreshSystemStats();
         refreshWeather(false);
-        refreshWallpapers();
-        refreshNotificationHistory();
-        refreshScreenshots();
     }
 
-    function refreshSystemStats() {
-        if (!systemStatsQuery.running)
+    function refreshSystemStats(refreshSlowStats) {
+        cpuStatFile.reload();
+        memoryInfoFile.reload();
+
+        const shouldRefreshSlowStats = refreshSlowStats === undefined
+            ? true : Boolean(refreshSlowStats);
+        if (shouldRefreshSlowStats && !systemStatsQuery.running)
             systemStatsQuery.running = true;
     }
 
-    function applySystemStats(output) {
-        const lines = output.trim().split("\n");
-        if (lines.length < 2)
+    function applyCpuStats(output) {
+        const firstLine = String(output || "").split("\n")[0];
+        const cpuFields = firstLine.trim().split(/\s+/).slice(1);
+        if (cpuFields.length < 5)
             return;
 
-        const cpuFields = lines[0].trim().split(/\s+/).slice(1);
-        if (cpuFields.length >= 5) {
-            let total = 0;
-            for (let index = 0; index < Math.min(8, cpuFields.length); ++index)
-                total += Number(cpuFields[index]) || 0;
+        let total = 0;
+        for (let index = 0; index < Math.min(8, cpuFields.length); ++index)
+            total += Number(cpuFields[index]) || 0;
 
-            const idle = (Number(cpuFields[3]) || 0)
-                + (Number(cpuFields[4]) || 0);
-            const totalDelta = total - previousCpuTotal;
-            const idleDelta = idle - previousCpuIdle;
-            if (previousCpuTotal > 0 && totalDelta > 0)
-                cpuUsage = Math.round(clamp(
-                    (totalDelta - idleDelta) * 100 / totalDelta, 0, 100));
-            previousCpuTotal = total;
-            previousCpuIdle = idle;
+        const idle = (Number(cpuFields[3]) || 0)
+            + (Number(cpuFields[4]) || 0);
+        const totalDelta = total - previousCpuTotal;
+        const idleDelta = idle - previousCpuIdle;
+        if (previousCpuTotal > 0 && totalDelta > 0)
+            cpuUsage = Math.round(clamp(
+                (totalDelta - idleDelta) * 100 / totalDelta, 0, 100));
+        previousCpuTotal = total;
+        previousCpuIdle = idle;
+    }
+
+    function applyMemoryStats(output) {
+        const memoryText = String(output || "");
+        const totalMatch = memoryText.match(/^MemTotal:\s+([0-9]+)/m);
+        const availableMatch = memoryText.match(/^MemAvailable:\s+([0-9]+)/m);
+        if (!totalMatch || !availableMatch)
+            return;
+
+        const totalKiB = Number(totalMatch[1]) || 0;
+        const availableKiB = Number(availableMatch[1]) || 0;
+        if (totalKiB > 0) {
+            const usedKiB = Math.max(0, totalKiB - availableKiB);
+            memoryUsedGib = usedKiB / 1048576;
+            memoryPercent = Math.round(usedKiB * 100 / totalKiB);
         }
+    }
 
-        const memoryFields = lines[1].trim().split(/\s+/);
-        if (memoryFields.length >= 2) {
-            const totalKiB = Number(memoryFields[0]) || 0;
-            const availableKiB = Number(memoryFields[1]) || 0;
-            if (totalKiB > 0) {
-                const usedKiB = Math.max(0, totalKiB - availableKiB);
-                memoryUsedGib = usedKiB / 1048576;
-                memoryPercent = Math.round(usedKiB * 100 / totalKiB);
-            }
-        }
-
-        const millidegrees = lines.length >= 3 ? Number(lines[2]) || 0 : 0;
+    function applySlowSystemStats(output) {
+        const lines = String(output || "").trim().split("\n");
+        const millidegrees = lines.length > 0 ? Number(lines[0]) || 0 : 0;
         temperatureAvailable = millidegrees >= 10000;
         if (temperatureAvailable)
             temperatureC = Math.round(millidegrees / 1000);
 
         let dfDataIndex = 0;
-        for (let i = 3; i < lines.length; ++i) {
+        for (let i = 1; i < lines.length; ++i) {
             const dfFields = lines[i].trim().split(/\s+/);
             if (dfFields.length >= 6 && !dfFields[0].startsWith("Filesystem")) {
                 const totalKiB = Number(dfFields[1]) || 0;
@@ -582,7 +554,8 @@ Scope {
         if (!wifiRadioQuery.running)
             wifiRadioQuery.exec(["nmcli", "radio", "wifi"]);
 
-        if (!wifiSavedQuery.running) {
+        if ((!savedWifiConnectionsLoaded || forceRescan)
+                && !wifiSavedQuery.running) {
             wifiSavedQuery.exec([
                 "nmcli", "--terse", "--escape", "yes",
                 "--fields", "NAME,TYPE", "connection", "show"
@@ -754,6 +727,7 @@ Scope {
                 connections[connectionName] = connectionName;
         }
         savedWifiConnections = connections;
+        savedWifiConnectionsLoaded = true;
         if (lastWifiListOutput.length > 0)
             applyWifiList(lastWifiListOutput);
     }
@@ -778,24 +752,14 @@ Scope {
         powerProfileError = "";
         powerProfile = cleanProfile;
 
-        let script = "";
-        if (cleanProfile === "power-saver") {
-            script = "powerprofilesctl set power-saver 2>/dev/null || powerprofilesctl set powersave 2>/dev/null; "
-                + "hyprctl keyword monitor \"eDP-1, 1920x1080@60, auto, 1\" 2>/dev/null || true";
-        } else if (cleanProfile === "performance") {
-            script = "powerprofilesctl set performance 2>/dev/null; "
-                + "hyprctl keyword monitor \"eDP-1, 1920x1080@144, auto, 1\" 2>/dev/null || true";
-        } else {
-            script = "powerprofilesctl set balanced 2>/dev/null; "
-                + "hyprctl keyword monitor \"eDP-1, 1920x1080@144, auto, 1\" 2>/dev/null || true";
-        }
-
-        powerProfileCommand.exec(["sh", "-c", script]);
+        powerProfileCommand.exec([
+            "powerprofilesctl", "set", cleanProfile
+        ]);
     }
 
     function refreshBattery() {
-        if (!batteryQuery.running)
-            batteryQuery.running = true;
+        batteryCapacityFile.reload();
+        batteryStatusFile.reload();
     }
 
     function toggleBluetooth() {
@@ -921,14 +885,10 @@ Scope {
         ]);
     }
 
-    Process {
-        id: detachedProcess
-    }
-
     function execDetached(command) {
         if (!command || command.length === 0)
             return;
-        detachedProcess.exec(command);
+        Quickshell.execDetached(command);
     }
 
     function openScreenshot(path) {
@@ -1126,15 +1086,57 @@ Scope {
         id: systemStatsQuery
         command: [
             "sh", "-c",
-            "awk 'NR==1 { print }' /proc/stat; "
-                + "awk '/MemTotal:/ { t=$2 } /MemAvailable:/ { a=$2 } END { print t, a }' /proc/meminfo; "
-                + "max=0; for f in /sys/class/hwmon/hwmon*/temp*_input; do "
+            "max=0; for f in /sys/class/hwmon/hwmon*/temp*_input; do "
                 + "[ -r \"$f\" ] && read -r v < \"$f\" 2>/dev/null && [ \"$v\" -ge 10000 2>/dev/null ] && [ \"$v\" -le 120000 ] && [ \"$v\" -gt \"$max\" ] && max=$v; "
                 + "done; echo \"$max\"; "
                 + "df -k /boot /home 2>/dev/null"
         ]
         stdout: StdioCollector {
-            onStreamFinished: root.applySystemStats(this.text)
+            onStreamFinished: root.applySlowSystemStats(this.text)
+        }
+    }
+
+    FileView {
+        id: cpuStatFile
+        path: "/proc/stat"
+        preload: true
+        watchChanges: false
+        printErrors: false
+        onLoaded: root.applyCpuStats(this.text())
+    }
+
+    FileView {
+        id: memoryInfoFile
+        path: "/proc/meminfo"
+        preload: true
+        watchChanges: false
+        printErrors: false
+        onLoaded: root.applyMemoryStats(this.text())
+    }
+
+    FileView {
+        id: batteryCapacityFile
+        path: "/sys/class/power_supply/BAT0/capacity"
+        preload: true
+        watchChanges: false
+        printErrors: false
+        onLoaded: {
+            const value = parseInt(this.text().trim());
+            root.batteryAvailable = Number.isFinite(value);
+            if (root.batteryAvailable)
+                root.batteryPercent = root.clamp(value, 0, 100);
+        }
+    }
+
+    FileView {
+        id: batteryStatusFile
+        path: "/sys/class/power_supply/BAT0/status"
+        preload: true
+        watchChanges: false
+        printErrors: false
+        onLoaded: {
+            const value = this.text().trim();
+            root.batteryState = value || "Unknown";
         }
     }
 
@@ -1156,25 +1158,6 @@ Scope {
         id: calendarReloadDelay
         interval: 80
         onTriggered: root.loadCalendarEvents()
-    }
-
-    Process {
-        id: notificationHistoryQuery
-        stdout: StdioCollector {
-            onStreamFinished: root.applyNotificationHistory(this.text)
-        }
-        onExited: root.notificationHistoryLoading = false
-    }
-
-    Process {
-        id: notificationAction
-        onExited: notificationRefreshDelay.restart()
-    }
-
-    Timer {
-        id: notificationRefreshDelay
-        interval: 180
-        onTriggered: root.refreshNotificationHistory()
     }
 
     Process {
@@ -1502,6 +1485,12 @@ Scope {
                 root.showMessage(root.powerProfileError);
             } else {
                 root.powerProfileError = "";
+                const refreshRate = root.powerProfile === "power-saver"
+                    ? "60" : "144";
+                Quickshell.execDetached([
+                    "hyprctl", "keyword", "monitor",
+                    "eDP-1, 1920x1080@" + refreshRate + ", 1920x0, 1"
+                ]);
                 root.showMessage(I18n.tr("Đã áp dụng chế độ nguồn",
                     "Power profile applied"));
             }
@@ -1515,54 +1504,21 @@ Scope {
         onTriggered: root.refreshPowerProfile()
     }
 
-    Process {
-        id: batteryQuery
-        command: [
-            "sh", "-c",
-            "for battery in /sys/class/power_supply/BAT*; do "
-                + "[ -r \"$battery/capacity\" ] || continue; "
-                + "capacity=$(cat \"$battery/capacity\"); "
-                + "state=$(cat \"$battery/status\" 2>/dev/null); "
-                + "printf '%s\\t%s\\n' \"$capacity\" \"$state\"; break; done"
-        ]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const fields = this.text.trim().split("\t");
-                root.batteryAvailable = fields.length >= 2;
-                if (root.batteryAvailable) {
-                    root.batteryPercent = parseInt(fields[0]) || 0;
-                    root.batteryState = fields[1];
-                }
-            }
-        }
-    }
-
     Timer {
         interval: 4000
         running: true
         repeat: true
-        onTriggered: root.refreshSystemStats()
+        onTriggered: root.refreshSystemStats(false)
     }
 
     Timer {
-        interval: 6000
+        interval: 60000
         running: true
         repeat: true
         onTriggered: {
-            root.refreshVolume();
-            root.refreshBrightness();
-        }
-    }
-
-    Timer {
-        interval: 15000
-        running: true
-        repeat: true
-        onTriggered: {
+            root.refreshSystemStats(true);
             root.refreshWifi(false);
-            root.refreshPowerProfile();
             root.refreshBattery();
-            root.refreshAudioDevices();
         }
     }
 
@@ -1579,22 +1535,6 @@ Scope {
         onTriggered: {
             if (root.bluetoothAdapter)
                 root.bluetoothAdapter.discovering = false;
-        }
-    }
-
-    Process {
-        id: cavaInitProcess
-        onExited: {
-            if (root.cavaActive && !cavaProcess.running)
-                cavaProcess.running = true;
-        }
-    }
-
-    Process {
-        id: cavaProcess
-        command: ["cava", "-p", "/tmp/cava_qs/config"]
-        stdout: SplitParser {
-            onRead: data => root.applyCavaData(data)
         }
     }
 
