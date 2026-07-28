@@ -20,7 +20,7 @@ Rectangle {
         ? player.trackAlbum : ""
     property real playbackPosition: 0
 
-    implicitHeight: 146
+    implicitHeight: 156
     radius: Theme.shapeLarge
     color: "transparent"
 
@@ -74,95 +74,85 @@ Rectangle {
 
     Item {
         anchors.fill: parent
-        anchors.margins: Theme.componentPadding
+        anchors.margins: 10
 
-        // 1. Spinning Album Art Vinyl with Ambient Glow
-        Item {
-            id: record
+        // 1. Square Album Cover Art (Left Side)
+        SquareAlbumArt {
+            id: albumArt
             anchors.left: parent.left
             anchors.top: parent.top
-            width: 96
-            height: 96
-
-            Rectangle {
-                anchors.fill: parent
-                radius: width / 2
-                color: Theme.alpha(Theme.secondary, 0.20)
-                scale: 1.05
-                visible: root.isPlaying
-            }
-
-            Item {
-                anchors.fill: parent
-
-                NumberAnimation on rotation {
-                    from: 0
-                    to: 360
-                    duration: 10000
-                    loops: Animation.Infinite
-                    running: root.player && root.player.isPlaying && !Theme.reduceMotion
-                }
-
-                CircularAlbumArt {
-                    anchors.fill: parent
-                    source: root.player ? root.player.trackArtUrl : ""
-                    accentColor: Theme.secondary
-                }
-            }
+            anchors.bottom: parent.bottom
+            width: height
+            source: root.player ? root.player.trackArtUrl : ""
+            accentColor: Theme.secondary
+            cornerRadius: Theme.shapeMedium
         }
 
-        // 2. Player Source Chip (Top Right)
-        Rectangle {
-            id: playerChip
+        // 2. Right Content Column (Metadata Header, Controls & Progress Bar)
+        Column {
+            id: mainColumn
+            anchors.left: albumArt.right
+            anchors.leftMargin: 14
             anchors.right: parent.right
-            anchors.top: parent.top
-            implicitWidth: playerChipRow.implicitWidth + 12
-            implicitHeight: 22
-            radius: height / 2
-            color: Theme.alpha(Theme.secondary, 0.12)
-            border.width: 1
-            border.color: Theme.alpha(Theme.secondary, 0.25)
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 0
 
-            Row {
-                id: playerChipRow
-                anchors.centerIn: parent
-                spacing: 4
-
-                MaterialIcon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.isPlaying ? "graphic_eq" : "music_note"
-                    iconSize: 13
-                    color: Theme.secondary
-                }
+            // Header Row: Song Title (Left) + Player Source Chip (Right)
+            Item {
+                width: parent.width
+                implicitHeight: 24
 
                 M3Text {
+                    id: titleTextItem
+                    anchors.left: parent.left
+                    anchors.right: playerChip.left
+                    anchors.rightMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
-                    role: "labelSmall"
-                    text: root.player ? (root.player.identity || "Media") : "Media"
-                    color: Theme.secondary
-                    font.weight: Font.DemiBold
+                    role: "titleMedium"
+                    text: root.titleText
+                    color: Theme.textPrimary
+                    font.weight: Font.Bold
+                    elide: Text.ElideRight
+                }
+
+                Rectangle {
+                    id: playerChip
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    implicitWidth: playerChipRow.implicitWidth + 10
+                    implicitHeight: 22
+                    radius: height / 2
+                    color: Theme.alpha(Theme.secondary, 0.14)
+                    border.width: 1
+                    border.color: Theme.alpha(Theme.secondary, 0.30)
+
+                    Row {
+                        id: playerChipRow
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        MaterialIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: root.isPlaying ? "graphic_eq" : "music_note"
+                            iconSize: 13
+                            color: Theme.secondary
+                        }
+
+                        M3Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            role: "labelSmall"
+                            text: root.player ? (root.player.identity || "Media") : "Media"
+                            color: Theme.secondary
+                            font.weight: Font.DemiBold
+                        }
+                    }
                 }
             }
-        }
 
-        // 3. Track Metadata & Control Buttons Column
-        Column {
-            anchors.left: record.right
-            anchors.leftMargin: Theme.componentPadding
-            anchors.right: parent.right
-            anchors.rightMargin: playerChip.width + 4
-            anchors.top: parent.top
-            spacing: 2
+            // Gap between Title and Artist
+            Item { width: 1; height: 3 }
 
-            M3Text {
-                width: parent.width
-                role: "titleMedium"
-                text: root.titleText
-                color: Theme.textPrimary
-                font.weight: Font.Bold
-                elide: Text.ElideRight
-            }
-
+            // Artist & Album Info
             M3Text {
                 width: parent.width
                 role: "labelMedium"
@@ -171,17 +161,19 @@ Rectangle {
                 elide: Text.ElideRight
             }
 
-            Item { width: 1; height: 6 }
+            // Generous gap between Metadata and Media Control Buttons
+            Item { width: 1; height: 12 }
 
-            // 5 Media Controls Row (Shuffle, Prev, Play/Pause, Next, Repeat)
+            // 5 Media Controls Row (Centered Horizontally)
             Row {
-                height: 38
-                spacing: 6
+                anchors.horizontalCenter: parent.horizontalCenter
+                height: 40
+                spacing: 10
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 30
-                    iconSize: 16
+                    buttonSize: 32
+                    iconSize: 17
                     icon: "shuffle"
                     fillColor: root.player && root.player.shuffle ? Theme.alpha(Theme.secondary, 0.22) : Theme.alpha(Theme.textPrimary, 0.06)
                     foregroundColor: root.player && root.player.shuffle ? Theme.secondary : Theme.alpha(Theme.textPrimary, 0.55)
@@ -192,11 +184,11 @@ Rectangle {
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 34
-                    iconSize: 18
+                    buttonSize: 36
+                    iconSize: 19
                     icon: "skip_previous"
-                    fillColor: Theme.alpha(Theme.textPrimary, 0.08)
-                    foregroundColor: Theme.textPrimary
+                    fillColor: Theme.alpha(Theme.secondary, 0.18)
+                    foregroundColor: Theme.secondary
                     enabled: root.player && root.player.canGoPrevious
                     accessibleName: I18n.tr("Bài trước", "Previous track")
                     onClicked: root.player.previous()
@@ -204,8 +196,8 @@ Rectangle {
 
                 MediaPlayButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 38
-                    iconSize: 21
+                    buttonSize: 40
+                    iconSize: 22
                     isPlaying: root.player && root.player.isPlaying
                     fillColor: Theme.secondary
                     foregroundColor: Theme.textPrimary
@@ -215,11 +207,11 @@ Rectangle {
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 34
-                    iconSize: 18
+                    buttonSize: 36
+                    iconSize: 19
                     icon: "skip_next"
-                    fillColor: Theme.alpha(Theme.textPrimary, 0.08)
-                    foregroundColor: Theme.textPrimary
+                    fillColor: Theme.alpha(Theme.secondary, 0.18)
+                    foregroundColor: Theme.secondary
                     enabled: root.player && root.player.canGoNext
                     accessibleName: I18n.tr("Bài tiếp theo", "Next track")
                     onClicked: root.player.next()
@@ -227,8 +219,8 @@ Rectangle {
 
                 IconButton {
                     anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: 30
-                    iconSize: 16
+                    buttonSize: 32
+                    iconSize: 17
                     icon: root.player && root.player.loopStatus === "Track" ? "repeat_one" : "repeat"
                     fillColor: root.player && root.player.loopStatus && root.player.loopStatus !== "None" ? Theme.alpha(Theme.secondary, 0.22) : Theme.alpha(Theme.textPrimary, 0.06)
                     foregroundColor: root.player && root.player.loopStatus && root.player.loopStatus !== "None" ? Theme.secondary : Theme.alpha(Theme.textPrimary, 0.55)
@@ -241,50 +233,50 @@ Rectangle {
                     }
                 }
             }
-        }
 
-        // 4. Inline Progress Bar Row (Time Elapsed ── Waveform Track ── Time Total)
-        Row {
-            id: progressRow
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: record.bottom
-            anchors.topMargin: 4
-            height: 24
-            spacing: 8
+            // Generous gap between Media Controls and Progress Bar
+            Item { width: 1; height: 10 }
 
-            M3Text {
-                id: timeElapsed
-                anchors.verticalCenter: parent.verticalCenter
-                role: "labelSmall"
-                text: root.formatTime(root.playbackPosition)
-                color: Theme.textSecondary
-                font.weight: Font.Medium
-            }
+            // Track Progress Bar Row (Time Elapsed ── Track Slider ── Time Total)
+            Row {
+                id: progressRow
+                width: parent.width
+                height: 24
+                spacing: 6
 
-            WaveformSlider {
-                id: progressWave
-                width: parent.width - timeElapsed.implicitWidth - timeTotal.implicitWidth - (parent.spacing * 2)
-                anchors.verticalCenter: parent.verticalCenter
-                from: 0
-                to: root.player && root.player.lengthSupported
-                    ? root.player.length : 1
-                value: root.playbackPosition
-                enabled: root.player && root.player.canSeek
-                    && root.player.lengthSupported && root.player.length > 0
-                animated: root.player && root.player.isPlaying
-                activeColor: Theme.secondary
-                onMoved: value => root.seekTo(value)
-            }
+                M3Text {
+                    id: timeElapsed
+                    anchors.verticalCenter: parent.verticalCenter
+                    role: "labelSmall"
+                    text: root.formatTime(root.playbackPosition)
+                    color: Theme.textSecondary
+                    font.weight: Font.Medium
+                }
 
-            M3Text {
-                id: timeTotal
-                anchors.verticalCenter: parent.verticalCenter
-                role: "labelSmall"
-                text: root.player && root.player.lengthSupported
-                    ? root.formatTime(root.player.length) : "--:--"
-                color: Theme.textSecondary
-                font.weight: Font.Medium
+                WaveformSlider {
+                    id: progressWave
+                    width: parent.width - timeElapsed.implicitWidth - timeTotal.implicitWidth - (parent.spacing * 2)
+                    anchors.verticalCenter: parent.verticalCenter
+                    from: 0
+                    to: root.player && root.player.lengthSupported
+                        ? root.player.length : 1
+                    value: root.playbackPosition
+                    enabled: root.player && root.player.canSeek
+                        && root.player.lengthSupported && root.player.length > 0
+                    animated: root.player && root.player.isPlaying
+                    activeColor: Theme.secondary
+                    onMoved: value => root.seekTo(value)
+                }
+
+                M3Text {
+                    id: timeTotal
+                    anchors.verticalCenter: parent.verticalCenter
+                    role: "labelSmall"
+                    text: root.player && root.player.lengthSupported
+                        ? root.formatTime(root.player.length) : "--:--"
+                    color: Theme.textSecondary
+                    font.weight: Font.Medium
+                }
             }
         }
     }

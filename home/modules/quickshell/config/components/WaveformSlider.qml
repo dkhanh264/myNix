@@ -98,8 +98,15 @@ Item {
         id: waveform
         anchors.fill: parent
         antialiasing: true
+        smooth: true
+        renderTarget: Canvas.FramebufferObject
         renderStrategy: Canvas.Cooperative
         property real wavePhase: 0
+
+        layer.enabled: true
+        layer.smooth: true
+        layer.mipmap: true
+        layer.samples: 8
 
         onWavePhaseChanged: requestPaint()
         Component.onCompleted: requestPaint()
@@ -123,7 +130,7 @@ Item {
             const gap = handleW + gapSize;
             const activeEnd = Math.max(edge, progressX - gap / 2);
             const inactiveStart = Math.min(width - edge, progressX + gap / 2);
-            const amplitude = root.interacting ? 5.2 : 4.2;
+            const amplitude = root.interacting ? 2.8 : 2.0;
             const frequency = Math.PI * 2 / 38;
 
             ctx.reset();
@@ -133,9 +140,9 @@ Item {
 
             if (root.displayProgress > 0.002 && activeEnd > edge) {
                 ctx.strokeStyle = root.activeColor;
-                ctx.lineWidth = root.interacting ? 5.5 : 5.0;
+                ctx.lineWidth = root.interacting ? 4.4 : 3.8;
                 ctx.beginPath();
-                for (let x = edge; x <= activeEnd; x += 1) {
+                for (let x = edge; x <= activeEnd; x += 0.5) {
                     const y = centerY + Math.sin(
                         (x - edge) * frequency + waveform.wavePhase)
                         * amplitude;
@@ -150,7 +157,7 @@ Item {
             if (root.displayProgress < 0.998
                     && inactiveStart < width - edge) {
                 ctx.strokeStyle = root.inactiveColor;
-                ctx.lineWidth = 4.0;
+                ctx.lineWidth = 3.0;
                 ctx.beginPath();
                 ctx.moveTo(inactiveStart, centerY);
                 ctx.lineTo(width - edge, centerY);
@@ -161,7 +168,7 @@ Item {
             // endpoint readable without a heavy enclosing track.
             ctx.fillStyle = root.activeColor;
             ctx.beginPath();
-            ctx.arc(width - edge, centerY, 1.6, 0,
+            ctx.arc(width - edge, centerY, 1.4, 0,
                 Math.PI * 2, false);
             ctx.fill();
         }
@@ -170,8 +177,8 @@ Item {
     // Vertical Line Handle / Thumb track indicator (matching ExpressiveSlider)
     Rectangle {
         id: handle
-        width: root.interacting ? 5 : (root.hovered ? 4 : 4)
-        height: root.interacting ? 30 : (root.hovered ? 28 : 26)
+        width: root.interacting ? 4 : (root.hovered ? 3 : 3)
+        height: root.interacting ? 22 : (root.hovered ? 20 : 18)
         radius: width / 2
         anchors.verticalCenter: parent.verticalCenter
         x: Math.max(0, Math.min(parent.width - width, root.handleCenter - width / 2))

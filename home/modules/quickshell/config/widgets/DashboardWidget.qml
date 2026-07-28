@@ -27,60 +27,42 @@ Item {
     readonly property string trackTitle: player && player.trackTitle ? player.trackTitle : I18n.tr("Không có nhạc", "Nothing playing")
     readonly property string trackArtist: player && player.trackArtist ? player.trackArtist : I18n.tr("Trình phát nhạc", "Media Player")
 
-    property string currentLyricsTrack: ""
-    property string lyricsQuery: ""
-    property string sptlrxCurrentLine: ""
+    // Lyrics & Playback Position Properties
     property var syncedLyricsData: []
     property int activeLyricIndex: -1
-    property var lyricsList: [I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"), I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")]
-
+    property var lyricsList: []
     property real currentPlaybackPosition: 0
 
-    // sptlrx CLI Integration (sptlrx pipe -p mpris)
-    Process {
-        id: sptlrxProcess
-        command: ["sptlrx", "pipe", "-p", "mpris"]
-        running: root.visible && root.isPlaying
-        stdout: SplitParser {
-            onRead: data => {
-                const line = (data || "").trim();
-                if (line.length > 0) {
-                    root.sptlrxCurrentLine = line;
-                    if (root.lyricsList && root.lyricsList.length > 0) {
-                        for (let i = 0; i < root.lyricsList.length; i++) {
-                            const l = root.lyricsList[i].trim();
-                            if (l === line || (line.length > 5 && l.includes(line)) || (l.length > 5 && line.includes(l))) {
-                                if (root.activeLyricIndex !== i) {
-                                    root.activeLyricIndex = i;
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     Timer {
-        id: lyricsPosTimer
-        interval: 200
+        id: playbackPosTimer
+        interval: 250
         repeat: true
-        running: root.visible && root.isPlaying && root.syncedLyricsData.length > 0
+        running: root.visible && root.isPlaying
+        triggeredOnStart: true
         onTriggered: {
-            if (root.player) {
+            if (root.player && root.player.positionSupported) {
                 root.currentPlaybackPosition = root.player.position;
             }
         }
     }
 
     onCurrentPlaybackPositionChanged: {
-        if (!syncedLyricsData || syncedLyricsData.length === 0)
+        const data = syncedLyricsData;
+        if (!data || data.length === 0)
             return;
         const pos = currentPlaybackPosition;
+        const curIdx = activeLyricIndex;
+
+        if (curIdx >= 0 && curIdx < data.length) {
+            const curTime = data[curIdx].time;
+            const nextTime = (curIdx + 1 < data.length) ? data[curIdx + 1].time : Infinity;
+            if (pos >= curTime && pos < nextTime)
+                return;
+        }
+
         let idx = -1;
-        for (let i = 0; i < syncedLyricsData.length; i++) {
-            if (pos >= syncedLyricsData[i].time) {
+        for (let i = 0; i < data.length; i++) {
+            if (pos >= data[i].time) {
                 idx = i;
             } else {
                 break;
@@ -89,6 +71,108 @@ Item {
         if (idx !== activeLyricIndex) {
             activeLyricIndex = idx;
         }
+    }
+
+    function parseLrc(syncedText) {
+        if (!syncedText)
+            return [];
+        const lines = syncedText.split("\n");
+        const list = [];
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            const match = line.match(/^\[(\d+):(\d+)(?:[\.\:](\d+))?\]\s*(.*)$/);
+            if (match) {
+                const min = parseInt(match[1]) || 0;
+                const sec = parseInt(match[2]) || 0;
+                const msStr = match[3] || "0";
+                const ms = parseInt(msStr) / (msStr.length === 2 ? 100 : 1000);
+                const time = min * 60 + sec + ms;
+                const txt = match[4].trim();
+                if (txt.length > 0) {
+                    list.push({
+                        time: time,
+                        text: txt
+                    });
+                }
+            }
+        }
+        return list;
+    }
+
+    function fetchLyrics() {
+        if (!player || !player.trackTitle || player.trackTitle === I18n.tr("Không có nhạc", "Nothing playing")) {
+            syncedLyricsData = [];
+            activeLyricIndex = -1;
+            lyricsList = [];
+            return;
+        }
+        const title = player.trackTitle || "";
+        const artist = (player.trackArtist && player.trackArtist !== I18n.tr("Trình phát nhạc", "Media Player")) ? player.trackArtist : "";
+        const query = (title + " " + artist).trim();
+
+        if (!query || query.length === 0)
+            return;
+
+        const searchUrl = "https://lrclib.net/api/search?q=" + encodeURIComponent(query);
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", searchUrl);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200 && xhr.responseText) {
+                    try {
+                        const parsed = JSON.parse(xhr.responseText);
+                        let target = null;
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            target = parsed[0];
+                        } else if (parsed && (parsed.plainLyrics || parsed.syncedLyrics)) {
+                            target = parsed;
+                        }
+
+                        if (target) {
+                            if (target.syncedLyrics && target.syncedLyrics.length > 0) {
+                                const lrcData = parseLrc(target.syncedLyrics);
+                                if (lrcData.length > 0) {
+                                    root.syncedLyricsData = lrcData;
+                                    root.activeLyricIndex = -1;
+                                    root.lyricsList = lrcData.map(item => item.text);
+                                    return;
+                                }
+                            }
+                            if (target.plainLyrics && target.plainLyrics.length > 0) {
+                                root.syncedLyricsData = [];
+                                root.activeLyricIndex = -1;
+                                let raw = target.plainLyrics.replace(/\[\d+:\d+[\.\:]\d+\]/g, "");
+                                const lines = raw.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+                                if (lines.length > 0) {
+                                    root.lyricsList = lines;
+                                    return;
+                                }
+                            }
+                        }
+                    } catch (e) {}
+                }
+                root.syncedLyricsData = [];
+                root.activeLyricIndex = -1;
+                root.lyricsList = [];
+            }
+        };
+        xhr.send();
+    }
+
+    onTrackTitleChanged: fetchLyrics()
+    onTrackArtistChanged: fetchLyrics()
+
+    function formatTime(seconds) {
+        const safe = Math.max(0, Math.floor(Number(seconds) || 0));
+        const minutes = Math.floor(safe / 60);
+        const remainder = safe % 60;
+        return minutes + ":" + (remainder < 10 ? "0" : "") + remainder;
+    }
+
+    function seekTo(position) {
+        if (!player || !player.canSeek || !player.lengthSupported)
+            return;
+        player.position = Math.max(0, Math.min(player.length, position));
     }
 
     // Dynamic System Info Properties
@@ -162,105 +246,6 @@ Item {
             fetchLyrics();
         }
     }
-
-    Timer {
-        id: initLyricsTimer
-        interval: 300
-        repeat: false
-        running: true
-        onTriggered: fetchLyrics()
-    }
-
-    function parseLrc(syncedText) {
-        if (!syncedText)
-            return [];
-        const lines = syncedText.split("\n");
-        const list = [];
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-            const match = line.match(/^\[(\d+):(\d+)(?:[\.\:](\d+))?\]\s*(.*)$/);
-            if (match) {
-                const min = parseInt(match[1]) || 0;
-                const sec = parseInt(match[2]) || 0;
-                const msStr = match[3] || "0";
-                const ms = parseInt(msStr) / (msStr.length === 2 ? 100 : 1000);
-                const time = min * 60 + sec + ms;
-                const txt = match[4].trim();
-                if (txt.length > 0) {
-                    list.push({
-                        time: time,
-                        text: txt
-                    });
-                }
-            }
-        }
-        return list;
-    }
-
-    function fetchLyrics() {
-        if (!player || !player.trackTitle || player.trackTitle === I18n.tr("Không có nhạc", "Nothing playing")) {
-            syncedLyricsData = [];
-            activeLyricIndex = -1;
-            lyricsList = [I18n.tr("♫ Chưa có bài hát đang phát", "♫ No track playing"), I18n.tr("Hãy phát một bản nhạc để xem lời bài hát", "Play a song to view lyrics")];
-            return;
-        }
-        const title = player.trackTitle || "";
-        const artist = (player.trackArtist && player.trackArtist !== I18n.tr("Trình phát nhạc", "Media Player")) ? player.trackArtist : "";
-        const query = (title + " " + artist).trim();
-
-        if (!query || query.length === 0)
-            return;
-
-        lyricsList = ["♫ " + title, "Ca sĩ: " + (artist || "Chưa rõ"), "Đang tải lời bài hát..."];
-
-        const searchUrl = "https://lrclib.net/api/search?q=" + encodeURIComponent(query);
-        const xhr = new XMLHttpRequest();
-        xhr.open("GET", searchUrl);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                if (xhr.status === 200 && xhr.responseText) {
-                    try {
-                        const parsed = JSON.parse(xhr.responseText);
-                        let target = null;
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            target = parsed[0];
-                        } else if (parsed && (parsed.plainLyrics || parsed.syncedLyrics)) {
-                            target = parsed;
-                        }
-
-                        if (target) {
-                            if (target.syncedLyrics && target.syncedLyrics.length > 0) {
-                                const lrcData = parseLrc(target.syncedLyrics);
-                                if (lrcData.length > 0) {
-                                    root.syncedLyricsData = lrcData;
-                                    root.activeLyricIndex = -1;
-                                    root.lyricsList = lrcData.map(item => item.text);
-                                    return;
-                                }
-                            }
-                            if (target.plainLyrics && target.plainLyrics.length > 0) {
-                                root.syncedLyricsData = [];
-                                root.activeLyricIndex = -1;
-                                let raw = target.plainLyrics.replace(/\[\d+:\d+[\.\:]\d+\]/g, "");
-                                const lines = raw.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-                                if (lines.length > 0) {
-                                    root.lyricsList = lines;
-                                    return;
-                                }
-                            }
-                        }
-                    } catch (e) {}
-                }
-                root.syncedLyricsData = [];
-                root.activeLyricIndex = -1;
-                root.lyricsList = ["♫ " + title, "Ca sĩ: " + (artist || "Chưa rõ"), "", "Chưa tìm thấy lời bài hát trực tuyến.", "Hãy tận hưởng những giai điệu âm nhạc tuyệt vời!"];
-            }
-        };
-        xhr.send();
-    }
-
-    onTrackTitleChanged: fetchLyrics()
-    onTrackArtistChanged: fetchLyrics()
 
     onIsPlayingChanged: {
         if (controller && controller.setCavaActive)
@@ -1292,306 +1277,25 @@ Item {
                 }
             }
 
-            // ================= RIGHT COLUMN: MASTER MEDIA (TOP) & WEATHER + CALENDAR (BOTTOM) =================
-            ColumnLayout {
+            // ================= RIGHT SECTION: LEFT SUB-COLUMN (WEATHER TOP, CALENDAR BOTTOM) & RIGHTMOST VERTICAL MUSIC CARD =================
+            RowLayout {
                 Layout.fillWidth: true
                 Layout.preferredWidth: (parent.width - parent.spacing) * 0.5
                 Layout.fillHeight: true
                 spacing: Theme.space3
 
-                // 1. TOP ROW: UNIFIED MASTER MUSIC & LYRICS CARD
-                Rectangle {
+                // 1. LEFT SUB-COLUMN (50% WIDTH): WEATHER CARD (TOP) & CALENDAR CARD (BOTTOM)
+                ColumnLayout {
                     Layout.fillWidth: true
+                    Layout.preferredWidth: (parent.width - parent.spacing) * 0.5
                     Layout.fillHeight: true
-                    Layout.preferredHeight: 1.45
-                    radius: Theme.cardRadius
-                    color: Theme.surfaceContainer
-                    border.width: 1
-                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: Theme.space3
-                        spacing: Theme.space3
-
-                        // Left Part of Music Card: Album Art, Info & Controls
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 0.48
-                            Layout.fillHeight: true
-                            spacing: Theme.space2
-
-                            // Top Header with Spinning Record & Track Info
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: Theme.space2
-
-                                Item {
-                                    id: spinningRecord
-                                    width: 48
-                                    height: 48
-                                    rotation: 0
-
-                                    NumberAnimation on rotation {
-                                        from: 0
-                                        to: 360
-                                        duration: 8000
-                                        loops: Animation.Infinite
-                                        running: root.isPlaying && !Theme.reduceMotion
-                                    }
-
-                                    CircularAlbumArt {
-                                        anchors.fill: parent
-                                        source: root.player ? root.player.trackArtUrl : ""
-                                        accentColor: Theme.secondary
-                                    }
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 0
-
-                                    M3Text {
-                                        Layout.fillWidth: true
-                                        role: "titleMedium"
-                                        text: root.trackTitle
-                                        color: Theme.textPrimary
-                                        font.weight: Font.Bold
-                                        elide: Text.ElideRight
-                                    }
-
-                                    M3Text {
-                                        Layout.fillWidth: true
-                                        role: "labelMedium"
-                                        text: root.trackArtist
-                                        color: Theme.textSecondary
-                                        elide: Text.ElideRight
-                                    }
-                                }
-                            }
-
-                            Item {
-                                Layout.fillHeight: true
-                            }
-
-                            // Navigation Controls Row
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter
-                                spacing: Theme.space2
-
-                                IconButton {
-                                    buttonSize: 32
-                                    iconSize: 18
-                                    icon: "skip_previous"
-                                    enabled: root.player && root.player.canGoPrevious
-                                    onClicked: root.player ? root.player.previous() : null
-                                }
-
-                                IconButton {
-                                    buttonSize: 38
-                                    iconSize: 22
-                                    icon: root.isPlaying ? "pause" : "play_arrow"
-                                    fillColor: Theme.primary
-                                    foregroundColor: Theme.onPrimary
-                                    enabled: root.player && root.player.canTogglePlaying
-                                    onClicked: root.player ? root.player.togglePlaying() : null
-                                }
-
-                                IconButton {
-                                    buttonSize: 32
-                                    iconSize: 18
-                                    icon: "skip_next"
-                                    enabled: root.player && root.player.canGoNext
-                                    onClicked: root.player ? root.player.next() : null
-                                }
-                            }
-
-                            Item {
-                                Layout.fillHeight: true
-                            }
-
-                            // Cava Spectrum Audio Visualizer Bars
-                            Row {
-                                id: cavaRow
-                                Layout.fillWidth: true
-                                height: 18
-                                spacing: 3
-
-                                Repeater {
-                                    model: 12
-
-                                    Rectangle {
-                                        required property int index
-                                        readonly property real barVal: {
-                                            if (!root.controller || !root.controller.cavaBars || root.controller.cavaBars.length <= index)
-                                                return 0;
-                                            return root.controller.cavaBars[index] || 0;
-                                        }
-                                        readonly property real targetHeight: Math.max(3, (barVal / 100) * 18)
-
-                                        width: Math.max(2, (cavaRow.width - (11 * 3)) / 12)
-                                        height: targetHeight
-                                        radius: width / 2
-                                        anchors.bottom: parent.bottom
-                                        color: root.isPlaying ? Theme.blend(Theme.primary, Theme.secondary, index / 11) : Theme.alpha(Theme.textPrimary, 0.14)
-
-                                        Behavior on height {
-                                            NumberAnimation {
-                                                duration: Theme.reduceMotion ? 0 : 45
-                                                easing.type: Easing.OutCubic
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Vertical Divider Line between Music & Lyrics
-                        Rectangle {
-                            Layout.fillHeight: true
-                            width: 1
-                            color: Theme.alpha(Theme.outlineVariant, 0.3)
-                        }
-
-                        // Right Part of Music Card: Live Lyrics Column
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 0.52
-                            Layout.fillHeight: true
-                            spacing: Theme.space1
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 4
-
-                                MaterialIcon {
-                                    text: "lyrics"
-                                    iconSize: 16
-                                    color: Theme.secondary
-                                }
-
-                                M3Text {
-                                    role: "titleSmall"
-                                    text: I18n.tr("Lời bài hát", "Lyrics")
-                                    color: Theme.textPrimary
-                                    font.weight: Font.Bold
-                                }
-
-                                Rectangle {
-                                    visible: root.sptlrxCurrentLine !== ""
-                                    height: 18
-                                    radius: 9
-                                    color: Theme.alpha(Theme.primary, 0.15)
-                                    border.width: 1
-                                    border.color: Theme.alpha(Theme.primary, 0.3)
-                                    implicitWidth: sptlrxBadgeText.implicitWidth + 12
-
-                                    M3Text {
-                                        id: sptlrxBadgeText
-                                        anchors.centerIn: parent
-                                        role: "labelSmall"
-                                        text: "sptlrx sync"
-                                        color: Theme.primary
-                                        font.weight: Font.Bold
-                                    }
-                                }
-
-                                Item {
-                                    Layout.fillWidth: true
-                                }
-
-                                IconButton {
-                                    buttonSize: 22
-                                    iconSize: 13
-                                    icon: "refresh"
-                                    accessibleName: I18n.tr("Tải lại lời bài hát", "Reload lyrics")
-                                    onClicked: root.fetchLyrics()
-                                }
-                            }
-
-                            Flickable {
-                                id: lyricsFlickable
-                                Layout.fillWidth: true
-                                Layout.fillHeight: true
-                                contentWidth: lyricsColumn.width
-                                contentHeight: lyricsColumn.height
-                                clip: true
-                                boundsBehavior: Flickable.StopAtBounds
-
-                                Behavior on contentY {
-                                    NumberAnimation {
-                                        duration: 350
-                                        easing.type: Easing.OutQuad
-                                    }
-                                }
-
-                                Column {
-                                    id: lyricsColumn
-                                    width: lyricsFlickable.width
-                                    spacing: 8
-
-                                    Repeater {
-                                        id: lyricsRepeater
-                                        model: root.lyricsList
-
-                                        RowLayout {
-                                            required property string modelData
-                                            required property int index
-                                            width: lyricsColumn.width
-                                            spacing: 6
-
-                                            readonly property bool isActive: root.syncedLyricsData.length > 0 ? (index === root.activeLyricIndex) : (index === 0 && root.isPlaying)
-
-                                            onIsActiveChanged: {
-                                                if (isActive && root.syncedLyricsData.length > 0) {
-                                                    const targetY = y - (lyricsFlickable.height / 2) + (height / 2);
-                                                    lyricsFlickable.contentY = Math.max(0, Math.min(lyricsColumn.height - lyricsFlickable.height, targetY));
-                                                }
-                                            }
-
-                                            Rectangle {
-                                                width: 6
-                                                height: 6
-                                                radius: 3
-                                                color: Theme.primary
-                                                visible: parent.isActive
-                                                Layout.alignment: Qt.AlignVCenter
-                                            }
-
-                                            M3Text {
-                                                Layout.fillWidth: true
-                                                role: parent.isActive ? "titleSmall" : "labelMedium"
-                                                text: modelData
-                                                color: parent.isActive ? Theme.primary : Theme.textSecondary
-                                                font.weight: parent.isActive ? Font.Bold : Font.Normal
-                                                opacity: parent.isActive ? 1.0 : 0.65
-                                                wrapMode: Text.WordWrap
-
-                                                Behavior on color {
-                                                    ColorAnimation { duration: 200 }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 2. BOTTOM ROW: WEATHER CARD (36% WIDTH) & CALENDAR CARD (64% WIDTH)
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: 1.55
                     spacing: Theme.space3
 
-                    // Sub-Card 2A: Weather Card (~36% width)
+                    // Sub-Card 1A: Weather Card (Spacious & Clean, Top)
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 0.36
                         Layout.fillHeight: true
+                        Layout.preferredHeight: 1
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
                         border.width: 1
@@ -1600,9 +1304,9 @@ Item {
                         ColumnLayout {
                             anchors.fill: parent
                             anchors.margins: Theme.space3
-                            spacing: Theme.space1
+                            spacing: Theme.space2
 
-                            // Top Header: Weather Icon + Refresh Button
+                            // Top Header: Weather Icon Sticker + Refresh Button
                             RowLayout {
                                 Layout.fillWidth: true
 
@@ -1660,10 +1364,10 @@ Item {
 
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                spacing: 0
+                                spacing: 2
 
                                 M3Text {
-                                    role: "headlineMedium"
+                                    role: "displaySmall"
                                     text: root.controller && root.controller.weatherTemperature !== undefined ? root.controller.weatherTemperature + "°C" : "--°C"
                                     color: Theme.textPrimary
                                     font.weight: Font.Bold
@@ -1671,7 +1375,7 @@ Item {
 
                                 M3Text {
                                     Layout.fillWidth: true
-                                    role: "titleSmall"
+                                    role: "titleMedium"
                                     text: root.controller && root.controller.weatherDescription ? root.controller.weatherDescription : I18n.tr("Thời tiết", "Weather")
                                     color: Theme.tertiary
                                     font.weight: Font.Bold
@@ -1680,7 +1384,7 @@ Item {
 
                                 M3Text {
                                     Layout.fillWidth: true
-                                    role: "labelSmall"
+                                    role: "labelMedium"
                                     text: root.controller && root.controller.weatherLocation ? root.controller.weatherLocation : I18n.tr("Hệ thống", "System")
                                     color: Theme.textSecondary
                                     elide: Text.ElideRight
@@ -1689,12 +1393,12 @@ Item {
                         }
                     }
 
-                    // Sub-Card 2B: Calendar Card (~64% width, spacious & clean)
+                    // Sub-Card 1B: Calendar Card (Spacious & Clean, Bottom)
                     Rectangle {
                         id: miniCalendarCard
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 0.64
                         Layout.fillHeight: true
+                        Layout.preferredHeight: 1
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
                         border.width: 1
@@ -1707,6 +1411,21 @@ Item {
                         readonly property int daysInMonth: new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 0).getDate()
                         readonly property var viDayNames: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
                         readonly property var viMonths: ["Thg 1", "Thg 2", "Thg 3", "Thg 4", "Thg 5", "Thg 6", "Thg 7", "Thg 8", "Thg 9", "Thg 10", "Thg 11", "Thg 12"]
+
+                        function hasEvents(day) {
+                            if (!root.controller || day <= 0) return false;
+                            const y = displayDate.getFullYear();
+                            const m = String(displayDate.getMonth() + 1).padStart(2, "0");
+                            const d = String(day).padStart(2, "0");
+                            const key = `${y}-${m}-${d}`;
+                            if (root.controller.calendarEvents) {
+                                for (let i = 0; i < root.controller.calendarEvents.count; ++i) {
+                                    if (root.controller.calendarEvents.get(i).dateText === key)
+                                        return true;
+                                }
+                            }
+                            return false;
+                        }
 
                         ColumnLayout {
                             anchors.fill: parent
@@ -1788,6 +1507,7 @@ Item {
                                     model: 35
 
                                     Item {
+                                        id: dayCell
                                         required property int index
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
@@ -1795,22 +1515,348 @@ Item {
                                         readonly property int dayNum: index - miniCalendarCard.firstDayOffset + 1
                                         readonly property bool isValid: dayNum >= 1 && dayNum <= miniCalendarCard.daysInMonth
                                         readonly property bool isToday: isValid && miniCalendarCard.monthOffset === 0 && dayNum === miniCalendarCard.currentDate.getDate()
+                                        readonly property bool hasEvent: isValid && miniCalendarCard.hasEvents(dayNum)
 
-                                        Rectangle {
+                                        Item {
                                             anchors.centerIn: parent
                                             width: Math.min(parent.width, parent.height)
                                             height: width
-                                            radius: width / 2
-                                            color: isToday ? Theme.primary : "transparent"
+
+                                            // MD3 Expressive Shape Background for Today or Event Days
+                                            Md3ExpressiveShape {
+                                                anchors.centerIn: parent
+                                                size: Math.min(parent.width, parent.height) * 0.90
+                                                shapeName: dayCell.isToday ? "cookie4" : (dayCell.hasEvent ? "softSquare" : "circle")
+                                                color: dayCell.isToday ? Theme.primary : (dayCell.hasEvent ? Theme.alpha(Theme.primary, 0.25) : "transparent")
+                                                visible: dayCell.isValid && (dayCell.isToday || dayCell.hasEvent)
+                                            }
 
                                             M3Text {
                                                 anchors.centerIn: parent
                                                 role: "labelMedium"
-                                                text: parent.parent.isValid ? parent.parent.dayNum : ""
-                                                color: parent.parent.isToday ? Theme.onPrimary : (parent.parent.index % 7 >= 5 ? Theme.primary : Theme.textPrimary)
-                                                font.weight: parent.parent.isToday ? Font.Bold : Font.Medium
-                                                opacity: parent.parent.isValid ? 1.0 : 0.0
+                                                text: dayCell.isValid ? dayCell.dayNum : ""
+                                                color: dayCell.isToday ? Theme.onPrimary : (dayCell.hasEvent ? Theme.primary : (dayCell.index % 7 >= 5 ? Theme.primary : Theme.textPrimary))
+                                                font.weight: (dayCell.isToday || dayCell.hasEvent) ? Font.Bold : Font.Medium
+                                                opacity: dayCell.isValid ? 1.0 : 0.0
                                             }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 2. RIGHT SUB-COLUMN (OUTERMOST RIGHT EDGE - 50% WIDTH): REBUILT VERTICAL MUSIC CARD
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: (parent.width - parent.spacing) * 0.5
+                    Layout.fillHeight: true
+                    radius: 22
+                    color: Theme.surfaceContainer
+                    border.width: 1
+                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+                    clip: true
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 0
+
+                        // ================= TOP HALF: RECTANGULAR ALBUM ART & LYRICS OVERLAY =================
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.preferredHeight: 1.1
+
+                            // Concentric Inner Rounded Container (Outer: 22px - Padding: 10px = Inner: 12px)
+                            Rectangle {
+                                id: albumArtBox
+                                width: parent.width - 23
+                                height: parent.height - 23
+                                anchors.centerIn: parent
+                                radius: 12
+                                color: Theme.surfaceContainerHigh
+                                border.width: 1
+                                border.color: Theme.alpha(Theme.primary, 0.25)
+                                layer.enabled: true
+                                clip: true
+
+                                // Mask for Concentric 12px Rounded Corner Clipping
+                                Item {
+                                    id: albumArtMaskItem
+                                    anchors.fill: parent
+                                    visible: false
+                                    layer.enabled: true
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        radius: 12
+                                        color: "black"
+                                    }
+                                }
+
+                                // Raw Album Art Cover Image (Hidden, processed by MultiEffect mask)
+                                Image {
+                                    id: albumArtImage
+                                    anchors.fill: parent
+                                    source: root.player ? root.player.trackArtUrl : ""
+                                    fillMode: Image.PreserveAspectCrop
+                                    visible: false
+                                }
+
+                                // Hardware-Accelerated Concentric Rounded Album Art Image
+                                MultiEffect {
+                                    anchors.fill: parent
+                                    source: albumArtImage
+                                    maskEnabled: true
+                                    maskSource: albumArtMaskItem
+                                    autoPaddingEnabled: false
+                                    visible: albumArtImage.status === Image.Ready && root.player && root.player.trackArtUrl !== ""
+                                }
+
+                                // Fallback Icon when no image
+                                MaterialIcon {
+                                    anchors.centerIn: parent
+                                    text: "music_note"
+                                    iconSize: 42
+                                    color: Theme.alpha(Theme.textSecondary, 0.4)
+                                    visible: !albumArtImage.visible
+                                }
+
+                                // Dark Dimming Overlay when Lyrics exist (Matching 12px Inner Radius)
+                                Rectangle {
+                                    id: lyricsOverlayBg
+                                    anchors.fill: parent
+                                    anchors.margins: -1
+                                    radius: 13
+                                    color: Theme.alpha(Theme.surfaceContainerLowest, 0.85)
+                                    visible: root.lyricsList.length > 0
+                                    opacity: visible ? 1 : 0
+                                    Behavior on opacity { NumberAnimation { duration: 300 } }
+                                }
+
+                                // Hardware-Accelerated Smooth Karaoke Lyrics ListView
+                                ListView {
+                                    id: lyricsListView
+                                    anchors.fill: parent
+                                    anchors.margins: 10
+                                    clip: true
+                                    visible: root.lyricsList.length > 0
+                                    model: root.lyricsList
+                                    currentIndex: Math.max(0, root.activeLyricIndex)
+                                    preferredHighlightBegin: height / 2 - 18
+                                    preferredHighlightEnd: height / 2 + 18
+                                    highlightRangeMode: ListView.StrictlyEnforceRange
+                                    highlightMoveDuration: 350
+                                    interactive: false
+                                    spacing: 4
+
+                                    delegate: Item {
+                                        required property string modelData
+                                        required property int index
+                                        readonly property bool isCurrent: index === lyricsListView.currentIndex
+
+                                        width: lyricsListView.width
+                                        height: lyricText.implicitHeight + 6
+
+                                        M3Text {
+                                            id: lyricText
+                                            anchors.centerIn: parent
+                                            width: parent.width - 12
+                                            horizontalAlignment: Text.AlignHCenter
+                                            role: isCurrent ? "titleSmall" : "labelMedium"
+                                            text: modelData
+                                            color: isCurrent ? Theme.primary : Theme.textSecondary
+                                            font.weight: isCurrent ? Font.Bold : Font.Medium
+                                            wrapMode: Text.WordWrap
+                                            elide: Text.ElideRight
+                                            maximumLineCount: 2
+                                            opacity: isCurrent ? 1.0 : (Math.abs(index - lyricsListView.currentIndex) === 1 ? 0.45 : 0.20)
+                                            scale: isCurrent ? 1.04 : 0.96
+
+                                            Behavior on opacity { NumberAnimation { duration: 250 } }
+                                            Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
+                                            Behavior on color { ColorAnimation { duration: 250 } }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // ================= BOTTOM HALF: METADATA, TRACK SLIDER & MUSIC CONTROLS =================
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.preferredHeight: 1
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: Theme.space3
+                                spacing: Theme.space2
+
+                                // 1. Track Metadata (Title & Artist)
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        horizontalAlignment: Text.AlignHCenter
+                                        role: "titleMedium"
+                                        text: root.trackTitle
+                                        color: Theme.textPrimary
+                                        font.weight: Font.Bold
+                                        elide: Text.ElideRight
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        horizontalAlignment: Text.AlignHCenter
+                                        role: "labelMedium"
+                                        text: root.trackArtist
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                Item {
+                                    Layout.fillHeight: true
+                                }
+
+                                // 2. Track Position Slider Bar (Thanh Track) with Timestamps
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
+
+                                    WaveformSlider {
+                                        id: trackSlider
+                                        Layout.fillWidth: true
+                                        from: 0
+                                        to: root.player && root.player.lengthSupported ? root.player.length : 1
+                                        value: root.currentPlaybackPosition
+                                        enabled: root.player && root.player.canSeek && root.player.lengthSupported && root.player.length > 0
+                                        animated: root.player && root.player.isPlaying
+                                        activeColor: Theme.primary
+                                        onMoved: val => root.seekTo(val)
+                                    }
+
+                                    RowLayout {
+                                        Layout.fillWidth: true
+
+                                        M3Text {
+                                            role: "labelSmall"
+                                            text: root.formatTime(root.currentPlaybackPosition)
+                                            color: Theme.textSecondary
+                                        }
+
+                                        Item {
+                                            Layout.fillWidth: true
+                                        }
+
+                                        M3Text {
+                                            role: "labelSmall"
+                                            text: root.player && root.player.lengthSupported ? root.formatTime(root.player.length) : "--:--"
+                                            color: Theme.textSecondary
+                                        }
+                                    }
+                                }
+
+                                Item {
+                                    Layout.fillHeight: true
+                                }
+
+                                // 3. Media Control Buttons (Vibrant Solid Square Buttons with White Icons)
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: Theme.space2
+
+                                    // Button 1: Previous Track (Lighter Play Button Tint Background with Primary Accent Icon)
+                                    Rectangle {
+                                        id: prevBtn
+                                        Layout.fillWidth: true
+                                        Layout.preferredWidth: 1
+                                        implicitHeight: 48
+                                        radius: Theme.shapeMedium
+                                        color: prevMouse.pressed ? Theme.alpha(Theme.primary, 0.35) : (prevMouse.containsMouse ? Theme.alpha(Theme.primary, 0.25) : Theme.alpha(Theme.primary, 0.16))
+                                        opacity: root.player && root.player.canGoPrevious ? 1.0 : 0.45
+
+                                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                                        MaterialIcon {
+                                            anchors.centerIn: parent
+                                            text: "skip_previous"
+                                            iconSize: 26
+                                            filled: true
+                                            color: Theme.primary
+                                        }
+
+                                        MouseArea {
+                                            id: prevMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            enabled: root.player && root.player.canGoPrevious
+                                            onClicked: if (root.player) root.player.previous()
+                                        }
+                                    }
+
+                                    // Button 2: Play / Pause (Bright Primary Accent Button with Pure White Icon)
+                                    Rectangle {
+                                        id: playPauseBtn
+                                        Layout.fillWidth: true
+                                        Layout.preferredWidth: 1
+                                        implicitHeight: 48
+                                        radius: Theme.shapeMedium
+                                        color: playMouse.pressed ? Theme.alpha(Theme.primary, 0.85) : (playMouse.containsMouse ? Qt.lighter(Theme.primary, 1.1) : Theme.primary)
+                                        opacity: root.player && root.player.canTogglePlaying ? 1.0 : 0.45
+
+                                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                                        MaterialIcon {
+                                            anchors.centerIn: parent
+                                            text: root.player && root.player.isPlaying ? "pause" : "play_arrow"
+                                            iconSize: 28
+                                            filled: true
+                                            color: "#ffffff"
+                                        }
+
+                                        MouseArea {
+                                            id: playMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            enabled: root.player && root.player.canTogglePlaying
+                                            onClicked: if (root.player && root.player.canTogglePlaying) root.player.togglePlaying()
+                                        }
+                                    }
+
+                                    // Button 3: Next Track (Lighter Play Button Tint Background with Primary Accent Icon)
+                                    Rectangle {
+                                        id: nextBtn
+                                        Layout.fillWidth: true
+                                        Layout.preferredWidth: 1
+                                        implicitHeight: 48
+                                        radius: Theme.shapeMedium
+                                        color: nextMouse.pressed ? Theme.alpha(Theme.primary, 0.35) : (nextMouse.containsMouse ? Theme.alpha(Theme.primary, 0.25) : Theme.alpha(Theme.primary, 0.16))
+                                        opacity: root.player && root.player.canGoNext ? 1.0 : 0.45
+
+                                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                                        MaterialIcon {
+                                            anchors.centerIn: parent
+                                            text: "skip_next"
+                                            iconSize: 26
+                                            filled: true
+                                            color: Theme.primary
+                                        }
+
+                                        MouseArea {
+                                            id: nextMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            enabled: root.player && root.player.canGoNext
+                                            onClicked: if (root.player) root.player.next()
                                         }
                                     }
                                 }

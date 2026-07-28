@@ -210,22 +210,20 @@ Item {
                     }
                 }
 
-                // Battery Icon
+                // Battery Icon (Horizontal Pill Style)
                 Item {
                     visible: root.controller && root.controller.batteryAvailable
-                    implicitWidth: 26
+                    implicitWidth: 36
                     implicitHeight: 28
                     anchors.verticalCenter: parent.verticalCenter
                     z: 1
 
-                    MaterialIcon {
+                    HorizontalBatteryIcon {
                         id: battIconComp
                         anchors.centerIn: parent
-                        text: root.batteryIcon()
-                        iconSize: 18
-                        color: root.controller && root.controller.batteryPercent <= 20
-                            ? Theme.error : Theme.tertiary
-                        filled: true
+                        percent: root.controller ? root.controller.batteryPercent : 100
+                        state: root.controller ? root.controller.batteryState : "Unknown"
+                        available: root.controller ? root.controller.batteryAvailable : false
                     }
 
                     MouseArea {
