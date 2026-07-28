@@ -7,9 +7,9 @@
       size = 11;
     };
     settings = {
-      # Keep the wallpaper blur visible without letting it compete with text.
-      # Window-level opacity stays at 100%, so only the background is tinted.
-      background_opacity = "0.72";
+      # Let the compositor blur show through while keeping glyphs fully opaque.
+      # A lighter tint avoids the dark "smoke" layer over the wallpaper.
+      background_opacity = "0.58";
       confirm_os_window_close = 0;
       enable_audio_bell = false;
       cursor_shape = "beam";

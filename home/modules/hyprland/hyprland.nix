@@ -150,17 +150,17 @@ in
         };
         blur = {
           enabled            = true;
-          size               = 12;
+          size               = 16;
           passes             = 2;
           new_optimizations  = true;
           ignore_opacity     = true;
           popups             = true;
           popups_ignorealpha = 0.05;
-          noise              = 0.015;
-          contrast           = 1.08;
-          brightness         = 0.92;
-          vibrancy           = 0.28;
-          vibrancy_darkness  = 0.12;
+          noise              = 0.008;
+          contrast           = 1.02;
+          brightness         = 1.02;
+          vibrancy           = 0.20;
+          vibrancy_darkness  = 0.08;
         };
       };
 
