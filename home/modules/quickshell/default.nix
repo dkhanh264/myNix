@@ -5,6 +5,7 @@
   # deduplicates packages that are also required elsewhere in the home config.
   home.packages = with pkgs; [
     quickshell
+    gpu-screen-recorder
     brightnessctl
     networkmanager
     networkmanagerapplet
@@ -29,6 +30,7 @@
     };
     Service = {
       ExecStart = "${pkgs.quickshell}/bin/quickshell";
+      Environment = "PATH=${pkgs.gpu-screen-recorder}/bin:/run/wrappers/bin:${config.home.profileDirectory}/bin:/run/current-system/sw/bin";
       Restart = "on-failure";
       RestartSec = "1s";
     };
