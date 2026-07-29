@@ -14,31 +14,13 @@ Item {
     property bool toastVisible: false
     property string toastTitle: ""
     property string toastBody: ""
-    property string toastIcon: "notifications"
-    property string toastImage: ""
+    property string toastIconSource: ""
+    property bool toastIsSystem: true
+    property int toastGeneration: 0
 
     signal popupRequested(string kind)
-    signal toastDismissed
-
-    function formatSourceUrl(rawUrl) {
-        if (!rawUrl || rawUrl.length === 0)
-            return "";
-        let str = String(rawUrl).trim();
-        if (str.startsWith("/") && !str.startsWith("//"))
-            return "file://" + str;
-        return str;
-    }
-
-    function getShapeTypeForNotification(iconStr, titleStr) {
-        let str = (iconStr || "") + (titleStr || "");
-        if (str.length === 0)
-            return 5;
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = (hash * 31 + str.charCodeAt(i)) & 0x7FFFFFFF;
-        }
-        return hash % 8;
-    }
+    signal toastActivated
+    signal toastHideFinished(int generation)
 
     // ── Water Drop State Machine ──
     // Phase 0: IDLE (2 separate pills)
@@ -52,6 +34,7 @@ Item {
     property real mergeProgress: 0.0 // 0.0 = separated, 1.0 = merged at center
     property real widthProgress: 0.0 // 0.0 = normalWidth, 1.0 = notifWidth
     property real notifOpacity: 0.0  // 0.0 = empty, 1.0 = text visible
+    property int hideGeneration: 0
 
     readonly property real clockImplicitWidth: clockPill.implicitWidth
     readonly property real weatherImplicitWidth: weatherPill.implicitWidth
@@ -73,7 +56,8 @@ Item {
         let bW = root.toastBody.length > 0 ? bodyText.implicitWidth : 0;
         return Math.min(maxNotifTextWidth, Math.max(tW, bW));
     }
-    readonly property real notifContentWidth: 28 + 8 + calcTextWidth + 24
+    readonly property real notifContentWidth: 28 + Theme.space2
+        + calcTextWidth + Theme.space1 * 2
     readonly property real notifWidth: Math.max(140, Math.min(440, notifContentWidth))
 
     implicitWidth: normalWidth + (notifWidth - normalWidth) * widthProgress
@@ -84,8 +68,10 @@ Item {
         hideAnim.stop();
         if (toastVisible)
             showAnim.restart();
-        else
+        else {
+            hideGeneration = toastGeneration;
             hideAnim.restart();
+        }
     }
 
     // ── Sequence 1: Show Notification (Merge -> Expand -> Show Text) ──
@@ -127,6 +113,7 @@ Item {
     // ── Sequence 2: Hide Notification (Empty Text -> Shrink Empty Pill -> Split Pills) ──
     SequentialAnimation {
         id: hideAnim
+        onFinished: root.toastHideFinished(root.hideGeneration)
 
         // Step 1: Text & icon fade out completely -> Empty Pill!
         ScriptAction { script: root.animPhase = 4 }
@@ -256,12 +243,14 @@ Item {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: root.toastDismissed()
+            onClicked: root.toastActivated()
         }
 
         Row {
-            anchors.centerIn: parent
-            spacing: 8
+            anchors.left: parent.left
+            anchors.leftMargin: Theme.space1
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: Theme.space2
 
             // Left Thumbnail / Avatar
             Item {
@@ -278,33 +267,44 @@ Item {
                     border.width: 1
                     border.color: Theme.alpha(Theme.primary, 0.35)
                     clip: true
-                    visible: notifImg.visible
+                    visible: !root.toastIsSystem
+                        && root.toastIconSource.length > 0
+                        && notifImg.status !== Image.Error
 
                     Image {
                         id: notifImg
                         anchors.fill: parent
-                        source: root.formatSourceUrl(root.toastImage)
-                        fillMode: Image.PreserveAspectCrop
+                        anchors.margins: 2
+                        source: root.toastIsSystem
+                            ? "" : root.toastIconSource
+                        fillMode: Image.PreserveAspectFit
                         asynchronous: true
-                        visible: root.toastImage.length > 0 && status === Image.Ready
+                        opacity: status === Image.Ready ? 1 : 0
                     }
                 }
 
                 Md3LoadingIndicator {
-                    visible: root.toastImage.length > 0
-                        && notifImg.status === Image.Loading
+                    visible: root.toastIsSystem
+                        || (!root.toastIsSystem
+                            && root.toastIconSource.length > 0
+                            && notifImg.status === Image.Loading)
                     anchors.centerIn: parent
                     size: 20
                     color: Theme.primary
                     active: visible && root.notifOpacity > 0.01
+                    accessibleName: root.toastIsSystem
+                        ? I18n.tr("Thông báo hệ thống",
+                            "System notification")
+                        : I18n.tr("Đang tải icon ứng dụng",
+                            "Loading application icon")
                 }
 
                 MaterialIcon {
-                    visible: !notifImg.visible
-                        && !(root.toastImage.length > 0
-                            && notifImg.status === Image.Loading)
+                    visible: !root.toastIsSystem
+                        && (root.toastIconSource.length === 0
+                            || notifImg.status === Image.Error)
                     anchors.centerIn: parent
-                    text: "notifications"
+                    text: "apps"
                     iconSize: Theme.iconSizeSmall
                     color: Theme.primary
                     filled: true
@@ -322,6 +322,7 @@ Item {
                     role: "labelSmall"
                     width: Math.min(root.maxNotifTextWidth, implicitWidth)
                     text: root.toastTitle
+                    textFormat: Text.PlainText
                     color: Theme.textPrimary
                     font.weight: Font.Bold
                     elide: Text.ElideRight
@@ -334,6 +335,7 @@ Item {
                     visible: root.toastBody.length > 0
                     width: Math.min(root.maxNotifTextWidth, implicitWidth)
                     text: root.toastBody
+                    textFormat: Text.PlainText
                     color: Theme.textSecondary
                     font.weight: Font.Medium
                     elide: Text.ElideRight

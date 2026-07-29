@@ -19,8 +19,24 @@ Item {
     onActiveChanged: activationPulse.restart()
 
     implicitHeight: 72
+    activeFocusOnTab: root.enabled
     opacity: enabled ? 1 : 0.42
     scale: primaryPointer.pressed ? 0.97 : 1.0
+
+    Accessible.role: Accessible.Button
+    Accessible.name: root.subtitle.length > 0
+        ? root.title + ", " + root.subtitle : root.title
+    Accessible.focusable: root.enabled
+
+    Keys.onPressed: event => {
+        if (!root.enabled
+                || (event.key !== Qt.Key_Return
+                    && event.key !== Qt.Key_Enter
+                    && event.key !== Qt.Key_Space))
+            return;
+        root.primaryClicked();
+        event.accepted = true;
+    }
 
     Rectangle {
         id: tileSurface
@@ -163,6 +179,16 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onPressed: mouse => ripple.burst(mouse.x, mouse.y)
         onClicked: root.primaryClicked()
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: 2
+        radius: tileSurface.radius
+        color: "transparent"
+        border.width: 2
+        border.color: Theme.primary
+        visible: root.activeFocus
     }
 
     Behavior on scale {

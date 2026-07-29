@@ -47,12 +47,22 @@ Rectangle {
         activeFocusOnTab: true
 
         Accessible.role: Accessible.Button
+        Accessible.focusable: true
         Accessible.name: root.controller && root.controller.wifiSsid
             ? I18n.tr("Wi-Fi đã kết nối ", "Wi-Fi connected to ")
                 + root.controller.wifiSsid
             : root.controller && root.controller.wifiEnabled
                 ? I18n.tr("Wi-Fi đang bật", "Wi-Fi is on")
                 : I18n.tr("Wi-Fi đang tắt", "Wi-Fi is off")
+
+        Keys.onPressed: event => {
+            if (event.key !== Qt.Key_Return
+                    && event.key !== Qt.Key_Enter
+                    && event.key !== Qt.Key_Space)
+                return;
+            root.expansionRequested(!root.expanded);
+            event.accepted = true;
+        }
 
         Rectangle {
             anchors.fill: parent

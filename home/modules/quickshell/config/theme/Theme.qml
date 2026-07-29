@@ -81,15 +81,15 @@ Singleton {
     readonly property color shadow: "transparent"
 
     // Translucent Blur Surfaces (Quickshell Glass)
-    readonly property color barSurface: alpha(blend(pureBlackMode ? "#05070a" : "#0c0f15", wallpaperPrimary, 0.08), 0.48)
-    readonly property color barSurfaceHover: alpha(blend(pureBlackMode ? "#0d1017" : "#121722", wallpaperPrimary, 0.13), 0.58)
-    readonly property color barSurfaceActive: alpha(blend(pureBlackMode ? "#141a27" : "#151b27", wallpaperPrimary, 0.25), 0.72)
+    readonly property color barSurface: alpha(blend(pureBlackMode ? "#05070a" : "#0c0f15", wallpaperPrimary, 0.08), 0.56)
+    readonly property color barSurfaceHover: alpha(blend(pureBlackMode ? "#0d1017" : "#121722", wallpaperPrimary, 0.13), 0.66)
+    readonly property color barSurfaceActive: alpha(blend(pureBlackMode ? "#141a27" : "#151b27", wallpaperPrimary, 0.25), 0.78)
     readonly property color barOutline: alpha(outline, 0.28)
     readonly property color barOutlineHover: alpha(textPrimary, 0.24)
     readonly property color barOutlineActive: alpha(primary, 0.52)
     readonly property color barOutlineAlert: alpha(error, 0.55)
-    readonly property color popupSurface: alpha(blend(pureBlackMode ? "#07090e" : "#0d1118", wallpaperPrimary, 0.09), 0.35)
-    readonly property color popupSurfaceStrong: alpha(pureBlackMode ? "#0a0e14" : "#121720", 0.70)
+    readonly property color popupSurface: alpha(blend(pureBlackMode ? "#07090e" : "#0d1118", wallpaperPrimary, 0.09), 0.52)
+    readonly property color popupSurfaceStrong: alpha(pureBlackMode ? "#0a0e14" : "#121720", 0.78)
     readonly property color lockSurfaceBackground: alpha(blend(pureBlackMode ? "#040508" : "#080a10", wallpaperPrimary, 0.05), 0.82)
     readonly property color lockSurfaceGlass: alpha(blend(pureBlackMode ? "#0d1017" : "#141824", wallpaperPrimary, 0.12), 0.55)
     readonly property color lockCardBackground: alpha(blend(surfaceContainerHigh, wallpaperSecondary, 0.10), 0.65)
@@ -219,8 +219,12 @@ Singleton {
     // dashboard canvas for each music-track frame.
     readonly property int ambientMotionInterval: 50
 
-    readonly property int popupTransitionDuration: reduceMotion ? 0 : 260
-    readonly property int popupHideDelay: reduceMotion ? 0 : popupTransitionDuration + 40
+    readonly property int popupTransitionDuration: reduceMotion ? 0 : 320
+    readonly property int popupCloseDuration: reduceMotion ? 0 : 220
+    readonly property int popupMorphDuration: reduceMotion ? 0 : 440
+    readonly property int popupContentExitDuration: reduceMotion ? 0 : 200
+    readonly property int popupHideDelay: reduceMotion ? 0
+        : popupCloseDuration + 20
 
     readonly property int motionShort: motionShort3
     readonly property int motionMedium: motionMedium2

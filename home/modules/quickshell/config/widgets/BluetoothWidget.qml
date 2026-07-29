@@ -46,9 +46,12 @@ Rectangle {
         y: 12
         width: parent.width - 24
         height: 64
-        activeFocusOnTab: true
+        activeFocusOnTab: root.controller
+            && root.controller.bluetoothAvailable
 
         Accessible.role: Accessible.Button
+        Accessible.focusable: root.controller
+            && root.controller.bluetoothAvailable
         Accessible.name: !root.controller
             ? I18n.tr("Điều khiển Bluetooth", "Bluetooth controls")
             : !root.controller.bluetoothAvailable
@@ -59,6 +62,17 @@ Rectangle {
                 ? root.controller.bluetoothConnectedCount
                     + I18n.tr(" thiết bị đã kết nối", " connected devices")
                 : I18n.tr("Bluetooth đang bật", "Bluetooth is on")
+
+        Keys.onPressed: event => {
+            if (!root.controller
+                    || !root.controller.bluetoothAvailable
+                    || (event.key !== Qt.Key_Return
+                        && event.key !== Qt.Key_Enter
+                        && event.key !== Qt.Key_Space))
+                return;
+            root.expansionRequested(!root.expanded);
+            event.accepted = true;
+        }
 
         Rectangle {
             anchors.fill: parent

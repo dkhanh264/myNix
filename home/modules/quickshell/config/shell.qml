@@ -14,19 +14,34 @@ ShellRoot {
     id: root
 
     property string activePopup: ""
+    property string previousPopup: ""
     property string popupScreen: ""
+    property string pendingPopup: ""
+    property string pendingPopupScreen: ""
+    property string deferredPopup: ""
+    property string deferredPopupScreen: ""
     property bool popupOpen: false
     property bool popupVisible: false
+    property bool popupMorphing: false
+    property bool popupMorphAnimationEnabled: false
+    property real popupMorphProgress: 1
+    property int popupMorphRevision: 0
 
     property string volumeOsdScreen: ""
     property bool volumeOsdVisible: false
 
     property string toastScreen: ""
     property bool toastVisible: false
+    property bool toastBusy: false
+    property bool toastClosing: false
+    property int toastGeneration: 0
     property string toastTitle: ""
     property string toastBody: ""
-    property string toastIcon: "notifications"
-    property string toastImage: ""
+    property string toastIconSource: ""
+    property bool toastIsSystem: true
+    property var toastNotification: null
+    property int toastNotificationId: 0
+    property var toastQueue: []
 
     SystemService {
         id: systemService
@@ -36,17 +51,62 @@ ShellRoot {
         target: systemService
         function onMessageChanged() {
             if (systemService.message && systemService.message.length > 0) {
-                root.showToast(I18n.tr("Hệ thống", "System"), systemService.message, "palette", "");
+                root.enqueueToast(I18n.tr("Hệ thống", "System"),
+                    systemService.message, "", true, null);
             }
         }
     }
 
     NotificationServer {
         id: notifServer
+        keepOnReload: false
+        actionsSupported: true
+        imageSupported: true
+
         onNotification: notification => {
-            const notifImg = notification.image || (notification.appIcon && (notification.appIcon.startsWith("/") || notification.appIcon.startsWith("file://") || notification.appIcon.startsWith("http")) ? notification.appIcon : "");
+            notification.tracked = true;
+            const resolvedAppIcon = root.notificationAppIcon(notification);
+            const systemNotification = root.isSystemNotification(
+                notification.appName, notification.desktopEntry,
+                resolvedAppIcon);
+            const appIcon = systemNotification
+                ? "" : (resolvedAppIcon || root.fallbackAppIcon());
             systemService.addNotificationToHistory(notification.summary, notification.appName, notification.body);
-            root.showToast(notification.summary, notification.body, notification.appName || "notifications", notifImg);
+            root.enqueueToast(notification.summary, notification.body,
+                appIcon, systemNotification, notification);
+        }
+    }
+
+    Instantiator {
+        model: notifServer.trackedNotifications
+
+        delegate: Connections {
+            required property var modelData
+            target: modelData
+
+            function onClosed(reason) {
+                root.handleNotificationClosed(modelData.id);
+            }
+
+            function onSummaryChanged() {
+                root.refreshTrackedNotification(modelData);
+            }
+
+            function onBodyChanged() {
+                root.refreshTrackedNotification(modelData);
+            }
+
+            function onAppNameChanged() {
+                root.refreshTrackedNotification(modelData);
+            }
+
+            function onAppIconChanged() {
+                root.refreshTrackedNotification(modelData);
+            }
+
+            function onDesktopEntryChanged() {
+                root.refreshTrackedNotification(modelData);
+            }
         }
     }
 
@@ -62,7 +122,11 @@ ShellRoot {
                     if (title.length > 0 && title !== lastTrack) {
                         lastTrack = title;
                         const artist = modelData.trackArtist || "";
-                        root.showToast("Đang phát", title + (artist ? " · " + artist : ""), "music", modelData.trackArtUrl || "");
+                        root.enqueueToast(I18n.tr("Đang phát", "Now playing"),
+                            title + (artist ? " · " + artist : ""),
+                            root.playerAppIcon(modelData)
+                                || root.fallbackAppIcon(),
+                            false, null);
                     }
                 }
             }
@@ -85,41 +149,259 @@ ShellRoot {
     Timer {
         id: toastTimer
         interval: 3500
-        onTriggered: {
-            root.toastVisible = false;
-            toastCleanupTimer.restart();
-        }
+        onTriggered: root.expireToast()
     }
 
     Timer {
-        id: toastCleanupTimer
-        interval: Theme.reduceMotion ? 0 : 320
-        onTriggered: {
-            if (root.toastVisible)
-                return;
-            root.toastTitle = "";
-            root.toastBody = "";
-            root.toastIcon = "notifications";
-            root.toastImage = "";
-            root.toastScreen = "";
-        }
+        id: toastHideFallbackTimer
+        interval: Theme.reduceMotion ? 1 : 700
+        onTriggered: root.finishToastHide(root.toastGeneration)
     }
 
-    function showToast(title, body, icon, image) {
-        toastCleanupTimer.stop();
-        toastTitle = title || "";
-        toastBody = body || "";
-        toastIcon = icon || "notifications";
-        toastImage = image || "";
-        toastScreen = focusedScreenName();
+    function stableIconSource(rawIcon) {
+        const icon = String(rawIcon || "").trim();
+        if (!icon)
+            return "";
+        if (icon.startsWith("/") && !icon.startsWith("//"))
+            return "file://" + icon;
+        if (icon.startsWith("file:") || icon.startsWith("image:")
+                || icon.startsWith("qrc:") || icon.startsWith("data:")
+                || icon.startsWith("http:") || icon.startsWith("https:"))
+            return icon;
+        return Quickshell.iconPath(icon, true);
+    }
+
+    function desktopEntryIcon(desktopEntry, appName) {
+        const rawEntry = String(desktopEntry || "").trim();
+        let entry = rawEntry ? DesktopEntries.byId(rawEntry) : null;
+        if (!entry && rawEntry.endsWith(".desktop"))
+            entry = DesktopEntries.byId(rawEntry.slice(0, -8));
+        if (!entry && appName)
+            entry = DesktopEntries.heuristicLookup(String(appName));
+        return entry ? stableIconSource(entry.icon) : "";
+    }
+
+    function notificationAppIcon(notification) {
+        const source = stableIconSource(notification
+            ? notification.appIcon : "");
+        return source || desktopEntryIcon(notification
+            ? notification.desktopEntry : "", notification
+                ? notification.appName : "");
+    }
+
+    function playerAppIcon(player) {
+        return player ? desktopEntryIcon(
+            player.desktopEntry, player.identity) : "";
+    }
+
+    function fallbackAppIcon() {
+        return stableIconSource("application-x-executable")
+            || stableIconSource("application-default-icon");
+    }
+
+    function isSystemNotification(appName, desktopEntry, appIcon) {
+        if (String(desktopEntry || "").trim())
+            return false;
+        const name = String(appName || "").trim().toLowerCase();
+        if (!name)
+            return !appIcon;
+        return [
+            "system", "system controls", "system theme",
+            "wallpaper", "screenshot", "m3-shell", "quickshell"
+        ].indexOf(name) >= 0;
+    }
+
+    function toastTargetScreen(requestedScreen) {
+        for (let index = 0; index < Quickshell.screens.length; ++index) {
+            if (Quickshell.screens[index].name === requestedScreen)
+                return requestedScreen;
+        }
+        return focusedScreenName();
+    }
+
+    function enqueueToast(title, body, iconSource, isSystem, notification) {
+        const notificationId = notification ? notification.id : 0;
+        const entry = {
+            "title": title || I18n.tr("Thông báo", "Notification"),
+            "body": body || "",
+            "iconSource": iconSource || "",
+            "isSystem": Boolean(isSystem),
+            "notification": notification || null,
+            "notificationId": notificationId,
+            "screen": focusedScreenName()
+        };
+
+        if (notificationId > 0 && toastBusy && !toastClosing
+                && toastNotificationId === notificationId) {
+            toastTitle = entry.title;
+            toastBody = entry.body;
+            toastIconSource = entry.iconSource;
+            toastIsSystem = entry.isSystem;
+            toastNotification = notification;
+            return;
+        }
+
+        if (notificationId > 0) {
+            const updatedQueue = [];
+            let replaced = false;
+            for (let index = 0; index < toastQueue.length; ++index) {
+                const queued = toastQueue[index];
+                if (queued.notificationId === notificationId) {
+                    entry.screen = queued.screen;
+                    updatedQueue.push(entry);
+                    replaced = true;
+                } else {
+                    updatedQueue.push(queued);
+                }
+            }
+            if (replaced) {
+                toastQueue = updatedQueue;
+                return;
+            }
+        }
+
+        toastQueue = toastQueue.concat([entry]);
+        showNextToast();
+    }
+
+    function showNextToast() {
+        if (toastBusy || toastQueue.length === 0)
+            return;
+        const entry = toastQueue[0];
+        toastQueue = toastQueue.slice(1);
+        toastBusy = true;
+        toastClosing = false;
+        toastTitle = entry.title;
+        toastBody = entry.body;
+        toastIconSource = entry.iconSource;
+        toastIsSystem = entry.isSystem;
+        toastNotification = entry.notification;
+        toastNotificationId = entry.notificationId;
+        toastScreen = toastTargetScreen(entry.screen);
+        toastGeneration += 1;
         toastVisible = true;
         toastTimer.restart();
     }
 
-    function hideToast() {
-        toastTimer.stop();
+    function beginToastHide() {
+        if (!toastBusy || toastClosing)
+            return;
+        toastClosing = true;
+        toastHideFallbackTimer.restart();
         toastVisible = false;
-        toastCleanupTimer.restart();
+    }
+
+    function finishToastHide(generation) {
+        if (!toastClosing || generation !== toastGeneration)
+            return;
+        toastHideFallbackTimer.stop();
+        toastTitle = "";
+        toastBody = "";
+        toastIconSource = "";
+        toastIsSystem = true;
+        toastNotification = null;
+        toastNotificationId = 0;
+        toastScreen = "";
+        toastBusy = false;
+        toastClosing = false;
+        Qt.callLater(root.showNextToast);
+    }
+
+    function expireToast() {
+        if (!toastBusy)
+            return;
+        const notification = toastNotification;
+        toastNotification = null;
+        toastNotificationId = 0;
+        if (notification)
+            notification.expire();
+        beginToastHide();
+    }
+
+    function activateToast() {
+        if (!toastBusy)
+            return;
+        toastTimer.stop();
+        const notification = toastNotification;
+        toastNotification = null;
+        toastNotificationId = 0;
+
+        if (notification) {
+            let defaultAction = null;
+            for (let index = 0; index < notification.actions.length; ++index) {
+                if (notification.actions[index].identifier === "default") {
+                    defaultAction = notification.actions[index];
+                    break;
+                }
+            }
+            if (defaultAction) {
+                const resident = notification.resident;
+                defaultAction.invoke();
+                if (resident)
+                    notification.dismiss();
+            } else {
+                notification.dismiss();
+            }
+        }
+        beginToastHide();
+    }
+
+    function handleNotificationClosed(notificationId) {
+        const remaining = [];
+        for (let index = 0; index < toastQueue.length; ++index) {
+            if (toastQueue[index].notificationId !== notificationId)
+                remaining.push(toastQueue[index]);
+        }
+        toastQueue = remaining;
+
+        if (toastNotificationId === notificationId) {
+            toastTimer.stop();
+            toastNotification = null;
+            toastNotificationId = 0;
+            beginToastHide();
+        }
+    }
+
+    function refreshTrackedNotification(notification) {
+        if (!notification)
+            return;
+        const notificationId = notification.id;
+        const resolvedAppIcon = notificationAppIcon(notification);
+        const systemNotification = isSystemNotification(
+            notification.appName, notification.desktopEntry,
+            resolvedAppIcon);
+        const iconSource = systemNotification
+            ? "" : (resolvedAppIcon || fallbackAppIcon());
+        const title = notification.summary
+            || I18n.tr("Thông báo", "Notification");
+        const body = notification.body || "";
+
+        if (toastNotificationId === notificationId && !toastClosing) {
+            toastTitle = title;
+            toastBody = body;
+            toastIconSource = iconSource;
+            toastIsSystem = systemNotification;
+            return;
+        }
+
+        const updatedQueue = [];
+        for (let index = 0; index < toastQueue.length; ++index) {
+            const queued = toastQueue[index];
+            if (queued.notificationId === notificationId) {
+                updatedQueue.push({
+                    "title": title,
+                    "body": body,
+                    "iconSource": iconSource,
+                    "isSystem": systemNotification,
+                    "notification": notification,
+                    "notificationId": notificationId,
+                    "screen": queued.screen
+                });
+            } else {
+                updatedQueue.push(queued);
+            }
+        }
+        toastQueue = updatedQueue;
     }
 
     function focusedScreenName() {
@@ -136,6 +418,25 @@ ShellRoot {
             "wifi", "bluetooth", "power", "activity", "recorder",
             "language", "settings", "wallpaper", "dashboard"
         ].indexOf(kind) >= 0;
+    }
+
+    function deferPopup(kind, screenName) {
+        deferredPopup = kind;
+        deferredPopupScreen = screenName;
+    }
+
+    function clearDeferredPopup() {
+        deferredPopup = "";
+        deferredPopupScreen = "";
+    }
+
+    function runDeferredPopup() {
+        if (deferredPopup.length === 0)
+            return;
+        const nextPopup = deferredPopup;
+        const nextScreen = deferredPopupScreen;
+        clearDeferredPopup();
+        showPopup(nextPopup, nextScreen);
     }
 
     function refreshPopup(kind) {
@@ -181,18 +482,92 @@ ShellRoot {
         if (!target)
             return;
 
+        // Loader destruction/recreation during an in-flight morph can trip
+        // Qt's QML GC under very rapid input. Keep the current transition
+        // coherent and retain only the newest requested destination.
+        const changingDestination = activePopup !== kind
+            || popupScreen !== target;
+        const openingContent = popupVisible && !popupOpen
+            && !popupHideTimer.running;
+        if (popupVisible && changingDestination
+                && (popupMorphing || openingContent)) {
+            deferPopup(kind, target);
+            return;
+        }
+
+        clearDeferredPopup();
         popupHideTimer.stop();
         popupShowTimer.stop();
-        popupOpen = false;
+        popupContentSafetyTimer.stop();
+        pendingPopup = "";
+        pendingPopupScreen = "";
+
+        if (popupVisible && popupScreen === target) {
+            if (activePopup !== kind) {
+                popupMorphStartTimer.stop();
+                popupMorphCleanupTimer.stop();
+                previousPopup = activePopup;
+                popupMorphAnimationEnabled = false;
+                popupMorphProgress = 0;
+                popupMorphing = previousPopup.length > 0;
+                popupContentSafetyTimer.restart();
+                activePopup = kind;
+                popupMorphRevision += 1;
+            }
+            popupOpen = true;
+            Qt.callLater(() => root.refreshPopup(kind));
+            return;
+        }
+
+        if (popupVisible && popupScreen !== target) {
+            pendingPopup = kind;
+            pendingPopupScreen = target;
+            hidePopup(false);
+            return;
+        }
+
+        popupMorphStartTimer.stop();
+        popupMorphCleanupTimer.stop();
+        previousPopup = "";
+        popupMorphing = false;
+        popupMorphAnimationEnabled = false;
+        popupMorphProgress = 1;
+        popupContentSafetyTimer.restart();
         activePopup = kind;
         popupScreen = target;
         popupVisible = true;
-        popupShowTimer.restart();
-        refreshPopup(kind);
+        popupOpen = false;
+        Qt.callLater(() => root.refreshPopup(kind));
     }
 
-    function hidePopup() {
+    function popupContentReady(kind) {
+        if (!popupVisible || activePopup !== kind)
+            return;
+
+        popupContentSafetyTimer.stop();
+        if (popupMorphing && popupMorphProgress === 0) {
+            popupMorphStartTimer.restart();
+        } else if (!popupMorphing && !popupOpen) {
+            popupShowTimer.restart();
+        }
+    }
+
+    function hidePopup(clearPending) {
         popupShowTimer.stop();
+        popupContentSafetyTimer.stop();
+        popupMorphStartTimer.stop();
+        popupMorphCleanupTimer.stop();
+        popupMorphAnimationEnabled = false;
+        popupMorphProgress = 1;
+        popupMorphing = false;
+        previousPopup = "";
+        if (clearPending !== false) {
+            pendingPopup = "";
+            pendingPopupScreen = "";
+            clearDeferredPopup();
+        }
+        if (!popupVisible)
+            return;
         popupOpen = false;
         popupHideTimer.restart();
     }
@@ -200,20 +575,10 @@ ShellRoot {
     function togglePopup(kind, screenName) {
         const target = screenName && screenName.length > 0
             ? screenName : focusedScreenName();
-        if (popupOpen && activePopup === kind && popupScreen === target)
+        if (popupVisible && activePopup === kind && popupScreen === target)
             hidePopup();
         else
             showPopup(kind, target);
-    }
-
-    function popupDismissed(kind) {
-        if (activePopup !== kind)
-            return;
-        popupShowTimer.stop();
-        popupHideTimer.stop();
-        popupOpen = false;
-        popupVisible = false;
-        activePopup = "";
     }
 
     Shortcut {
@@ -222,39 +587,61 @@ ShellRoot {
         onActivated: root.hidePopup()
     }
 
-    function popupAnchor(kind, barWidth, popupWidth) {
-        let desired = barWidth - popupWidth - Theme.popupEdgeInset;
-        if (kind === "wallpaper")
-            desired = Math.round((barWidth - popupWidth) / 2);
-        else if (kind === "music")
-            desired = Theme.popupEdgeInset;
-        else if (kind === "calendar")
-            desired = (barWidth - popupWidth) / 2 - 65;
-        else if (kind === "weather")
-            desired = (barWidth - popupWidth) / 2 + 65;
-        return Math.max(Theme.popupEdgeInset,
-            Math.min(barWidth - popupWidth - Theme.popupEdgeInset, desired));
-    }
-
-    function batteryIcon() {
-        if (!systemService.batteryAvailable)
-            return "battery_unknown";
-        if (systemService.batteryState === "Charging")
-            return "battery_charging_full";
-        if (systemService.batteryPercent >= 80)
-            return "battery_full";
-        if (systemService.batteryPercent >= 55)
-            return "battery_5_bar";
-        if (systemService.batteryPercent >= 30)
-            return "battery_3_bar";
-        return "battery_1_bar";
-    }
-
     Timer {
         id: popupShowTimer
         // Wait for one rendered frame so every popup starts at progress 0.
         interval: Theme.reduceMotion ? 0 : 16
-        onTriggered: root.popupOpen = true
+        onTriggered: {
+            root.popupOpen = true;
+            root.runDeferredPopup();
+        }
+    }
+
+    Timer {
+        id: popupContentSafetyTimer
+        // Loader incubation is asynchronous even when visual motion is off.
+        interval: 800
+        onTriggered: {
+            if (!root.popupVisible || root.activePopup.length === 0)
+                return;
+            if (root.popupMorphing && root.popupMorphProgress === 0)
+                popupMorphStartTimer.restart();
+            else if (!root.popupMorphing && !root.popupOpen)
+                popupShowTimer.restart();
+        }
+    }
+
+    Timer {
+        id: popupMorphStartTimer
+        interval: Theme.reduceMotion ? 0 : 16
+        onTriggered: {
+            if (!root.popupVisible || !root.popupMorphing
+                    || root.popupMorphProgress !== 0)
+                return;
+            root.popupMorphAnimationEnabled = true;
+            root.popupMorphProgress = 1;
+            popupMorphCleanupTimer.restart();
+        }
+    }
+
+    Behavior on popupMorphProgress {
+        enabled: root.popupMorphAnimationEnabled && !Theme.reduceMotion
+        NumberAnimation {
+            duration: Theme.popupMorphDuration
+            easing.type: Easing.Linear
+        }
+    }
+
+    Timer {
+        id: popupMorphCleanupTimer
+        interval: Theme.reduceMotion ? 0 : Theme.popupMorphDuration + 20
+        onTriggered: {
+            root.popupMorphAnimationEnabled = false;
+            root.popupMorphProgress = 1;
+            root.popupMorphing = false;
+            root.previousPopup = "";
+            root.runDeferredPopup();
+        }
     }
 
     Timer {
@@ -264,6 +651,13 @@ ShellRoot {
             if (!root.popupOpen) {
                 root.popupVisible = false;
                 root.activePopup = "";
+                root.popupScreen = "";
+                const nextPopup = root.pendingPopup;
+                const nextScreen = root.pendingPopupScreen;
+                root.pendingPopup = "";
+                root.pendingPopupScreen = "";
+                if (nextPopup.length > 0)
+                    Qt.callLater(() => root.showPopup(nextPopup, nextScreen));
             }
         }
     }
@@ -281,11 +675,14 @@ ShellRoot {
     IpcHandler {
         target: "shellPopup"
 
-        property string current: root.activePopup
-        property string screen: root.popupScreen
         property bool opened: root.popupOpen
         property bool windowVisible: root.popupVisible
 
+        // QuickShell 0.2.1 shallow-copies QString-backed IPC properties when
+        // they are read. Return strings from methods so the response owns its
+        // storage and cannot invalidate the live popup state.
+        function getCurrent(): string { return String(root.activePopup); }
+        function getScreen(): string { return String(root.popupScreen); }
         function toggle(kind: string): void { root.togglePopup(kind, ""); }
         function show(kind: string): void { root.showPopup(kind, ""); }
         function music(): void { root.showPopup("music", ""); }
@@ -344,36 +741,6 @@ ShellRoot {
         model: Quickshell.screens
 
         PanelWindow {
-            id: popupDismissOverlay
-            required property var modelData
-
-            screen: modelData
-            visible: root.popupVisible && root.popupScreen === modelData.name
-            color: "transparent"
-            WlrLayershell.namespace: "popup-dismiss-overlay"
-            WlrLayershell.layer: WlrLayer.Overlay
-            exclusiveZone: -1
-            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
-
-            anchors {
-                top: true
-                bottom: true
-                left: true
-                right: true
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                onPressed: root.hidePopup()
-            }
-
-            Item {
-                focus: parent.visible
-                Keys.onEscapePressed: root.hidePopup()
-            }
-        }
-
-        PanelWindow {
             id: barWindow
             required property var modelData
 
@@ -382,9 +749,7 @@ ShellRoot {
             color: "transparent"
             exclusiveZone: 36
             WlrLayershell.namespace: "m3-shell"
-            WlrLayershell.keyboardFocus: root.popupVisible
-                    && root.popupScreen === barWindow.modelData.name
-                ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
             anchors {
                 top: true
@@ -392,7 +757,15 @@ ShellRoot {
                 right: true
             }
 
+            MouseArea {
+                anchors.fill: parent
+                z: -1
+                enabled: root.popupVisible
+                onPressed: root.hidePopup()
+            }
+
             ExpressiveTopBar {
+                z: 1
                 anchors.fill: parent
                 anchors.leftMargin: Theme.barContentInset
                 anchors.rightMargin: Theme.barContentInset
@@ -408,580 +781,40 @@ ShellRoot {
                     && (root.toastScreen === "" || root.toastScreen === barWindow.modelData.name)
                 toastTitle: root.toastTitle
                 toastBody: root.toastBody
-                toastIcon: root.toastIcon
-                toastImage: root.toastImage
-                onToastDismissed: root.hideToast()
+                toastIconSource: root.toastIconSource
+                toastIsSystem: root.toastIsSystem
+                toastGeneration: root.toastGeneration
+                onToastActivated: root.activateToast()
+                onToastHideFinished: generation =>
+                    root.finishToastHide(generation)
                 onPopupRequested: (kind, screenName) =>
                     root.togglePopup(kind, screenName)
             }
 
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "music"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: musicPopup
+            MorphPopupHost {
+                id: morphPopupHost
+                screen: barWindow.modelData
                 anchorWindow: barWindow
-                requestedVisible: root.popupVisible && root.activePopup === "music"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(490, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(220,
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("music", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("music")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "music"
-                    title: I18n.tr("Đang phát", "Now playing")
-                    subtitle: I18n.tr("Điều khiển media", "Media controls")
-                    icon: "album"
-                    accentColor: Theme.secondary
-                    accentContainer: Theme.secondaryContainer
-                    onCloseRequested: root.hidePopup()
-
-                    MusicWidget {
-                        anchors.fill: parent
-                        controller: systemService
-                    }
-                }
-                }
+                controller: systemService
+                hostScreenName: barWindow.modelData.name
+                activePopup: root.activePopup
+                popupScreen: root.popupScreen
+                popupOpen: root.popupOpen
+                popupVisible: root.popupVisible
+                popupMorphing: root.popupMorphing
+                morphProgress: root.popupMorphProgress
+                morphRevision: root.popupMorphRevision
+                onCloseRequested: root.hidePopup()
+                onContentReady: kind => root.popupContentReady(kind)
+                onSectionRequested: section =>
+                    root.showPopup(section, barWindow.modelData.name)
             }
 
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "calendar"
+            HyprlandFocusGrab {
+                id: popupFocusGrab
+                windows: [barWindow, morphPopupHost]
+                active: root.popupOpen
                     && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: calendarPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible && root.activePopup === "calendar"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(440, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(620,
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("calendar", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("calendar")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "calendar"
-                    title: I18n.tr("Lịch", "Calendar")
-                    subtitle: systemService.longDateText
-                    icon: "calendar_month"
-                    onCloseRequested: root.hidePopup()
-
-                    CalendarWidget {
-                        anchors.fill: parent
-                        controller: systemService
-                        popupActive: root.popupOpen
-                            && root.activePopup === "calendar"
-                    }
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "weather"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: weatherPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible && root.activePopup === "weather"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(590, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(590,
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("weather", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("weather")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "weather"
-                    title: I18n.tr("Thời tiết", "Weather")
-                    subtitle: systemService.weatherLocation
-                    icon: "partly_cloudy_day"
-                    accentColor: Theme.tertiary
-                    accentContainer: Theme.tertiaryContainer
-                    onCloseRequested: root.hidePopup()
-
-                    WeatherWidget {
-                        anchors.fill: parent
-                        controller: systemService
-                    }
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "controls"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: controlsPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible
-                    && root.activePopup === "controls"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(410, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(
-                    Math.max(420, quickControls.implicitHeight
-                        + Theme.popupVerticalChrome),
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("controls", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("controls")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "controls"
-                    title: I18n.tr("Điều khiển nhanh", "Quick controls")
-                    subtitle: I18n.tr("Âm thanh và độ sáng",
-                        "Sound and brightness")
-                    icon: "tune"
-                    onCloseRequested: root.hidePopup()
-
-                    Flickable {
-                        anchors.fill: parent
-                        contentWidth: width
-                        contentHeight: quickControls.implicitHeight
-                        clip: true
-                        boundsBehavior: Flickable.StopAtBounds
-
-                        QuickControlsWidget {
-                            id: quickControls
-                            width: parent.width
-                            height: implicitHeight
-                            controller: systemService
-                            onSectionRequested: section =>
-                                root.showPopup(section, barWindow.modelData.name)
-                        }
-                    }
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "wifi"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: wifiPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible && root.activePopup === "wifi"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(430, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(610,
-                    Math.max(300, wifiWidget.implicitHeight
-                        + Theme.popupVerticalChrome),
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("wifi", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("wifi")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "wifi"
-                    title: "Wi‑Fi"
-                    subtitle: systemService.wifiSsid
-                        || I18n.tr("Chưa kết nối", "Not connected")
-                    icon: systemService.wifiEnabled ? "wifi" : "wifi_off"
-                    onCloseRequested: root.hidePopup()
-
-                    Flickable {
-                        anchors.fill: parent
-                        contentWidth: width
-                        contentHeight: wifiWidget.implicitHeight
-                        clip: true
-                        boundsBehavior: Flickable.StopAtBounds
-
-                        WifiWidget {
-                            id: wifiWidget
-                            width: parent.width
-                            height: implicitHeight
-                            controller: systemService
-                            expanded: true
-                        }
-                    }
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "bluetooth"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: bluetoothPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible && root.activePopup === "bluetooth"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(430, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(610,
-                    Math.max(300, bluetoothWidget.implicitHeight
-                        + Theme.popupVerticalChrome),
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("bluetooth", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("bluetooth")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "bluetooth"
-                    title: "Bluetooth"
-                    subtitle: systemService.bluetoothConnectedCount > 0
-                        ? systemService.bluetoothConnectedCount
-                            + I18n.tr(" thiết bị đã kết nối",
-                                " connected devices")
-                        : systemService.bluetoothEnabled
-                            ? I18n.tr("Đang bật", "On")
-                            : I18n.tr("Đang tắt", "Off")
-                    icon: systemService.bluetoothEnabled
-                        ? "bluetooth" : "bluetooth_disabled"
-                    accentColor: Theme.tertiary
-                    accentContainer: Theme.tertiaryContainer
-                    onCloseRequested: root.hidePopup()
-
-                    Flickable {
-                        anchors.fill: parent
-                        contentWidth: width
-                        contentHeight: bluetoothWidget.implicitHeight
-                        clip: true
-                        boundsBehavior: Flickable.StopAtBounds
-
-                        BluetoothWidget {
-                            id: bluetoothWidget
-                            width: parent.width
-                            height: implicitHeight
-                            controller: systemService
-                            expanded: true
-                        }
-                    }
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "power"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: powerPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible && root.activePopup === "power"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(430, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(powerContent.implicitHeight
-                    + Theme.popupVerticalChrome,
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("power", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("power")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "power"
-                    title: I18n.tr("Nguồn và pin", "Power and battery")
-                    subtitle: systemService.batteryAvailable
-                        ? systemService.batteryPercent + "% · "
-                            + systemService.batteryState
-                            : I18n.tr("Không tìm thấy pin", "No battery found")
-                    icon: root.batteryIcon()
-                    accentColor: systemService.batteryPercent <= 20
-                        ? Theme.error : Theme.tertiary
-                    accentContainer: systemService.batteryPercent <= 20
-                        ? Theme.errorContainer : Theme.tertiaryContainer
-                    onCloseRequested: root.hidePopup()
-
-                    Column {
-                        id: powerContent
-                        anchors.fill: parent
-                        spacing: Theme.space3
-
-                        Rectangle {
-                            width: parent.width
-                            height: 96
-                            radius: Theme.shapeLarge
-                            color: Theme.surfaceContainerLow
-
-                            Item {
-                                anchors.fill: parent
-                                anchors.margins: Theme.componentPadding
-
-                                Rectangle {
-                                    id: batteryIconContainer
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 48
-                                    height: 48
-                                    radius: Theme.shapeMedium
-                                    color: systemService.batteryPercent <= 20
-                                        ? Theme.errorContainer
-                                        : Theme.tertiaryContainer
-
-                                    MaterialIcon {
-                                        anchors.centerIn: parent
-                                        text: root.batteryIcon()
-                                        iconSize: 26
-                                        color: systemService.batteryPercent <= 20
-                                            ? Theme.error : Theme.tertiary
-                                        filled: true
-                                    }
-                                }
-
-                                Column {
-                                    anchors.left: batteryIconContainer.right
-                                    anchors.leftMargin: Theme.space3
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 0
-
-                                    M3Text {
-                                        role: "headlineMedium"
-                                        text: systemService.batteryAvailable
-                                            ? systemService.batteryPercent + "%" : "--%"
-                                        color: Theme.textPrimary
-                                        font.weight: Font.Bold
-                                    }
-
-                                    M3Text {
-                                        role: "labelSmall"
-                                        text: systemService.batteryState
-                                        color: Theme.textSecondary
-                                    }
-                                }
-                            }
-                        }
-
-                        PowerProfileCard {
-                            width: parent.width
-                            controller: systemService
-                        }
-
-                        SessionBar {
-                            width: parent.width
-                            controller: systemService
-                            onCloseRequested: root.hidePopup()
-                        }
-                    }
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "activity"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: activityPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible
-                    && root.activePopup === "activity"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(560, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(610,
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("activity", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("activity")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "activity"
-                    title: I18n.tr("Lịch sử hoạt động", "Activity history")
-                    subtitle: I18n.tr("Thông báo và ảnh chụp màn hình",
-                        "Notifications and screenshots")
-                    icon: "history"
-                    accentColor: Theme.secondary
-                    accentContainer: Theme.secondaryContainer
-                    onCloseRequested: root.hidePopup()
-
-                    NotificationHistoryWidget {
-                        anchors.fill: parent
-                        controller: systemService
-                    }
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "recorder"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: recorderPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible
-                    && root.activePopup === "recorder"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(470, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(systemService.recording ? 390 : 558,
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("recorder", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("recorder")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "recorder"
-                    title: I18n.tr("Ghi màn hình", "Screen recorder")
-                    subtitle: systemService.recording
-                        ? I18n.tr("Đang ghi bằng GPU", "GPU capture active")
-                        : "GPU Screen Recorder"
-                    icon: systemService.recording
-                        ? "fiber_manual_record" : "videocam"
-                    accentColor: systemService.recording
-                        ? Theme.error : Theme.primary
-                    accentContainer: systemService.recording
-                        ? Theme.errorContainer : Theme.primaryContainer
-                    onCloseRequested: root.hidePopup()
-
-                    RecorderWidget {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        height: implicitHeight
-                        controller: systemService
-                    }
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "language"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: languagePopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible
-                    && root.activePopup === "language"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(430, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: 350
-                popupX: root.popupAnchor("language", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("language")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "language"
-                    title: I18n.tr("Ngôn ngữ", "Language")
-                    subtitle: I18n.tr("Tiếng Việt và English",
-                        "English and Tiếng Việt")
-                    icon: "language"
-                    onCloseRequested: root.hidePopup()
-
-                    LanguageWidget {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        height: implicitHeight
-                    }
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "settings"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: settingsPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible && root.activePopup === "settings"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(540, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(320,
-                    barWindow.modelData.height - barWindow.implicitHeight - 16)
-                popupX: root.popupAnchor("settings", barWindow.width, popupWidth)
-                onDismissed: root.popupDismissed("settings")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "settings"
-                    title: I18n.tr("Cài đặt hệ thống", "System Settings")
-                    subtitle: I18n.tr("Các lựa chọn cấu hình hệ thống",
-                        "System configuration options")
-                    icon: "settings"
-                    onCloseRequested: root.hidePopup()
-
-                    SettingsGrid {
-                        anchors.fill: parent
-                        controller: systemService
-                    }
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "wallpaper"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: wallpaperPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible && root.activePopup === "wallpaper"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(1080, barWindow.width
-                    - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(520,
-                    barWindow.modelData.height - barWindow.implicitHeight - 32)
-                popupX: Math.round((barWindow.width - popupWidth) / 2)
-                popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
-                onDismissed: root.popupDismissed("wallpaper")
-
-                WallpaperWidget {
-                    id: wallpaperWidget
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "wallpaper"
-                    controller: systemService
-                    focus: true
-                    onCloseRequested: root.hidePopup()
-                    Component.onCompleted: forceActiveFocus()
-                }
-                }
-            }
-
-            LazyLoader {
-                active: root.popupVisible && root.activePopup === "dashboard"
-                    && root.popupScreen === barWindow.modelData.name
-
-                AnchoredPopup {
-                id: dashboardPopup
-                anchorWindow: barWindow
-                requestedVisible: root.popupVisible && root.activePopup === "dashboard"
-                    && root.popupScreen === barWindow.modelData.name
-                popupWidth: Math.min(1080, barWindow.width - Theme.popupEdgeInset * 2)
-                popupHeight: Math.min(500, barWindow.modelData.height - barWindow.implicitHeight - 32)
-                popupX: Math.round((barWindow.width - popupWidth) / 2)
-                popupY: Math.round((barWindow.modelData.height - popupHeight) / 2)
-                onDismissed: root.popupDismissed("dashboard")
-
-                PopupSurface {
-                    anchors.fill: parent
-                    shown: root.popupOpen && root.activePopup === "dashboard"
-                    title: I18n.tr("Bảng điều khiển MD3 Expressive", "MD3 Expressive Dashboard")
-                    subtitle: I18n.tr("Tổng quan hệ thống và hình dạng động",
-                        "System overview and expressive shapes")
-                    icon: "dashboard"
-                    accentColor: Theme.primary
-                    accentContainer: Theme.primaryContainer
-                    onCloseRequested: root.hidePopup()
-
-                    DashboardWidget {
-                        anchors.fill: parent
-                        controller: systemService
-                        onSectionRequested: section =>
-                            root.showPopup(section, barWindow.modelData.name)
-                        onCloseRequested: root.hidePopup()
-                    }
-                }
-            }
             }
 
             PanelWindow {

@@ -126,25 +126,25 @@ FocusScope {
     // Keyboard Shortcuts
     Shortcut {
         sequences: ["Left", "a", "A"]
-        enabled: root.visible
+        enabled: root.shown && root.enabled
         onActivated: root.navigatePrev()
     }
 
     Shortcut {
         sequences: ["Right", "d", "D"]
-        enabled: root.visible
+        enabled: root.shown && root.enabled
         onActivated: root.navigateNext()
     }
 
     Shortcut {
         sequences: ["Return", "Enter", "Space"]
-        enabled: root.visible
+        enabled: root.shown && root.enabled
         onActivated: root.applySelectedWallpaper()
     }
 
     Shortcut {
         sequences: ["Escape"]
-        enabled: root.visible
+        enabled: root.shown && root.enabled
         onActivated: root.closeRequested()
     }
 

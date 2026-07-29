@@ -97,6 +97,9 @@ Item {
 
     Item {
         id: content
+        // Interactive children (for example Wi-Fi/Bluetooth/Battery) must
+        // receive the press before the pill-wide fallback MouseArea.
+        z: 2
         anchors.fill: parent
         anchors.leftMargin: root.horizontalPadding
         anchors.rightMargin: root.horizontalPadding
@@ -106,12 +109,14 @@ Item {
 
     MaterialRipple {
         id: ripple
+        z: 3
         rippleColor: root.checked ? Theme.textPrimary : Theme.textPrimary
         peakOpacity: 0.11
     }
 
     MouseArea {
         id: pointer
+        z: 1
         anchors.fill: parent
         enabled: root.interactive
         hoverEnabled: true
@@ -135,6 +140,7 @@ Item {
     }
 
     Rectangle {
+        z: 4
         anchors.fill: surface
         anchors.margins: Theme.focusRingInset
         radius: Math.max(0, surface.radius - Theme.focusRingInset)

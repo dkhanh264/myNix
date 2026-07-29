@@ -150,17 +150,18 @@ in
         };
         blur = {
           enabled            = true;
-          # Smaller samples over more passes avoid blocky Kawase blur artifacts.
-          size               = 10;
-          passes             = 3;
+          # Keep floating widgets readable without washing the wallpaper into
+          # a heavy glass haze.
+          size               = 6;
+          passes             = 2;
           new_optimizations  = true;
           ignore_opacity     = true;
           popups             = true;
           popups_ignorealpha = 0.05;
-          noise              = 0.003;
-          contrast           = 0.92;
-          brightness         = 1.08;
-          vibrancy           = 0.08;
+          noise              = 0.002;
+          contrast           = 0.97;
+          brightness         = 1.03;
+          vibrancy           = 0.04;
           vibrancy_darkness  = 0.00;
         };
       };

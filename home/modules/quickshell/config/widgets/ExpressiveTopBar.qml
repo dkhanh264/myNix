@@ -14,11 +14,13 @@ Item {
     property bool toastVisible: false
     property string toastTitle: ""
     property string toastBody: ""
-    property string toastIcon: "notifications"
-    property string toastImage: ""
+    property string toastIconSource: ""
+    property bool toastIsSystem: true
+    property int toastGeneration: 0
 
     signal popupRequested(string kind, string screenName)
-    signal toastDismissed
+    signal toastActivated
+    signal toastHideFinished(int generation)
 
     readonly property var monitor: screen ? Hyprland.monitorFor(screen) : null
     // The workspace track deliberately keeps its large node geometry at all
@@ -69,15 +71,18 @@ Item {
         controller: root.controller
         showClock: root.showClock
         showWeather: root.showWeather
-        weatherCompact: root.width < 1380
+        weatherCompact: true
         activePopup: root.activePopup
         toastVisible: root.toastVisible
         toastTitle: root.toastTitle
         toastBody: root.toastBody
-        toastIcon: root.toastIcon
-        toastImage: root.toastImage
+        toastIconSource: root.toastIconSource
+        toastIsSystem: root.toastIsSystem
+        toastGeneration: root.toastGeneration
         onPopupRequested: kind => root.requestPopup(kind)
-        onToastDismissed: root.toastDismissed()
+        onToastActivated: root.toastActivated()
+        onToastHideFinished: generation =>
+            root.toastHideFinished(generation)
     }
 
     Row {
