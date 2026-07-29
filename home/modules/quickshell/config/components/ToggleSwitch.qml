@@ -38,10 +38,8 @@ Item {
         anchors.fill: parent
         radius: pointer.pressed ? Theme.shapeMedium : height / 2
         color: root.checked
-            ? Theme.primary
+            ? Theme.primarySolid
             : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerHighest)
-        border.width: root.checked ? 0 : 2
-        border.color: pointer.containsMouse ? Theme.outline : Theme.outlineVariant
 
         Behavior on color {
             ColorAnimation { duration: Theme.motionMedium }
@@ -72,7 +70,8 @@ Item {
             ? root.width - (pointer.pressed ? 28 : 24) - 4
             : (pointer.pressed ? 4 : 8)
         anchors.verticalCenter: parent.verticalCenter
-        color: root.checked ? Theme.textPrimary : (pointer.containsMouse ? Theme.textPrimary : Theme.outline)
+        color: root.checked ? Theme.primaryContent
+            : (pointer.containsMouse ? Theme.textPrimary : Theme.textSecondary)
 
         Behavior on x {
             NumberAnimation {
@@ -115,7 +114,7 @@ Item {
             anchors.centerIn: parent
             text: root.icon
             iconSize: 12
-            color: Theme.primary
+            color: Theme.primarySolid
         }
     }
 
@@ -136,9 +135,7 @@ Item {
         anchors.fill: parent
         anchors.margins: -2
         radius: switchSurface.radius + 2
-        color: "transparent"
-        border.width: 2
-        border.color: Theme.primary
+        color: Theme.alpha(Theme.primary, 0.18)
         visible: root.activeFocus
     }
 
@@ -150,4 +147,3 @@ Item {
         }
     }
 }
-

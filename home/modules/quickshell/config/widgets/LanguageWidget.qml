@@ -35,13 +35,13 @@ Rectangle {
                     width: 44
                     height: 44
                     radius: Theme.shapeMedium
-                    color: Theme.primary
+                    color: Theme.primarySolid
 
                     MaterialIcon {
                         anchors.centerIn: parent
                         text: "language"
                         iconSize: 23
-                        color: Theme.textPrimary
+                        color: Theme.primaryContent
                         filled: true
                     }
                 }

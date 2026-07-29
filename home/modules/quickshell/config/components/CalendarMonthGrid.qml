@@ -14,6 +14,7 @@ Item {
     property bool fillToday: false
     property bool compact: false
     property color accentColor: Theme.primary
+    readonly property color selectedFill: Theme.solidAccent(accentColor)
     property int keyboardDay: 1
 
     readonly property var calendarLocale:
@@ -213,12 +214,15 @@ Item {
                             - (root.compact ? Theme.space1 : 2))
                     height: width
                     radius: width / 2
-                    color: dateCell.filled ? root.accentColor
+                    color: dateCell.selected ? root.selectedFill
+                        : dateCell.today
+                            ? (root.fillToday
+                                ? Theme.primaryContainer
+                                : Theme.alpha(
+                                    Theme.primaryContainer, 0.58))
                         : datePointer.containsMouse
-                            ? Theme.alpha(Theme.textPrimary, 0.08)
+                            ? Theme.surfaceContainerHigh
                             : "transparent"
-                    border.width: dateCell.today && !dateCell.filled ? 1 : 0
-                    border.color: root.accentColor
 
                     Behavior on color {
                         ColorAnimation { duration: Theme.motionShort3 }
@@ -229,8 +233,10 @@ Item {
                     anchors.centerIn: dateSurface
                     role: root.compact ? "labelSmall" : "labelMedium"
                     text: dateCell.valid ? dateCell.dayNumber : ""
-                    color: dateCell.filled
-                        ? Theme.onPrimary : Theme.textPrimary
+                    color: dateCell.selected ? Theme.primaryContent
+                        : dateCell.today
+                            ? Theme.primaryContainerContent
+                            : Theme.textPrimary
                     font.weight: dateCell.filled || dateCell.today
                         ? Font.Bold : Font.Medium
                 }
@@ -243,8 +249,8 @@ Item {
                     width: root.compact ? 3 : Theme.space1
                     height: width
                     radius: width / 2
-                    color: dateCell.filled
-                        ? Theme.onPrimary : Theme.tertiary
+                    color: dateCell.selected ? Theme.primaryContent
+                        : dateCell.today ? Theme.primary : Theme.tertiary
                 }
 
                 MouseArea {
@@ -299,9 +305,7 @@ Item {
                     anchors.fill: dateSurface
                     anchors.margins: -Theme.focusRingInset
                     radius: width / 2
-                    color: "transparent"
-                    border.width: Theme.focusRingWidth
-                    border.color: root.accentColor
+                    color: Theme.alpha(root.accentColor, 0.20)
                     visible: dateCell.activeFocus
                 }
             }

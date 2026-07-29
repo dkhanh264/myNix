@@ -10,9 +10,10 @@ Item {
     property bool isPlaying: false
     property int buttonSize: 42
     property int iconSize: 22
-    property color fillColor: Theme.secondary
-    property color hoverColor: Theme.blend(fillColor, "#ffffff", 0.14)
-    property color foregroundColor: Theme.textPrimary
+    property color fillColor: Theme.secondarySolid
+    property color hoverColor: Theme.solidAccent(
+        Theme.blend(fillColor, "#ffffff", 0.14))
+    property color foregroundColor: Theme.secondaryContent
     property bool enabled: true
     property string accessibleName: isPlaying ? I18n.tr("Tạm dừng", "Pause") : I18n.tr("Phát", "Play")
     readonly property bool hovered: pointer.containsMouse
@@ -100,9 +101,7 @@ Item {
         anchors.fill: parent
         anchors.margins: -2
         radius: container.radius + 2
-        color: "transparent"
-        border.width: 2
-        border.color: Theme.primary
+        color: Theme.alpha(Theme.primary, 0.18)
         visible: root.activeFocus
     }
 

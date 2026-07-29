@@ -9,7 +9,7 @@ Item {
 
     property real size: Theme.space10
     property color color: showContainer
-        ? Theme.onPrimaryContainer : Theme.primary
+        ? Theme.primaryContainerContent : Theme.primary
     property color containerColor: Theme.primaryContainer
     property bool showContainer: false
     property bool active: true

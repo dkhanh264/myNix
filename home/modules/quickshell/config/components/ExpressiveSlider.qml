@@ -211,13 +211,13 @@ Item {
             implicitWidth: tooltipText.implicitWidth + 14
             implicitHeight: 24
             radius: height / 2
-            color: root.accentColor
+            color: Theme.solidAccent(root.accentColor)
 
             Text {
                 id: tooltipText
                 anchors.centerIn: parent
                 text: (root.stepSize > 0 && root.stepSize < 1 ? root.value.toFixed(1) : Math.round(root.value)) + root.valueSuffix
-                color: Theme.onPrimary || "#ffffff"
+                color: Theme.primaryContent
                 font.family: Theme.textFont
                 font.pixelSize: 11
                 font.weight: Font.Bold
@@ -231,7 +231,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.bottom
                 anchors.topMargin: -3
-                color: root.accentColor
+                color: tooltipBubble.color
             }
         }
     }
@@ -317,11 +317,11 @@ Item {
             topRightRadius: (!root.centered || parent.handleCenter <= parent.centerPos) ? Math.min(Theme.sliderInnerRadius || 4, radius) : radius
             bottomRightRadius: (!root.centered || parent.handleCenter <= parent.centerPos) ? Math.min(Theme.sliderInnerRadius || 4, radius) : radius
 
-            color: root.interacting
+            color: Theme.solidAccent(root.interacting
                 ? Theme.blend(root.activeColor, "#ffffff", 0.20)
                 : root.hovered
                     ? Theme.blend(root.activeColor, "#ffffff", 0.10)
-                    : root.activeColor
+                    : root.activeColor)
 
             Behavior on color { ColorAnimation { duration: Theme.motionShort3 } }
 
@@ -333,7 +333,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.icon
                 iconSize: Math.min(16, parent.height - 4)
-                color: Theme.onPrimary || "#ffffff"
+                color: Theme.primaryContent
                 filled: true
             }
         }
@@ -355,7 +355,9 @@ Item {
                 radius: 2
                 anchors.verticalCenter: parent.verticalCenter
                 x: dotX - width / 2
-                color: isActiveDot ? Theme.alpha(Theme.onPrimary || "#ffffff", 0.7) : Theme.alpha(root.accentColor, 0.5)
+                color: isActiveDot
+                    ? Theme.alpha(Theme.primaryContent, 0.78)
+                    : Theme.alpha(root.accentColor, 0.5)
                 opacity: Math.abs(dotX - track.handleCenter) < (handle.width / 2 + track.handleGap + 2) ? 0 : 0.7
                 visible: dotX >= 4 && dotX <= track.width - 4
             }
@@ -428,14 +430,9 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: Theme.shapeMedium
-        color: "transparent"
-        border.width: 2
-        border.color: Theme.primary
+        color: Theme.alpha(Theme.primary, 0.16)
         visible: root.activeFocus
     }
 }
-
-
-
 
 

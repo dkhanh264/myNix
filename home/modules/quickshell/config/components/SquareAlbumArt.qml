@@ -36,8 +36,6 @@ Item {
         anchors.fill: parent
         radius: root.cornerRadius
         color: Theme.blend(Theme.surfaceContainerHigh, root.accentColor, 0.15)
-        border.width: 1
-        border.color: Theme.alpha(Theme.outlineVariant, 0.30)
         antialiasing: true
 
         MaterialIcon {
@@ -87,13 +85,4 @@ Item {
         visible: root.artAvailable
     }
 
-    // Subtle edge border
-    Rectangle {
-        anchors.fill: parent
-        radius: root.cornerRadius
-        color: "transparent"
-        border.width: 1
-        border.color: Theme.alpha("#ffffff", 0.15)
-        antialiasing: true
-    }
 }

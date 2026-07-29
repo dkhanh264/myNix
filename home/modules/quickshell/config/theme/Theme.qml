@@ -31,48 +31,69 @@ Singleton {
 
     // Surface & Background Roles
     readonly property color background: pureBlackMode ? "#000000" : "#090b10"
-    readonly property color onBackground: Qt.rgba(1, 1, 1, 1)
-    readonly property color surface: pureBlackMode ? alpha("#08080c", 0.85) : alpha("#11141b", 0.62)
-    readonly property color surfaceDim: pureBlackMode ? "#000000" : alpha("#0b0e13", 0.58)
-    readonly property color surfaceBright: pureBlackMode ? alpha("#181b24", 0.88) : alpha("#252a35", 0.72)
-    readonly property color surfaceContainerLowest: pureBlackMode ? "#000000" : alpha("#0f1218", 0.30)
-    readonly property color surfaceContainerLow: pureBlackMode ? alpha("#0c0f16", 0.45) : alpha("#151922", 0.34)
-    readonly property color surfaceContainer: pureBlackMode ? alpha("#121620", 0.55) : alpha("#1a1f2a", 0.40)
-    readonly property color surfaceContainerHigh: pureBlackMode ? alpha("#1a202c", 0.68) : alpha("#202633", 0.48)
-    readonly property color surfaceContainerHighest: pureBlackMode ? alpha("#242c3d", 0.80) : alpha("#29313f", 0.58)
+    readonly property color backgroundContent: Qt.rgba(1, 1, 1, 1)
+    // Borderless surfaces rely on tonal contrast instead of hairline
+    // outlines. Keep a trace of the wallpaper while making every elevation
+    // tier visually distinct on both bright and dark backgrounds.
+    readonly property color surface: pureBlackMode ? alpha("#08080c", 0.94) : alpha("#11141b", 0.86)
+    readonly property color surfaceDim: pureBlackMode ? "#000000" : alpha("#0b0e13", 0.82)
+    readonly property color surfaceBright: pureBlackMode ? alpha("#181b24", 0.96) : alpha("#252a35", 0.94)
+    readonly property color surfaceContainerLowest: pureBlackMode ? "#000000" : alpha("#0f1218", 0.68)
+    readonly property color surfaceContainerLow: pureBlackMode ? alpha("#0c0f16", 0.76) : alpha("#151922", 0.76)
+    readonly property color surfaceContainer: pureBlackMode ? alpha("#121620", 0.84) : alpha("#1a1f2a", 0.84)
+    readonly property color surfaceContainerHigh: pureBlackMode ? alpha("#1a202c", 0.90) : alpha("#202633", 0.90)
+    readonly property color surfaceContainerHighest: pureBlackMode ? alpha("#242c3d", 0.96) : alpha("#29313f", 0.96)
     readonly property color surfaceVariant: blend(surfaceContainerHigh, wallpaperSecondary, 0.11)
 
     // Primary, Secondary, Tertiary Accent Roles
+    //
+    // Pywal accents can land anywhere from very dark to almost fluorescent.
+    // Keep the raw roles expressive for decoration, derive readable text
+    // accents for dark surfaces, and reserve the solid roles for controls
+    // that carry white content.
+    readonly property color lightContent: ensureLuminance(
+        wallpaperForeground, 0.82, "#ffffff")
     readonly property color primary: wallpaperPrimary
-    readonly property color onPrimary: pureBlackMode ? "#000000" : "#111318"
+    readonly property color primaryText: ensureLuminance(
+        wallpaperPrimary, 0.68, lightContent)
+    readonly property color primarySolid: solidAccent(wallpaperPrimary)
+    readonly property color primaryContent: Qt.rgba(1, 1, 1, 1)
     readonly property color primaryContainer: blend(surfaceContainerHigh, wallpaperPrimary, 0.28)
-    readonly property color onPrimaryContainer: wallpaperForeground
+    readonly property color primaryContainerContent: lightContent
 
     readonly property color secondary: wallpaperSecondary
-    readonly property color onSecondary: pureBlackMode ? "#000000" : "#111318"
+    readonly property color secondaryText: ensureLuminance(
+        wallpaperSecondary, 0.68, lightContent)
+    readonly property color secondarySolid: solidAccent(wallpaperSecondary)
+    readonly property color secondaryContent: Qt.rgba(1, 1, 1, 1)
     readonly property color secondaryContainer: blend(surfaceContainerHigh, wallpaperSecondary, 0.28)
-    readonly property color onSecondaryContainer: wallpaperForeground
+    readonly property color secondaryContainerContent: lightContent
 
     readonly property color tertiary: wallpaperTertiary
-    readonly property color onTertiary: pureBlackMode ? "#000000" : "#111318"
+    readonly property color tertiaryText: ensureLuminance(
+        wallpaperTertiary, 0.68, lightContent)
+    readonly property color tertiarySolid: solidAccent(wallpaperTertiary)
+    readonly property color tertiaryContent: Qt.rgba(1, 1, 1, 1)
     readonly property color tertiaryContainer: blend(surfaceContainerHigh, wallpaperTertiary, 0.28)
-    readonly property color onTertiaryContainer: wallpaperForeground
+    readonly property color tertiaryContainerContent: lightContent
 
     // Inverse & Utility Roles
     readonly property color inverseSurface: pureBlackMode ? "#e3e2e9" : "#e2e2e9"
     readonly property color inverseOnSurface: pureBlackMode ? "#111318" : "#1a1c22"
     readonly property color inversePrimary: tone(wallpaperPrimary, 0.70)
-    readonly property color onSurface: Qt.rgba(1, 1, 1, 1)
-    readonly property color onSurfaceVariant: Qt.rgba(0.776, 0.788, 0.824, 1)
-    readonly property color textPrimary: wallpaperForeground
-    readonly property color textSecondary: alpha(wallpaperForeground, 0.72)
-    readonly property color outline: blend(wallpaperPrimary, wallpaperForeground, 0.40)
-    readonly property color outlineVariant: alpha(outline, 0.40)
+    readonly property color surfaceContent: Qt.rgba(1, 1, 1, 1)
+    readonly property color surfaceVariantContent: Qt.rgba(0.776, 0.788, 0.824, 1)
+    readonly property color textPrimary: lightContent
+    readonly property color textSecondary: alpha(lightContent, 0.72)
 
     readonly property color error: "#ffb4ab"
-    readonly property color onError: contrastText(error)
+    readonly property color errorText: ensureLuminance(
+        error, 0.68, lightContent)
+    readonly property color errorSolid: solidAccent(error)
+    readonly property color errorContent: "#ffffff"
     readonly property color errorContainer: "#5a2225"
-    readonly property color onErrorContainer: ensureContrast("#ffffff", errorContainer, 4.5)
+    readonly property color errorContainerContent: ensureContrast(
+        "#ffffff", errorContainer, 4.5)
     readonly property color success: "#8bd49c"
     readonly property color successContainer: "#173d29"
     readonly property color warning: "#f6c453"
@@ -81,15 +102,11 @@ Singleton {
     readonly property color shadow: "transparent"
 
     // Translucent Blur Surfaces (Quickshell Glass)
-    readonly property color barSurface: alpha(blend(pureBlackMode ? "#05070a" : "#0c0f15", wallpaperPrimary, 0.08), 0.56)
-    readonly property color barSurfaceHover: alpha(blend(pureBlackMode ? "#0d1017" : "#121722", wallpaperPrimary, 0.13), 0.66)
-    readonly property color barSurfaceActive: alpha(blend(pureBlackMode ? "#141a27" : "#151b27", wallpaperPrimary, 0.25), 0.78)
-    readonly property color barOutline: alpha(outline, 0.28)
-    readonly property color barOutlineHover: alpha(textPrimary, 0.24)
-    readonly property color barOutlineActive: alpha(primary, 0.52)
-    readonly property color barOutlineAlert: alpha(error, 0.55)
-    readonly property color popupSurface: alpha(blend(pureBlackMode ? "#07090e" : "#0d1118", wallpaperPrimary, 0.09), 0.52)
-    readonly property color popupSurfaceStrong: alpha(pureBlackMode ? "#0a0e14" : "#121720", 0.78)
+    readonly property color barSurface: alpha(blend(pureBlackMode ? "#05070a" : "#0c0f15", wallpaperPrimary, 0.08), 0.78)
+    readonly property color barSurfaceHover: alpha(blend(pureBlackMode ? "#0d1017" : "#121722", wallpaperPrimary, 0.14), 0.88)
+    readonly property color barSurfaceActive: alpha(blend(pureBlackMode ? "#141a27" : "#151b27", wallpaperPrimary, 0.28), 0.94)
+    readonly property color popupSurface: alpha(blend(pureBlackMode ? "#07090e" : "#0d1118", wallpaperPrimary, 0.09), 0.90)
+    readonly property color popupSurfaceStrong: alpha(pureBlackMode ? "#0a0e14" : "#121720", 0.96)
     readonly property color lockSurfaceBackground: alpha(blend(pureBlackMode ? "#040508" : "#080a10", wallpaperPrimary, 0.05), 0.82)
     readonly property color lockSurfaceGlass: alpha(blend(pureBlackMode ? "#0d1017" : "#141824", wallpaperPrimary, 0.12), 0.55)
     readonly property color lockCardBackground: alpha(blend(surfaceContainerHigh, wallpaperSecondary, 0.10), 0.65)
@@ -321,12 +338,10 @@ Singleton {
     readonly property int popupHeaderHeight: 0
     readonly property int popupVerticalChrome: popupWindowInset * 2
         + popupContentPadding * 2
-    readonly property int barOutlineWidth: 2
     readonly property int sliderTrackHeight: 20
     readonly property int sliderHandleHeight: 38
     readonly property int sliderInnerRadius: 2
     readonly property int focusRingInset: space1
-    readonly property int focusRingWidth: 2
     readonly property int layerToast: 10
 
 
@@ -437,6 +452,28 @@ Singleton {
         const lightText = "#ffffff";
         return contrastRatio(color, darkText) >= contrastRatio(color, lightText)
             ? darkText : lightText;
+    }
+
+    // Return the least-darkened version of an accent that can safely carry
+    // white text. This avoids black labels without flattening bright Pywal
+    // palettes into one hard-coded tone.
+    function solidAccent(color) {
+        const lightText = "#ffffff";
+        const minimum = 4.5;
+        if (contrastRatio(lightText, color) >= minimum)
+            return color;
+
+        let lower = 0;
+        let upper = 1;
+        for (let step = 0; step < 9; ++step) {
+            const middle = (lower + upper) / 2;
+            const candidate = blend(color, "#000000", middle);
+            if (contrastRatio(lightText, candidate) >= minimum)
+                upper = middle;
+            else
+                lower = middle;
+        }
+        return blend(color, "#000000", upper);
     }
 
     function ensureContrast(foreground, backgroundColor, minimum) {

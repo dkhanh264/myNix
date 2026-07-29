@@ -39,9 +39,8 @@ Item {
             : pointer.containsMouse ? Theme.shapeLarge : height / 2
         color: root.selected
             ? Theme.secondaryContainer
-            : (pointer.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow)
-        border.width: root.selected ? 0 : 1
-        border.color: pointer.containsMouse ? Theme.outline : Theme.outlineVariant
+            : (pointer.containsMouse
+                ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh)
 
         Behavior on color { ColorAnimation { duration: Theme.motionShort } }
         Behavior on radius {
@@ -67,13 +66,15 @@ Item {
         anchors.left: parent.left
         anchors.leftMargin: Theme.space2
         anchors.verticalCenter: parent.verticalCenter
-        color: root.selected ? Theme.secondary : Theme.surfaceContainerHighest
+        color: root.selected
+            ? Theme.secondarySolid : Theme.surfaceContainerHighest
 
         MaterialIcon {
             anchors.centerIn: parent
             text: root.icon
             iconSize: Theme.iconSizeExtraSmall
-            color: root.selected ? Theme.textPrimary : Theme.textSecondary
+            color: root.selected
+                ? Theme.secondaryContent : Theme.textSecondary
         }
 
         Behavior on radius {
@@ -129,9 +130,7 @@ Item {
         anchors.fill: parent
         anchors.margins: -2
         radius: chipSurface.radius + 2
-        color: "transparent"
-        border.width: 2
-        border.color: Theme.primary
+        color: Theme.alpha(Theme.primary, 0.18)
         visible: root.activeFocus
     }
 

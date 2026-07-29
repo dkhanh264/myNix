@@ -155,8 +155,6 @@ Item {
         anchors.fill: parent
         radius: height / 2
         color: Theme.blend(Theme.barSurface, Theme.primaryContainer, Math.max(root.mergeProgress, root.widthProgress))
-        border.width: Theme.barOutlineWidth
-        border.color: Theme.blend(Theme.barOutline, Theme.primary, Math.max(root.mergeProgress, root.widthProgress))
         opacity: Math.max(root.mergeProgress, root.widthProgress)
         visible: opacity > 0.001
 
@@ -169,7 +167,6 @@ Item {
         }
 
         Behavior on color { ColorAnimation { duration: 180 } }
-        Behavior on border.color { ColorAnimation { duration: 180 } }
     }
 
     // ── Liquid Droplet Neck/Bridge (water drop joining/splitting effect) ──
@@ -263,9 +260,7 @@ Item {
                     id: imageClipRect
                     anchors.fill: parent
                     radius: width / 2
-                    color: Theme.alpha(Theme.primary, 0.16)
-                    border.width: 1
-                    border.color: Theme.alpha(Theme.primary, 0.35)
+                    color: Theme.primaryContainer
                     clip: true
                     visible: !root.toastIsSystem
                         && root.toastIconSource.length > 0

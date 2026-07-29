@@ -18,20 +18,12 @@ Item {
     property color containerColor: Theme.barSurface
     property color checkedColor: Theme.barSurfaceActive
     property color alertColor: Theme.errorContainer
-    property color outlineColor: Theme.barOutline
-    property color checkedOutlineColor: Theme.barOutlineActive
-    property color alertOutlineColor: Theme.barOutlineAlert
     readonly property bool hovered: pointer.containsMouse
     readonly property bool pressed: pointer.pressed
     readonly property color resolvedColor: alert
         ? alertColor
         : checked ? checkedColor
-        : containerColor
-    readonly property color resolvedOutlineColor: alert
-        ? alertOutlineColor
-        : checked ? checkedOutlineColor
-        : hovered ? Theme.barOutlineHover
-        : outlineColor
+        : hovered && interactive ? Theme.barSurfaceHover : containerColor
 
     signal clicked
     signal secondaryClicked
@@ -64,13 +56,8 @@ Item {
             : root.checked ? Theme.shapeMedium
             : root.hovered ? Theme.shapeLarge : height / 2
         color: root.resolvedColor
-        border.width: Theme.barOutlineWidth
-        border.color: root.resolvedOutlineColor
 
         Behavior on color {
-            ColorAnimation { duration: Theme.motionShort4 }
-        }
-        Behavior on border.color {
             ColorAnimation { duration: Theme.motionShort4 }
         }
         Behavior on radius {
@@ -144,9 +131,7 @@ Item {
         anchors.fill: surface
         anchors.margins: Theme.focusRingInset
         radius: Math.max(0, surface.radius - Theme.focusRingInset)
-        color: "transparent"
-        border.width: Theme.focusRingWidth
-        border.color: Theme.primary
+        color: Theme.alpha(Theme.primary, 0.18)
         visible: root.activeFocus && root.interactive
     }
 

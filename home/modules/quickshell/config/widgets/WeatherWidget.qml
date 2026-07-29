@@ -2,7 +2,7 @@ import QtQuick
 import "../components"
 import "../theme"
 
-Rectangle {
+Item {
     id: root
 
     property var controller
@@ -37,16 +37,18 @@ Rectangle {
             "label": I18n.tr("Chỉ số UV", "UV index")
         },
         {
-            "icon": "routine",
-            "value": timeLabel(selectedForecast.sunriseTime) + " · "
-                + timeLabel(selectedForecast.sunsetTime),
-            "label": I18n.tr("Mọc · lặn", "Rise · set")
+            "icon": "wb_twilight",
+            "value": timeLabel(selectedForecast.sunriseTime),
+            "label": I18n.tr("Mặt trời mọc", "Sunrise")
+        },
+        {
+            "icon": "bedtime",
+            "value": timeLabel(selectedForecast.sunsetTime),
+            "label": I18n.tr("Mặt trời lặn", "Sunset")
         }
     ] : []
 
     implicitHeight: weatherCol.implicitHeight + Theme.componentPadding * 2
-    radius: Theme.cardRadius
-    color: Theme.alpha(Theme.tertiaryContainer, 0.34)
 
     function weatherIcon(code) {
         if (code === 0)
@@ -112,6 +114,23 @@ Rectangle {
         return separator >= 0 ? value.slice(separator + 1, separator + 6) : "--:--";
     }
 
+    function heroTemperatureText() {
+        if (!selectedForecast)
+            return "--°";
+        if (safeForecastIndex === 0 && controller
+                && controller.weatherAvailable)
+            return controller.weatherTemperature + "°";
+        return selectedForecast.maximum + "°";
+    }
+
+    function highLowText() {
+        if (!selectedForecast)
+            return I18n.tr("Cao --° · Thấp --°", "High --° · Low --°");
+        return I18n.tr("Cao ", "High ") + selectedForecast.maximum + "°"
+            + I18n.tr(" · Thấp ", " · Low ")
+            + selectedForecast.minimum + "°";
+    }
+
     onControllerChanged: selectedForecastIndex = 0
 
     Connections {
@@ -128,41 +147,74 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: Theme.componentPadding
-        spacing: 8
+        spacing: Theme.space2
 
         Item {
             width: parent.width
-            height: 38
+            height: 42
 
-            Column {
+            Row {
+                id: locationHeading
                 anchors.left: parent.left
+                anchors.right: refreshButton.left
+                anchors.rightMargin: Theme.space2
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 0
+                spacing: Theme.space2
 
-                M3Text {
-                    role: "titleSmall"
-                    text: I18n.tr("Dự báo 7 ngày", "7-day forecast")
-                    color: Theme.textPrimary
-                    font.weight: Font.DemiBold
+                Rectangle {
+                    id: locationBadge
+                    width: 36
+                    height: 36
+                    radius: Theme.shapeMedium
+                    color: Theme.surfaceContainerHigh
+
+                    MaterialIcon {
+                        anchors.centerIn: parent
+                        text: "location_on"
+                        iconSize: Theme.iconSizeSmall
+                        color: Theme.tertiary
+                        filled: true
+                    }
                 }
 
-                M3Text {
-                    role: "labelSmall"
-                    text: root.controller
-                        ? root.controller.weatherLocation
-                        : I18n.tr("Đang xác định vị trí",
-                            "Finding your location")
-                    color: Theme.alpha(Theme.textPrimary, 0.78)
+                Column {
+                    width: Math.max(0, locationHeading.width
+                        - locationBadge.width - locationHeading.spacing)
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 0
+
+                    M3Text {
+                        width: parent.width
+                        role: "titleSmall"
+                        text: root.controller
+                            ? root.controller.weatherLocation
+                            : I18n.tr("Đang xác định vị trí",
+                                "Finding your location")
+                        color: Theme.textPrimary
+                        font.weight: Font.DemiBold
+                        elide: Text.ElideRight
+                    }
+
+                    M3Text {
+                        width: parent.width
+                        role: "labelSmall"
+                        text: I18n.tr("Dự báo thời tiết 7 ngày",
+                            "7-day weather forecast")
+                        color: Theme.textSecondary
+                        elide: Text.ElideRight
+                    }
                 }
             }
 
             IconButton {
+                id: refreshButton
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                buttonSize: 38
-                iconSize: 19
+                buttonSize: 40
+                iconSize: Theme.iconSizeSmall
                 icon: "refresh"
                 foregroundColor: Theme.textPrimary
+                fillColor: Theme.surfaceContainerHigh
                 accessibleName: I18n.tr("Làm mới thời tiết",
                     "Refresh weather")
                 onClicked: {
@@ -174,28 +226,37 @@ Rectangle {
 
         Rectangle {
             width: parent.width
-            height: 116
-            radius: Theme.shapeLarge
-            color: Theme.alpha(Theme.surfaceContainerHigh, 0.76)
+            height: 120
+            radius: Theme.shapeExtraLarge
+            color: Theme.tertiaryContainer
 
-            MaterialIcon {
+            Rectangle {
+                id: heroIconContainer
                 anchors.left: parent.left
                 anchors.leftMargin: Theme.space4
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.weatherIcon(root.selectedForecast
-                    ? root.selectedForecast.code : -1)
-                iconSize: 56
-                color: Theme.tertiary
-                filled: true
+                width: 84
+                height: 84
+                radius: Theme.shapeExtraLarge
+                color: Theme.alpha(Theme.tertiary, 0.16)
+
+                MaterialIcon {
+                    anchors.centerIn: parent
+                    text: root.weatherIcon(root.selectedForecast
+                        ? root.selectedForecast.code : -1)
+                    iconSize: 58
+                    color: Theme.tertiary
+                    filled: true
+                }
             }
 
             Column {
-                anchors.left: parent.left
-                anchors.leftMargin: 88
+                anchors.left: heroIconContainer.right
+                anchors.leftMargin: Theme.space3
                 anchors.right: temperatureSummary.left
-                anchors.rightMargin: 12
+                anchors.rightMargin: Theme.space3
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 2
+                spacing: Theme.space1
 
                 M3Text {
                     width: parent.width
@@ -203,31 +264,44 @@ Rectangle {
                     text: root.selectedForecast
                         ? root.fullDateLabel(root.selectedForecast.dateText)
                         : I18n.tr("Đang tải dự báo", "Loading forecast")
-                    color: Theme.textPrimary
+                    color: Theme.tertiaryContainerContent
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
 
                 M3Text {
                     width: parent.width
-                    role: "labelSmall"
+                    role: "bodyMedium"
                     text: root.selectedForecast
                         ? root.weatherLabel(root.selectedForecast.code)
                         : I18n.tr("Đang cập nhật", "Updating")
-                    color: Theme.textSecondary
+                    color: Theme.tertiaryContainerContent
+                    font.weight: Font.Medium
                     elide: Text.ElideRight
                 }
 
-                M3Text {
-                    width: parent.width
-                    role: "labelSmall"
-                    text: root.selectedForecast
-                        ? I18n.tr("Khả năng mưa ", "Rain chance ")
-                            + root.selectedForecast.precipitation + "%"
-                        : ""
-                    color: Theme.tertiary
-                    font.weight: Font.Medium
-                    elide: Text.ElideRight
+                Row {
+                    spacing: Theme.space1
+
+                    MaterialIcon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "water_drop"
+                        iconSize: Theme.iconSizeExtraSmall
+                        color: Theme.tertiary
+                        filled: true
+                    }
+
+                    M3Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        role: "labelSmall"
+                        text: root.selectedForecast
+                            ? I18n.tr("Khả năng mưa ", "Rain chance ")
+                                + root.selectedForecast.precipitation + "%"
+                            : I18n.tr("Đang tải dữ liệu", "Loading data")
+                        color: Theme.alpha(
+                            Theme.tertiaryContainerContent, 0.74)
+                        font.weight: Font.Medium
+                    }
                 }
             }
 
@@ -241,38 +315,48 @@ Rectangle {
                 M3Text {
                     role: "displayMedium"
                     anchors.right: parent.right
-                    text: root.selectedForecast
-                        ? root.selectedForecast.maximum + "°" : "--°"
-                    color: Theme.textPrimary
+                    text: root.heroTemperatureText()
+                    color: Theme.tertiaryContainerContent
                     font.weight: Font.Bold
                 }
 
                 M3Text {
                     role: "labelSmall"
                     anchors.right: parent.right
-                    text: root.selectedForecast
-                        ? I18n.tr("Thấp nhất ", "Low ")
-                            + root.selectedForecast.minimum + "°" : ""
-                    color: Theme.textSecondary
+                    text: root.highLowText()
+                    color: Theme.alpha(
+                        Theme.tertiaryContainerContent, 0.74)
                     font.weight: Font.DemiBold
                 }
             }
         }
 
-        M3Text {
-            role: "labelMedium"
+        Item {
             width: parent.width
-            height: 18
-            text: I18n.tr("Chọn ngày để xem chi tiết",
-                "Choose a day for details")
-            color: Theme.textPrimary
-            font.weight: Font.DemiBold
-            verticalAlignment: Text.AlignVCenter
+            height: 20
+
+            M3Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                role: "labelMedium"
+                text: I18n.tr("Dự báo 7 ngày", "7-day forecast")
+                color: Theme.textPrimary
+                font.weight: Font.DemiBold
+            }
+
+            M3Text {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                role: "labelSmall"
+                text: I18n.tr("Chọn ngày để xem chi tiết",
+                    "Choose a day for details")
+                color: Theme.textSecondary
+            }
         }
 
         Flickable {
             width: parent.width
-            height: 104
+            height: 96
             contentWidth: forecastRow.implicitWidth
             contentHeight: height
             clip: true
@@ -281,7 +365,7 @@ Rectangle {
             Row {
                 id: forecastRow
                 height: parent.height
-                spacing: 6
+                spacing: Theme.space1 + 2
 
                 Repeater {
                     model: root.controller ? root.controller.weatherForecast : 0
@@ -299,7 +383,7 @@ Rectangle {
                             index === root.selectedForecastIndex
 
                         width: 68
-                        height: 102
+                        height: 94
                         activeFocusOnTab: true
 
                         Accessible.role: Accessible.Button
@@ -316,10 +400,10 @@ Rectangle {
                                 : forecastDay.selected
                                     ? Theme.shapeLarge : Theme.shapeMedium
                             color: forecastDay.selected
-                                ? Theme.secondaryContainer
+                                ? Theme.tertiaryContainer
                                 : forecastPointer.containsMouse
                                     ? Theme.surfaceContainerHighest
-                                    : Theme.alpha(Theme.surfaceContainerHigh, 0.66)
+                                    : Theme.surfaceContainerHigh
 
                             Behavior on color {
                                 ColorAnimation { duration: Theme.motionShort4 }
@@ -335,34 +419,37 @@ Rectangle {
 
                         Column {
                             anchors.centerIn: parent
-                            spacing: 3
+                            spacing: 2
 
-                            Text {
+                            M3Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
+                                role: "labelSmall"
                                 text: root.dayLabel(forecastDay.dateText,
                                     forecastDay.index)
-                                color: Theme.textPrimary
-                                font.family: Theme.textFont
-                                font.pixelSize: 10
+                                color: forecastDay.selected
+                                    ? Theme.tertiaryContainerContent
+                                    : Theme.textPrimary
                                 font.weight: Font.DemiBold
                             }
 
                             MaterialIcon {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: root.weatherIcon(forecastDay.code)
-                                iconSize: 23
+                                iconSize: Theme.iconSizeMedium
                                 color: forecastDay.selected
-                                    ? Theme.secondary : Theme.tertiary
+                                    ? Theme.tertiaryContainerContent
+                                    : Theme.tertiary
                                 filled: true
                             }
 
-                            Text {
+                            M3Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: forecastDay.maximum + "°  "
+                                role: "labelSmall"
+                                text: forecastDay.maximum + "° / "
                                     + forecastDay.minimum + "°"
-                                color: Theme.textPrimary
-                                font.family: Theme.textFont
-                                font.pixelSize: 9
+                                color: forecastDay.selected
+                                    ? Theme.tertiaryContainerContent
+                                    : Theme.textPrimary
                                 font.weight: Font.DemiBold
                             }
 
@@ -372,15 +459,20 @@ Rectangle {
 
                                 MaterialIcon {
                                     text: "water_drop"
-                                    iconSize: 11
-                                    color: Theme.tertiary
+                                    iconSize: 12
+                                    color: forecastDay.selected
+                                        ? Theme.tertiaryContainerContent
+                                        : Theme.tertiary
                                     filled: true
                                 }
-                                Text {
+                                M3Text {
+                                    role: "labelSmall"
                                     text: forecastDay.precipitation + "%"
-                                    color: Theme.textSecondary
-                                    font.family: Theme.textFont
-                                    font.pixelSize: 8
+                                    color: forecastDay.selected
+                                        ? Theme.alpha(
+                                            Theme.tertiaryContainerContent,
+                                            0.72)
+                                        : Theme.textSecondary
                                 }
                             }
                         }
@@ -407,9 +499,7 @@ Rectangle {
                             anchors.fill: daySurface
                             anchors.margins: 2
                             radius: Math.max(0, daySurface.radius - 2)
-                            color: "transparent"
-                            border.width: 2
-                            border.color: Theme.primary
+                            color: Theme.alpha(Theme.primary, 0.18)
                             visible: forecastDay.activeFocus
                         }
                     }
@@ -417,51 +507,68 @@ Rectangle {
             }
         }
 
-        Rectangle {
+        Grid {
+            id: detailGrid
             width: parent.width
-            height: 72
-            radius: Theme.shapeMedium
-            color: Theme.alpha(Theme.surfaceContainerHigh, 0.60)
+            height: 112
+            columns: 3
+            columnSpacing: Theme.space2
+            rowSpacing: Theme.space2
 
-            Row {
-                anchors.fill: parent
-                anchors.leftMargin: 8
-                anchors.rightMargin: 8
+            Repeater {
+                model: root.detailModel
 
-                Repeater {
-                    model: root.detailModel
+                Rectangle {
+                    required property var modelData
 
-                    Item {
-                        required property var modelData
-                        width: parent.width / Math.max(1, root.detailModel.length)
-                        height: parent.height
+                    width: (detailGrid.width
+                        - detailGrid.columnSpacing * 2) / 3
+                    height: 52
+                    radius: Theme.shapeMedium
+                    color: Theme.surfaceContainerHigh
 
-                        Column {
+                    Rectangle {
+                        id: metricIconContainer
+                        anchors.left: parent.left
+                        anchors.leftMargin: Theme.space2
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 32
+                        height: 32
+                        radius: Theme.shapeMedium
+                        color: Theme.alpha(Theme.tertiary, 0.14)
+
+                        MaterialIcon {
                             anchors.centerIn: parent
-                            spacing: 1
+                            text: modelData.icon
+                            iconSize: Theme.iconSizeExtraSmall
+                            color: Theme.tertiary
+                            filled: true
+                        }
+                    }
 
-                            MaterialIcon {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.icon
-                                iconSize: 17
-                                color: Theme.tertiary
-                                filled: true
-                            }
+                    Column {
+                        anchors.left: metricIconContainer.right
+                        anchors.leftMargin: Theme.space2
+                        anchors.right: parent.right
+                        anchors.rightMargin: Theme.space2
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 0
 
-                            M3Text {
-                                role: "labelSmall"
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.value
-                                color: Theme.textPrimary
-                                font.weight: Font.DemiBold
-                            }
+                        M3Text {
+                            width: parent.width
+                            role: "labelMedium"
+                            text: modelData.value
+                            color: Theme.textPrimary
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
+                        }
 
-                            M3Text {
-                                role: "labelSmall"
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: modelData.label
-                                color: Theme.textSecondary
-                            }
+                        M3Text {
+                            width: parent.width
+                            role: "labelSmall"
+                            text: modelData.label
+                            color: Theme.textSecondary
+                            elide: Text.ElideRight
                         }
                     }
                 }
@@ -471,29 +578,49 @@ Rectangle {
         Item {
             id: footer
             width: parent.width
-            height: 32
+            height: 40
             activeFocusOnTab: true
 
+            Accessible.role: Accessible.Button
+            Accessible.name: I18n.tr("Mở dự báo thời tiết cho ",
+                "Open weather forecast for ")
+                + (root.controller ? root.controller.weatherLocation
+                    : I18n.tr("vị trí hiện tại", "your current location"))
+            Accessible.focusable: true
+
             Rectangle {
+                id: footerSurface
                 anchors.fill: parent
                 radius: Theme.shapeMedium
-                color: footerPointer.containsMouse
-                    ? Theme.alpha(Theme.textPrimary, 0.08) : "transparent"
+                color: footerPointer.pressed
+                    ? Theme.surfaceContainerHighest
+                    : footerPointer.containsMouse
+                        ? Theme.surfaceContainerHigh
+                        : Theme.surfaceContainerLow
+
+                Behavior on color {
+                    ColorAnimation { duration: Theme.motionShort3 }
+                }
             }
 
             Row {
                 anchors.left: parent.left
+                anchors.right: footerArrow.left
+                anchors.rightMargin: Theme.space2
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 6
+                anchors.leftMargin: Theme.space2
+                spacing: Theme.space2
 
                 MaterialIcon {
                     text: "location_on"
-                    iconSize: 16
+                    iconSize: Theme.iconSizeExtraSmall
                     color: Theme.tertiary
                     filled: true
                 }
 
                 M3Text {
+                    width: parent.width - Theme.iconSizeExtraSmall
+                        - parent.spacing
                     role: "labelSmall"
                     text: root.controller && root.controller.weatherRegion
                         ? I18n.tr("Vị trí gần đúng · ", "Approximate location · ")
@@ -502,11 +629,14 @@ Rectangle {
                             "Automatic network location")
                     color: Theme.alpha(Theme.textPrimary, 0.82)
                     font.weight: Font.Medium
+                    elide: Text.ElideRight
                 }
             }
 
             MaterialIcon {
+                id: footerArrow
                 anchors.right: parent.right
+                anchors.rightMargin: Theme.space2
                 anchors.verticalCenter: parent.verticalCenter
                 text: "arrow_outward"
                 iconSize: 18
@@ -532,6 +662,14 @@ Rectangle {
                         root.controller.openWeather();
                     event.accepted = true;
                 }
+            }
+
+            Rectangle {
+                anchors.fill: footerSurface
+                anchors.margins: 2
+                radius: Math.max(0, footerSurface.radius - 2)
+                color: Theme.alpha(Theme.primary, 0.18)
+                visible: footer.activeFocus
             }
         }
     }

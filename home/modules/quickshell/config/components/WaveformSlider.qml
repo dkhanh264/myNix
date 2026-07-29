@@ -229,9 +229,7 @@ Item {
         anchors.fill: parent
         anchors.margins: 2
         radius: Theme.shapeMedium
-        color: "transparent"
-        border.width: 2
-        border.color: Theme.primary
+        color: Theme.alpha(Theme.primary, 0.16)
         visible: root.activeFocus
     }
 }

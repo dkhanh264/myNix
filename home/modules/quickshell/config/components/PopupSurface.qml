@@ -51,8 +51,6 @@ Item {
         anchors.margins: Theme.popupWindowInset
         radius: Theme.popupRadius
         color: Theme.popupSurface
-        border.width: 1
-        border.color: Theme.alpha(Theme.outlineVariant, 0.40)
         clip: true
     }
 

@@ -2,8 +2,8 @@ import QtQuick
 import "../theme"
 
 // Compact M3 Expressive battery progress pill.
-// The fill width represents the real capacity while the centered value stays
-// legible across both the filled and unfilled portions.
+// Dark semantic surfaces keep the fixed white percentage legible at every
+// capacity without relying on an outline or split-color text.
 Item {
     id: root
 
@@ -13,28 +13,54 @@ Item {
 
     readonly property int displayPercent: available
         ? Math.round(Math.max(0, Math.min(100, percent))) : 0
-    readonly property bool isCharging:
-        state === "Charging" || state === "Charging/Full"
-    readonly property bool isLow:
-        available && displayPercent <= 20 && !isCharging
+    readonly property string normalizedState: {
+        const cleanState = String(root.state || "")
+            .trim()
+            .toLowerCase()
+            .replace(/[_-]+/g, " ")
+            .replace(/\s*\/\s*/g, "/")
+            .replace(/\s+/g, " ");
+        if (cleanState === "charging" || cleanState === "charging/full")
+            return "charging";
+        if (cleanState === "full")
+            return "full";
+        if (cleanState === "not charging")
+            return "not-charging";
+        if (cleanState === "discharging")
+            return "discharging";
+        return "unknown";
+    }
+    readonly property bool isCharging: normalizedState === "charging"
+    readonly property bool isFull: normalizedState === "full"
+    readonly property bool isNotCharging:
+        normalizedState === "not-charging"
+    readonly property bool isCritical: available && !isCharging
+        && displayPercent <= 10
+    readonly property bool isLow: available && !isCharging
+        && displayPercent >= 11 && displayPercent <= 20
+    readonly property bool isHealthy: available && !isCharging
+        && displayPercent >= 80
     readonly property real fillRatio:
         available ? displayPercent / 100 : 0
-    readonly property color levelColor: !available
+    readonly property color accentColor: !available
         ? Theme.textSecondary
-        : isLow
-            ? Theme.error
-            : isCharging
-                ? Theme.tertiary
-                : displayPercent >= 80
-                    ? Theme.primary : Theme.secondary
-    readonly property color onLevelColor: isLow
-        ? Theme.onError
         : isCharging
-            ? Theme.onTertiary
-            : displayPercent >= 80
-                ? Theme.onPrimary : Theme.onSecondary
+            ? Theme.tertiary
+            : isCritical
+                ? Theme.error
+                : isLow
+                    ? Theme.warning
+                    : isHealthy ? Theme.primary : Theme.secondary
+    // Both tones remain deliberately dark because the foreground is always
+    // white. The lighter fill still reads clearly against the dark track.
+    readonly property color trackColor: Theme.tone(accentColor, 0.10)
+    readonly property color fillColor: Theme.tone(accentColor, 0.24)
+    readonly property real naturalFillWidth:
+        width * fillRatio
+    readonly property real visibleFillWidth: !available || displayPercent === 0
+        ? 0 : Math.min(width, Math.max(4, naturalFillWidth))
 
-    width: 44
+    width: 54
     height: 20
     implicitWidth: width
     implicitHeight: height
@@ -50,11 +76,8 @@ Item {
         id: batteryTrack
 
         anchors.fill: parent
-        radius: root.isLow ? Theme.shapeSmall : height / 2
-        color: Theme.alpha(root.levelColor, 0.14)
-        border.width: root.isCharging ? 2 : 1
-        border.color: Theme.alpha(
-            root.levelColor, root.isCharging ? 0.78 : 0.52)
+        radius: root.isCritical ? Theme.shapeSmall : height / 2
+        color: root.trackColor
         clip: true
 
         Behavior on radius {
@@ -69,20 +92,15 @@ Item {
             ColorAnimation { duration: Theme.motionShort3 }
         }
 
-        Behavior on border.color {
-            ColorAnimation { duration: Theme.motionShort3 }
-        }
-
         Rectangle {
             id: capacityFill
 
-            x: 2
-            y: 2
-            width: Math.max(0,
-                (batteryTrack.width - 4) * root.fillRatio)
-            height: batteryTrack.height - 4
+            x: 0
+            y: 0
+            width: root.visibleFillWidth
+            height: batteryTrack.height
             radius: Math.min(height / 2, width / 2)
-            color: root.levelColor
+            color: root.fillColor
 
             Behavior on width {
                 NumberAnimation {
@@ -97,36 +115,13 @@ Item {
             }
         }
 
-        // Text on the unfilled track.
         M3Text {
             anchors.centerIn: parent
             role: "labelSmall"
             text: root.available
-                ? root.displayPercent.toString() : "—"
-            color: Theme.textPrimary
+                ? root.displayPercent + "%" : "—"
+            color: "#ffffff"
             font.weight: Font.Bold
-        }
-
-        // The same text is clipped to the progress fill and recolored with the
-        // matching "on" role, preserving contrast at every capacity.
-        Item {
-            id: filledTextMask
-
-            x: capacityFill.x
-            width: capacityFill.width
-            height: parent.height
-            clip: true
-
-            M3Text {
-                x: batteryTrack.width / 2
-                    - filledTextMask.x - implicitWidth / 2
-                anchors.verticalCenter: parent.verticalCenter
-                role: "labelSmall"
-                text: root.available
-                    ? root.displayPercent.toString() : "—"
-                color: root.onLevelColor
-                font.weight: Font.Bold
-            }
         }
     }
 }

@@ -49,26 +49,31 @@ Item {
         case "tonal":
             return Theme.secondaryContainer;
         case "outlined":
+            return pointer.containsMouse
+                ? Theme.surfaceContainerHighest
+                : Theme.surfaceContainerHigh;
         case "text":
             return pointer.containsMouse ? Theme.alpha(Theme.primary, 0.08) : "transparent";
         case "filled":
         default:
-            return Theme.primary;
+            return Theme.primarySolid;
         }
     }
 
     function getTextColor() {
+        if (root.selected)
+            return Theme.primaryContainerContent;
         switch (root.variant) {
         case "destructive":
-            return Theme.error;
+            return Theme.errorContainerContent;
         case "tonal":
-            return Theme.textPrimary;
+            return Theme.secondaryContainerContent;
         case "outlined":
         case "text":
             return Theme.primary;
         case "filled":
         default:
-            return Theme.textPrimary;
+            return Theme.primaryContent;
         }
     }
 
@@ -81,8 +86,6 @@ Item {
                     : root.selected ? Theme.shapeMedium
                     : pointer.containsMouse ? Theme.shapeLarge : height / 2))
         color: root.getBackgroundColor()
-        border.width: root.variant === "outlined" && !root.selected ? 1 : 0
-        border.color: pointer.containsMouse ? Theme.primary : Theme.outline
 
         Behavior on radius {
             enabled: !root.disableShapeMorph
@@ -97,9 +100,6 @@ Item {
             ColorAnimation { duration: Theme.motionShort3 }
         }
 
-        Behavior on border.color {
-            ColorAnimation { duration: Theme.motionShort3 }
-        }
     }
 
     Rectangle {
@@ -170,9 +170,7 @@ Item {
         anchors.fill: parent
         anchors.margins: -2
         radius: container.radius + 2
-        color: "transparent"
-        border.width: 2
-        border.color: Theme.primary
+        color: Theme.alpha(Theme.primary, 0.18)
         visible: root.activeFocus
     }
 

@@ -23,8 +23,8 @@ Item {
     }
 
     // The disc is continuously rotated by its parent. Render the complete
-    // subtree above its display resolution first so circular mask and border
-    // edges stay smooth at every rotation angle.
+    // subtree above its display resolution first so circular mask edges stay
+    // smooth at every rotation angle.
     layer.enabled: true
     layer.smooth: true
     layer.mipmap: true
@@ -80,32 +80,6 @@ Item {
     }
 
     Rectangle {
-        anchors.fill: parent
-        radius: width / 2
-        color: "transparent"
-        border.width: Math.max(1, Math.round(root.width * 0.025))
-        border.color: Theme.alpha("#000000", 0.50)
-        antialiasing: true
-    }
-
-    Repeater {
-        model: 3
-
-        Rectangle {
-            required property int index
-            anchors.centerIn: parent
-            width: root.width * (0.78 - index * 0.17)
-            height: width
-            radius: width / 2
-            color: "transparent"
-            border.width: 1
-            border.color: Theme.alpha("#000000",
-                root.artAvailable ? 0.22 : 0.34)
-            antialiasing: true
-        }
-    }
-
-    Rectangle {
         anchors.centerIn: parent
         width: Math.max(10, root.width * 0.21)
         height: width
@@ -123,4 +97,3 @@ Item {
         }
     }
 }
-

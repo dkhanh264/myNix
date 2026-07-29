@@ -50,11 +50,9 @@ Item {
                     ? Theme.blend(Theme.primaryContainer, Theme.primary, 0.14)
                     : Theme.primaryContainer;
             return primaryPointer.containsMouse
-                ? Theme.surfaceContainerHigh
-                : Theme.surfaceContainer;
+                ? Theme.surfaceContainerHighest
+                : Theme.surfaceContainerHigh;
         }
-        border.width: root.active ? 0 : 1
-        border.color: primaryPointer.containsMouse ? Theme.outline : Theme.outlineVariant
 
         Behavior on radius {
             NumberAnimation {
@@ -86,14 +84,16 @@ Item {
         anchors.left: parent.left
         anchors.leftMargin: Theme.space3
         anchors.verticalCenter: parent.verticalCenter
-        color: root.active ? Theme.primary : Theme.surfaceContainerHighest
+        color: root.active
+            ? Theme.primarySolid : Theme.surfaceContainerHighest
         scale: root.iconPulse * (primaryPointer.pressed ? 0.88 : 1)
 
         MaterialIcon {
             anchors.centerIn: parent
             text: root.icon
             iconSize: Theme.iconSizeSmall
-            color: root.active ? Theme.textPrimary : Theme.textSecondary
+            color: root.active
+                ? Theme.primaryContent : Theme.textSecondary
         }
 
         Behavior on radius {
@@ -185,9 +185,7 @@ Item {
         anchors.fill: parent
         anchors.margins: 2
         radius: tileSurface.radius
-        color: "transparent"
-        border.width: 2
-        border.color: Theme.primary
+        color: Theme.alpha(Theme.primary, 0.18)
         visible: root.activeFocus
     }
 

@@ -122,9 +122,7 @@ Rectangle {
                     implicitWidth: playerChipRow.implicitWidth + 10
                     implicitHeight: 22
                     radius: height / 2
-                    color: Theme.alpha(Theme.secondary, 0.14)
-                    border.width: 1
-                    border.color: Theme.alpha(Theme.secondary, 0.30)
+                    color: Theme.secondaryContainer
 
                     Row {
                         id: playerChipRow
@@ -135,14 +133,14 @@ Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
                             text: root.isPlaying ? "graphic_eq" : "music_note"
                             iconSize: 13
-                            color: Theme.secondary
+                            color: Theme.secondaryContainerContent
                         }
 
                         M3Text {
                             anchors.verticalCenter: parent.verticalCenter
                             role: "labelSmall"
                             text: root.player ? (root.player.identity || "Media") : "Media"
-                            color: Theme.secondary
+                            color: Theme.secondaryContainerContent
                             font.weight: Font.DemiBold
                         }
                     }
@@ -176,7 +174,9 @@ Rectangle {
                     iconSize: 17
                     icon: "shuffle"
                     fillColor: root.player && root.player.shuffle ? Theme.alpha(Theme.secondary, 0.22) : Theme.alpha(Theme.textPrimary, 0.06)
-                    foregroundColor: root.player && root.player.shuffle ? Theme.secondary : Theme.alpha(Theme.textPrimary, 0.55)
+                    foregroundColor: root.player && root.player.shuffle
+                        ? Theme.secondaryText
+                        : Theme.alpha(Theme.textPrimary, 0.55)
                     enabled: root.player && root.player.shuffleSupported
                     accessibleName: "Shuffle"
                     onClicked: if (root.player) root.player.shuffle = !root.player.shuffle
@@ -188,7 +188,7 @@ Rectangle {
                     iconSize: 19
                     icon: "skip_previous"
                     fillColor: Theme.alpha(Theme.secondary, 0.18)
-                    foregroundColor: Theme.secondary
+                    foregroundColor: Theme.secondaryText
                     enabled: root.player && root.player.canGoPrevious
                     accessibleName: I18n.tr("Bài trước", "Previous track")
                     onClicked: root.player.previous()
@@ -199,8 +199,8 @@ Rectangle {
                     buttonSize: 40
                     iconSize: 22
                     isPlaying: root.player && root.player.isPlaying
-                    fillColor: Theme.secondary
-                    foregroundColor: Theme.textPrimary
+                    fillColor: Theme.secondarySolid
+                    foregroundColor: Theme.secondaryContent
                     enabled: root.player && root.player.canTogglePlaying
                     onClicked: root.togglePlayback()
                 }
@@ -211,7 +211,7 @@ Rectangle {
                     iconSize: 19
                     icon: "skip_next"
                     fillColor: Theme.alpha(Theme.secondary, 0.18)
-                    foregroundColor: Theme.secondary
+                    foregroundColor: Theme.secondaryText
                     enabled: root.player && root.player.canGoNext
                     accessibleName: I18n.tr("Bài tiếp theo", "Next track")
                     onClicked: root.player.next()
@@ -223,7 +223,10 @@ Rectangle {
                     iconSize: 17
                     icon: root.player && root.player.loopStatus === "Track" ? "repeat_one" : "repeat"
                     fillColor: root.player && root.player.loopStatus && root.player.loopStatus !== "None" ? Theme.alpha(Theme.secondary, 0.22) : Theme.alpha(Theme.textPrimary, 0.06)
-                    foregroundColor: root.player && root.player.loopStatus && root.player.loopStatus !== "None" ? Theme.secondary : Theme.alpha(Theme.textPrimary, 0.55)
+                    foregroundColor: root.player && root.player.loopStatus
+                        && root.player.loopStatus !== "None"
+                        ? Theme.secondaryText
+                        : Theme.alpha(Theme.textPrimary, 0.55)
                     enabled: root.player && root.player.loopSupported
                     accessibleName: "Repeat"
                     onClicked: {

@@ -155,7 +155,7 @@ Rectangle {
                                     anchors.centerIn: parent
                                     size: 24
                                     shapeType: root.calcShapeIndex(summary + appName)
-                                    color: Theme.primary
+                                    color: Theme.primaryText
                                 }
                             }
 
@@ -180,7 +180,7 @@ Rectangle {
                                     width: parent.width
                                     role: "labelSmall"
                                     text: appName
-                                    color: Theme.primary
+                                    color: Theme.primaryText
                                     font.weight: Font.Medium
                                     elide: Text.ElideRight
                                 }

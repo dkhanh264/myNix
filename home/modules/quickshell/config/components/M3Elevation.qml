@@ -55,7 +55,6 @@ Item {
         anchors.topMargin: root.offsetY
         radius: root.radius
         color: "transparent"
-        border.width: 0
 
         // Soft ambient shadow stroke simulation
         Rectangle {

@@ -514,8 +514,6 @@ PanelWindow {
             anchors.margins: Theme.popupWindowInset
             radius: Theme.popupRadius
             color: Theme.popupSurface
-            border.width: 1
-            border.color: Theme.alpha(Theme.outlineVariant, 0.40)
             opacity: root.chromeProgress
 
             Behavior on opacity {
@@ -644,10 +642,13 @@ PanelWindow {
             popupKind: "calendar"
             preferredWidth: Math.min(440,
                 root.width - Theme.popupEdgeInset * 2)
-            preferredHeight: Math.min(620, root.availableHeight(16))
+            preferredHeight: Math.min(
+                calendarWidget.implicitHeight + Theme.popupVerticalChrome,
+                root.availableHeight(16))
             preferredX: root.popupAnchor("calendar", preferredWidth)
 
             CalendarWidget {
+                id: calendarWidget
                 anchors.fill: parent
                 controller: root.controller
                 popupActive: calendarPage.enabled && root.popupOpen
@@ -663,10 +664,13 @@ PanelWindow {
             popupKind: "weather"
             preferredWidth: Math.min(590,
                 root.width - Theme.popupEdgeInset * 2)
-            preferredHeight: Math.min(590, root.availableHeight(16))
+            preferredHeight: Math.min(
+                weatherWidget.implicitHeight + Theme.popupVerticalChrome,
+                root.availableHeight(16))
             preferredX: root.popupAnchor("weather", preferredWidth)
 
             WeatherWidget {
+                id: weatherWidget
                 anchors.fill: parent
                 controller: root.controller
             }

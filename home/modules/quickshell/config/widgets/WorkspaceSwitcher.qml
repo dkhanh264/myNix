@@ -96,13 +96,12 @@ M3BarPill {
                     anchors.fill: parent
                     radius: active ? Theme.shapeMedium : height / 2
                     color: workspaceButton.urgent
-                        ? Theme.error
+                        ? Theme.errorSolid
                         : workspaceButton.active
-                            ? Theme.primary
+                            ? Theme.primarySolid
                             : workspaceButton.occupied
                                 ? Theme.primaryContainer
                                 : Theme.surfaceContainerHighest
-                    border.width: 0
                     scale: pointer.pressed ? 0.90 : (pointer.containsMouse ? 1.08 : 1.0)
 
                     Behavior on color {
@@ -128,11 +127,11 @@ M3BarPill {
                         anchors.centerIn: parent
                         text: workspaceButton.workspaceId
                         color: workspaceButton.urgent
-                            ? Theme.onError
+                            ? Theme.errorContent
                             : workspaceButton.active
-                                ? Theme.textPrimary
+                                ? Theme.primaryContent
                                 : workspaceButton.occupied
-                                    ? Theme.textPrimary
+                                    ? Theme.primaryContainerContent
                                     : Theme.textSecondary
                         font.weight: Font.Bold
                     }
@@ -160,9 +159,7 @@ M3BarPill {
                     anchors.fill: parent
                     anchors.margins: -2
                     radius: circleNode.radius + 2
-                    color: "transparent"
-                    border.width: 2
-                    border.color: Theme.primary
+                    color: Theme.alpha(Theme.primary, 0.20)
                     visible: workspaceButton.activeFocus
                 }
             }

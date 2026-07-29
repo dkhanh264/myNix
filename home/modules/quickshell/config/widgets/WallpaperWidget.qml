@@ -399,30 +399,34 @@ FocusScope {
                             width: 24
                             height: 24
                             radius: 12
-                            color: Theme.primary
+                            color: Theme.primarySolid
 
                             MaterialIcon {
                                 anchors.centerIn: parent
                                 text: "check"
                                 iconSize: 16
-                                color: Theme.onPrimary
+                                color: Theme.primaryContent
                                 filled: true
                             }
                         }
                     }
                 }
 
-                // Selection / Focus Border Outline around 28dp rounded card shape
+                // Tonal state layer keeps selection visible without outlining
+                // the whole image card.
                 Rectangle {
                     anchors.fill: parent
                     radius: 28
-                    color: "transparent"
-                    border.width: cardItem.isCurrent ? 3 : (cardItem.isSelected ? 2 : 0)
-                    border.color: cardItem.isCurrent ? Theme.primary
-                        : (cardItem.isSelected ? Theme.tertiary : "transparent")
+                    color: cardItem.isCurrent
+                        ? Theme.alpha(Theme.primary, 0.14)
+                        : (cardItem.isSelected
+                            ? Theme.alpha(Theme.tertiary, 0.10)
+                            : "transparent")
                     antialiasing: true
 
-                    Behavior on border.color { ColorAnimation { duration: Theme.motionShort3 } }
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.motionShort3 }
+                    }
                 }
 
                 // Ripple Feedback

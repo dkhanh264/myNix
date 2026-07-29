@@ -220,7 +220,7 @@ WlSessionLock {
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: Qt.formatDateTime(systemClock.date, "mm")
-                                color: Theme.primary
+                                color: Theme.primaryText
                                 font.family: Theme.textFont
                                 font.pixelSize: 148
                                 font.weight: Font.Bold
@@ -233,9 +233,7 @@ WlSessionLock {
                             implicitWidth: dateText.implicitWidth + Theme.space4
                             implicitHeight: 32
                             radius: 16
-                            color: Theme.alpha(Theme.surfaceContainerHigh, 0.6)
-                            border.width: 1
-                            border.color: Theme.alpha(Theme.outlineVariant, 0.4)
+                            color: Theme.surfaceContainerHigh
 
                             M3Text {
                                 id: dateText
@@ -254,7 +252,6 @@ WlSessionLock {
                         width: parent.width
                         implicitHeight: authContent.implicitHeight
                         color: "transparent"
-                        border.width: 0
 
                         // Shake animation on authentication error
                         SequentialAnimation on x {
@@ -278,17 +275,37 @@ WlSessionLock {
 
                             // Capsule Password Input Bar
                             Rectangle {
+                                id: passwordSurface
                                 width: parent.width
                                 height: 52
                                 radius: 26
-                                color: Theme.surfaceContainerHighest
-                                border.width: passwordInput.activeFocus ? 2 : 1
-                                border.color: lock.authError
-                                    ? Theme.error
-                                    : (passwordInput.activeFocus ? Theme.primary : Theme.outlineVariant)
+                                color: lock.authError
+                                    ? Theme.blend(
+                                        Theme.surfaceContainerHighest,
+                                        Theme.error, 0.18)
+                                    : passwordInput.activeFocus
+                                        ? Theme.surfaceBright
+                                        : Theme.surfaceContainerHighest
 
-                                Behavior on border.color {
+                                Behavior on color {
                                     ColorAnimation { duration: Theme.motionShort3 }
+                                }
+
+                                Rectangle {
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    anchors.bottom: parent.bottom
+                                    height: lock.authError ? 3
+                                        : (passwordInput.activeFocus ? 2 : 0)
+                                    radius: height / 2
+                                    color: lock.authError
+                                        ? Theme.error : Theme.primary
+
+                                    Behavior on height {
+                                        NumberAnimation {
+                                            duration: Theme.motionShort3
+                                        }
+                                    }
                                 }
 
                                 RowLayout {
@@ -317,7 +334,8 @@ WlSessionLock {
                                             echoMode: showPasswordToggle.showPass ? TextInput.Normal : TextInput.NoEcho
                                             color: showPasswordToggle.showPass ? Theme.textPrimary : "transparent"
                                             selectionColor: Theme.primaryContainer
-                                            selectedTextColor: Theme.onPrimaryContainer
+                                            selectedTextColor:
+                                                Theme.primaryContainerContent
                                             font.family: Theme.textFont
                                             font.pixelSize: 15
                                             font.weight: Font.Medium
@@ -387,14 +405,21 @@ WlSessionLock {
                                         color: lock.authenticating
                                             ? Theme.surfaceContainerLow
                                             : (submitBtnArea.pressed
-                                                ? Theme.blend(Theme.primary, "#ffffff", 0.20)
-                                                : (submitBtnArea.containsMouse ? Theme.blend(Theme.primary, "#ffffff", 0.10) : Theme.primary))
+                                                ? Theme.solidAccent(Theme.blend(
+                                                    Theme.primarySolid,
+                                                    "#ffffff", 0.20))
+                                                : (submitBtnArea.containsMouse
+                                                    ? Theme.solidAccent(
+                                                        Theme.blend(
+                                                            Theme.primarySolid,
+                                                            "#ffffff", 0.10))
+                                                    : Theme.primarySolid))
 
                                         MaterialIcon {
                                             anchors.centerIn: parent
                                             text: lock.authenticating ? "hourglass_empty" : "arrow_forward"
                                             iconSize: 20
-                                            color: Theme.onPrimary
+                                            color: Theme.primaryContent
                                         }
 
                                         MouseArea {
@@ -414,7 +439,7 @@ WlSessionLock {
                                 visible: lock.authError
                                 width: parent.width
                                 text: lock.errorMessage || I18n.tr("Mật khẩu không đúng. Vui lòng thử lại.", "Incorrect password. Please try again.")
-                                color: Theme.error
+                                color: Theme.errorText
                                 horizontalAlignment: Text.AlignHCenter
                             }
 
@@ -445,8 +470,6 @@ WlSessionLock {
                             implicitHeight: mediaContentCol.implicitHeight + Theme.space4 * 2
                             radius: Theme.cardRadius
                             color: Theme.lockCardBackground
-                            border.width: 1
-                            border.color: Theme.barOutline
 
                             Column {
                                 id: mediaContentCol
@@ -560,8 +583,9 @@ WlSessionLock {
                                             buttonSize: 36
                                             iconSize: 20
                                             isPlaying: mediaCard.activePlayer && mediaCard.activePlayer.isPlaying
-                                            fillColor: Theme.primary
-                                            foregroundColor: Theme.onPrimary
+                                            fillColor: Theme.primarySolid
+                                            foregroundColor:
+                                                Theme.primaryContent
                                             enabled: mediaCard.activePlayer && mediaCard.activePlayer.canTogglePlaying
                                             onClicked: if (mediaCard.activePlayer) mediaCard.activePlayer.togglePlaying()
                                         }

@@ -172,9 +172,7 @@ Rectangle {
             anchors.fill: parent
             anchors.margins: 2
             radius: Theme.shapeLarge
-            color: "transparent"
-            border.width: 2
-            border.color: Theme.primary
+            color: Theme.alpha(Theme.primary, 0.18)
             visible: summary.activeFocus
         }
     }

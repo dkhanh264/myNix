@@ -32,11 +32,10 @@ Item {
         anchors.top: parent.top
         height: 56
         radius: input.activeFocus ? Theme.shapeLarge : Theme.shapeMedium
-        color: input.activeFocus
-            ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow
-        border.width: input.activeFocus || root.error ? 2 : 1
-        border.color: root.error ? Theme.error
-            : input.activeFocus ? Theme.primary : Theme.outlineVariant
+        color: root.error
+            ? Theme.blend(Theme.surfaceContainerHigh, Theme.error, 0.14)
+            : input.activeFocus
+                ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
 
         Behavior on radius {
             NumberAnimation {
@@ -46,7 +45,22 @@ Item {
             }
         }
         Behavior on color { ColorAnimation { duration: Theme.motionShort4 } }
-        Behavior on border.color { ColorAnimation { duration: Theme.motionShort4 } }
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: root.error ? 3 : (input.activeFocus ? 2 : 0)
+            radius: height / 2
+            color: root.error ? Theme.error : Theme.primary
+
+            Behavior on height {
+                NumberAnimation { duration: Theme.motionShort3 }
+            }
+            Behavior on color {
+                ColorAnimation { duration: Theme.motionShort3 }
+            }
+        }
 
         MaterialIcon {
             id: leading
@@ -56,8 +70,9 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: root.leadingIcon
             iconSize: Theme.iconSizeSmall
-            color: root.error ? Theme.error
-                : input.activeFocus ? Theme.primary : Theme.textSecondary
+            color: root.error ? Theme.errorText
+                : input.activeFocus
+                    ? Theme.primaryText : Theme.textSecondary
         }
 
         TextInput {
@@ -88,8 +103,9 @@ Item {
             anchors.topMargin: 7
             role: "labelSmall"
             text: root.label
-            color: root.error ? Theme.error
-                : input.activeFocus ? Theme.primary : Theme.textSecondary
+            color: root.error ? Theme.errorText
+                : input.activeFocus
+                    ? Theme.primaryText : Theme.textSecondary
         }
 
         M3Text {
@@ -118,7 +134,8 @@ Item {
                 buttonSize: 32
                 iconSize: Theme.iconSizeExtraSmall
                 icon: (root.showClearButton && input.text.length > 0) ? "close" : root.trailingIcon
-                foregroundColor: root.error ? Theme.error : Theme.textSecondary
+                foregroundColor: root.error
+                    ? Theme.errorText : Theme.textSecondary
                 onClicked: {
                     if (root.showClearButton && input.text.length > 0) {
                         input.text = "";
@@ -140,7 +157,7 @@ Item {
         anchors.topMargin: 3
         role: "labelSmall"
         text: root.supportingText
-        color: root.error ? Theme.error : Theme.textSecondary
+        color: root.error ? Theme.errorText : Theme.textSecondary
         elide: Text.ElideRight
     }
 }

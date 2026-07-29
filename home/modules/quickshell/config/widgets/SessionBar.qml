@@ -190,9 +190,7 @@ Rectangle {
                     anchors.fill: parent
                     anchors.margins: 2
                     radius: Theme.shapeMedium
-                    color: "transparent"
-                    border.width: 2
-                    border.color: Theme.primary
+                    color: Theme.alpha(Theme.primary, 0.18)
                     visible: parent.activeFocus
                 }
 
@@ -283,7 +281,7 @@ Rectangle {
             IconButton {
                 icon: "check"
                 fillColor: Theme.errorContainer
-                foregroundColor: Theme.error
+                foregroundColor: Theme.errorContainerContent
                 accessibleName: I18n.tr("Xác nhận", "Confirm")
                 onClicked: {
                     root.controller.sessionAction(root.pendingAction);

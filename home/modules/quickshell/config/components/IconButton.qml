@@ -44,10 +44,14 @@ Item {
         if (root.checked) return Theme.primaryContainer;
         switch (root.variant) {
         case "filled":
-            return root.fillColor !== "transparent" ? root.fillColor : Theme.primary;
+            return root.fillColor !== "transparent"
+                ? root.fillColor : Theme.primarySolid;
         case "tonal":
             return Theme.secondaryContainer;
         case "outlined":
+            return pointer.containsMouse
+                ? Theme.surfaceContainerHighest
+                : Theme.surfaceContainerHigh;
         case "standard":
         default:
             return pointer.containsMouse ? root.hoverColor : "transparent";
@@ -55,12 +59,13 @@ Item {
     }
 
     function getIconColor() {
-        if (root.checked) return Theme.textPrimary;
+        if (root.checked) return Theme.primaryContainerContent;
         switch (root.variant) {
         case "filled":
-            return Theme.textPrimary;
+            return root.fillColor !== "transparent"
+                ? root.foregroundColor : Theme.primaryContent;
         case "tonal":
-            return Theme.textPrimary;
+            return Theme.secondaryContainerContent;
         case "outlined":
         case "standard":
         default:
@@ -75,8 +80,6 @@ Item {
             : root.checked ? Theme.shapeMedium
             : pointer.containsMouse ? Theme.shapeLarge : width / 2
         color: root.getSurfaceColor()
-        border.width: root.variant === "outlined" && !root.checked ? 1 : 0
-        border.color: pointer.containsMouse ? Theme.primary : Theme.outline
 
         Behavior on color {
             ColorAnimation { duration: Theme.motionShort3 }
@@ -132,9 +135,7 @@ Item {
         anchors.fill: parent
         anchors.margins: -2
         radius: buttonSurface.radius + 2
-        color: "transparent"
-        border.width: 2
-        border.color: Theme.primary
+        color: Theme.alpha(Theme.primary, 0.18)
         visible: root.activeFocus
     }
 
@@ -146,4 +147,3 @@ Item {
         }
     }
 }
-

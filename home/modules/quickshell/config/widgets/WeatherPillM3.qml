@@ -64,7 +64,8 @@ M3BarPill {
             anchors.verticalCenter: parent.verticalCenter
             text: root.weatherIcon(root.controller ? root.controller.weatherCode : -1)
             iconSize: 20
-            color: Theme.tertiary
+            color: Theme.ensureContrast(
+                Theme.tertiary, root.resolvedColor, 3.0)
             filled: true
         }
 
@@ -76,7 +77,7 @@ M3BarPill {
                 role: "labelMedium"
                 text: root.controller && root.controller.weatherAvailable
                     ? root.controller.weatherTemperature + "°" : "--°"
-                color: Theme.textPrimary
+                color: "#ffffff"
                 font.weight: Font.Bold
             }
 
@@ -85,7 +86,7 @@ M3BarPill {
                 visible: !root.compact
                 text: root.weatherLabel(root.controller
                     ? root.controller.weatherCode : -1)
-                color: Theme.textSecondary
+                color: Theme.alpha("#ffffff", 0.82)
                 font.weight: Font.Medium
             }
         }

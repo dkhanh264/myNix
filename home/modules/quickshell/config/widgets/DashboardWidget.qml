@@ -336,6 +336,18 @@ Item {
             + Math.round(Number(today.apparentMaximum)) + "°";
     }
 
+    function temperatureHighLowText() {
+        const today = todayWeather;
+        if (!today || today.maximum === undefined
+                || today.minimum === undefined)
+            return I18n.tr("Cao --° · Thấp --°",
+                "High --° · Low --°");
+        return I18n.tr("Cao ", "High ")
+            + Math.round(Number(today.maximum)) + "°"
+            + I18n.tr(" · Thấp ", " · Low ")
+            + Math.round(Number(today.minimum)) + "°";
+    }
+
     function shortWeatherTime(rawValue) {
         const raw = String(rawValue || "");
         const separator = raw.indexOf("T");
@@ -344,45 +356,65 @@ Item {
         return raw.length >= 5 ? raw.slice(-5) : "--:--";
     }
 
-    component WeatherMetric: Item {
+    component WeatherMetric: Rectangle {
+        id: metricRoot
+
         property string iconName: ""
+        property string labelText: ""
         property string valueText: "--"
         property string accessibleLabel: ""
         property bool iconOnRight: false
         property color accentColor: Theme.tertiary
+        property color containerColor: Theme.surfaceContainerHighest
 
-        implicitWidth: 72
-        implicitHeight: 20
+        implicitWidth: 96
+        implicitHeight: 40
+        radius: Theme.shapeMedium
+        color: containerColor
 
         Accessible.name: accessibleLabel + ": " + valueText
 
-        Row {
-            anchors.centerIn: parent
-            width: parent.width
-            height: parent.height
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: Theme.space1
             spacing: Theme.space1
-            layoutDirection: parent.iconOnRight
+            layoutDirection: metricRoot.iconOnRight
                 ? Qt.RightToLeft : Qt.LeftToRight
 
             MaterialIcon {
-                anchors.verticalCenter: parent.verticalCenter
-                text: parent.parent.iconName
+                Layout.alignment: Qt.AlignVCenter
+                text: metricRoot.iconName
                 iconSize: Theme.iconSizeExtraSmall
-                color: parent.parent.accentColor
+                color: metricRoot.accentColor
                 filled: true
             }
 
-            M3Text {
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width - Theme.iconSizeExtraSmall
-                    - Theme.space1
-                role: "labelMedium"
-                text: parent.parent.valueText
-                color: Theme.textPrimary
-                font.weight: Font.DemiBold
-                horizontalAlignment: parent.parent.iconOnRight
-                    ? Text.AlignRight : Text.AlignLeft
-                elide: Text.ElideRight
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+                spacing: 0
+
+                M3Text {
+                    Layout.fillWidth: true
+                    role: "labelSmall"
+                    text: metricRoot.labelText
+                    color: Theme.textSecondary
+                    font.weight: Font.Medium
+                    horizontalAlignment: metricRoot.iconOnRight
+                        ? Text.AlignRight : Text.AlignLeft
+                    elide: Text.ElideRight
+                }
+
+                M3Text {
+                    Layout.fillWidth: true
+                    role: "labelMedium"
+                    text: metricRoot.valueText
+                    color: Theme.textPrimary
+                    font.weight: Font.Bold
+                    horizontalAlignment: metricRoot.iconOnRight
+                        ? Text.AlignRight : Text.AlignLeft
+                    elide: Text.ElideRight
+                }
             }
         }
     }
@@ -451,9 +483,7 @@ Item {
                         Layout.preferredWidth: (parent.width - parent.spacing) * 0.45
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
-                        color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+                        color: Theme.surfaceContainerLow
 
                         RowLayout {
                             anchors.fill: parent
@@ -471,8 +501,6 @@ Item {
                                     anchors.fill: parent
                                     radius: Theme.cardRadius - 4
                                     color: Theme.primaryContainer
-                                    border.width: 1.5
-                                    border.color: Theme.alpha(Theme.primary, 0.4)
 
                                     Rectangle {
                                         id: avatarMask
@@ -509,7 +537,7 @@ Item {
                                         visible: userAvatarImg.status !== Image.Ready
                                         text: "person"
                                         iconSize: 42
-                                        color: Theme.primary
+                                        color: Theme.primaryText
                                     }
                                 }
                             }
@@ -543,7 +571,7 @@ Item {
                                         Layout.fillWidth: true
                                         role: "labelSmall"
                                         text: root.sysHostName || Quickshell.env("HOSTNAME") || "myNix"
-                                        color: Theme.primary
+                                        color: Theme.primaryText
                                         font.weight: Font.Medium
                                         elide: Text.ElideRight
                                     }
@@ -616,8 +644,6 @@ Item {
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
 
                         RowLayout {
                             anchors.fill: parent
@@ -633,9 +659,7 @@ Item {
                                 Rectangle {
                                     anchors.fill: parent
                                     radius: Theme.cardRadius - 4
-                                    color: Theme.alpha(Theme.tertiary, 0.12)
-                                    border.width: 1.5
-                                    border.color: Theme.alpha(Theme.tertiary, 0.35)
+                                    color: Theme.tertiaryContainer
 
                                     Image {
                                         id: nixLogoImg
@@ -664,7 +688,7 @@ Item {
                                         visible: nixLogoImg.status !== Image.Ready
                                         text: "memory"
                                         iconSize: 42
-                                        color: Theme.tertiary
+                                        color: Theme.tertiaryText
                                     }
                                 }
                             }
@@ -781,9 +805,7 @@ Item {
                     Layout.fillHeight: true
                     Layout.preferredHeight: 0.9
                     radius: Theme.cardRadius
-                    color: Theme.surfaceContainer
-                    border.width: 1
-                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+                    color: Theme.surfaceContainerLow
 
                     ColumnLayout {
                         anchors.fill: parent
@@ -800,7 +822,7 @@ Item {
                                 Layout.preferredWidth: 1
                                 implicitHeight: 38
                                 radius: Theme.shapeMedium
-                                color: Theme.surfaceContainerHigh
+                                color: Theme.surfaceContainerHighest
 
                                 RowLayout {
                                     anchors.fill: parent
@@ -842,7 +864,7 @@ Item {
                                 Layout.preferredWidth: 1
                                 implicitHeight: 38
                                 radius: Theme.shapeMedium
-                                color: Theme.surfaceContainerHigh
+                                color: Theme.surfaceContainerHighest
 
                                 RowLayout {
                                     anchors.fill: parent
@@ -934,8 +956,6 @@ Item {
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
 
                         GridLayout {
                             anchors.fill: parent
@@ -950,7 +970,7 @@ Item {
                                 Layout.fillHeight: true
                                 Layout.preferredWidth: 1
                                 radius: Theme.shapeMedium
-                                color: Theme.surfaceContainerHigh
+                                color: Theme.surfaceContainerHighest
 
                                 Item {
                                     anchors.centerIn: parent
@@ -982,7 +1002,7 @@ Item {
                                 Layout.fillHeight: true
                                 Layout.preferredWidth: 1
                                 radius: Theme.shapeMedium
-                                color: Theme.surfaceContainerHigh
+                                color: Theme.surfaceContainerHighest
 
                                 Item {
                                     anchors.centerIn: parent
@@ -1014,7 +1034,7 @@ Item {
                                 Layout.fillHeight: true
                                 Layout.preferredWidth: 1
                                 radius: Theme.shapeMedium
-                                color: root.controller && root.controller.temperatureC >= 80 ? Theme.errorContainer : Theme.surfaceContainerHigh
+                                color: root.controller && root.controller.temperatureC >= 80 ? Theme.errorContainer : Theme.surfaceContainerHighest
 
                                 Item {
                                     anchors.centerIn: parent
@@ -1046,7 +1066,7 @@ Item {
                                 Layout.fillHeight: true
                                 Layout.preferredWidth: 1
                                 radius: Theme.shapeMedium
-                                color: Theme.surfaceContainerHigh
+                                color: Theme.surfaceContainerHighest
 
                                 Item {
                                     anchors.centerIn: parent
@@ -1080,9 +1100,7 @@ Item {
                         Layout.preferredWidth: 1.05
                         Layout.fillHeight: true
                         radius: Theme.cardRadius
-                        color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+                        color: Theme.surfaceContainerLow
 
                         RowLayout {
                             anchors.fill: parent
@@ -1096,9 +1114,9 @@ Item {
                                 Layout.preferredWidth: 1
                                 Layout.fillHeight: true
                                 radius: Theme.shapeMedium
-                                color: Theme.surfaceContainerHigh
-                                border.width: 1.5
-                                border.color: Theme.alpha(Theme.primary, 0.45)
+                                color: Theme.blend(
+                                    Theme.surfaceContainerHigh,
+                                    Theme.primary, 0.10)
                                 clip: true
 
                                 Canvas {
@@ -1238,9 +1256,9 @@ Item {
                                 Layout.preferredWidth: 1
                                 Layout.fillHeight: true
                                 radius: Theme.shapeMedium
-                                color: Theme.surfaceContainerHigh
-                                border.width: 1.5
-                                border.color: Theme.alpha(Theme.tertiary, 0.45)
+                                color: Theme.blend(
+                                    Theme.surfaceContainerHigh,
+                                    Theme.tertiary, 0.10)
                                 clip: true
 
                                 Canvas {
@@ -1401,7 +1419,7 @@ Item {
                     Layout.fillHeight: true
                     spacing: Theme.space3
 
-                    // Sub-Card 1A: Weather Card (Spacious & Clean, Top)
+                    // Sub-Card 1A: compact weather summary.
                     Rectangle {
                         id: weatherCard
                         Layout.fillWidth: true
@@ -1409,81 +1427,82 @@ Item {
                         Layout.preferredHeight: 1
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.tertiary, 0.40)
-                        readonly property bool compactOrbit:
-                            width < 232 || height < 208
 
-                        Item {
+                        ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: Theme.space3
+                            anchors.margins: Theme.space2
+                            spacing: Theme.space1
 
-                            M3Text {
-                                anchors.top: parent.top
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                width: parent.width - Theme.space10 * 2
-                                    - Theme.space2
-                                role: "titleSmall"
-                                text: root.controller
-                                    && root.controller.weatherDescription
-                                    ? root.controller.weatherDescription
-                                    : I18n.tr("Thời tiết", "Weather")
-                                color: Theme.tertiary
-                                font.weight: Font.Bold
-                                horizontalAlignment: Text.AlignHCenter
-                                elide: Text.ElideRight
-                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: Theme.space1
 
-                            IconButton {
-                                anchors.top: parent.top
-                                anchors.right: parent.right
-                                buttonSize: Theme.space10
-                                iconSize: Theme.iconSizeSmall
-                                icon: "refresh"
-                                accessibleName: I18n.tr(
-                                    "Làm mới thời tiết", "Refresh weather")
-                                onClicked: {
-                                    if (root.controller)
-                                        root.controller.refreshWeather(true);
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 0
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "titleSmall"
+                                        text: root.controller
+                                            && root.controller
+                                                .weatherDescription
+                                            ? root.controller
+                                                .weatherDescription
+                                            : I18n.tr(
+                                                "Thời tiết", "Weather")
+                                        color: Theme.tertiaryText
+                                        font.weight: Font.Bold
+                                        elide: Text.ElideRight
+                                    }
+
+                                    M3Text {
+                                        Layout.fillWidth: true
+                                        role: "labelSmall"
+                                        text: root.controller
+                                            && root.controller.weatherLocation
+                                            ? root.controller
+                                                .weatherLocation
+                                            : I18n.tr(
+                                                "Đang xác định vị trí",
+                                                "Locating")
+                                        color: Theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                IconButton {
+                                    buttonSize: Theme.space8
+                                    iconSize: Theme.iconSizeExtraSmall
+                                    icon: "refresh"
+                                    foregroundColor: Theme.tertiary
+                                    accessibleName: I18n.tr(
+                                        "Làm mới thời tiết",
+                                        "Refresh weather")
+                                    onClicked: {
+                                        if (root.controller)
+                                            root.controller
+                                                .refreshWeather(true);
+                                    }
                                 }
                             }
 
                             Rectangle {
-                                id: weatherStickerContainer
-                                anchors.centerIn: parent
-                                width: weatherCard.compactOrbit
-                                    ? Theme.space7 * 2 : Theme.space8 * 2
-                                height: width
+                                Layout.fillWidth: true
+                                implicitHeight:
+                                    weatherHeroContent.implicitHeight
+                                        + Theme.space2 * 2
                                 radius: Theme.shapeMedium
                                 color: Theme.tertiaryContainer
-                                border.width: 1
-                                border.color: Theme.alpha(Theme.tertiary, 0.45)
-                                property real pulsePhase: 0
-                                scale: Theme.reduceMotion ? 1
-                                    : 1 + Math.sin(pulsePhase) * 0.05
 
-                                Timer {
-                                    interval: Theme.ambientMotionInterval
-                                    repeat: true
-                                    running: root.visible
-                                        && (root.Window.window
-                                            ? root.Window.window.visible : true)
-                                        && !Theme.reduceMotion
-                                    onTriggered:
-                                        weatherStickerContainer.pulsePhase =
-                                            (weatherStickerContainer.pulsePhase
-                                                + Math.PI * 2 * interval
-                                                    / 4800)
-                                                % (Math.PI * 2)
-                                }
-
-                                Column {
-                                    anchors.centerIn: parent
-                                    spacing: Theme.space0
+                                RowLayout {
+                                    id: weatherHeroContent
+                                    anchors.fill: parent
+                                    anchors.margins: Theme.space2
+                                    spacing: Theme.space2
 
                                     MaterialIcon {
-                                        anchors.horizontalCenter:
-                                            parent.horizontalCenter
+                                        Layout.alignment: Qt.AlignVCenter
                                         text: root.getWeatherIcon(
                                             root.controller
                                                 ? root.controller.weatherCode
@@ -1493,128 +1512,117 @@ Item {
                                         filled: true
                                     }
 
-                                    M3Text {
-                                        anchors.horizontalCenter:
-                                            parent.horizontalCenter
-                                        role: "titleMedium"
-                                        text: root.controller
-                                            && root.controller.weatherAvailable
-                                            ? root.controller.weatherTemperature
-                                                + "°"
-                                            : "--°"
-                                        color: Theme.textPrimary
-                                        font.weight: Font.Bold
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        Layout.alignment: Qt.AlignVCenter
+                                        spacing: 0
+
+                                        M3Text {
+                                            Layout.fillWidth: true
+                                            role: "headlineSmall"
+                                            text: root.controller
+                                                && root.controller
+                                                    .weatherAvailable
+                                                ? root.controller
+                                                    .weatherTemperature + "°"
+                                                : "--°"
+                                            color:
+                                                Theme.tertiaryContainerContent
+                                            font.weight: Font.Bold
+                                            elide: Text.ElideRight
+                                        }
+
+                                        M3Text {
+                                            Layout.fillWidth: true
+                                            role: "labelSmall"
+                                            text:
+                                                root.temperatureHighLowText()
+                                            color: Theme.alpha(
+                                                Theme.tertiaryContainerContent,
+                                                0.76)
+                                            font.weight: Font.Medium
+                                            elide: Text.ElideRight
+                                        }
                                     }
                                 }
                             }
 
-                            WeatherMetric {
-                                anchors.right: weatherStickerContainer.left
-                                anchors.rightMargin: Theme.space2
-                                anchors.bottom: weatherStickerContainer.top
-                                iconName: "device_thermostat"
-                                valueText: root.apparentTemperatureRange()
-                                accessibleLabel: I18n.tr(
-                                    "Khoảng nhiệt độ cảm nhận",
-                                    "Apparent temperature range")
-                                iconOnRight: true
-                            }
+                            GridLayout {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                columns: 2
+                                columnSpacing: Theme.space1
+                                rowSpacing: Theme.space1
 
-                            WeatherMetric {
-                                anchors.left: weatherStickerContainer.right
-                                anchors.leftMargin: Theme.space2
-                                anchors.bottom: weatherStickerContainer.top
-                                iconName: "water_drop"
-                                valueText: root.weatherMetricText(
-                                    "precipitation", "%", 0)
-                                accessibleLabel: I18n.tr(
-                                    "Khả năng mưa tối đa",
-                                    "Maximum precipitation chance")
-                            }
+                                WeatherMetric {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    iconName: "water_drop"
+                                    labelText: I18n.tr("Mưa", "Rain")
+                                    valueText: root.weatherMetricText(
+                                        "precipitation", "%", 0)
+                                    accessibleLabel: I18n.tr(
+                                        "Khả năng mưa tối đa",
+                                        "Maximum precipitation chance")
+                                    accentColor: Theme.secondary
+                                    containerColor:
+                                        Theme.secondaryContainer
+                                }
 
-                            WeatherMetric {
-                                anchors.right: weatherStickerContainer.left
-                                anchors.rightMargin: Theme.space2
-                                anchors.verticalCenter:
-                                    weatherStickerContainer.verticalCenter
-                                iconName: "air"
-                                valueText: root.weatherMetricText(
-                                    "windMaximum", " km/h", 0)
-                                accessibleLabel: I18n.tr(
-                                    "Gió tối đa", "Maximum wind")
-                                iconOnRight: true
-                                accentColor: Theme.secondary
-                            }
+                                WeatherMetric {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    iconName: "air"
+                                    labelText: I18n.tr("Gió", "Wind")
+                                    valueText: root.weatherMetricText(
+                                        "windMaximum", " km/h", 0)
+                                    accessibleLabel: I18n.tr(
+                                        "Gió tối đa", "Maximum wind")
+                                    accentColor: Theme.secondary
+                                }
 
-                            WeatherMetric {
-                                anchors.left: weatherStickerContainer.right
-                                anchors.leftMargin: Theme.space2
-                                anchors.verticalCenter:
-                                    weatherStickerContainer.verticalCenter
-                                iconName: "sunny"
-                                valueText: root.weatherMetricText(
-                                    "uvIndex", " UV", 1)
-                                accessibleLabel: I18n.tr(
-                                    "Chỉ số UV tối đa", "Maximum UV index")
-                                accentColor: Theme.warning
-                            }
+                                WeatherMetric {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    iconName: "sunny"
+                                    labelText: I18n.tr("UV", "UV")
+                                    valueText: root.weatherMetricText(
+                                        "uvIndex", "", 1)
+                                    accessibleLabel: I18n.tr(
+                                        "Chỉ số UV tối đa",
+                                        "Maximum UV index")
+                                    accentColor: Theme.warning
+                                    containerColor:
+                                        Theme.warningContainer
+                                }
 
-                            WeatherMetric {
-                                visible: !weatherCard.compactOrbit
-                                anchors.right: weatherStickerContainer.left
-                                anchors.rightMargin: Theme.space2
-                                anchors.top: weatherStickerContainer.bottom
-                                iconName: "wb_twilight"
-                                valueText: root.shortWeatherTime(
-                                    root.todayWeather
-                                        ? root.todayWeather.sunriseTime : "")
-                                accessibleLabel: I18n.tr(
-                                    "Mặt trời mọc", "Sunrise")
-                                iconOnRight: true
-                                accentColor: Theme.secondary
-                            }
-
-                            WeatherMetric {
-                                visible: !weatherCard.compactOrbit
-                                anchors.left: weatherStickerContainer.right
-                                anchors.leftMargin: Theme.space2
-                                anchors.top: weatherStickerContainer.bottom
-                                iconName: "bedtime"
-                                valueText: root.shortWeatherTime(
-                                    root.todayWeather
-                                        ? root.todayWeather.sunsetTime : "")
-                                accessibleLabel: I18n.tr(
-                                    "Mặt trời lặn", "Sunset")
-                                accentColor: Theme.tertiary
-                            }
-
-                            M3Text {
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.bottom: parent.bottom
-                                role: "labelSmall"
-                                text: root.controller
-                                    && root.controller.weatherLocation
-                                    ? root.controller.weatherLocation
-                                    : I18n.tr("Đang xác định vị trí",
-                                        "Locating")
-                                color: Theme.textSecondary
-                                horizontalAlignment: Text.AlignHCenter
-                                elide: Text.ElideRight
+                                WeatherMetric {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    iconName: "device_thermostat"
+                                    labelText: I18n.tr(
+                                        "Cảm nhận", "Feels")
+                                    valueText:
+                                        root.apparentTemperatureRange()
+                                    accessibleLabel: I18n.tr(
+                                        "Khoảng nhiệt độ cảm nhận",
+                                        "Apparent temperature range")
+                                    accentColor: Theme.primary
+                                    containerColor:
+                                        Theme.primaryContainer
+                                }
                             }
                         }
                     }
 
-                    // Sub-Card 1B: compact six-week calendar.
+                    // Sub-Card 1B: tinted header and neutral month grid.
                     Rectangle {
                         id: miniCalendarCard
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.preferredHeight: 1
                         radius: Theme.cardRadius
-                        color: Theme.surfaceContainer
-                        border.width: 1
-                        border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+                        color: Theme.surfaceContainerLow
 
                         property date currentDate: new Date()
                         property int monthOffset: 0
@@ -1635,83 +1643,116 @@ Item {
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: Theme.space3
+                            anchors.margins: Theme.space2
                             spacing: Theme.space1
 
-                            RowLayout {
+                            Rectangle {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: Theme.space8
-                                spacing: Theme.space1
+                                implicitHeight:
+                                    calendarHeaderRow.implicitHeight
+                                        + Theme.space1 * 2
+                                radius: Theme.shapeMedium
+                                color: Theme.primaryContainer
 
-                                MaterialIcon {
-                                    text: "calendar_month"
-                                    iconSize: Theme.iconSizeSmall
-                                    color: Theme.primary
-                                    filled: true
-                                }
+                                RowLayout {
+                                    id: calendarHeaderRow
+                                    anchors.fill: parent
+                                    anchors.margins: Theme.space1
+                                    spacing: Theme.space1
 
-                                M3Text {
-                                    role: "titleSmall"
-                                    Layout.fillWidth: true
-                                    text: miniCalendarCard.calendarLocale
-                                        .standaloneMonthName(
-                                            miniCalendarCard.displayDate
-                                                .getMonth(),
-                                            Locale.LongFormat)
-                                        + " · "
-                                        + miniCalendarCard.displayDate
-                                            .getFullYear()
-                                    color: Theme.textPrimary
-                                    font.weight: Font.Bold
-                                    elide: Text.ElideRight
-                                }
+                                    MaterialIcon {
+                                        text: "calendar_month"
+                                        iconSize: Theme.iconSizeSmall
+                                        color:
+                                            Theme.primaryContainerContent
+                                        filled: true
+                                    }
 
-                                IconButton {
-                                    visible:
-                                        miniCalendarCard.monthOffset !== 0
-                                    buttonSize: Theme.space8
-                                    iconSize: Theme.iconSizeExtraSmall
-                                    icon: "today"
-                                    variant: "tonal"
-                                    accessibleName: I18n.tr(
-                                        "Về tháng hiện tại",
-                                        "Return to current month")
-                                    onClicked:
-                                        miniCalendarCard.monthOffset = 0
-                                }
+                                    M3Text {
+                                        role: "titleSmall"
+                                        Layout.fillWidth: true
+                                        text: miniCalendarCard
+                                            .calendarLocale
+                                            .standaloneMonthName(
+                                                miniCalendarCard
+                                                    .displayDate
+                                                    .getMonth(),
+                                                Locale.LongFormat)
+                                            + " · "
+                                            + miniCalendarCard
+                                                .displayDate.getFullYear()
+                                        color:
+                                            Theme.primaryContainerContent
+                                        font.weight: Font.Bold
+                                        elide: Text.ElideRight
+                                    }
 
-                                IconButton {
-                                    buttonSize: Theme.space8
-                                    iconSize: Theme.iconSizeExtraSmall
-                                    icon: "chevron_left"
-                                    accessibleName: I18n.tr(
-                                        "Tháng trước", "Previous month")
-                                    onClicked:
-                                        miniCalendarCard.monthOffset -= 1
-                                }
+                                    IconButton {
+                                        visible:
+                                            miniCalendarCard
+                                                .monthOffset !== 0
+                                        buttonSize: Theme.space8
+                                        iconSize:
+                                            Theme.iconSizeExtraSmall
+                                        icon: "today"
+                                        variant: "tonal"
+                                        accessibleName: I18n.tr(
+                                            "Về tháng hiện tại",
+                                            "Return to current month")
+                                        onClicked:
+                                            miniCalendarCard
+                                                .monthOffset = 0
+                                    }
 
-                                IconButton {
-                                    buttonSize: Theme.space8
-                                    iconSize: Theme.iconSizeExtraSmall
-                                    icon: "chevron_right"
-                                    accessibleName: I18n.tr(
-                                        "Tháng sau", "Next month")
-                                    onClicked:
-                                        miniCalendarCard.monthOffset += 1
+                                    IconButton {
+                                        buttonSize: Theme.space8
+                                        iconSize:
+                                            Theme.iconSizeExtraSmall
+                                        icon: "chevron_left"
+                                        foregroundColor:
+                                            Theme.primaryContainerContent
+                                        accessibleName: I18n.tr(
+                                            "Tháng trước",
+                                            "Previous month")
+                                        onClicked:
+                                            miniCalendarCard
+                                                .monthOffset -= 1
+                                    }
+
+                                    IconButton {
+                                        buttonSize: Theme.space8
+                                        iconSize:
+                                            Theme.iconSizeExtraSmall
+                                        icon: "chevron_right"
+                                        foregroundColor:
+                                            Theme.primaryContainerContent
+                                        accessibleName: I18n.tr(
+                                            "Tháng sau", "Next month")
+                                        onClicked:
+                                            miniCalendarCard
+                                                .monthOffset += 1
+                                    }
                                 }
                             }
 
-                            CalendarMonthGrid {
+                            Rectangle {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
-                                controller: root.controller
-                                displayDate:
-                                    miniCalendarCard.displayDate
-                                currentDate:
-                                    miniCalendarCard.currentDate
-                                interactive: false
-                                fillToday: true
-                                compact: true
+                                radius: Theme.shapeMedium
+                                color: Theme.surfaceContainerHigh
+
+                                CalendarMonthGrid {
+                                    anchors.fill: parent
+                                    anchors.margins: Theme.space1
+                                    controller: root.controller
+                                    displayDate:
+                                        miniCalendarCard.displayDate
+                                    currentDate:
+                                        miniCalendarCard.currentDate
+                                    interactive: false
+                                    fillToday: true
+                                    compact: true
+                                }
                             }
                         }
                     }
@@ -1723,9 +1764,7 @@ Item {
                     Layout.preferredWidth: (parent.width - parent.spacing) * 0.5
                     Layout.fillHeight: true
                     radius: 22
-                    color: Theme.surfaceContainer
-                    border.width: 1
-                    border.color: Theme.alpha(Theme.outlineVariant, 0.35)
+                    color: Theme.surfaceContainerLow
                     clip: true
 
                     ColumnLayout {
@@ -1745,9 +1784,7 @@ Item {
                                 height: parent.height - 23
                                 anchors.centerIn: parent
                                 radius: 12
-                                color: Theme.surfaceContainerHigh
-                                border.width: 1
-                                border.color: Theme.alpha(Theme.primary, 0.25)
+                                color: Theme.surfaceContainerHighest
                                 layer.enabled: true
                                 clip: true
 
@@ -1838,7 +1875,9 @@ Item {
                                             horizontalAlignment: Text.AlignHCenter
                                             role: isCurrent ? "titleSmall" : "labelMedium"
                                             text: modelData
-                                            color: isCurrent ? Theme.primary : Theme.textSecondary
+                                            color: isCurrent
+                                                ? Theme.primaryText
+                                                : Theme.textSecondary
                                             font.weight: isCurrent ? Font.Bold : Font.Medium
                                             wrapMode: Text.WordWrap
                                             elide: Text.ElideRight
@@ -1979,7 +2018,15 @@ Item {
                                         Layout.preferredWidth: 1
                                         implicitHeight: 48
                                         radius: Theme.shapeMedium
-                                        color: playMouse.pressed ? Theme.alpha(Theme.primary, 0.85) : (playMouse.containsMouse ? Qt.lighter(Theme.primary, 1.1) : Theme.primary)
+                                        color: playMouse.pressed
+                                            ? Theme.solidAccent(Theme.alpha(
+                                                Theme.primarySolid, 0.85))
+                                            : (playMouse.containsMouse
+                                                ? Theme.solidAccent(
+                                                    Qt.lighter(
+                                                        Theme.primarySolid,
+                                                        1.1))
+                                                : Theme.primarySolid)
                                         opacity: root.player && root.player.canTogglePlaying ? 1.0 : 0.45
 
                                         Behavior on color { ColorAnimation { duration: 150 } }

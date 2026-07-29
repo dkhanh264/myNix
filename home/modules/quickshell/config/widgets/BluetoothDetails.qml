@@ -175,7 +175,8 @@ Rectangle {
                         anchors.leftMargin: 8
                         anchors.verticalCenter: parent.verticalCenter
                         color: modelData.connected
-                            ? Theme.secondary : Theme.surfaceContainerHighest
+                            ? Theme.secondarySolid
+                            : Theme.surfaceContainerHighest
 
                         MaterialIcon {
                             anchors.centerIn: parent
@@ -190,7 +191,8 @@ Rectangle {
                             }
                             iconSize: 18
                             color: modelData.connected
-                                ? Theme.textPrimary : Theme.textSecondary
+                                ? Theme.secondaryContent
+                                : Theme.textSecondary
                             filled: modelData.connected
                         }
                     }
@@ -342,9 +344,7 @@ Rectangle {
                     anchors.fill: parent
                     anchors.margins: 2
                     radius: Theme.shapeLarge
-                    color: "transparent"
-                    border.width: 2
-                    border.color: Theme.primary
+                    color: Theme.alpha(Theme.primary, 0.18)
                     visible: deviceRow.activeFocus
                 }
 

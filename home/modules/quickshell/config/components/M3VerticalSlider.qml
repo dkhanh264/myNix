@@ -143,13 +143,13 @@ Item {
             implicitWidth: tooltipText.implicitWidth + 14
             implicitHeight: 24
             radius: height / 2
-            color: root.accentColor
+            color: Theme.solidAccent(root.accentColor)
 
             Text {
                 id: tooltipText
                 anchors.centerIn: parent
                 text: Math.round(root.value) + root.valueSuffix
-                color: Theme.onPrimary || "#ffffff"
+                color: Theme.primaryContent
                 font.family: Theme.textFont
                 font.pixelSize: 11
                 font.weight: Font.Bold
@@ -162,7 +162,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.right
                 anchors.leftMargin: -3
-                color: root.accentColor
+                color: tooltipBubble.color
             }
         }
     }
@@ -214,7 +214,7 @@ Item {
             radius: width / 2
             topLeftRadius: Math.min(Theme.sliderInnerRadius || 4, radius)
             topRightRadius: Math.min(Theme.sliderInnerRadius || 4, radius)
-            color: Theme.ensureLuminance(root.activeColor, 0.65, "#ffffff")
+            color: Theme.solidAccent(root.activeColor)
 
             // Inset Icon inside Active Rail bottom cap (callout 6 in M3 Spec Image!)
             MaterialIcon {
@@ -224,7 +224,7 @@ Item {
                 anchors.bottomMargin: Math.max(4, Math.round((parent.width - iconSize) / 2))
                 text: root.icon
                 iconSize: Math.min(20, parent.width - 8)
-                color: Theme.onPrimary || "#ffffff"
+                color: Theme.primaryContent
                 filled: true
             }
         }

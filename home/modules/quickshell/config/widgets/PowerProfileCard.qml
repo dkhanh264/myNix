@@ -104,7 +104,7 @@ Rectangle {
             visible: root.controller && root.controller.powerProfileError.length > 0
             width: parent.width
             text: root.controller ? root.controller.powerProfileError : ""
-            color: Theme.error
+            color: Theme.errorText
             elide: Text.ElideRight
         }
     }

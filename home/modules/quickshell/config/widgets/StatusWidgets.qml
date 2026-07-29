@@ -9,6 +9,30 @@ Item {
     property string activePopup: ""
     property bool showLabels: true
 
+    readonly property string normalizedBatteryState: {
+        const cleanState = root.controller
+            ? String(root.controller.batteryState || "")
+                .trim()
+                .toLowerCase()
+                .replace(/[_-]+/g, " ")
+                .replace(/\s*\/\s*/g, "/")
+                .replace(/\s+/g, " ")
+            : "";
+        if (cleanState === "charging" || cleanState === "charging/full")
+            return "charging";
+        if (cleanState === "full")
+            return "full";
+        if (cleanState === "not charging")
+            return "not-charging";
+        if (cleanState === "discharging")
+            return "discharging";
+        return "unknown";
+    }
+    readonly property bool batteryCharging:
+        normalizedBatteryState === "charging"
+    readonly property bool batteryFull:
+        normalizedBatteryState === "full"
+
     signal popupRequested(string section)
 
     implicitWidth: statusRow.implicitWidth
@@ -28,20 +52,6 @@ Item {
         if (controller.volume > 0)
             return "volume_down";
         return "volume_mute";
-    }
-
-    function batteryIcon() {
-        if (!controller || !controller.batteryAvailable)
-            return "battery_unknown";
-        if (controller.batteryState === "Charging")
-            return "battery_charging_full";
-        if (controller.batteryPercent >= 80)
-            return "battery_full";
-        if (controller.batteryPercent >= 55)
-            return "battery_5_bar";
-        if (controller.batteryPercent >= 30)
-            return "battery_3_bar";
-        return "battery_1_bar";
     }
 
     Row {
@@ -89,12 +99,11 @@ Item {
                     font.weight: Font.DemiBold
                 }
 
-                Rectangle {
+                Item {
                     visible: root.showLabels
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 1
+                    width: Theme.space1
                     height: 18
-                    color: Theme.outlineVariant
                 }
 
                 MaterialIcon {
@@ -132,7 +141,11 @@ Item {
 
             interactive: true
             checked: root.activePopup === "wifi" || root.activePopup === "bluetooth" || root.activePopup === "power"
-            alert: (root.controller && root.controller.batteryPercent <= 15 && root.controller.batteryState !== "Charging")
+            alert: root.controller
+                && root.controller.batteryAvailable
+                && root.controller.batteryPercent <= 15
+                && !root.batteryCharging
+                && !root.batteryFull
             horizontalPadding: Theme.space2
             minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
@@ -229,7 +242,7 @@ Item {
                         id: battIconComp
                         anchors.centerIn: parent
                         percent: root.controller ? root.controller.batteryPercent : 100
-                        state: root.controller ? root.controller.batteryState : "Unknown"
+                        state: root.normalizedBatteryState
                         available: root.controller ? root.controller.batteryAvailable : false
                     }
 
@@ -326,7 +339,7 @@ Item {
                         : root.controller && root.controller.recordingPaused
                             ? "pause" : "fiber_manual_record"
                     iconSize: 18
-                    color: Theme.error
+                    color: Theme.errorText
                     filled: true
                 }
                 M3Text {
@@ -338,7 +351,7 @@ Item {
                         : root.controller && root.controller.recordingPaused
                             ? I18n.tr("Tạm dừng", "Paused")
                             : "REC"
-                    color: Theme.error
+                    color: Theme.errorText
                     font.weight: Font.Bold
                 }
             }
