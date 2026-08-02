@@ -65,12 +65,9 @@ Item {
         property double epochMs: Date.now()
         property real elapsedMs: 0
 
-        Timer {
-            interval: Theme.continuousMotionInterval
-            repeat: true
-            triggeredOnStart: true
-            running: root.active && root.visible && !Theme.reduceMotion
-                && (root.Window.window ? root.Window.window.visible : true)
+        FrameAnimation {
+            running: Boolean(root.active && root.visible && !Theme.reduceMotion
+                && (root.Window.window ? root.Window.window.visible : true))
             onTriggered: {
                 indicator.elapsedMs = Date.now() - indicator.epochMs;
                 indicator.requestPaint();

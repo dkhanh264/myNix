@@ -22,20 +22,22 @@ Item {
     signal accepted
     signal trailingIconClicked
 
+    function forceActiveFocus() {
+        input.forceActiveFocus();
+    }
+
     implicitHeight: supportingText.length > 0 ? 72 : 56
     opacity: enabled ? 1 : 0.38
 
     Rectangle {
         id: container
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        height: 56
+        anchors.fill: parent
         radius: input.activeFocus ? Theme.shapeLarge : Theme.shapeMedium
         color: root.error
             ? Theme.blend(Theme.surfaceContainerHigh, Theme.error, 0.14)
             : input.activeFocus
                 ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
+        clip: true
 
         Behavior on radius {
             NumberAnimation {
@@ -46,27 +48,17 @@ Item {
         }
         Behavior on color { ColorAnimation { duration: Theme.motionShort4 } }
 
-        Rectangle {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            height: root.error ? 3 : (input.activeFocus ? 2 : 0)
-            radius: height / 2
-            color: root.error ? Theme.error : Theme.primary
-
-            Behavior on height {
-                NumberAnimation { duration: Theme.motionShort3 }
-            }
-            Behavior on color {
-                ColorAnimation { duration: Theme.motionShort3 }
-            }
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.IBeamCursor
+            onClicked: input.forceActiveFocus()
         }
 
         MaterialIcon {
             id: leading
             visible: root.leadingIcon.length > 0
             anchors.left: parent.left
-            anchors.leftMargin: 14
+            anchors.leftMargin: 12
             anchors.verticalCenter: parent.verticalCenter
             text: root.leadingIcon
             iconSize: Theme.iconSizeSmall
@@ -78,11 +70,11 @@ Item {
         TextInput {
             id: input
             anchors.left: leading.visible ? leading.right : parent.left
-            anchors.leftMargin: leading.visible ? 10 : 16
-            anchors.right: trailingItem.visible ? trailingItem.left : parent.right
-            anchors.rightMargin: trailingItem.visible ? 8 : 16
+            anchors.leftMargin: leading.visible ? 8 : 12
+            anchors.right: trailingItem.left
+            anchors.rightMargin: 4
             anchors.top: parent.top
-            anchors.topMargin: root.label.length > 0 ? 22 : 0
+            anchors.topMargin: root.label.length > 0 ? 14 : 0
             anchors.bottom: parent.bottom
             verticalAlignment: TextInput.AlignVCenter
             color: Theme.textPrimary
@@ -93,6 +85,7 @@ Item {
             enabled: root.enabled
             clip: true
             activeFocusOnTab: root.enabled
+            onTextChanged: root.error = false
             onAccepted: root.accepted()
         }
 
@@ -100,7 +93,7 @@ Item {
             visible: root.label.length > 0
             anchors.left: input.left
             anchors.top: parent.top
-            anchors.topMargin: 7
+            anchors.topMargin: 3
             role: "labelSmall"
             text: root.label
             color: root.error ? Theme.errorText
@@ -123,15 +116,15 @@ Item {
         Item {
             id: trailingItem
             anchors.right: parent.right
-            anchors.rightMargin: 10
+            anchors.rightMargin: 4
             anchors.verticalCenter: parent.verticalCenter
-            width: 32
-            height: 32
-            visible: (root.showClearButton && input.text.length > 0) || root.trailingIcon.length > 0
+            width: 28
+            height: 28
 
             IconButton {
+                visible: (root.showClearButton && input.text.length > 0) || root.trailingIcon.length > 0
                 anchors.centerIn: parent
-                buttonSize: 32
+                buttonSize: 28
                 iconSize: Theme.iconSizeExtraSmall
                 icon: (root.showClearButton && input.text.length > 0) ? "close" : root.trailingIcon
                 foregroundColor: root.error

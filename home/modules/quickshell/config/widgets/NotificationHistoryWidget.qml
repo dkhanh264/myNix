@@ -7,6 +7,10 @@ Rectangle {
 
     property var controller
     property int selectedTab: 0
+    readonly property bool selectedTabLoading: controller
+        && (selectedTab === 0
+            ? controller.notificationHistoryLoading
+            : controller.screenshotsLoading)
 
     function calcShapeIndex(str) {
         if (!str || str.length === 0) return 0;
@@ -68,6 +72,13 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 icon: "refresh"
                 fillColor: Theme.surfaceContainerHigh
+                loading: root.selectedTabLoading
+                loadingAccessibleName: root.selectedTab === 0
+                    ? I18n.tr("Đang làm mới lịch sử thông báo",
+                        "Refreshing notification history")
+                    : I18n.tr("Đang làm mới ảnh chụp",
+                        "Refreshing screenshots")
+                enabled: root.controller && !root.selectedTabLoading
                 accessibleName: I18n.tr("Làm mới lịch sử", "Refresh history")
                 onClicked: {
                     if (!root.controller)
@@ -228,8 +239,29 @@ Rectangle {
                     rowSpacing: 8
 
                     Rectangle {
+                        visible: root.controller
+                            && root.controller.screenshotsLoading
+                            && root.controller.screenshots.count === 0
+                        width: screenshotGrid.width
+                        height: visible ? 170 : 0
+                        radius: Theme.cardRadius
+                        color: Theme.surfaceContainer
+
+                        Md3LoadingIndicator {
+                            anchors.centerIn: parent
+                            size: 40
+                            active: visible
+                            color: Theme.primary
+                            accessibleName: I18n.tr(
+                                "Đang tải danh sách ảnh chụp",
+                                "Loading screenshots")
+                        }
+                    }
+
+                    Rectangle {
                         visible: !root.controller
-                            || root.controller.screenshots.count === 0
+                            || (root.controller.screenshots.count === 0
+                                && !root.controller.screenshotsLoading)
                         width: screenshotGrid.width
                         height: visible ? 170 : 0
                         radius: Theme.cardRadius
@@ -313,7 +345,15 @@ Rectangle {
                                 buttonSize: 40
                                 iconSize: 18
                                 icon: "content_copy"
+                                loading: root.controller
+                                    && root.controller.screenshotCopyBusy
+                                    && root.controller.screenshotCopyPath
+                                        === parent.filePath
+                                loadingAccessibleName: I18n.tr(
+                                    "Đang sao chép ảnh chụp",
+                                    "Copying screenshot")
                                 enabled: root.controller
+                                    && !root.controller.screenshotCopyBusy
                                     && root.controller.screenshotTrashPath
                                         !== parent.filePath
                                 accessibleName: I18n.tr("Sao chép ảnh",
@@ -330,11 +370,14 @@ Rectangle {
                                 anchors.bottomMargin: 3
                                 buttonSize: 40
                                 iconSize: 18
-                                icon: root.controller
+                                icon: "delete"
+                                loading: root.controller
                                     && root.controller.screenshotTrashBusy
                                     && root.controller.screenshotTrashPath
                                         === parent.filePath
-                                    ? "hourglass_top" : "delete"
+                                loadingAccessibleName: I18n.tr(
+                                    "Đang chuyển ảnh chụp vào Thùng rác",
+                                    "Moving screenshot to Trash")
                                 foregroundColor: Theme.error
                                 hoverColor: Theme.alpha(Theme.error, 0.12)
                                 enabled: root.controller

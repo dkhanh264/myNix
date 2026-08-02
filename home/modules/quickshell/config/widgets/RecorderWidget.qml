@@ -11,6 +11,11 @@ Rectangle {
     property bool withAudio: controller ? controller.recordingAudio : true
     property bool withMicrophone: controller
         ? controller.recordingMicrophone : false
+    readonly property bool finalizing: controller
+        && (controller.recordingStopping
+            || controller.recordingFinalizing)
+    readonly property bool recordingActive: controller
+        && (controller.recording || finalizing)
 
     implicitHeight: recorderContentCol.implicitHeight + Theme.componentPadding * 2
     radius: Theme.cardRadius
@@ -28,7 +33,7 @@ Rectangle {
             width: parent.width
             height: 82
             radius: Theme.cardRadius
-            color: root.controller && root.controller.recording
+            color: root.recordingActive
                 ? Theme.errorContainer : Theme.primaryContainer
 
             Row {
@@ -42,20 +47,30 @@ Rectangle {
                 Rectangle {
                     width: 48
                     height: 48
-                    radius: root.controller && root.controller.recording
+                    radius: root.recordingActive
                         ? width / 2 : Theme.shapeMedium
-                    color: root.controller && root.controller.recording
+                    color: root.recordingActive
                         ? Theme.error : Theme.primary
 
                     MaterialIcon {
                         anchors.centerIn: parent
-                        text: root.controller && root.controller.recordingStopping
-                            ? "save"
-                            : root.controller && root.controller.recording
-                                ? "radio_button_checked" : "videocam"
+                        visible: !root.finalizing
+                        text: root.controller && root.controller.recording
+                            ? "radio_button_checked" : "videocam"
                         iconSize: 25
                         color: Theme.textPrimary
                         filled: true
+                    }
+
+                    Md3LoadingIndicator {
+                        anchors.centerIn: parent
+                        visible: root.finalizing
+                        size: 36
+                        active: visible
+                        color: Theme.errorContent
+                        accessibleName: I18n.tr(
+                            "Đang hoàn tất bản ghi",
+                            "Finalizing recording")
                     }
                 }
 
@@ -65,8 +80,8 @@ Rectangle {
 
                     M3Text {
                         role: "titleSmall"
-                        text: root.controller && root.controller.recording
-                            ? root.controller.recordingStopping
+                        text: root.recordingActive
+                            ? root.finalizing
                                 ? I18n.tr("Đang hoàn tất bản ghi",
                                     "Finalizing recording")
                                 : root.controller.recordingPaused
@@ -79,7 +94,7 @@ Rectangle {
                     M3Text {
                         width: 270
                         role: "labelSmall"
-                        text: root.controller && root.controller.recording
+                        text: root.recordingActive
                             ? root.controller.recordingOutput
                             : I18n.tr("Ghi bằng GPU, độ trễ thấp",
                                 "Low-latency GPU capture")
@@ -91,7 +106,7 @@ Rectangle {
         }
 
         Column {
-            visible: !root.controller || !root.controller.recording
+            visible: !root.recordingActive
             width: parent.width
             spacing: 10
 
@@ -234,7 +249,7 @@ Rectangle {
 
             M3Button {
                 visible: root.controller && root.controller.recording
-                enabled: visible && !root.controller.recordingStopping
+                enabled: visible && !root.finalizing
                 width: visible ? (actionRow.width - actionRow.spacing) / 2 : 0
                 height: actionRow.height
                 tonal: true
@@ -250,13 +265,15 @@ Rectangle {
                 width: (root.controller && root.controller.recording)
                     ? (actionRow.width - actionRow.spacing) / 2 : actionRow.width
                 height: actionRow.height
-                enabled: !root.controller || !root.controller.recordingStopping
-                destructive: root.controller && root.controller.recording
-                icon: root.controller && root.controller.recordingStopping
-                    ? "save"
-                    : root.controller && root.controller.recording
+                enabled: !root.controller || !root.finalizing
+                destructive: root.recordingActive
+                loading: root.finalizing
+                loadingAccessibleName: I18n.tr(
+                    "Đang lưu bản ghi màn hình",
+                    "Saving screen recording")
+                icon: root.controller && root.controller.recording
                         ? "stop" : "fiber_manual_record"
-                text: root.controller && root.controller.recordingStopping
+                text: root.finalizing
                     ? I18n.tr("Đang lưu…", "Saving…")
                     : root.controller && root.controller.recording
                         ? I18n.tr("Dừng và lưu", "Stop and save")

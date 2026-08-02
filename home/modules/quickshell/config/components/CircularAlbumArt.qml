@@ -11,6 +11,8 @@ Item {
     readonly property int renderScale: width <= 64 ? 4 : 2
     readonly property bool artAvailable: formattedSource.length > 0
         && artSource.status === Image.Ready
+    readonly property bool artLoading: formattedSource.length > 0
+        && artSource.status === Image.Loading
 
     function formatArtUrl(rawUrl) {
         if (!rawUrl) return "";
@@ -79,11 +81,23 @@ Item {
         visible: root.artAvailable
     }
 
+    Md3LoadingIndicator {
+        anchors.centerIn: parent
+        visible: root.artLoading
+        active: visible
+        size: Math.max(16, Math.min(28,
+            Math.min(root.width, root.height) * 0.72))
+        color: root.accentColor
+        accessibleName: I18n.tr(
+            "Đang tải ảnh bìa", "Loading album artwork")
+    }
+
     Rectangle {
         anchors.centerIn: parent
         width: Math.max(10, root.width * 0.21)
         height: width
         radius: width / 2
+        visible: !root.artLoading
         color: Theme.alpha(root.accentColor, root.artAvailable ? 0.90 : 1)
         antialiasing: true
 

@@ -50,7 +50,7 @@ Item {
                 ? Theme.error
                 : isLow
                     ? Theme.warning
-                    : isHealthy ? Theme.primary : Theme.secondary
+                    : Theme.primary
     // Both tones remain deliberately dark because the foreground is always
     // white. The lighter fill still reads clearly against the dark track.
     readonly property color trackColor: Theme.tone(accentColor, 0.10)
@@ -60,7 +60,7 @@ Item {
     readonly property real visibleFillWidth: !available || displayPercent === 0
         ? 0 : Math.min(width, Math.max(4, naturalFillWidth))
 
-    width: 54
+    width: 40
     height: 20
     implicitWidth: width
     implicitHeight: height
@@ -119,7 +119,7 @@ Item {
             anchors.centerIn: parent
             role: "labelSmall"
             text: root.available
-                ? root.displayPercent + "%" : "—"
+                ? root.displayPercent : "—"
             color: "#ffffff"
             font.weight: Font.Bold
         }

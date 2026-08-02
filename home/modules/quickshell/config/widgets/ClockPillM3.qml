@@ -6,20 +6,50 @@ M3BarPill {
     id: root
 
     property var controller
+    property date currentDate: new Date()
 
     interactive: true
     horizontalPadding: Theme.space3
-    implicitWidth: timeLabel.implicitWidth + horizontalPadding * 2
+    implicitWidth: clockContent.implicitWidth + horizontalPadding * 2
     accessibleName: controller
         ? controller.longDateText + ", " + controller.timeText
         : I18n.tr("Đồng hồ và lịch", "Clock and calendar")
 
-    M3Text {
-        id: timeLabel
+    Timer {
+        interval: 30000
+        running: root.visible
+        repeat: true
+        onTriggered: root.currentDate = new Date()
+    }
+
+    Row {
+        id: clockContent
+
         anchors.centerIn: parent
-        role: "titleSmall"
-        text: root.controller ? root.controller.timeText : "--:--"
-        color: Theme.textPrimary
-        font.weight: Font.Bold
+        spacing: Theme.space1
+
+        ExpressiveDateBadge {
+            anchors.verticalCenter: parent.verticalCenter
+            dateValue: root.currentDate
+            badgeSize: Theme.space6
+            shapeName: "cookie6"
+            fillColor: root.checked
+                ? Theme.primarySolid : Theme.primaryContainer
+            contentColor: root.checked
+                ? Theme.primaryContent : Theme.primaryContainerContent
+            textRole: "labelSmall"
+            shapeScale: root.pressed ? 0.88
+                : root.hovered ? 1.06 : 1.0
+            rotationAngle: root.checked ? 45 : 0
+        }
+
+        M3Text {
+            id: timeLabel
+            anchors.verticalCenter: parent.verticalCenter
+            role: "titleSmall"
+            text: root.controller ? root.controller.timeText : "--:--"
+            color: Theme.textPrimary
+            font.weight: Font.Bold
+        }
     }
 }

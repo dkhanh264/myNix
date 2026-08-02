@@ -49,6 +49,11 @@ Rectangle {
                 buttonSize: 34
                 iconSize: Theme.iconSizeExtraSmall
                 icon: "refresh"
+                loading: root.controller
+                    && root.controller.audioDevicesLoading
+                loadingAccessibleName: I18n.tr(
+                    "Đang làm mới thiết bị âm thanh",
+                    "Refreshing audio devices")
                 enabled: root.controller && !root.controller.audioDevicesLoading
                 accessibleName: I18n.tr("Làm mới thiết bị âm thanh",
                     "Refresh audio devices")
@@ -90,6 +95,15 @@ Rectangle {
                         icon: isDefault ? "check_circle" : "speaker"
                         label: deviceName
                         selected: isDefault
+                        loading: root.controller
+                            && root.controller.audioDevicesBusy
+                            && root.controller.pendingAudioDeviceKind
+                                === "output"
+                            && root.controller.pendingAudioDeviceId
+                                === deviceId
+                        loadingAccessibleName: I18n.tr(
+                            "Đang đổi thiết bị đầu ra",
+                            "Changing output device")
                         enabled: root.controller
                             && !root.controller.audioDevicesBusy
                         onClicked: root.controller.setDefaultAudioDevice(
@@ -139,6 +153,15 @@ Rectangle {
                         icon: isDefault ? "check_circle" : "mic"
                         label: deviceName
                         selected: isDefault
+                        loading: root.controller
+                            && root.controller.audioDevicesBusy
+                            && root.controller.pendingAudioDeviceKind
+                                === "input"
+                            && root.controller.pendingAudioDeviceId
+                                === deviceId
+                        loadingAccessibleName: I18n.tr(
+                            "Đang đổi thiết bị đầu vào",
+                            "Changing input device")
                         enabled: root.controller
                             && !root.controller.audioDevicesBusy
                         onClicked: root.controller.setDefaultAudioDevice(
@@ -162,4 +185,3 @@ Rectangle {
         }
     }
 }
-

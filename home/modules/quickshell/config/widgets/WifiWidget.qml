@@ -8,6 +8,9 @@ Rectangle {
     property var controller
     property bool expanded: false
     property real detailsProgress: expanded ? 1 : 0
+    readonly property bool wifiToggleLoading: controller
+        && controller.wifiBusy
+        && controller.pendingWifiAction === "toggle"
 
     signal expansionRequested(bool expanded)
 
@@ -135,12 +138,29 @@ Rectangle {
 
             ToggleSwitch {
                 anchors.verticalCenter: parent.verticalCenter
+                visible: !root.wifiToggleLoading
                 checked: root.controller && root.controller.wifiEnabled
                 enabled: root.controller && !root.controller.wifiBusy
                 accessibleName: "Wi-Fi"
                 onToggled: {
                     if (root.controller)
                         root.controller.toggleWifi();
+                }
+            }
+
+            Item {
+                visible: root.wifiToggleLoading
+                width: visible ? 48 : 0
+                height: 48
+
+                Md3LoadingIndicator {
+                    anchors.centerIn: parent
+                    size: 34
+                    color: Theme.primary
+                    active: parent.visible
+                    accessibleName: I18n.tr(
+                        "Đang chuyển trạng thái Wi‑Fi",
+                        "Changing Wi-Fi state")
                 }
             }
 

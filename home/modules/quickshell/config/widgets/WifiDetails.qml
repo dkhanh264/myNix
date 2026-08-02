@@ -7,6 +7,8 @@ Rectangle {
 
     property var controller
     property string selectedSsid: ""
+    readonly property bool scanning: controller
+        && controller.wifiLoading
 
     implicitHeight: content.implicitHeight + 16
     color: "transparent"
@@ -62,10 +64,14 @@ Rectangle {
                 iconSize: 18
                 icon: "refresh"
                 fillColor: Theme.surfaceContainerHigh
+                loading: root.scanning
+                loadingAccessibleName: I18n.tr(
+                    "Đang quét mạng Wi‑Fi",
+                    "Scanning Wi-Fi networks")
                 accessibleName: I18n.tr("Quét mạng Wi‑Fi",
                     "Scan Wi-Fi networks")
                 enabled: root.controller && root.controller.wifiEnabled
-                    && !root.controller.wifiBusy
+                    && !root.controller.wifiBusy && !root.scanning
                 onClicked: root.controller.refreshWifi(true)
             }
         }
@@ -75,7 +81,19 @@ Rectangle {
             width: parent.width
             height: visible ? 64 : 0
 
+            Md3LoadingIndicator {
+                visible: root.scanning
+                active: visible
+                anchors.centerIn: parent
+                size: 36
+                color: Theme.primary
+                accessibleName: I18n.tr(
+                    "Đang quét mạng Wi‑Fi",
+                    "Scanning Wi-Fi networks")
+            }
+
             M3Text {
+                visible: !root.scanning
                 role: "labelMedium"
                 anchors.centerIn: parent
                 text: root.controller && !root.controller.wifiEnabled
@@ -105,6 +123,18 @@ Rectangle {
                     || security.toLowerCase() === "open"
                 readonly property bool showPassword: selected && !openNetwork
                     && (!saved || editingPassword)
+                readonly property bool pendingForRow: root.controller
+                    && root.controller.wifiBusy
+                    && (root.controller.pendingWifiTarget === ssid
+                        || (connectionName.length > 0
+                            && root.controller.pendingWifiTarget
+                                === connectionName))
+                readonly property string pendingAction: pendingForRow
+                    ? root.controller.pendingWifiAction : ""
+                readonly property bool primaryActionLoading: pendingForRow
+                    && pendingAction !== "forget"
+                readonly property bool forgetActionLoading: pendingForRow
+                    && pendingAction === "forget"
 
                 visible: true
                 width: content.width
@@ -232,6 +262,8 @@ Rectangle {
                         anchors.right: parent.right
                         anchors.rightMargin: 12
                         anchors.verticalCenter: parent.verticalCenter
+                        visible: !networkRow.pendingForRow
+                            || networkRow.selected
                         text: networkRow.selected ? "expand_less"
                             : networkRow.active ? "check_circle"
                             : networkRow.openNetwork ? "lock_open" : "lock"
@@ -246,6 +278,20 @@ Rectangle {
                                 easing.bezierCurve: Theme.springCurve
                             }
                         }
+                    }
+
+                    Md3LoadingIndicator {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 7
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: networkRow.pendingForRow
+                            && !networkRow.selected
+                        active: visible
+                        size: 28
+                        color: Theme.primary
+                        accessibleName: I18n.tr(
+                            "Đang cập nhật kết nối Wi‑Fi",
+                            "Updating Wi-Fi connection")
                     }
                 }
 
@@ -327,6 +373,18 @@ Rectangle {
                                     : networkRow.editingPassword
                                         ? I18n.tr("Lưu", "Save")
                                         : I18n.tr("Kết nối", "Connect")
+                                loading: networkRow.primaryActionLoading
+                                loadingAccessibleName: networkRow.pendingAction
+                                        === "disconnect"
+                                    ? I18n.tr("Đang ngắt kết nối",
+                                        "Disconnecting")
+                                    : networkRow.pendingAction
+                                            === "update-password"
+                                        ? I18n.tr(
+                                            "Đang cập nhật mật khẩu",
+                                            "Updating password")
+                                        : I18n.tr("Đang kết nối",
+                                            "Connecting")
                                 enabled: !root.controller.wifiBusy
                                     && (networkRow.active
                                         || !networkRow.showPassword
@@ -369,6 +427,10 @@ Rectangle {
                                 icon: "delete"
                                 text: I18n.tr("Xóa", "Forget")
                                 destructive: true
+                                loading: networkRow.forgetActionLoading
+                                loadingAccessibleName: I18n.tr(
+                                    "Đang xóa mạng đã lưu",
+                                    "Forgetting saved network")
                                 enabled: !root.controller.wifiBusy
                                 onClicked: root.controller.forgetWifi(
                                     networkRow.connectionName)

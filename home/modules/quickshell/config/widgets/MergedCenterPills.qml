@@ -279,27 +279,24 @@ Item {
                 }
 
                 Md3LoadingIndicator {
-                    visible: root.toastIsSystem
-                        || (!root.toastIsSystem
-                            && root.toastIconSource.length > 0
-                            && notifImg.status === Image.Loading)
+                    visible: !root.toastIsSystem
+                        && root.toastIconSource.length > 0
+                        && notifImg.status === Image.Loading
                     anchors.centerIn: parent
                     size: 20
                     color: Theme.primary
                     active: visible && root.notifOpacity > 0.01
-                    accessibleName: root.toastIsSystem
-                        ? I18n.tr("Thông báo hệ thống",
-                            "System notification")
-                        : I18n.tr("Đang tải icon ứng dụng",
-                            "Loading application icon")
+                    accessibleName: I18n.tr(
+                        "Đang tải icon ứng dụng",
+                        "Loading application icon")
                 }
 
                 MaterialIcon {
-                    visible: !root.toastIsSystem
-                        && (root.toastIconSource.length === 0
+                    visible: root.toastIsSystem
+                        || (root.toastIconSource.length === 0
                             || notifImg.status === Image.Error)
                     anchors.centerIn: parent
-                    text: "apps"
+                    text: root.toastIsSystem ? "info" : "apps"
                     iconSize: Theme.iconSizeSmall
                     color: Theme.primary
                     filled: true

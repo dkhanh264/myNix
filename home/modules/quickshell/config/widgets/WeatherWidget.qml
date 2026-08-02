@@ -13,6 +13,9 @@ Item {
         Math.min(forecastCount - 1, selectedForecastIndex))
     readonly property var selectedForecast: forecastCount > 0
         ? controller.weatherForecast.get(safeForecastIndex) : null
+    readonly property bool initialWeatherLoading: controller
+        && controller.weatherLoading
+        && !controller.weatherAvailable
     readonly property var detailModel: selectedForecast ? [
         {
             "icon": "thermostat",
@@ -215,8 +218,15 @@ Item {
                 icon: "refresh"
                 foregroundColor: Theme.textPrimary
                 fillColor: Theme.surfaceContainerHigh
+                loading: root.controller
+                    && root.controller.weatherLoading
+                loadingAccessibleName: I18n.tr(
+                    "Đang cập nhật thời tiết",
+                    "Updating weather")
                 accessibleName: I18n.tr("Làm mới thời tiết",
                     "Refresh weather")
+                enabled: root.controller
+                    && !root.controller.weatherLoading
                 onClicked: {
                     if (root.controller)
                         root.controller.refreshWeather(true);
@@ -242,11 +252,23 @@ Item {
 
                 MaterialIcon {
                     anchors.centerIn: parent
+                    visible: !root.initialWeatherLoading
                     text: root.weatherIcon(root.selectedForecast
                         ? root.selectedForecast.code : -1)
                     iconSize: 58
                     color: Theme.tertiary
                     filled: true
+                }
+
+                Md3LoadingIndicator {
+                    anchors.centerIn: parent
+                    visible: root.initialWeatherLoading
+                    active: visible
+                    size: 56
+                    color: Theme.tertiaryContainerContent
+                    accessibleName: I18n.tr(
+                        "Đang tải dự báo thời tiết",
+                        "Loading weather forecast")
                 }
             }
 

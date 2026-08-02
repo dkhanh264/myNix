@@ -14,6 +14,9 @@ Item {
     id: root
 
     property var controller
+    readonly property bool powerProfileLoading: controller
+        && (controller.powerProfileBusy
+            || controller.powerProfileLoading)
     signal sectionRequested(string section)
     signal closeRequested
 
@@ -31,6 +34,7 @@ Item {
     property var syncedLyricsData: []
     property int activeLyricIndex: -1
     property var lyricsList: []
+    property bool lyricsLoading: false
     property real currentPlaybackPosition: 0
     property int lyricsRequestGeneration: 0
 
@@ -109,6 +113,7 @@ Item {
 
     function fetchLyrics() {
         if (!player || !player.trackTitle || player.trackTitle === I18n.tr("Không có nhạc", "Nothing playing")) {
+            lyricsLoading = false;
             syncedLyricsData = [];
             activeLyricIndex = -1;
             lyricsList = [];
@@ -118,11 +123,17 @@ Item {
         const artist = (player.trackArtist && player.trackArtist !== I18n.tr("Trình phát nhạc", "Media Player")) ? player.trackArtist : "";
         const query = (title + " " + artist).trim();
 
-        if (!query || query.length === 0)
+        if (!query || query.length === 0) {
+            lyricsLoading = false;
             return;
+        }
 
         const searchUrl = "https://lrclib.net/api/search?q=" + encodeURIComponent(query);
         const requestGeneration = ++lyricsRequestGeneration;
+        lyricsLoading = true;
+        syncedLyricsData = [];
+        activeLyricIndex = -1;
+        lyricsList = [];
         const xhr = new XMLHttpRequest();
         xhr.open("GET", searchUrl);
         xhr.onreadystatechange = function() {
@@ -130,6 +141,7 @@ Item {
                 if (!root
                         || requestGeneration !== root.lyricsRequestGeneration)
                     return;
+                root.lyricsLoading = false;
                 if (xhr.status === 200 && xhr.responseText) {
                     try {
                         const parsed = JSON.parse(xhr.responseText);
@@ -171,8 +183,19 @@ Item {
         xhr.send();
     }
 
-    onTrackTitleChanged: lyricsFetchDebounce.restart()
-    onTrackArtistChanged: lyricsFetchDebounce.restart()
+    function queueLyricsFetch() {
+        // Invalidate an in-flight response immediately so lyrics from the
+        // previous track cannot land during the debounce window.
+        lyricsRequestGeneration++;
+        lyricsLoading = true;
+        syncedLyricsData = [];
+        activeLyricIndex = -1;
+        lyricsList = [];
+        lyricsFetchDebounce.restart();
+    }
+
+    onTrackTitleChanged: queueLyricsFetch()
+    onTrackArtistChanged: queueLyricsFetch()
 
     function formatTime(seconds) {
         const safe = Math.max(0, Math.floor(Number(seconds) || 0));
@@ -266,6 +289,7 @@ Item {
 
     Component.onDestruction: {
         lyricsRequestGeneration++;
+        lyricsLoading = false;
     }
 
     function selectMprisPlayer() {
@@ -911,6 +935,14 @@ Item {
                                 icon: "eco"
                                 label: I18n.tr("Tiết kiệm", "Saver")
                                 selected: root.controller && root.controller.powerProfile === "power-saver"
+                                loading: root.powerProfileLoading
+                                    && root.controller.powerProfile
+                                        === "power-saver"
+                                loadingAccessibleName: I18n.tr(
+                                    "Đang áp dụng chế độ tiết kiệm",
+                                    "Applying power saver profile")
+                                enabled: root.controller
+                                    && !root.powerProfileLoading
                                 onClicked: {
                                     if (root.controller)
                                         root.controller.setPowerProfile("power-saver");
@@ -922,6 +954,14 @@ Item {
                                 icon: "balance"
                                 label: I18n.tr("Cân bằng", "Balanced")
                                 selected: root.controller && root.controller.powerProfile === "balanced"
+                                loading: root.powerProfileLoading
+                                    && root.controller.powerProfile
+                                        === "balanced"
+                                loadingAccessibleName: I18n.tr(
+                                    "Đang áp dụng chế độ cân bằng",
+                                    "Applying balanced power profile")
+                                enabled: root.controller
+                                    && !root.powerProfileLoading
                                 onClicked: {
                                     if (root.controller)
                                         root.controller.setPowerProfile("balanced");
@@ -933,6 +973,14 @@ Item {
                                 icon: "bolt"
                                 label: I18n.tr("Hiệu năng", "Perf")
                                 selected: root.controller && root.controller.powerProfile === "performance"
+                                loading: root.powerProfileLoading
+                                    && root.controller.powerProfile
+                                        === "performance"
+                                loadingAccessibleName: I18n.tr(
+                                    "Đang áp dụng chế độ hiệu năng",
+                                    "Applying performance power profile")
+                                enabled: root.controller
+                                    && !root.powerProfileLoading
                                 onClicked: {
                                     if (root.controller)
                                         root.controller.setPowerProfile("performance");
@@ -1130,16 +1178,14 @@ Item {
                                     onPctChanged: requestPaint()
                                     Component.onCompleted: requestPaint()
 
-                                    Timer {
-                                        interval: Theme.ambientMotionInterval
-                                        repeat: true
-                                        running: root.visible
+                                    FrameAnimation {
+                                        running: Boolean(root.visible
                                             && (root.Window.window
                                                 ? root.Window.window.visible : true)
-                                            && !Theme.reduceMotion
+                                            && !Theme.reduceMotion)
                                         onTriggered: bootBottleCanvas.wavePhase =
                                             (bootBottleCanvas.wavePhase
-                                                + Math.PI * 2 * interval / 2200)
+                                                + Math.PI * 2 * frameTime / 2.2)
                                                 % (Math.PI * 2)
                                     }
 
@@ -1272,16 +1318,14 @@ Item {
                                     onPctChanged: requestPaint()
                                     Component.onCompleted: requestPaint()
 
-                                    Timer {
-                                        interval: Theme.ambientMotionInterval
-                                        repeat: true
-                                        running: root.visible
+                                    FrameAnimation {
+                                        running: Boolean(root.visible
                                             && (root.Window.window
                                                 ? root.Window.window.visible : true)
-                                            && !Theme.reduceMotion
+                                            && !Theme.reduceMotion)
                                         onTriggered: homeBottleCanvas.wavePhase =
                                             (homeBottleCanvas.wavePhase
-                                                + Math.PI * 2 * interval / 2600)
+                                                + Math.PI * 2 * frameTime / 2.6)
                                                 % (Math.PI * 2)
                                     }
 
@@ -1476,6 +1520,13 @@ Item {
                                     iconSize: Theme.iconSizeExtraSmall
                                     icon: "refresh"
                                     foregroundColor: Theme.tertiary
+                                    loading: root.controller
+                                        && root.controller.weatherLoading
+                                    loadingAccessibleName: I18n.tr(
+                                        "Đang cập nhật thời tiết",
+                                        "Updating weather")
+                                    enabled: root.controller
+                                        && !root.controller.weatherLoading
                                     accessibleName: I18n.tr(
                                         "Làm mới thời tiết",
                                         "Refresh weather")
@@ -1501,15 +1552,45 @@ Item {
                                     anchors.margins: Theme.space2
                                     spacing: Theme.space2
 
-                                    MaterialIcon {
+                                    Item {
                                         Layout.alignment: Qt.AlignVCenter
-                                        text: root.getWeatherIcon(
-                                            root.controller
-                                                ? root.controller.weatherCode
-                                                : -1)
-                                        iconSize: Theme.iconSizeLarge
-                                        color: Theme.tertiary
-                                        filled: true
+                                        Layout.preferredWidth:
+                                            Theme.iconSizeLarge
+                                        Layout.preferredHeight:
+                                            Theme.iconSizeLarge
+
+                                        MaterialIcon {
+                                            anchors.centerIn: parent
+                                            visible: !root.controller
+                                                || !root.controller
+                                                    .weatherLoading
+                                                || root.controller
+                                                    .weatherAvailable
+                                            text: root.getWeatherIcon(
+                                                root.controller
+                                                    ? root.controller
+                                                        .weatherCode
+                                                    : -1)
+                                            iconSize: Theme.iconSizeLarge
+                                            color: Theme.tertiary
+                                            filled: true
+                                        }
+
+                                        Md3LoadingIndicator {
+                                            anchors.centerIn: parent
+                                            visible: root.controller
+                                                && root.controller
+                                                    .weatherLoading
+                                                && !root.controller
+                                                    .weatherAvailable
+                                            active: visible
+                                            size: Theme.iconSizeLarge
+                                            color:
+                                                Theme.tertiaryContainerContent
+                                            accessibleName: I18n.tr(
+                                                "Đang tải thời tiết",
+                                                "Loading weather")
+                                        }
                                     }
 
                                     ColumnLayout {
@@ -1648,64 +1729,125 @@ Item {
 
                             Rectangle {
                                 Layout.fillWidth: true
-                                implicitHeight:
-                                    calendarHeaderRow.implicitHeight
-                                        + Theme.space1 * 2
-                                radius: Theme.shapeMedium
+                                implicitHeight: Theme.space9
+                                radius: Theme.shapeLarge
                                 color: Theme.primaryContainer
 
                                 RowLayout {
                                     id: calendarHeaderRow
                                     anchors.fill: parent
-                                    anchors.margins: Theme.space1
+                                    anchors.leftMargin: Theme.space1
+                                    anchors.rightMargin: Theme.space1
                                     spacing: Theme.space1
 
-                                    MaterialIcon {
-                                        text: "calendar_month"
-                                        iconSize: Theme.iconSizeSmall
-                                        color:
-                                            Theme.primaryContainerContent
-                                        filled: true
-                                    }
+                                    Item {
+                                        id: dashboardTodayBadge
 
-                                    M3Text {
-                                        role: "titleSmall"
-                                        Layout.fillWidth: true
-                                        text: miniCalendarCard
-                                            .calendarLocale
-                                            .standaloneMonthName(
+                                        Layout.preferredWidth: 36
+                                        Layout.preferredHeight: 36
+                                        Layout.alignment: Qt.AlignVCenter
+                                        activeFocusOnTab: true
+                                        Accessible.role: Accessible.Button
+                                        Accessible.name: I18n.tr(
+                                            "Về tháng hiện tại, hôm nay ngày ",
+                                            "Return to current month, today is ")
+                                            + miniCalendarCard.currentDate
+                                                .getDate()
+                                        Accessible.focusable: true
+
+                                        ExpressiveDateBadge {
+                                            anchors.centerIn: parent
+                                            dateValue:
+                                                miniCalendarCard.currentDate
+                                            badgeSize: 36
+                                            shapeName: "cookie6"
+                                            fillColor: Theme.primarySolid
+                                            contentColor:
+                                                Theme.primaryContent
+                                            textRole: "labelMedium"
+                                            shapeScale:
+                                                dashboardTodayPointer.pressed
+                                                    ? 0.88
+                                                    : dashboardTodayPointer
+                                                        .containsMouse
+                                                        ? 1.05 : 1.0
+                                            rotationAngle:
+                                                miniCalendarCard.monthOffset
+                                                    !== 0 ? 45 : 0
+                                        }
+
+                                        MouseArea {
+                                            id: dashboardTodayPointer
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked:
                                                 miniCalendarCard
-                                                    .displayDate
-                                                    .getMonth(),
-                                                Locale.LongFormat)
-                                            + " · "
-                                            + miniCalendarCard
+                                                    .monthOffset = 0
+                                        }
+
+                                        Keys.onPressed: event => {
+                                            if (event.key === Qt.Key_Return
+                                                    || event.key
+                                                        === Qt.Key_Enter
+                                                    || event.key
+                                                        === Qt.Key_Space) {
+                                                miniCalendarCard
+                                                    .monthOffset = 0;
+                                                event.accepted = true;
+                                            }
+                                        }
+
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            anchors.margins:
+                                                -Theme.focusRingInset
+                                            radius: Theme.shapeLarge
+                                            color: "transparent"
+                                            border.width: 2
+                                            border.color: Theme.alpha(
+                                                Theme.primary, 0.72)
+                                            visible:
+                                                parent.activeFocus
+                                        }
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        Layout.alignment: Qt.AlignVCenter
+                                        spacing: Theme.space0
+
+                                        M3Text {
+                                            role: "titleSmall"
+                                            Layout.fillWidth: true
+                                            text: miniCalendarCard
+                                                .calendarLocale
+                                                .standaloneMonthName(
+                                                    miniCalendarCard
+                                                        .displayDate
+                                                        .getMonth(),
+                                                    Locale.LongFormat)
+                                            color: Theme
+                                                .primaryContainerContent
+                                            font.weight: Font.Bold
+                                            elide: Text.ElideRight
+                                        }
+
+                                        M3Text {
+                                            role: "labelSmall"
+                                            Layout.fillWidth: true
+                                            text: miniCalendarCard
                                                 .displayDate.getFullYear()
-                                        color:
-                                            Theme.primaryContainerContent
-                                        font.weight: Font.Bold
-                                        elide: Text.ElideRight
+                                            color: Theme.alpha(
+                                                Theme
+                                                    .primaryContainerContent,
+                                                0.72)
+                                            font.weight: Font.Medium
+                                        }
                                     }
 
                                     IconButton {
-                                        visible:
-                                            miniCalendarCard
-                                                .monthOffset !== 0
-                                        buttonSize: Theme.space8
-                                        iconSize:
-                                            Theme.iconSizeExtraSmall
-                                        icon: "today"
-                                        variant: "tonal"
-                                        accessibleName: I18n.tr(
-                                            "Về tháng hiện tại",
-                                            "Return to current month")
-                                        onClicked:
-                                            miniCalendarCard
-                                                .monthOffset = 0
-                                    }
-
-                                    IconButton {
-                                        buttonSize: Theme.space8
+                                        buttonSize: Theme.space9
                                         iconSize:
                                             Theme.iconSizeExtraSmall
                                         icon: "chevron_left"
@@ -1720,7 +1862,7 @@ Item {
                                     }
 
                                     IconButton {
-                                        buttonSize: Theme.space8
+                                        buttonSize: Theme.space9
                                         iconSize:
                                             Theme.iconSizeExtraSmall
                                         icon: "chevron_right"
@@ -1808,6 +1950,8 @@ Item {
                                     anchors.fill: parent
                                     source: root.player ? root.player.trackArtUrl : ""
                                     fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    cache: true
                                     visible: false
                                 }
 
@@ -1827,9 +1971,25 @@ Item {
                                     text: "music_note"
                                     iconSize: 42
                                     color: Theme.alpha(Theme.textSecondary, 0.4)
-                                    visible: albumArtImage.status !== Image.Ready
+                                    visible: albumArtImage.status
+                                            !== Image.Ready
+                                        && albumArtImage.status
+                                            !== Image.Loading
                                         || !root.player
                                         || !root.player.trackArtUrl
+                                }
+
+                                Md3LoadingIndicator {
+                                    anchors.centerIn: parent
+                                    visible: albumArtImage.status
+                                            === Image.Loading
+                                        && !root.lyricsLoading
+                                    active: visible
+                                    size: 48
+                                    color: Theme.secondary
+                                    accessibleName: I18n.tr(
+                                        "Đang tải ảnh bìa",
+                                        "Loading album artwork")
                                 }
 
                                 // Dark Dimming Overlay when Lyrics exist (Matching 12px Inner Radius)
@@ -1840,8 +2000,20 @@ Item {
                                     radius: 13
                                     color: Theme.alpha(Theme.surfaceContainerLowest, 0.85)
                                     visible: root.lyricsList.length > 0
+                                        || root.lyricsLoading
                                     opacity: visible ? 1 : 0
                                     Behavior on opacity { NumberAnimation { duration: 300 } }
+                                }
+
+                                Md3LoadingIndicator {
+                                    anchors.centerIn: parent
+                                    visible: root.lyricsLoading
+                                    active: visible
+                                    size: 48
+                                    color: Theme.primary
+                                    accessibleName: I18n.tr(
+                                        "Đang tải lời bài hát",
+                                        "Loading lyrics")
                                 }
 
                                 // Hardware-Accelerated Smooth Karaoke Lyrics ListView

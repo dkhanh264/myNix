@@ -29,7 +29,7 @@ Item {
     property bool showTooltip: true // M3 Floating Value Tooltip on interaction
     property color activeColor: Theme.primary
     property color accentColor: Theme.primary
-    property color inactiveColor: Theme.surfaceContainerHighest
+    property color inactiveColor: Theme.sliderInactiveTrack
     property color foregroundColor: Theme.textPrimary
 
     readonly property bool hovered: pointer.containsMouse
@@ -434,5 +434,4 @@ Item {
         visible: root.activeFocus
     }
 }
-
 

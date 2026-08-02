@@ -420,7 +420,13 @@ EOF
       CURRENT_BACKGROUND_LINK="$HOME/.config/current-wallpaper"
       TEMP_FRAME=""
       TEMP_LINK_DIR=""
+      RESTORE_ONLY=0
       declare -a TEMP_FILES=()
+
+      if [[ "''${1:-}" == "--restore" ]]; then
+        RESTORE_ONLY=1
+        shift
+      fi
 
       if [[ -n "''${XDG_RUNTIME_DIR:-}" ]]; then
         LOCK_DIR="$XDG_RUNTIME_DIR/m3-shell"
@@ -445,8 +451,12 @@ EOF
       trap cleanup EXIT
 
       notify_wallpaper_error() {
-        notify-send -a "Wallpaper" -u critical -t 5000 \
-          "Wallpaper error" "$1"
+        if (( RESTORE_ONLY )); then
+          printf 'restore-background: %s\n' "$1" >&2
+        else
+          notify-send -a "Wallpaper" -u critical -t 5000 \
+            "Wallpaper error" "$1"
+        fi
       }
 
       is_video() {
@@ -455,6 +465,12 @@ EOF
           *.mp4|*.mkv|*.webm|*.avi|*.mov) return 0 ;;
           *) return 1 ;;
         esac
+      }
+
+      swww_outputs_ready() {
+        local outputs
+        outputs=$(swww query 2>/dev/null) || return 1
+        [[ -n "$outputs" ]]
       }
 
       atomic_link() {
@@ -514,48 +530,95 @@ EOF
         mpvpaper "*" --mpv-options "loop no-audio" \
           "$NEW_BACKGROUND" >/dev/null 2>&1 &
 
-        TEMP_FRAME=$(mktemp --suffix=.png /tmp/wallpaper-frame-XXXXXX)
-        ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -frames:v 1 -q:v 2 \
-          "$TEMP_FRAME" >/dev/null 2>&1
-        wal -i "$TEMP_FRAME" -n --saturate 0.7 -q \
-          -o ${walColorExport}/bin/wal-color-export
+        if (( ! RESTORE_ONLY )); then
+          TEMP_FRAME=$(mktemp --suffix=.png /tmp/wallpaper-frame-XXXXXX)
+          ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -frames:v 1 -q:v 2 \
+            "$TEMP_FRAME" >/dev/null 2>&1
+          wal -i "$TEMP_FRAME" -n --saturate 0.7 -q \
+            -o ${walColorExport}/bin/wal-color-export
+        fi
       else
         daemon_ready=0
-        if swww query >/dev/null 2>&1; then
-          daemon_ready=1
-        else
+        if ! swww query >/dev/null 2>&1; then
           swww-daemon >/dev/null 2>&1 &
-          for _ in {1..20}; do
-            if swww query >/dev/null 2>&1; then
-              daemon_ready=1
-              break
-            fi
-            sleep 0.05
-          done
         fi
+        for _ in {1..50}; do
+          if swww_outputs_ready; then
+            daemon_ready=1
+            break
+          fi
+          sleep 0.1
+        done
 
         if (( ! daemon_ready )); then
           notify_wallpaper_error "The wallpaper daemon did not become ready."
           exit 1
         fi
 
-        TRANSITIONS=(fade wipe wave grow center outer)
-        SELECTED_TRANSITION="''${TRANSITIONS[RANDOM % ''${#TRANSITIONS[@]}]}"
-        swww img "$NEW_BACKGROUND" \
-          --transition-type "$SELECTED_TRANSITION" \
-          --transition-duration 1 \
-          --transition-fps 60 \
-          >/dev/null 2>&1
+        if (( RESTORE_ONLY )); then
+          swww img "$NEW_BACKGROUND" \
+            --transition-type none \
+            >/dev/null 2>&1
+        else
+          TRANSITIONS=(fade wipe wave grow center outer)
+          SELECTED_TRANSITION="''${TRANSITIONS[RANDOM % ''${#TRANSITIONS[@]}]}"
+          swww img "$NEW_BACKGROUND" \
+            --transition-type "$SELECTED_TRANSITION" \
+            --transition-duration 1 \
+            --transition-fps 60 \
+            >/dev/null 2>&1
 
-        WAL_SAMPLE=$(mktemp --suffix=.png /tmp/wallpaper-sample-XXXXXX)
-        TEMP_FILES+=("$WAL_SAMPLE")
-        convert "$NEW_BACKGROUND" -resize 360x360^ "$WAL_SAMPLE" 2>/dev/null || cp -- "$NEW_BACKGROUND" "$WAL_SAMPLE"
+          WAL_SAMPLE=$(mktemp --suffix=.png /tmp/wallpaper-sample-XXXXXX)
+          TEMP_FILES+=("$WAL_SAMPLE")
+          convert "$NEW_BACKGROUND" -resize 360x360^ "$WAL_SAMPLE" 2>/dev/null || cp -- "$NEW_BACKGROUND" "$WAL_SAMPLE"
 
-        wal -i "$WAL_SAMPLE" -n --saturate 0.7 -q \
-          -o ${walColorExport}/bin/wal-color-export
+          wal -i "$WAL_SAMPLE" -n --saturate 0.7 -q \
+            -o ${walColorExport}/bin/wal-color-export
+        fi
       fi
 
       atomic_link "$NEW_BACKGROUND" "$CURRENT_BACKGROUND_LINK"
+    '';
+  };
+
+  restoreBackground = pkgs.writeShellApplication {
+    name = "restore-background";
+    runtimeInputs = with pkgs; [ coreutils findutils ];
+    text = ''
+      set -Eeuo pipefail
+
+      BACKGROUNDS_DIR="$HOME/Pictures/wallpapers"
+      CURRENT_BACKGROUND_LINK="$HOME/.config/current-wallpaper"
+      DEFAULT_BACKGROUND="$BACKGROUNDS_DIR/wallpaper.jpg"
+      BACKGROUND_PATH=""
+
+      if [[ -e "$CURRENT_BACKGROUND_LINK" ]]; then
+        BACKGROUND_PATH=$(realpath -e -- "$CURRENT_BACKGROUND_LINK" 2>/dev/null || true)
+      fi
+
+      if [[ -z "$BACKGROUND_PATH" && -f "$DEFAULT_BACKGROUND" ]]; then
+        BACKGROUND_PATH=$(realpath -e -- "$DEFAULT_BACKGROUND")
+      fi
+
+      if [[ -z "$BACKGROUND_PATH" && -d "$BACKGROUNDS_DIR" ]]; then
+        while IFS= read -r -d "" candidate; do
+          BACKGROUND_PATH="$candidate"
+          break
+        done < <(
+          LC_ALL=C find "$BACKGROUNDS_DIR" -type f \( \
+            -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o \
+            -iname "*.webp" -o -iname "*.mp4" -o -iname "*.mkv" -o \
+            -iname "*.webm" -o -iname "*.avi" -o -iname "*.mov" \
+          \) -print0 | LC_ALL=C sort -z
+        )
+      fi
+
+      if [[ -z "$BACKGROUND_PATH" ]]; then
+        printf 'restore-background: no supported wallpaper was found\n' >&2
+        exit 0
+      fi
+
+      exec ${setBackground}/bin/set-background --restore "$BACKGROUND_PATH"
     '';
   };
 
@@ -685,6 +748,7 @@ in
     pkgs.pywal
     walColorExport
     setBackground
+    restoreBackground
     cycleBackground
   ];
 }

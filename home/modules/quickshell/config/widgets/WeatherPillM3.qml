@@ -7,6 +7,9 @@ M3BarPill {
 
     property var controller
     property bool compact: false
+    readonly property bool initialWeatherLoading: controller
+        && controller.weatherLoading
+        && !controller.weatherAvailable
     signal popupRequested
 
     function weatherIcon(code) {
@@ -60,13 +63,33 @@ M3BarPill {
         anchors.centerIn: parent
         spacing: 8
 
-        MaterialIcon {
+        Item {
             anchors.verticalCenter: parent.verticalCenter
-            text: root.weatherIcon(root.controller ? root.controller.weatherCode : -1)
-            iconSize: 20
-            color: Theme.ensureContrast(
-                Theme.tertiary, root.resolvedColor, 3.0)
-            filled: true
+            width: 20
+            height: 20
+
+            MaterialIcon {
+                anchors.centerIn: parent
+                visible: !root.initialWeatherLoading
+                text: root.weatherIcon(root.controller
+                    ? root.controller.weatherCode : -1)
+                iconSize: 20
+                color: Theme.ensureContrast(
+                    Theme.tertiary, root.resolvedColor, 3.0)
+                filled: true
+            }
+
+            Md3LoadingIndicator {
+                anchors.centerIn: parent
+                visible: root.initialWeatherLoading
+                active: visible
+                size: 20
+                color: Theme.ensureContrast(
+                    Theme.tertiary, root.resolvedColor, 3.0)
+                accessibleName: I18n.tr(
+                    "Đang cập nhật thời tiết",
+                    "Updating weather")
+            }
         }
 
         Column {

@@ -21,12 +21,17 @@ Scope {
     property string wifiSsid: ""
     property int wifiSignal: 0
     property bool wifiBusy: false
+    readonly property bool wifiLoading: wifiRadioQuery.running
+        || wifiSavedQuery.running || wifiListQuery.running
+    property string pendingWifiAction: ""
+    property string pendingWifiTarget: ""
     property string lastWifiListOutput: ""
     property var savedWifiConnections: ({})
     property bool savedWifiConnectionsLoaded: false
 
     property string powerProfile: "balanced"
     property bool powerProfileBusy: false
+    readonly property bool powerProfileLoading: powerProfileQuery.running
     property string powerProfileError: ""
     property int batteryPercent: 0
     property string batteryState: "Unknown"
@@ -59,9 +64,13 @@ Scope {
     property real weatherLongitude: 0
     property bool weatherLocationAvailable: false
     property bool weatherAvailable: false
+    readonly property bool weatherLoading: weatherLocationQuery.running
+        || weatherQuery.running
 
     property bool notificationHistoryLoading: false
     property bool screenshotsLoading: false
+    readonly property bool screenshotCopyBusy: screenshotCopy.running
+    property string screenshotCopyPath: ""
     property bool screenshotTrashBusy: false
     property string screenshotTrashPath: ""
     readonly property string screenshotDirectory:
@@ -70,6 +79,7 @@ Scope {
     property bool recording: false
     property bool recordingPaused: false
     property bool recordingStopping: false
+    property bool recordingFinalizing: false
     property bool recordingAudio: true
     property bool recordingMicrophone: false
     property int recordingFps: 60
@@ -79,6 +89,12 @@ Scope {
     property string currentWallpaper: ""
     property string pendingWallpaper: ""
     property bool wallpapersLoading: false
+    readonly property bool wallpaperApplying: wallpaperCommand.running
+
+    property var pendingBluetoothDevice: null
+    property string pendingBluetoothAction: ""
+    readonly property bool bluetoothActionBusy:
+        pendingBluetoothDevice !== null
 
     property string message: ""
     property int pendingVolume: 0
@@ -577,6 +593,8 @@ Scope {
 
         wifiBusy = true;
         wifiEnabled = !wifiEnabled;
+        pendingWifiAction = "toggle";
+        pendingWifiTarget = wifiEnabled ? "on" : "off";
         if (!wifiEnabled) {
             wifiSsid = "";
             wifiSignal = 0;
@@ -590,6 +608,8 @@ Scope {
             return;
 
         wifiBusy = true;
+        pendingWifiAction = "connect";
+        pendingWifiTarget = connectionName || ssid;
         showMessage(I18n.tr("Đang kết nối “", "Connecting to “")
             + ssid + "”…");
         if (connectionName) {
@@ -608,6 +628,8 @@ Scope {
         if (!connection || wifiAction.running)
             return;
         wifiBusy = true;
+        pendingWifiAction = "disconnect";
+        pendingWifiTarget = connection;
         showMessage(I18n.tr("Đang ngắt kết nối…", "Disconnecting…"));
         wifiAction.exec(["nmcli", "connection", "down", "id", connection]);
     }
@@ -616,6 +638,8 @@ Scope {
         if (!connectionName || wifiAction.running)
             return;
         wifiBusy = true;
+        pendingWifiAction = "forget";
+        pendingWifiTarget = connectionName;
         showMessage(I18n.tr("Đang xóa mạng đã lưu…",
             "Forgetting saved network…"));
         wifiAction.exec(["nmcli", "connection", "delete", "id",
@@ -626,6 +650,8 @@ Scope {
         if (!connectionName || !password || wifiAction.running)
             return;
         wifiBusy = true;
+        pendingWifiAction = "update-password";
+        pendingWifiTarget = connectionName;
         showMessage(I18n.tr("Đang cập nhật mật khẩu…",
             "Updating password…"));
         wifiAction.exec([
@@ -762,6 +788,34 @@ Scope {
         batteryStatusFile.reload();
     }
 
+    function beginBluetoothAction(device, action) {
+        pendingBluetoothDevice = device;
+        pendingBluetoothAction = action;
+        bluetoothActionTimeout.restart();
+    }
+
+    function clearBluetoothAction() {
+        bluetoothActionTimeout.stop();
+        pendingBluetoothDevice = null;
+        pendingBluetoothAction = "";
+    }
+
+    function updateBluetoothAction() {
+        const device = pendingBluetoothDevice;
+        if (!device)
+            return;
+
+        if ((pendingBluetoothAction === "connect" && device.connected)
+                || (pendingBluetoothAction === "disconnect"
+                    && !device.connected)
+                || (pendingBluetoothAction === "pair"
+                    && device.paired && !device.pairing)
+                || (pendingBluetoothAction === "forget"
+                    && !device.paired)) {
+            clearBluetoothAction();
+        }
+    }
+
     function toggleBluetooth() {
         if (bluetoothAdapter) {
             let nextState = !bluetoothAdapter.enabled;
@@ -788,16 +842,19 @@ Scope {
     }
 
     function toggleBluetoothDevice(device) {
-        if (!device)
+        if (!device || bluetoothActionBusy)
             return;
 
         if (device.connected) {
+            beginBluetoothAction(device, "disconnect");
             device.disconnect();
             showMessage("Đang ngắt kết nối “" + device.name + "”…");
         } else if (device.paired) {
+            beginBluetoothAction(device, "connect");
             device.connect();
             showMessage("Đang kết nối “" + device.name + "”…");
         } else {
+            beginBluetoothAction(device, "pair");
             device.trusted = true;
             device.pair();
             showMessage("Đang ghép đôi “" + device.name + "”…");
@@ -805,8 +862,9 @@ Scope {
     }
 
     function forgetBluetoothDevice(device) {
-        if (!device || !device.paired)
+        if (!device || !device.paired || bluetoothActionBusy)
             return;
+        beginBluetoothAction(device, "forget");
         if (device.connected)
             device.disconnect();
         device.forget();
@@ -879,6 +937,7 @@ Scope {
                 || lowerPath.endsWith(".jpeg")
             ? "image/jpeg"
             : lowerPath.endsWith(".webp") ? "image/webp" : "image/png";
+        screenshotCopyPath = path;
         screenshotCopy.exec([
             "sh", "-c", "wl-copy --type \"$1\" < \"$2\"",
             "m3-shell", mimeType, path
@@ -992,6 +1051,7 @@ Scope {
         recording = true;
         recordingPaused = false;
         recordingStopping = false;
+        recordingFinalizing = false;
         recordingProcess.exec([
             "sh", "-c", script, "m3-shell", directory, recordingTarget,
             String(recordingFps), recordingOutput, audioSource
@@ -1017,6 +1077,7 @@ Scope {
             return;
 
         recordingStopping = true;
+        recordingFinalizing = true;
         // GPU Screen Recorder handles SIGINT cleanly, but a paused capture can
         // take the signal before its muxer resumes. Resume first, then request
         // finalization on the next event-loop turn so MP4 metadata is written.
@@ -1171,6 +1232,7 @@ Scope {
     Process {
         id: screenshotCopy
         onExited: (exitCode, exitStatus) => {
+            root.screenshotCopyPath = "";
             root.showMessage(exitCode === 0
                 ? I18n.tr("Đã sao chép ảnh", "Screenshot copied")
                 : I18n.tr("Không thể sao chép ảnh",
@@ -1218,7 +1280,8 @@ Scope {
                 recordingVerification.outputPath = output;
                 recordingVerification.errorText = recordingError.text.trim();
                 recordingVerification.exec(["test", "-s", output]);
-            }
+            } else
+                root.recordingFinalizing = false;
         }
     }
 
@@ -1245,6 +1308,7 @@ Scope {
         property string errorText: ""
 
         onExited: (exitCode, exitStatus) => {
+            root.recordingFinalizing = false;
             if (exitCode === 0) {
                 root.showMessage(I18n.tr("Đã lưu bản ghi màn hình",
                     "Screen recording saved"));
@@ -1445,6 +1509,8 @@ Scope {
 
         onExited: (exitCode, exitStatus) => {
             root.wifiBusy = false;
+            root.pendingWifiAction = "";
+            root.pendingWifiTarget = "";
             if (exitCode === 0)
                 root.showMessage(I18n.tr("Đã cập nhật kết nối Wi‑Fi",
                     "Wi‑Fi connection updated"));
@@ -1536,6 +1602,29 @@ Scope {
             if (root.bluetoothAdapter)
                 root.bluetoothAdapter.discovering = false;
         }
+    }
+
+    Connections {
+        target: root.pendingBluetoothDevice
+        ignoreUnknownSignals: true
+
+        function onConnectedChanged() {
+            root.updateBluetoothAction();
+        }
+
+        function onPairedChanged() {
+            root.updateBluetoothAction();
+        }
+
+        function onPairingChanged() {
+            root.updateBluetoothAction();
+        }
+    }
+
+    Timer {
+        id: bluetoothActionTimeout
+        interval: 15000
+        onTriggered: root.clearBluetoothAction()
     }
 
     Component.onCompleted: refreshAll()

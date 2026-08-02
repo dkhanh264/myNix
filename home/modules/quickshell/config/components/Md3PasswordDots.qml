@@ -10,10 +10,12 @@ Row {
     property bool showPassword: false
     property real dotSize: 18
     property real dotGap: 8
+    property real entryScale: 0.55
     property var seeds: []
 
     visible: !showPassword && passwordLength > 0
     spacing: root.dotGap
+    Accessible.ignored: true
 
     readonly property var md3Colors: [
         Theme.primary,
@@ -66,8 +68,9 @@ Row {
                 color: parent.shapeColor
                 rotationAngle: parent.seedRot + (parent.shapeType === 4 ? 45 : 0)
 
-                shapeScale: 0
+                shapeScale: root.entryScale
                 Component.onCompleted: shapeScale = 1.0
+                Accessible.ignored: true
             }
         }
     }

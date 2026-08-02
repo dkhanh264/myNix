@@ -11,6 +11,23 @@ Rectangle {
     implicitHeight: content.implicitHeight + 16
     color: "transparent"
 
+    function isPendingDevice(device, deviceKey) {
+        if (!root.controller || !root.controller.bluetoothActionBusy)
+            return false;
+
+        const pending = root.controller.pendingBluetoothDevice;
+        if (!pending)
+            return false;
+        if (pending === device)
+            return true;
+        if (typeof pending === "string")
+            return pending === deviceKey;
+
+        const pendingKey = pending.address || pending.name
+            || pending.deviceName || "";
+        return pendingKey.length > 0 && pendingKey === deviceKey;
+    }
+
     Column {
         id: content
         x: 12
@@ -48,20 +65,19 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 buttonSize: 38
                 iconSize: 18
-                icon: root.controller && root.controller.bluetoothDiscovering
-                    ? "progress_activity" : "refresh"
+                icon: root.controller
+                    && root.controller.bluetoothDiscovering
+                    ? "close" : "refresh"
                 fillColor: Theme.surfaceContainerHigh
-                accessibleName: I18n.tr("Quét thiết bị Bluetooth", "Scan Bluetooth devices")
+                accessibleName: root.controller
+                        && root.controller.bluetoothDiscovering
+                    ? I18n.tr("Dừng quét Bluetooth",
+                        "Stop Bluetooth scan")
+                    : I18n.tr("Quét thiết bị Bluetooth",
+                        "Scan Bluetooth devices")
                 enabled: root.controller && root.controller.bluetoothEnabled
+                    && !root.controller.bluetoothActionBusy
                 onClicked: root.controller.toggleBluetoothScan()
-
-                NumberAnimation on rotation {
-                    from: 0
-                    to: 360
-                    duration: 1200
-                    loops: Animation.Infinite
-                    running: root.controller && root.controller.bluetoothDiscovering && !Theme.reduceMotion
-                }
             }
         }
 
@@ -110,6 +126,17 @@ Rectangle {
                 readonly property bool shouldShow: modelData.paired
                     || modelData.connected
                     || (root.controller && root.controller.bluetoothDiscovering)
+                readonly property bool pendingForDevice:
+                    root.isPendingDevice(modelData, deviceKey)
+                readonly property string pendingAction: pendingForDevice
+                    ? root.controller.pendingBluetoothAction : ""
+                readonly property bool primaryActionLoading:
+                    Boolean(modelData.pairing)
+                    || (pendingForDevice && pendingAction !== "forget")
+                readonly property bool forgetActionLoading: pendingForDevice
+                    && pendingAction === "forget"
+                readonly property bool actionPending: primaryActionLoading
+                    || forgetActionLoading
 
                 visible: shouldShow
                 width: content.width
@@ -117,6 +144,7 @@ Rectangle {
                 clip: true
                 activeFocusOnTab: visible && root.controller
                     && root.controller.bluetoothEnabled
+                    && !root.controller.bluetoothActionBusy
 
                 Accessible.role: Accessible.Button
                 Accessible.name: displayName + (modelData.connected
@@ -240,6 +268,8 @@ Rectangle {
                         anchors.right: parent.right
                         anchors.rightMargin: 12
                         anchors.verticalCenter: parent.verticalCenter
+                        visible: !deviceRow.actionPending
+                            || deviceRow.selected
                         text: selected ? "expand_less"
                             : modelData.connected ? "check_circle" : "link"
                         iconSize: 18
@@ -253,6 +283,20 @@ Rectangle {
                                 easing.bezierCurve: Theme.springCurve
                             }
                         }
+                    }
+
+                    Md3LoadingIndicator {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 7
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: deviceRow.actionPending
+                            && !deviceRow.selected
+                        active: visible
+                        size: 28
+                        color: Theme.primary
+                        accessibleName: I18n.tr(
+                            "Đang cập nhật thiết bị Bluetooth",
+                            "Updating Bluetooth device")
                     }
                 }
 
@@ -311,6 +355,17 @@ Rectangle {
                                 : modelData.paired
                                     ? I18n.tr("Kết nối", "Connect")
                                     : I18n.tr("Ghép đôi", "Pair")
+                            loading: deviceRow.primaryActionLoading
+                            loadingAccessibleName:
+                                deviceRow.pendingAction === "disconnect"
+                                    ? I18n.tr("Đang ngắt kết nối",
+                                        "Disconnecting")
+                                    : deviceRow.pendingAction === "connect"
+                                        ? I18n.tr("Đang kết nối",
+                                            "Connecting")
+                                        : I18n.tr("Đang ghép đôi",
+                                            "Pairing")
+                            enabled: !root.controller.bluetoothActionBusy
                             onClicked: root.controller.toggleBluetoothDevice(modelData)
                         }
 
@@ -322,6 +377,11 @@ Rectangle {
                             icon: "delete"
                             text: I18n.tr("Xóa", "Forget")
                             destructive: true
+                            loading: deviceRow.forgetActionLoading
+                            loadingAccessibleName: I18n.tr(
+                                "Đang xóa thiết bị Bluetooth",
+                                "Forgetting Bluetooth device")
+                            enabled: !root.controller.bluetoothActionBusy
                             onClicked: root.controller.forgetBluetoothDevice(modelData)
                         }
                     }
@@ -334,6 +394,7 @@ Rectangle {
                     anchors.top: parent.top
                     height: summaryRow.height
                     enabled: root.controller && root.controller.bluetoothEnabled
+                        && !root.controller.bluetoothActionBusy
                     hoverEnabled: true
                     cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                     onPressed: deviceRow.focus = false

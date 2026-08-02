@@ -16,23 +16,32 @@ Item {
     property color foregroundColor: Theme.textPrimary
     property bool checked: false
     property bool enabled: true
+    property bool loading: false
+    property string loadingAccessibleName: I18n.tr(
+        "Đang xử lý", "Processing")
     property string accessibleName: ""
     readonly property bool hovered: pointer.containsMouse
+        && enabled && !loading
 
     signal clicked
 
     implicitWidth: buttonSize
     implicitHeight: buttonSize
-    opacity: enabled ? 1 : 0.38
-    scale: pointer.pressed ? 0.94 : (hovered && enabled ? 1.05 : 1)
-    activeFocusOnTab: enabled
+    opacity: enabled || loading ? 1 : 0.38
+    scale: pointer.pressed && !loading ? 0.94 : (hovered ? 1.05 : 1)
+    activeFocusOnTab: enabled && !loading
 
     Accessible.role: Accessible.Button
-    Accessible.name: accessibleName
-    Accessible.focusable: enabled
+    Accessible.name: loading ? loadingAccessibleName : accessibleName
+    Accessible.focusable: enabled && !loading
+
+    onLoadingChanged: {
+        if (loading)
+            root.focus = false;
+    }
 
     Keys.onPressed: event => {
-        if (!root.enabled) return;
+        if (!root.enabled || root.loading) return;
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
                 || event.key === Qt.Key_Space) {
             root.clicked();
@@ -49,12 +58,11 @@ Item {
         case "tonal":
             return Theme.secondaryContainer;
         case "outlined":
-            return pointer.containsMouse
-                ? Theme.surfaceContainerHighest
+            return root.hovered ? Theme.surfaceContainerHighest
                 : Theme.surfaceContainerHigh;
         case "standard":
         default:
-            return pointer.containsMouse ? root.hoverColor : "transparent";
+            return root.hovered ? root.hoverColor : "transparent";
         }
     }
 
@@ -103,11 +111,12 @@ Item {
     MaterialIcon {
         id: iconItem
         anchors.centerIn: parent
+        visible: !root.loading
         text: root.icon
         iconSize: root.iconSize
         color: root.getIconColor()
         filled: root.checked || root.variant === "filled"
-        scale: pointer.pressed ? 0.90 : 1
+        scale: pointer.pressed && !root.loading ? 0.90 : 1
 
         Behavior on scale {
             NumberAnimation {
@@ -118,12 +127,22 @@ Item {
         }
     }
 
+    Md3LoadingIndicator {
+        anchors.centerIn: parent
+        visible: root.loading
+        active: visible
+        size: Math.min(root.buttonSize, root.iconSize * 48 / 38)
+        color: root.getIconColor()
+        accessibleName: root.loadingAccessibleName
+        Accessible.ignored: true
+    }
+
     MouseArea {
         id: pointer
         anchors.fill: parent
-        enabled: root.enabled
+        enabled: root.enabled && !root.loading
         hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
+        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
         onPressed: mouse => {
             root.focus = false;
             ripple.burst(mouse.x, mouse.y);
@@ -136,7 +155,7 @@ Item {
         anchors.margins: -2
         radius: buttonSurface.radius + 2
         color: Theme.alpha(Theme.primary, 0.18)
-        visible: root.activeFocus
+        visible: root.activeFocus && !root.loading
     }
 
     Behavior on scale {

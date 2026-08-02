@@ -30,7 +30,10 @@
     };
     Service = {
       ExecStart = "${pkgs.quickshell}/bin/quickshell";
-      Environment = "PATH=${pkgs.gpu-screen-recorder}/bin:/run/wrappers/bin:${config.home.profileDirectory}/bin:/run/current-system/sw/bin";
+      Environment = [
+        "PATH=${pkgs.gpu-screen-recorder}/bin:/run/wrappers/bin:${config.home.profileDirectory}/bin:/run/current-system/sw/bin"
+        "QSG_RENDER_LOOP=threaded"
+      ];
       Restart = "on-failure";
       RestartSec = "1s";
     };

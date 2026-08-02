@@ -194,6 +194,10 @@ Item {
                         I18n.vietnamese
                             ? Qt.locale("vi_VN") : Qt.locale("en_US"),
                         "dddd, d MMMM yyyy")
+                        + (today
+                            ? I18n.tr(", hôm nay", ", today") : "")
+                        + (selected
+                            ? I18n.tr(", đã chọn", ", selected") : "")
                         + (events > 0
                             ? (I18n.vietnamese
                                 ? ", " + events + " sự kiện"
@@ -204,28 +208,48 @@ Item {
                     : ""
                 Accessible.focusable: root.interactive && valid
 
-                Rectangle {
+                Item {
                     id: dateSurface
 
                     anchors.centerIn: parent
                     width: Math.min(
                         root.compact ? Theme.space6 : Theme.space8,
                         Math.min(parent.width, parent.height)
-                            - (root.compact ? Theme.space1 : 2))
+                            - (root.compact ? 1 : 2))
                     height: width
-                    radius: width / 2
-                    color: dateCell.selected ? root.selectedFill
-                        : dateCell.today
-                            ? (root.fillToday
-                                ? Theme.primaryContainer
-                                : Theme.alpha(
-                                    Theme.primaryContainer, 0.58))
-                        : datePointer.containsMouse
-                            ? Theme.surfaceContainerHigh
-                            : "transparent"
 
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.motionShort3 }
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Theme.shapeMedium
+                        color: datePointer.containsMouse
+                            ? Theme.surfaceContainerHigh : "transparent"
+                        visible: !dateCell.selected && !dateCell.today
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.motionShort3
+                            }
+                        }
+                    }
+
+                    Loader {
+                        anchors.fill: parent
+                        active: dateCell.selected || dateCell.today
+
+                        sourceComponent: Md3ExpressiveShape {
+                            size: dateSurface.width
+                            shapeName: dateCell.selected
+                                ? "cookie6" : "sunny"
+                            color: dateCell.selected
+                                ? root.selectedFill
+                                : root.fillToday
+                                    ? Theme.primaryContainer
+                                    : Theme.alpha(
+                                        Theme.primaryContainer, 0.58)
+                            shapeScale: datePointer.pressed ? 0.86
+                                : datePointer.containsMouse ? 1.05 : 1.0
+                            Accessible.ignored: true
+                        }
                     }
                 }
 
@@ -304,8 +328,10 @@ Item {
                 Rectangle {
                     anchors.fill: dateSurface
                     anchors.margins: -Theme.focusRingInset
-                    radius: width / 2
-                    color: Theme.alpha(root.accentColor, 0.20)
+                    radius: Theme.shapeLarge
+                    color: "transparent"
+                    border.width: 2
+                    border.color: Theme.alpha(root.accentColor, 0.72)
                     visible: dateCell.activeFocus
                 }
             }

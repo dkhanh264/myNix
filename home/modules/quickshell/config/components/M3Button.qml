@@ -15,25 +15,34 @@ Item {
     property bool destructive: false
     property bool compact: false
     property bool selected: false
+    property bool loading: false
+    property string loadingAccessibleName: I18n.tr(
+        "Đang xử lý", "Processing")
     property bool disableShapeMorph: true
     property real customRadius: -1
     readonly property bool hovered: pointer.containsMouse
+        && enabled && !loading
     signal clicked
 
     implicitWidth: Math.max(compact ? 40 : 72,
         buttonContent.implicitWidth + (compact ? 20 : 32))
     implicitHeight: compact ? 36 : 40
-    opacity: enabled ? 1 : 0.38
-    scale: pointer.pressed ? 0.96 : 1.0
-    activeFocusOnTab: enabled
+    opacity: enabled || loading ? 1 : 0.38
+    scale: pointer.pressed && !loading ? 0.96 : 1.0
+    activeFocusOnTab: enabled && !loading
 
     Accessible.role: Accessible.Button
-    Accessible.name: text
+    Accessible.name: loading ? loadingAccessibleName : text
     Accessible.checked: selected
-    Accessible.focusable: enabled
+    Accessible.focusable: enabled && !loading
+
+    onLoadingChanged: {
+        if (loading)
+            root.focus = false;
+    }
 
     Keys.onPressed: event => {
-        if (!enabled) return;
+        if (!enabled || loading) return;
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
                 || event.key === Qt.Key_Space) {
             root.clicked();
@@ -49,11 +58,12 @@ Item {
         case "tonal":
             return Theme.secondaryContainer;
         case "outlined":
-            return pointer.containsMouse
+            return root.hovered
                 ? Theme.surfaceContainerHighest
                 : Theme.surfaceContainerHigh;
         case "text":
-            return pointer.containsMouse ? Theme.alpha(Theme.primary, 0.08) : "transparent";
+            return root.hovered
+                ? Theme.alpha(Theme.primary, 0.08) : "transparent";
         case "filled":
         default:
             return Theme.primarySolid;
@@ -82,9 +92,9 @@ Item {
         anchors.fill: parent
         radius: root.customRadius >= 0 ? root.customRadius
             : (root.disableShapeMorph ? height / 2
-                : (pointer.pressed ? Theme.shapeSmall
+                : (pointer.pressed && !root.loading ? Theme.shapeSmall
                     : root.selected ? Theme.shapeMedium
-                    : pointer.containsMouse ? Theme.shapeLarge : height / 2))
+                    : root.hovered ? Theme.shapeLarge : height / 2))
         color: root.getBackgroundColor()
 
         Behavior on radius {
@@ -105,8 +115,9 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: container.radius
-        color: pointer.pressed ? Theme.alpha(root.getTextColor(), 0.12)
-            : pointer.containsMouse ? Theme.alpha(root.getTextColor(), 0.08)
+        color: pointer.pressed && !root.loading
+            ? Theme.alpha(root.getTextColor(), 0.12)
+            : root.hovered ? Theme.alpha(root.getTextColor(), 0.08)
             : "transparent"
 
         Behavior on color {
@@ -128,8 +139,19 @@ Item {
         anchors.centerIn: parent
         spacing: Theme.space2
 
+        Md3LoadingIndicator {
+            visible: root.loading
+            anchors.verticalCenter: parent.verticalCenter
+            active: visible
+            size: root.compact
+                ? Theme.iconSizeSmall : Theme.iconSizeMedium
+            color: root.getTextColor()
+            accessibleName: root.loadingAccessibleName
+            Accessible.ignored: true
+        }
+
         MaterialIcon {
-            visible: root.icon.length > 0
+            visible: !root.loading && root.icon.length > 0
             anchors.verticalCenter: parent.verticalCenter
             text: root.icon
             iconSize: root.compact ? Theme.iconSizeExtraSmall : Theme.iconSizeSmall
@@ -156,7 +178,7 @@ Item {
     MouseArea {
         id: pointer
         anchors.fill: parent
-        enabled: root.enabled
+        enabled: root.enabled && !root.loading
         hoverEnabled: true
         cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
         onPressed: mouse => {
@@ -171,7 +193,7 @@ Item {
         anchors.margins: -2
         radius: container.radius + 2
         color: Theme.alpha(Theme.primary, 0.18)
-        visible: root.activeFocus
+        visible: root.activeFocus && !root.loading
     }
 
     Behavior on scale {

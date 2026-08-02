@@ -11,6 +11,8 @@ Item {
     readonly property string formattedSource: formatArtUrl(source)
     readonly property bool artAvailable: formattedSource.length > 0
         && artSource.status === Image.Ready
+    readonly property bool artLoading: formattedSource.length > 0
+        && artSource.status === Image.Loading
 
     function formatArtUrl(rawUrl) {
         if (!rawUrl) return "";
@@ -43,8 +45,19 @@ Item {
             text: "music_note"
             iconSize: Math.min(parent.width, parent.height) * 0.45
             color: Theme.alpha(root.accentColor, 0.70)
-            visible: !root.artAvailable
+            visible: !root.artAvailable && !root.artLoading
         }
+    }
+
+    Md3LoadingIndicator {
+        anchors.centerIn: parent
+        visible: root.artLoading
+        active: visible
+        size: Math.max(20, Math.min(40,
+            Math.min(root.width, root.height) * 0.44))
+        color: root.accentColor
+        accessibleName: I18n.tr(
+            "Đang tải ảnh bìa", "Loading album artwork")
     }
 
     // Artwork Image Source

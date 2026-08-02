@@ -69,16 +69,14 @@ Item {
         onWavePhaseChanged: requestPaint()
         Component.onCompleted: requestPaint()
 
-        Timer {
-            interval: Theme.ambientMotionInterval
-            repeat: true
-            running: root.animatedWave && root.displayLevel > 0.03
+        FrameAnimation {
+            running: Boolean(root.animatedWave && root.displayLevel > 0.03
                 && root.displayLevel < 0.999 && root.visible
                 && (root.Window.window ? root.Window.window.visible : true)
-                && !Theme.reduceMotion
+                && !Theme.reduceMotion)
             onTriggered: progressCanvas.wavePhase =
                 (progressCanvas.wavePhase
-                    + Math.PI * 2 * interval / 1500) % (Math.PI * 2)
+                    + Math.PI * 2 * frameTime / 1.5) % (Math.PI * 2)
         }
 
         onPaint: {

@@ -11,13 +11,15 @@ Item {
     property int monthOffset: 0
     property date selectedDate: new Date()
     property bool editorOpen: false
+    property bool titleError: false
+    property bool timeError: false
     readonly property date displayDate: new Date(
         currentDate.getFullYear(), currentDate.getMonth() + monthOffset, 1)
     readonly property string selectedKey: Qt.formatDate(selectedDate, "yyyy-MM-dd")
     readonly property var calendarLocale:
         Qt.locale(I18n.vietnamese ? "vi_VN" : "en_US")
 
-    implicitHeight: 518
+    implicitHeight: 608
 
     function sameDay(first, second) {
         return first.getFullYear() === second.getFullYear()
@@ -44,6 +46,18 @@ Item {
         editorOpen = false;
     }
 
+    onEditorOpenChanged: {
+        titleError = false;
+        timeError = false;
+        titleInput.error = false;
+        timeInput.error = false;
+        if (editorOpen) {
+            titleInput.text = "";
+            timeInput.text = "";
+            Qt.callLater(() => titleInput.forceActiveFocus());
+        }
+    }
+
     onPopupActiveChanged: {
         if (popupActive)
             resetToToday();
@@ -61,18 +75,68 @@ Item {
             Math.min(selectedDate.getDate(), lastDay));
     }
 
+    function normalizeTimeInput(raw) {
+        let t = String(raw || "").trim();
+        if (t.length === 0)
+            return { valid: true, formatted: "" };
+
+        let matchCol = t.match(/^(\d{1,2}):(\d{1,2})$/);
+        if (matchCol) {
+            let h = parseInt(matchCol[1], 10);
+            let m = parseInt(matchCol[2], 10);
+            if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+                let hh = h < 10 ? "0" + h : "" + h;
+                let mm = m < 10 ? "0" + m : "" + m;
+                return { valid: true, formatted: hh + ":" + mm };
+            }
+            return { valid: false, formatted: "" };
+        }
+
+        let matchDigits = t.match(/^(\d{3,4})$/);
+        if (matchDigits) {
+            let s = matchDigits[1].padStart(4, "0");
+            let h = parseInt(s.slice(0, 2), 10);
+            let m = parseInt(s.slice(2, 4), 10);
+            if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+                let hh = h < 10 ? "0" + h : "" + h;
+                let mm = m < 10 ? "0" + m : "" + m;
+                return { valid: true, formatted: hh + ":" + mm };
+            }
+            return { valid: false, formatted: "" };
+        }
+
+        let matchHour = t.match(/^(\d{1,2})$/);
+        if (matchHour) {
+            let h = parseInt(matchHour[1], 10);
+            if (h >= 0 && h <= 23) {
+                let hh = h < 10 ? "0" + h : "" + h;
+                return { valid: true, formatted: hh + ":00" };
+            }
+        }
+
+        return { valid: false, formatted: "" };
+    }
+
     function addEvent() {
         if (!controller)
             return;
-        let tVal = eventTime.text.trim();
-        const validTime = tVal.length === 0
-            || /^([01]\d|2[0-3]):[0-5]\d$/.test(tVal);
-        eventTime.error = !validTime;
-        if (!validTime)
+        const cleanTitle = String(titleInput.text || "").trim();
+        titleError = cleanTitle.length === 0;
+        const res = normalizeTimeInput(timeInput.text);
+        timeError = !res.valid;
+        titleInput.error = titleError;
+        timeInput.error = timeError;
+
+        if (titleError || !res.valid)
             return;
-        if (controller.addCalendarEvent(selectedKey, eventTitle.text, tVal)) {
-            eventTitle.text = "";
-            eventTime.text = "";
+
+        if (controller.addCalendarEvent(selectedKey, cleanTitle, res.formatted)) {
+            titleInput.text = "";
+            timeInput.text = "";
+            titleError = false;
+            timeError = false;
+            titleInput.error = false;
+            timeInput.error = false;
             editorOpen = false;
         }
     }
@@ -94,28 +158,22 @@ Item {
             id: calendarHeader
 
             width: parent.width
-            height: 64
-            radius: Theme.shapeLarge
+            height: 72
+            radius: Theme.shapeExtraLarge
             color: Theme.primaryContainer
 
-            Rectangle {
+            ExpressiveDateBadge {
                 id: selectedDateBadge
 
                 anchors.left: parent.left
                 anchors.leftMargin: Theme.space2
                 anchors.verticalCenter: parent.verticalCenter
-                width: Theme.space10
-                height: width
-                radius: Theme.shapeMedium
-                color: Theme.primarySolid
-
-                M3Text {
-                    anchors.centerIn: parent
-                    role: "titleLarge"
-                    text: root.selectedDate.getDate()
-                    color: Theme.primaryContent
-                    font.weight: Font.Bold
-                }
+                dateValue: root.selectedDate
+                badgeSize: 56
+                shapeName: "cookie6"
+                fillColor: Theme.primarySolid
+                contentColor: Theme.primaryContent
+                textRole: "titleLarge"
             }
 
             Column {
@@ -263,10 +321,7 @@ Item {
                             ? I18n.tr("Đóng trình soạn sự kiện",
                                 "Close event editor")
                             : I18n.tr("Thêm sự kiện", "Add event")
-                        onClicked: {
-                            root.editorOpen = !root.editorOpen;
-                            eventTime.error = false;
-                        }
+                        onClicked: root.editorOpen = !root.editorOpen
                     }
                 }
 
@@ -275,13 +330,35 @@ Item {
                     height: Math.max(0, parent.height - y)
 
                     Flickable {
-                        visible: !root.editorOpen
                         anchors.fill: parent
+                        visible: opacity > 0
+                        enabled: !root.editorOpen
+                        opacity: root.editorOpen ? 0 : 1
                         contentWidth: width
                         contentHeight: Math.max(
                             height, eventList.implicitHeight)
                         clip: true
                         boundsBehavior: Flickable.StopAtBounds
+
+                        transform: Translate {
+                            y: root.editorOpen ? -Theme.space2 : 0
+
+                            Behavior on y {
+                                NumberAnimation {
+                                    duration: Theme.motionMedium1
+                                    easing.type: Easing.BezierSpline
+                                    easing.bezierCurve: Theme.springCurve
+                                }
+                            }
+                        }
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: Theme.motionShort4
+                                easing.type: Easing.BezierSpline
+                                easing.bezierCurve: Theme.standardCurve
+                            }
+                        }
 
                         Column {
                             id: emptyAgenda
@@ -290,13 +367,21 @@ Item {
                             anchors.centerIn: parent
                             spacing: Theme.space2
 
-                            Rectangle {
+                            Item {
+                                id: emptyAgendaShape
+
                                 anchors.horizontalCenter:
                                     parent.horizontalCenter
-                                width: Theme.space10
+                                width: 56
                                 height: width
-                                radius: width / 2
-                                color: Theme.surfaceContainerHighest
+
+                                Md3ExpressiveShape {
+                                    anchors.centerIn: parent
+                                    size: parent.width
+                                    shapeName: "puffy"
+                                    color: Theme.surfaceContainerHighest
+                                    Accessible.ignored: true
+                                }
 
                                 MaterialIcon {
                                     anchors.centerIn: parent
@@ -413,9 +498,38 @@ Item {
                     }
 
                     Column {
-                        visible: root.editorOpen
+                        z: 1
                         anchors.fill: parent
+                        visible: opacity > 0
+                        enabled: root.editorOpen
+                        opacity: root.editorOpen ? 1 : 0
                         spacing: Theme.space2
+
+                        Keys.onEscapePressed: {
+                            root.editorOpen = false;
+                            root.titleError = false;
+                            root.timeError = false;
+                        }
+
+                        transform: Translate {
+                            y: root.editorOpen ? 0 : Theme.space2
+
+                            Behavior on y {
+                                NumberAnimation {
+                                    duration: Theme.motionMedium1
+                                    easing.type: Easing.BezierSpline
+                                    easing.bezierCurve: Theme.springCurve
+                                }
+                            }
+                        }
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: Theme.motionShort4
+                                easing.type: Easing.BezierSpline
+                                easing.bezierCurve: Theme.standardCurve
+                            }
+                        }
 
                         Row {
                             width: parent.width
@@ -423,40 +537,121 @@ Item {
                             spacing: Theme.space2
 
                             M3TextField {
-                                id: eventTitle
-                                width: parent.width * 0.64
+                                id: titleInput
+
+                                width: (parent.width - parent.spacing) * 0.64
                                 height: parent.height
                                 label: I18n.tr(
                                     "Tên sự kiện", "Event title")
                                 leadingIcon: "edit_calendar"
+                                showClearButton: true
+                                onTextChanged: {
+                                    root.titleError = false;
+                                    titleInput.error = false;
+                                }
                                 onAccepted: root.addEvent()
                             }
 
                             M3TextField {
-                                id: eventTime
-                                width: parent.width - eventTitle.width
+                                id: timeInput
+
+                                width: parent.width - titleInput.width
                                     - parent.spacing
                                 height: parent.height
                                 label: I18n.tr("Giờ", "Time")
                                 placeholderText: "09:00"
                                 leadingIcon: "schedule"
                                 showClearButton: true
-                                onTextChanged: error = false
+                                onTextChanged: {
+                                    root.timeError = false;
+                                    timeInput.error = false;
+                                }
                                 onAccepted: root.addEvent()
                             }
                         }
 
-                        M3Text {
+                        Row {
+                            id: timePresetRow
+
                             width: parent.width
-                            role: "bodySmall"
-                            text: eventTime.error
-                                ? I18n.tr("Dùng định dạng giờ HH:mm.",
-                                    "Use HH:mm time format.")
-                                : I18n.tr(
-                                    "Để trống giờ để tạo sự kiện cả ngày.",
-                                    "Leave time empty for an all-day event.")
-                            color: eventTime.error
-                                ? Theme.error : Theme.textSecondary
+                            height: Theme.space9
+                            spacing: Theme.space1
+
+                            Repeater {
+                                model: [
+                                    { label: I18n.tr("Cả ngày", "All day"), value: "" },
+                                    { label: "09:00", value: "09:00" },
+                                    { label: "12:00", value: "12:00" },
+                                    { label: "14:00", value: "14:00" },
+                                    { label: "18:00", value: "18:00" }
+                                ]
+
+                                M3Button {
+                                    required property var modelData
+
+                                    readonly property var normalized:
+                                        root.normalizeTimeInput(timeInput.text)
+
+                                    width: (timePresetRow.width
+                                        - timePresetRow.spacing * 4) / 5
+                                    height: timePresetRow.height
+                                    compact: true
+                                    selected: normalized.valid
+                                        && normalized.formatted
+                                            === modelData.value
+                                    tonal: !selected
+                                    icon: selected ? "check" : ""
+                                    text: modelData.label
+                                    onClicked: {
+                                        timeInput.text = modelData.value;
+                                        timeInput.error = false;
+                                        root.timeError = false;
+                                    }
+                                }
+                            }
+                        }
+
+                        Item {
+                            width: parent.width
+                            height: Theme.bodySmallLineHeight
+
+                            M3Text {
+                                width: parent.width
+                                anchors.verticalCenter: parent.verticalCenter
+                                role: "bodySmall"
+                                text: {
+                                    const rawTime = timeInput.text.trim();
+                                    const normalized = root.normalizeTimeInput(
+                                        rawTime);
+                                    if (root.titleError)
+                                        return I18n.tr(
+                                            "Nhập tên sự kiện để tiếp tục.",
+                                            "Enter an event title to continue.");
+                                    if (root.timeError
+                                            || (rawTime.length > 0
+                                                && !normalized.valid))
+                                        return I18n.tr(
+                                            "Giờ không hợp lệ · dùng HH:mm.",
+                                            "Invalid time · use HH:mm.");
+                                    if (normalized.formatted.length === 0)
+                                        return I18n.tr(
+                                            "Đã chọn sự kiện cả ngày.",
+                                            "All-day event selected.");
+                                    if (normalized.formatted !== rawTime)
+                                        return I18n.tr(
+                                            "Sẽ lưu lúc ", "Will save at ")
+                                            + normalized.formatted + ".";
+                                    return I18n.tr(
+                                        "Bắt đầu lúc ", "Starts at ")
+                                        + normalized.formatted + ".";
+                                }
+                                color: (root.titleError || root.timeError
+                                    || (timeInput.text.trim().length > 0
+                                        && !root.normalizeTimeInput(
+                                            timeInput.text).valid))
+                                    ? Theme.errorText : Theme.textSecondary
+                                elide: Text.ElideRight
+                            }
                         }
 
                         Item {
@@ -476,14 +671,14 @@ Item {
                             M3Button {
                                 id: cancelEventButton
 
-                                width: (parent.width - parent.spacing)
-                                    * 0.36
+                                width: (parent.width - parent.spacing) * 0.36
                                 height: parent.height
                                 variant: "text"
                                 text: I18n.tr("Hủy", "Cancel")
                                 onClicked: {
                                     root.editorOpen = false;
-                                    eventTime.error = false;
+                                    root.titleError = false;
+                                    root.timeError = false;
                                 }
                             }
 
@@ -492,10 +687,10 @@ Item {
                                     - cancelEventButton.width
                                 height: parent.height
                                 icon: "add"
-                                text: I18n.tr(
-                                    "Lưu sự kiện", "Save event")
-                                enabled:
-                                    eventTitle.text.trim().length > 0
+                                text: I18n.tr("Lưu sự kiện", "Save event")
+                                enabled: titleInput.text.trim().length > 0
+                                    && root.normalizeTimeInput(
+                                        timeInput.text).valid
                                 onClicked: root.addEvent()
                             }
                         }

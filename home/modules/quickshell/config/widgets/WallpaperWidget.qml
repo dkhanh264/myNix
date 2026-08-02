@@ -15,6 +15,8 @@ FocusScope {
     property var controller
     property var wallpapersData: []
     property bool shown: true
+    readonly property bool wallpaperApplying: controller
+        && controller.wallpaperApplying
     signal closeRequested
 
     focus: true
@@ -106,7 +108,8 @@ FocusScope {
     }
 
     function applySelectedWallpaper() {
-        if (root.currentItem && root.controller) {
+        if (root.currentItem && root.controller
+                && !root.wallpaperApplying) {
             root.controller.setWallpaper(root.currentItem.filePath);
         }
     }
@@ -138,7 +141,7 @@ FocusScope {
 
     Shortcut {
         sequences: ["Return", "Enter", "Space"]
-        enabled: root.shown && root.enabled
+        enabled: root.shown && root.enabled && !root.wallpaperApplying
         onActivated: root.applySelectedWallpaper()
     }
 
@@ -213,11 +216,14 @@ FocusScope {
             visible: root.controller && root.controller.wallpapersLoading
             spacing: Theme.space3
 
-            Md3CircularProgress {
+            Md3LoadingIndicator {
                 anchors.horizontalCenter: parent.horizontalCenter
-                diameter: 48
-                strokeWidth: 4
-                showValue: false
+                size: 48
+                active: visible
+                color: Theme.primary
+                accessibleName: I18n.tr(
+                    "Đang tải danh sách hình nền",
+                    "Loading wallpapers")
             }
 
             Text {
@@ -292,8 +298,10 @@ FocusScope {
                 readonly property bool isSelected: root.controller
                     && root.controller.currentWallpaper === modelData.filePath
                 readonly property bool isCurrent: carousel.currentIndex === index
+                readonly property bool applying: root.wallpaperApplying
+                    && root.controller.pendingWallpaper === modelData.filePath
 
-                // Discrete Index Distance Morphing for 60fps Zero-Lag Smooth Motion
+                // Discrete index-distance morphing, paced by Qt's render loop.
                 readonly property int indexDist: Math.abs(index - carousel.currentIndex)
                 readonly property real targetWidth: indexDist === 0 ? carousel.largeCardWidth
                     : (indexDist === 1 ? carousel.mediumCardWidth : carousel.smallCardWidth)
@@ -333,14 +341,6 @@ FocusScope {
                     smooth: true
                     mipmap: true
                     visible: false
-
-                    MaterialIcon {
-                        anchors.centerIn: parent
-                        visible: cardImage.status !== Image.Ready && !cardItem.modelData.isVideo
-                        text: "image"
-                        iconSize: 44
-                        color: Theme.textSecondary
-                    }
                 }
 
                 // Clipped Image with 28dp Rounded Corners
@@ -352,19 +352,37 @@ FocusScope {
                     autoPaddingEnabled: false
                 }
 
-                // Bottom Scrim Overlay with Title & Badge
-                Rectangle {
+                Md3LoadingIndicator {
+                    anchors.centerIn: parent
+                    visible: cardItem.isCurrent
+                        && !cardItem.modelData.isVideo
+                        && cardImage.status === Image.Loading
+                    active: visible
+                    size: 44
+                    color: Theme.primary
+                    accessibleName: I18n.tr(
+                        "Đang tải ảnh xem trước hình nền",
+                        "Loading wallpaper preview")
+                }
+
+                MaterialIcon {
+                    anchors.centerIn: parent
+                    visible: cardItem.modelData.isVideo
+                        || (cardImage.status !== Image.Ready
+                            && !(cardItem.isCurrent
+                                && cardImage.status === Image.Loading))
+                    text: cardItem.modelData.isVideo ? "movie" : "image"
+                    iconSize: 44
+                    color: Theme.textSecondary
+                }
+
+                // Bottom Title & Badge Layout (without dark gradient overlay)
+                Item {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
                     height: 68
-                    radius: 28
                     visible: cardItem.width >= carousel.largeCardWidth * 0.7
-
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: "transparent" }
-                        GradientStop { position: 1.0; color: Theme.alpha("#000000", 0.78) }
-                    }
 
                     RowLayout {
                         anchors.fill: parent
@@ -387,7 +405,9 @@ FocusScope {
                             M3Text {
                                 Layout.fillWidth: true
                                 role: "labelSmall"
-                                text: cardItem.isSelected ? I18n.tr("Hình nền hiện tại", "Current Wallpaper")
+                                text: cardItem.applying
+                                    ? I18n.tr("Đang áp dụng…", "Applying…")
+                                    : cardItem.isSelected ? I18n.tr("Hình nền hiện tại", "Current Wallpaper")
                                     : (cardItem.isCurrent ? I18n.tr("Nhấn Enter để chọn", "Press Enter to select") : "")
                                 color: Theme.textSecondary
                                 elide: Text.ElideRight
@@ -395,7 +415,7 @@ FocusScope {
                         }
 
                         Rectangle {
-                            visible: cardItem.isSelected
+                            visible: cardItem.isSelected && !cardItem.applying
                             width: 24
                             height: 24
                             radius: 12
@@ -409,24 +429,30 @@ FocusScope {
                                 filled: true
                             }
                         }
+
+                        Md3LoadingIndicator {
+                            visible: cardItem.applying
+                            Layout.preferredWidth: 28
+                            Layout.preferredHeight: 28
+                            Layout.alignment: Qt.AlignVCenter
+                            size: 28
+                            showContainer: true
+                            active: visible
+                            color: Theme.primaryContainerContent
+                            containerColor: Theme.primaryContainer
+                            accessibleName: I18n.tr(
+                                "Đang áp dụng hình nền",
+                                "Applying wallpaper")
+                        }
                     }
                 }
 
-                // Tonal state layer keeps selection visible without outlining
-                // the whole image card.
+                // Tonal state layer (Transparent overlay for 100% clear wallpaper preview)
                 Rectangle {
                     anchors.fill: parent
                     radius: 28
-                    color: cardItem.isCurrent
-                        ? Theme.alpha(Theme.primary, 0.14)
-                        : (cardItem.isSelected
-                            ? Theme.alpha(Theme.tertiary, 0.10)
-                            : "transparent")
+                    color: "transparent"
                     antialiasing: true
-
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.motionShort3 }
-                    }
                 }
 
                 // Ripple Feedback
@@ -447,7 +473,7 @@ FocusScope {
                     onClicked: {
                         if (carousel.currentIndex !== cardItem.index) {
                             carousel.currentIndex = cardItem.index;
-                        } else {
+                        } else if (!root.wallpaperApplying) {
                             root.applySelectedWallpaper();
                         }
                     }

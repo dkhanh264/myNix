@@ -6,6 +6,9 @@ Rectangle {
     id: root
 
     property var controller
+    readonly property bool profileLoading: controller
+        && (controller.powerProfileBusy
+            || controller.powerProfileLoading)
 
     implicitHeight: root.controller && root.controller.powerProfileError ? 144 : 120
     radius: Theme.cardRadius
@@ -34,9 +37,21 @@ Rectangle {
 
                 MaterialIcon {
                     anchors.centerIn: parent
+                    visible: !root.profileLoading
                     text: "battery_full"
                     iconSize: 20
                     color: Theme.tertiary
+                }
+
+                Md3LoadingIndicator {
+                    anchors.centerIn: parent
+                    visible: root.profileLoading
+                    size: 28
+                    active: visible
+                    color: Theme.tertiaryContainerContent
+                    accessibleName: I18n.tr(
+                        "Đang áp dụng chế độ nguồn",
+                        "Applying power profile")
                 }
             }
 
@@ -56,6 +71,8 @@ Rectangle {
                     text: root.controller
                         ? root.controller.powerProfileBusy
                             ? I18n.tr("Đang áp dụng…", "Applying…")
+                            : root.controller.powerProfileLoading
+                                ? I18n.tr("Đang cập nhật…", "Updating…")
                             : (root.controller.powerProfile === "power-saver"
                                 ? I18n.tr("Kéo dài thời lượng pin",
                                     "Extend battery life")
@@ -90,7 +107,13 @@ Rectangle {
                     icon: profileIcon
                     label: I18n.tr(viLabel, enLabel)
                     selected: root.controller && root.controller.powerProfile === profileKey
-                    enabled: root.controller && !root.controller.powerProfileBusy
+                    loading: root.controller
+                        && root.controller.powerProfileBusy
+                        && root.controller.powerProfile === profileKey
+                    loadingAccessibleName: I18n.tr(
+                        "Đang áp dụng chế độ nguồn",
+                        "Applying power profile")
+                    enabled: root.controller && !root.profileLoading
                     onClicked: {
                         if (root.controller)
                             root.controller.setPowerProfile(profileKey);

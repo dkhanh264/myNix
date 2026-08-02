@@ -85,6 +85,10 @@ Singleton {
     readonly property color surfaceVariantContent: Qt.rgba(0.776, 0.788, 0.824, 1)
     readonly property color textPrimary: lightContent
     readonly property color textSecondary: alpha(lightContent, 0.72)
+    // Inactive slider rails need their own semantic role: using
+    // surfaceContainerHighest directly makes them disappear on matching cards.
+    readonly property color sliderInactiveTrack: blend(
+        surfaceContainerHighest, surfaceVariantContent, 0.32)
 
     readonly property color error: "#ffb4ab"
     readonly property color errorText: ensureLuminance(
@@ -229,13 +233,6 @@ Singleton {
     readonly property int motionLong2: reduceMotion ? 0 : 500
     readonly property int motionExtraLong1: reduceMotion ? 0 : 700
     readonly property int motionExtraLong2: reduceMotion ? 0 : 1000
-    // Continuous decorative/status motion does not benefit from redrawing at
-    // the panel's full 144 Hz. 30 FPS stays smooth at these compact sizes.
-    readonly property int continuousMotionInterval: 33
-    // Slow ambient waves remain fluid at 20 FPS and avoid waking every
-    // dashboard canvas for each music-track frame.
-    readonly property int ambientMotionInterval: 50
-
     readonly property int popupTransitionDuration: reduceMotion ? 0 : 320
     readonly property int popupCloseDuration: reduceMotion ? 0 : 220
     readonly property int popupMorphDuration: reduceMotion ? 0 : 440
@@ -339,7 +336,7 @@ Singleton {
     readonly property int popupVerticalChrome: popupWindowInset * 2
         + popupContentPadding * 2
     readonly property int sliderTrackHeight: 20
-    readonly property int sliderHandleHeight: 38
+    readonly property int sliderHandleHeight: 34
     readonly property int sliderInnerRadius: 2
     readonly property int focusRingInset: space1
     readonly property int layerToast: 10

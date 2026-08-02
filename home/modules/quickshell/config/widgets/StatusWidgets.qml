@@ -32,6 +32,9 @@ Item {
         normalizedBatteryState === "charging"
     readonly property bool batteryFull:
         normalizedBatteryState === "full"
+    readonly property bool recordingFinalizing: controller
+        && (controller.recordingStopping
+            || controller.recordingFinalizing)
 
     signal popupRequested(string section)
 
@@ -284,7 +287,7 @@ Item {
             Row {
                 id: activityRow
                 anchors.centerIn: parent
-                spacing: 6
+                spacing: Theme.space2
 
                 MaterialIcon {
                     anchors.verticalCenter: parent.verticalCenter
@@ -311,7 +314,9 @@ Item {
         M3BarPill {
             id: recorderPill
 
-            visible: root.controller && root.controller.recording
+            visible: root.controller
+                && (root.controller.recording
+                    || root.recordingFinalizing)
             interactive: true
             checked: root.activePopup === "recorder"
             alert: true
@@ -319,7 +324,7 @@ Item {
             minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
                 recorderRow.implicitWidth + horizontalPadding * 2)
-            accessibleName: root.controller && root.controller.recordingStopping
+            accessibleName: root.recordingFinalizing
                 ? I18n.tr("Đang lưu bản ghi màn hình",
                     "Saving screen recording")
                 : root.controller && root.controller.recordingPaused
@@ -330,23 +335,34 @@ Item {
             Row {
                 id: recorderRow
                 anchors.centerIn: parent
-                spacing: 6
+                spacing: Theme.space2
 
                 MaterialIcon {
+                    visible: !root.recordingFinalizing
                     anchors.verticalCenter: parent.verticalCenter
-                    text: root.controller && root.controller.recordingStopping
-                        ? "save"
-                        : root.controller && root.controller.recordingPaused
+                    text: root.controller && root.controller.recordingPaused
                             ? "pause" : "fiber_manual_record"
                     iconSize: 18
                     color: Theme.errorText
                     filled: true
                 }
+
+                Md3LoadingIndicator {
+                    visible: root.recordingFinalizing
+                    anchors.verticalCenter: parent.verticalCenter
+                    size: 22
+                    active: visible
+                    color: Theme.errorText
+                    accessibleName: I18n.tr(
+                        "Đang lưu bản ghi màn hình",
+                        "Saving screen recording")
+                }
+
                 M3Text {
                     visible: root.showLabels
                     role: "labelSmall"
                     anchors.verticalCenter: parent.verticalCenter
-                    text: root.controller && root.controller.recordingStopping
+                    text: root.recordingFinalizing
                         ? I18n.tr("Đang lưu", "Saving")
                         : root.controller && root.controller.recordingPaused
                             ? I18n.tr("Tạm dừng", "Paused")

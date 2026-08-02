@@ -67,6 +67,81 @@ let
         "Saved to $screenshot_path" || true
     '';
   };
+
+  # Windows-like vertical gestures need a little state: swiping down opens a
+  # temporary empty workspace, while the next upward swipe restores the
+  # workspace that was visible before it.  When there is nothing to restore,
+  # the upward swipe opens Walker's window switcher instead.
+  windowsTouchpadGesture = pkgs.writeShellApplication {
+    name = "windows-touchpad-gesture";
+    runtimeInputs = with pkgs; [
+      coreutils
+      hyprland
+      jq
+      walker
+    ];
+    text = ''
+      set -Eeuo pipefail
+      umask 077
+
+      action="''${1:-}"
+      if [[ -n "''${XDG_RUNTIME_DIR:-}" ]]; then
+        state_dir="$XDG_RUNTIME_DIR/hyprland-windows-gestures"
+      else
+        state_dir="/tmp/hyprland-windows-gestures-$UID"
+      fi
+      state_path="$state_dir/desktop-workspace"
+
+      active_workspace_id() {
+        hyprctl activeworkspace -j | jq -r '.id // empty'
+      }
+
+      case "$action" in
+        desktop)
+          current_workspace="$(active_workspace_id)"
+          [[ "$current_workspace" =~ ^[1-9][0-9]*$ ]] || exit 0
+
+          # A second downward swipe while the temporary desktop is visible is
+          # a no-op.  If the user returned manually, discard the stale state.
+          if [[ -r "$state_path" ]]; then
+            IFS= read -r saved_workspace < "$state_path" || true
+            if [[ "$saved_workspace" != "$current_workspace" ]]; then
+              exit 0
+            fi
+            rm -f -- "$state_path"
+          fi
+
+          mkdir -p -- "$state_dir"
+          temporary_state="$(mktemp "$state_dir/desktop-workspace.XXXXXX")"
+          printf '%s\n' "$current_workspace" > "$temporary_state"
+          mv -f -- "$temporary_state" "$state_path"
+
+          if ! hyprctl dispatch workspace empty >/dev/null; then
+            rm -f -- "$state_path"
+            exit 1
+          fi
+          ;;
+        overview)
+          current_workspace="$(active_workspace_id)"
+          if [[ -r "$state_path" ]]; then
+            IFS= read -r saved_workspace < "$state_path" || true
+            rm -f -- "$state_path"
+            if [[ "$saved_workspace" =~ ^[1-9][0-9]*$ \
+              && "$saved_workspace" != "$current_workspace" ]]; then
+              hyprctl dispatch workspace "$saved_workspace" >/dev/null
+              exit 0
+            fi
+          fi
+
+          walker --modules windows --theme transparent-apps
+          ;;
+        *)
+          printf 'Usage: windows-touchpad-gesture {desktop|overview}\n' >&2
+          exit 2
+          ;;
+      esac
+    '';
+  };
 in
 {
   home.activation.ensureHyprlandPalette = lib.hm.dag.entryBetween
@@ -83,7 +158,10 @@ in
       fi
     '';
 
-  home.packages = [ captureScreen ];
+  home.packages = [
+    captureScreen
+    windowsTouchpadGesture
+  ];
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -116,7 +194,7 @@ in
         "rfkill unblock bluetooth"
         "wl-paste --type text --watch cliphist store"
         "fcitx5 -d"
-        "${pkgs.swww}/bin/swww-daemon"
+        "restore-background"
       ];
 
       # ── General ───────────────────────────────────────────────────────
@@ -227,9 +305,23 @@ in
           natural_scroll       = true;
           disable_while_typing = true;
           tap-to-click         = true;
+          # One finger = left, two fingers = right, three fingers = middle.
+          tap_button_map       = "lrm";
         };
         sensitivity = 0;
       };
+
+      # ── Touchpad gestures kiểu Windows ────────────────────────────────
+      # 3 ngón: đổi cửa sổ, xem danh sách cửa sổ, hiện/khôi phục desktop.
+      # 4 ngón: đổi workspace với chuyển động 1:1 của Hyprland.
+      # Không chiếm gesture 2 ngón để ứng dụng vẫn nhận pinch-to-zoom.
+      gesture = [
+        "3, left,  dispatcher, cyclenext, hist"
+        "3, right, dispatcher, cyclenext, prev hist"
+        "3, up,    dispatcher, exec, windows-touchpad-gesture overview"
+        "3, down,  dispatcher, exec, windows-touchpad-gesture desktop"
+        "4, horizontal, workspace"
+      ];
 
       dwindle = {
         pseudotile     = true;

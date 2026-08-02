@@ -68,18 +68,18 @@ M3BarPill {
                 property real spinAngle: 0
                 rotation: spinAngle
 
-                Timer {
-                    interval: Theme.continuousMotionInterval
-                    repeat: true
-                    running: root.visible && root.player
+                FrameAnimation {
+                    running: Boolean(root.visible && root.player
                         && root.player.isPlaying
+                        && recordArt.artAvailable
                         && (root.Window.window ? root.Window.window.visible : true)
-                        && !Theme.reduceMotion
+                        && !Theme.reduceMotion)
                     onTriggered: record.spinAngle =
-                        (record.spinAngle + 360 * interval / 9000) % 360
+                        (record.spinAngle + 360 * frameTime / 9) % 360
                 }
 
                 CircularAlbumArt {
+                    id: recordArt
                     anchors.fill: parent
                     source: root.player ? root.player.trackArtUrl : ""
                     accentColor: Theme.secondary

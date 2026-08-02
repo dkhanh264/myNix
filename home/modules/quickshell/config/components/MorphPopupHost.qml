@@ -324,8 +324,12 @@ PanelWindow {
 
         morphPanel.forceActiveFocus(Qt.PopupFocusReason);
         let target = root.incomingPage.initialFocusItem;
-        if (!target && root.incomingPage.nextItemInFocusChain)
-            target = root.incomingPage.nextItemInFocusChain(true);
+        // Keep the popup itself keyboard-active without selecting the first
+        // tab stop on open. Tab can still advance from this neutral anchor,
+        // while pages such as the wallpaper picker may explicitly opt into an
+        // initial focus target.
+        if (!target)
+            target = popupFocusAnchor;
         if (target && target !== root.incomingPage
                 && target.visible && target.enabled
                 && target.forceActiveFocus)
@@ -436,6 +440,16 @@ PanelWindow {
         Keys.onEscapePressed: event => {
             root.closeRequested();
             event.accepted = true;
+        }
+
+        // A zero-size focus target prevents a stale/first child focus ring
+        // from appearing before the user starts keyboard navigation.
+        Item {
+            id: popupFocusAnchor
+            width: 0
+            height: 0
+            activeFocusOnTab: false
+            Accessible.ignored: true
         }
 
         Behavior on x {
