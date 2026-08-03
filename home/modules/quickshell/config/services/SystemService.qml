@@ -418,11 +418,29 @@ Scope {
         }
     }
 
+    function applyWallpaperThumbnails(output) {
+        const lines = output.split("\n");
+        const thumbMap = {};
+        for (let i = 0; i < lines.length; ++i) {
+            const parts = lines[i].split("\t");
+            if (parts.length >= 2 && parts[0].length > 0 && parts[1].length > 0) {
+                thumbMap[parts[0]] = parts[1];
+            }
+        }
+        for (let i = 0; i < wallpaperModel.count; ++i) {
+            const item = wallpaperModel.get(i);
+            if (item.isVideo && thumbMap[item.filePath]) {
+                wallpaperModel.setProperty(i, "thumbnailUrl", encodeURI("file://" + thumbMap[item.filePath]));
+            }
+        }
+    }
+
     function applyWallpaperList(output) {
         const paths = output.split("\n").filter(path => path.length > 0);
         paths.sort((first, second) => first.localeCompare(second));
         wallpaperModel.clear();
 
+        let hasVideos = false;
         for (let index = 0; index < paths.length; ++index) {
             const path = paths[index];
             const separator = path.lastIndexOf("/");
@@ -432,15 +450,38 @@ Scope {
                 ? name.slice(extensionIndex + 1).toLowerCase() : "";
             const isVideo = ["mp4", "mkv", "webm", "avi", "mov"]
                 .indexOf(extension) >= 0;
+            if (isVideo) hasVideos = true;
             wallpaperModel.append({
                 "filePath": path,
                 "fileName": name,
                 "fileUrl": encodeURI("file://" + path),
                 "fileType": isVideo ? "Video" : extension.toUpperCase(),
-                "isVideo": isVideo
+                "isVideo": isVideo,
+                "thumbnailUrl": ""
             });
         }
         wallpapersLoading = false;
+
+        if (hasVideos && !wallpaperThumbnailQuery.running) {
+            const directory = Quickshell.env("HOME") + "/Pictures/wallpapers";
+            wallpaperThumbnailQuery.exec([
+                "sh", "-c",
+                "mkdir -p \"$HOME/.cache/wallpaper-thumbnails\" && " +
+                "find \"$1\" -type f \\( -iname \"*.mp4\" -o -iname \"*.mkv\" -o -iname \"*.webm\" -o -iname \"*.avi\" -o -iname \"*.mov\" \\) | while read -r f; do " +
+                "  [ -n \"$f\" ] || continue; " +
+                "  hash=$(printf \"%s\" \"$f\" | md5sum | cut -d' ' -f1); " +
+                "  thumb=\"$HOME/.cache/wallpaper-thumbnails/${hash}.png\"; " +
+                "  if [ ! -f \"$thumb\" ]; then " +
+                "    ffmpeg -nostdin -y -i \"$f\" -ss 00:00:01 -frames:v 1 -q:v 2 \"$thumb\" >/dev/null 2>&1 || " +
+                "    ffmpeg -nostdin -y -i \"$f\" -frames:v 1 -q:v 2 \"$thumb\" >/dev/null 2>&1 || true; " +
+                "  fi; " +
+                "  if [ -f \"$thumb\" ]; then " +
+                "    printf \"%s\\t%s\\n\" \"$f\" \"$thumb\"; " +
+                "  fi; " +
+                "done",
+                "quickshell-thumb", directory
+            ]);
+        }
     }
 
     function setWallpaper(path) {
@@ -1344,6 +1385,13 @@ Scope {
                 root.wallpapersLoading = false;
                 wallpaperModel.clear();
             }
+        }
+    }
+
+    Process {
+        id: wallpaperThumbnailQuery
+        stdout: StdioCollector {
+            onStreamFinished: root.applyWallpaperThumbnails(this.text)
         }
     }
 

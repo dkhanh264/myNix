@@ -37,7 +37,7 @@ WlSessionLock {
                 String(Quickshell.env("USER") || "dk")
             readonly property string wallpaperSource:
                 "file://" + Quickshell.env("HOME")
-                    + "/.config/current-wallpaper"
+                    + "/.config/current-wallpaper-frame.png"
             property real revealProgress: 0
             property bool pamTransportError: false
 

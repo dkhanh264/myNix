@@ -67,7 +67,8 @@ FocusScope {
                 fileName: item.fileName,
                 fileUrl: item.fileUrl,
                 fileType: item.fileType,
-                isVideo: item.isVideo
+                isVideo: item.isVideo,
+                thumbnailUrl: item.thumbnailUrl || ""
             });
         }
         wallpapersData = list;
@@ -76,6 +77,7 @@ FocusScope {
     Connections {
         target: root.controller ? root.controller.wallpapers : null
         function onCountChanged() { root.refreshFilteredData(); }
+        function onDataChanged() { root.refreshFilteredData(); }
     }
 
     onControllerChanged: refreshFilteredData()
@@ -318,6 +320,15 @@ FocusScope {
                     }
                 }
 
+                // Card background container (provides surface color when preview is loading or missing)
+                Rectangle {
+                    id: cardBg
+                    anchors.fill: parent
+                    radius: 28
+                    color: Theme.surfaceContainerLow
+                    antialiasing: true
+                }
+
                 // 28dp Rounded Mask (M3 Corner Extra Large)
                 Rectangle {
                     id: maskRect
@@ -332,7 +343,11 @@ FocusScope {
                 Image {
                     id: cardImage
                     anchors.fill: parent
-                    source: cardItem.modelData.fileUrl ? cardItem.modelData.fileUrl : ("file://" + cardItem.modelData.filePath)
+                    source: cardItem.modelData.thumbnailUrl
+                        ? cardItem.modelData.thumbnailUrl
+                        : (cardItem.modelData.isVideo
+                            ? ""
+                            : (cardItem.modelData.fileUrl ? cardItem.modelData.fileUrl : ("file://" + cardItem.modelData.filePath)))
                     asynchronous: true
                     cache: true
                     fillMode: Image.PreserveAspectCrop
@@ -355,25 +370,58 @@ FocusScope {
                 Md3LoadingIndicator {
                     anchors.centerIn: parent
                     visible: cardItem.isCurrent
-                        && !cardItem.modelData.isVideo
-                        && cardImage.status === Image.Loading
+                        && (cardImage.status === Image.Loading
+                            || (cardItem.modelData.isVideo && !cardItem.modelData.thumbnailUrl))
                     active: visible
                     size: 44
                     color: Theme.primary
                     accessibleName: I18n.tr(
-                        "Đang tải ảnh xem trước hình nền",
+                        "Đang tải xem trước hình nền",
                         "Loading wallpaper preview")
                 }
 
                 MaterialIcon {
                     anchors.centerIn: parent
-                    visible: cardItem.modelData.isVideo
-                        || (cardImage.status !== Image.Ready
-                            && !(cardItem.isCurrent
-                                && cardImage.status === Image.Loading))
+                    visible: cardImage.status !== Image.Ready
+                        && !(cardItem.isCurrent
+                            && (cardImage.status === Image.Loading
+                                || (cardItem.modelData.isVideo && !cardItem.modelData.thumbnailUrl)))
                     text: cardItem.modelData.isVideo ? "movie" : "image"
                     iconSize: 44
                     color: Theme.textSecondary
+                }
+
+                // Video Badge Chip (Top Right Corner)
+                Rectangle {
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.margins: 12
+                    visible: cardItem.modelData.isVideo && cardItem.width >= carousel.mediumCardWidth * 0.8
+                    height: 26
+                    radius: 13
+                    color: "#b0000000"
+                    border.color: "#40ffffff"
+                    border.width: 1
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        anchors.leftMargin: 8
+                        anchors.rightMargin: 10
+                        spacing: 4
+
+                        MaterialIcon {
+                            text: "movie"
+                            iconSize: 14
+                            color: "#ffffff"
+                        }
+
+                        M3Text {
+                            role: "labelSmall"
+                            text: "VIDEO"
+                            color: "#ffffff"
+                            font.weight: Font.Bold
+                        }
+                    }
                 }
 
                 // Bottom Title & Badge Layout (without dark gradient overlay)

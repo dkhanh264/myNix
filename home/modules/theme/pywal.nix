@@ -552,11 +552,12 @@ EOF
         mpvpaper "*" --mpv-options "loop no-audio" \
           "$NEW_BACKGROUND" >/dev/null 2>&1 9>&- &
 
+        FRAME_PATH="$HOME/.config/current-wallpaper-frame.png"
+        ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -ss 00:00:01 -frames:v 1 -q:v 2 "$FRAME_PATH" >/dev/null 2>&1 || \
+        ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -frames:v 1 -q:v 2 "$FRAME_PATH" >/dev/null 2>&1 || true
+
         if (( ! RESTORE_ONLY )); then
-          TEMP_FRAME=$(mktemp --suffix=.png /tmp/wallpaper-frame-XXXXXX)
-          ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -frames:v 1 -q:v 2 \
-            "$TEMP_FRAME" >/dev/null 2>&1
-          wal -i "$TEMP_FRAME" -n --saturate 0.7 -q \
+          wal -i "$FRAME_PATH" -n --saturate 0.7 -q \
             -o ${walColorExport}/bin/wal-color-export || true
         fi
       else
@@ -603,6 +604,9 @@ EOF
       fi
 
       atomic_link "$NEW_BACKGROUND" "$CURRENT_BACKGROUND_LINK"
+      if ! is_video "$NEW_BACKGROUND"; then
+        atomic_link "$NEW_BACKGROUND" "$HOME/.config/current-wallpaper-frame.png"
+      fi
     '';
   };
 

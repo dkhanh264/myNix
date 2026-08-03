@@ -15,6 +15,7 @@
     blueman
     nwg-look
     curl
+    ffmpeg
   ];
 
   xdg.configFile."quickshell" = {
