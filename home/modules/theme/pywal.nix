@@ -451,12 +451,18 @@ EOF
       mkdir -p -- "$LOCK_DIR"
       exec 9>"$LOCK_DIR/set-background.lock"
       if ! flock -n 9; then
-        notify-send -a "Wallpaper" -u low -t 1800 \
-          "Wallpaper" "A wallpaper update is already running." || true
-        exit 0
+        if (( RESTORE_ONLY )); then
+          printf 'restore-background: A wallpaper update is already running.\n' >&2
+        else
+          notify-send -a "Wallpaper" -u critical -t 5000 \
+            "Wallpaper error" "A wallpaper update is already running."
+          printf 'set-background error: A wallpaper update is already running.\n' >&2
+        fi
+        exit 1
       fi
 
       cleanup() {
+        exec 9>&- 2>/dev/null || true
         [[ -z "$TEMP_FRAME" ]] || rm -f -- "$TEMP_FRAME"
         [[ -z "$TEMP_LINK_DIR" ]] || rm -rf -- "$TEMP_LINK_DIR"
         if (( ''${#TEMP_FILES[@]} > 0 )); then
@@ -471,6 +477,7 @@ EOF
         else
           notify-send -a "Wallpaper" -u critical -t 5000 \
             "Wallpaper error" "$1"
+          printf 'set-background error: %s\n' "$1" >&2
         fi
       }
 
@@ -543,19 +550,19 @@ EOF
           || true
 
         mpvpaper "*" --mpv-options "loop no-audio" \
-          "$NEW_BACKGROUND" >/dev/null 2>&1 &
+          "$NEW_BACKGROUND" >/dev/null 2>&1 9>&- &
 
         if (( ! RESTORE_ONLY )); then
           TEMP_FRAME=$(mktemp --suffix=.png /tmp/wallpaper-frame-XXXXXX)
           ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -frames:v 1 -q:v 2 \
             "$TEMP_FRAME" >/dev/null 2>&1
           wal -i "$TEMP_FRAME" -n --saturate 0.7 -q \
-            -o ${walColorExport}/bin/wal-color-export
+            -o ${walColorExport}/bin/wal-color-export || true
         fi
       else
         daemon_ready=0
         if ! swww query >/dev/null 2>&1; then
-          swww-daemon >/dev/null 2>&1 &
+          swww-daemon >/dev/null 2>&1 9>&- &
         fi
         for _ in {1..50}; do
           if swww_outputs_ready; then
@@ -571,24 +578,27 @@ EOF
         fi
 
         if (( RESTORE_ONLY )); then
-          swww img "$NEW_BACKGROUND" \
-            --transition-type none \
-            >/dev/null 2>&1
+          if ! swww_err=$(swww img "$NEW_BACKGROUND" --transition-type none 2>&1); then
+            notify_wallpaper_error "Failed to apply wallpaper: $swww_err"
+            exit 1
+          fi
         else
           TRANSITIONS=(fade wipe wave grow center outer)
           SELECTED_TRANSITION="''${TRANSITIONS[RANDOM % ''${#TRANSITIONS[@]}]}"
-          swww img "$NEW_BACKGROUND" \
+          if ! swww_err=$(swww img "$NEW_BACKGROUND" \
             --transition-type "$SELECTED_TRANSITION" \
             --transition-duration 1 \
-            --transition-fps 60 \
-            >/dev/null 2>&1
+            --transition-fps 60 2>&1); then
+            notify_wallpaper_error "Failed to apply wallpaper: $swww_err"
+            exit 1
+          fi
 
           WAL_SAMPLE=$(mktemp --suffix=.png /tmp/wallpaper-sample-XXXXXX)
           TEMP_FILES+=("$WAL_SAMPLE")
           convert "$NEW_BACKGROUND" -resize 360x360^ "$WAL_SAMPLE" 2>/dev/null || cp -- "$NEW_BACKGROUND" "$WAL_SAMPLE"
 
           wal -i "$WAL_SAMPLE" -n --saturate 0.7 -q \
-            -o ${walColorExport}/bin/wal-color-export
+            -o ${walColorExport}/bin/wal-color-export || true
         fi
       fi
 
