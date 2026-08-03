@@ -553,8 +553,15 @@ EOF
           "$NEW_BACKGROUND" >/dev/null 2>&1 9>&- &
 
         FRAME_PATH="$HOME/.config/current-wallpaper-frame.png"
-        ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -ss 00:00:01 -frames:v 1 -q:v 2 "$FRAME_PATH" >/dev/null 2>&1 || \
-        ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -frames:v 1 -q:v 2 "$FRAME_PATH" >/dev/null 2>&1 || true
+        TEMP_FRAME=$(mktemp "$HOME/.config/.wallpaper-frame.XXXXXX.png")
+        if ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -ss 00:00:01 -frames:v 1 -q:v 2 "$TEMP_FRAME" >/dev/null 2>&1 || \
+           ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -frames:v 1 -q:v 2 "$TEMP_FRAME" >/dev/null 2>&1; then
+          mv -f -- "$TEMP_FRAME" "$FRAME_PATH"
+          TEMP_FRAME=""
+        else
+          rm -f -- "$TEMP_FRAME" 2>/dev/null || true
+          TEMP_FRAME=""
+        fi
 
         if (( ! RESTORE_ONLY )); then
           wal -i "$FRAME_PATH" -n --saturate 0.7 -q \
