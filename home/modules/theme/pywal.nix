@@ -377,8 +377,23 @@ EOF
 
       # Notify immediately as soon as colors are updated so user feedback is instant
       if (( changed_any )); then
-        notify-send -a "System Theme" -i preferences-desktop-theme -t 3000 \
-          "Đã cập nhật giao diện" "Màu hệ thống đã đồng bộ theo hình nền mới." || true
+        lang_file="$HOME/.config/m3-shell-language"
+        current_lang="vi"
+        if [[ -r "$lang_file" ]]; then
+          read -r current_lang < "$lang_file" || current_lang="vi"
+        fi
+
+        app_title="System Theme"
+        msg="Theme updated"
+        body="System colors synchronized with new wallpaper."
+        if [[ "$current_lang" == "vi" ]]; then
+          app_title="Giao diện hệ thống"
+          msg="Đã cập nhật giao diện"
+          body="Màu hệ thống đã đồng bộ theo hình nền mới."
+        fi
+
+        notify-send -a "$app_title" -i preferences-desktop-theme -t 3000 \
+          "$msg" "$body" || true
       fi
 
       # Reload consumers whose generated files changed

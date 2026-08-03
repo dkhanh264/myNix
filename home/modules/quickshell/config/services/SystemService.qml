@@ -57,8 +57,8 @@ Scope {
     property int weatherTemperature: 0
     property int weatherCode: -1
     property string weatherIcon: "󰔏"
-    property string weatherDescription: "Đang tải"
-    property string weatherLocation: "Đang xác định vị trí"
+    property string weatherDescription: I18n.tr("Đang tải", "Loading")
+    property string weatherLocation: I18n.tr("Đang xác định vị trí", "Locating…")
     property string weatherRegion: ""
     property real weatherLatitude: 0
     property real weatherLongitude: 0
@@ -848,16 +848,16 @@ Scope {
         if (device.connected) {
             beginBluetoothAction(device, "disconnect");
             device.disconnect();
-            showMessage("Đang ngắt kết nối “" + device.name + "”…");
+            showMessage(I18n.tr("Đang ngắt kết nối “", "Disconnecting “") + device.name + "”…");
         } else if (device.paired) {
             beginBluetoothAction(device, "connect");
             device.connect();
-            showMessage("Đang kết nối “" + device.name + "”…");
+            showMessage(I18n.tr("Đang kết nối “", "Connecting to “") + device.name + "”…");
         } else {
             beginBluetoothAction(device, "pair");
             device.trusted = true;
             device.pair();
-            showMessage("Đang ghép đôi “" + device.name + "”…");
+            showMessage(I18n.tr("Đang ghép đôi “", "Pairing “") + device.name + "”…");
         }
     }
 
@@ -1360,10 +1360,10 @@ Scope {
         onExited: (exitCode, exitStatus) => {
             if (exitCode === 0) {
                 root.currentWallpaper = root.pendingWallpaper;
-                root.showMessage("Đã đổi hình nền");
+                root.showMessage(I18n.tr("Đã đổi hình nền", "Wallpaper changed"));
             } else {
                 const errorText = wallpaperCommandError.text.trim();
-                root.showMessage(errorText || "Không thể đổi hình nền");
+                root.showMessage(errorText || I18n.tr("Không thể đổi hình nền", "Could not change wallpaper"));
             }
             root.pendingWallpaper = "";
         }
@@ -1517,7 +1517,7 @@ Scope {
             else if (wifiActionError.text.trim())
                 root.showMessage(wifiActionError.text.trim());
             else
-                root.showMessage("Không thể cập nhật Wi‑Fi");
+                root.showMessage(I18n.tr("Không thể cập nhật Wi‑Fi", "Could not update Wi‑Fi"));
             wifiRefreshDelay.restart();
         }
     }

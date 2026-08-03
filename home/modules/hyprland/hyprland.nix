@@ -61,10 +61,26 @@ let
 
       wl-copy --type image/png < "$screenshot_path"
       completed=1
-      notify-send -a "Screenshot" -u normal -t 4500 \
+
+      lang_file="$HOME/.config/m3-shell-language"
+      current_lang="vi"
+      if [[ -r "$lang_file" ]]; then
+        read -r current_lang < "$lang_file" || current_lang="vi"
+      fi
+
+      app_title="Screenshot"
+      msg="Screenshot copied"
+      body="Saved to $screenshot_path"
+      if [[ "$current_lang" == "vi" ]]; then
+        app_title="Chụp màn hình"
+        msg="Đã sao chép ảnh chụp màn hình"
+        body="Đã lưu tại $screenshot_path"
+      fi
+
+      notify-send -a "$app_title" -u normal -t 4500 \
         -h string:x-canonical-private-synchronous:screenshot \
-        -i "$screenshot_path" "Screenshot copied" \
-        "Saved to $screenshot_path" || true
+        -i "$screenshot_path" "$msg" \
+        "$body" || true
     '';
   };
 

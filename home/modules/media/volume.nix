@@ -22,6 +22,12 @@ let
     name = "brightness-osd";
     runtimeInputs = with pkgs; [ brightnessctl libnotify ];
     text = ''
+      lang_file="$HOME/.config/m3-shell-language"
+      current_lang="vi"
+      if [[ -r "$lang_file" ]]; then
+        read -r current_lang < "$lang_file" || current_lang="vi"
+      fi
+
       case "''${1:-}" in
         up) brightness_output="$(brightnessctl -m set 10%+)" ;;
         down) brightness_output="$(brightnessctl -m set 10%-)" ;;
@@ -36,11 +42,18 @@ let
       percentage="''${percentage%%%}"
       [[ "$percentage" =~ ^[0-9]+$ ]] || percentage=0
 
-      notify-send -a "System controls" -u low -t 1600 \
+      app_title="System controls"
+      label="Brightness · ''${percentage}%"
+      if [[ "$current_lang" == "vi" ]]; then
+        app_title="Điều khiển hệ thống"
+        label="Độ sáng · ''${percentage}%"
+      fi
+
+      notify-send -a "$app_title" -u low -t 1600 \
         -i "display-brightness-symbolic" \
         -h string:x-canonical-private-synchronous:brightness \
         -h int:value:"$percentage" \
-        "Độ sáng · ''${percentage}%" || true
+        "$label" || true
     '';
   };
 
