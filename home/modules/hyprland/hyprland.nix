@@ -127,7 +127,7 @@ in
       ];
 
       cursor = {
-        no_hardware_cursors = true;
+        no_hardware_cursors = false;
       };
 
       # ── Autostart ─────────────────────────────────────────────────────
@@ -264,6 +264,7 @@ in
       };
 
       misc = {
+        vfr                     = true;
         disable_hyprland_logo   = true;
         disable_splash_rendering = true;
         font_family             = "Noto Sans";

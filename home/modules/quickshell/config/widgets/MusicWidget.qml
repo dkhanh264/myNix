@@ -66,7 +66,7 @@ Rectangle {
 
     Timer {
         interval: 500
-        running: root.player && root.player.isPlaying
+        running: Boolean(root.player && root.player.isPlaying && root.visible)
         repeat: true
         triggeredOnStart: true
         onTriggered: root.syncPosition()

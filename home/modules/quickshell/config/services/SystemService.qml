@@ -1619,7 +1619,7 @@ Scope {
     }
 
     Timer {
-        interval: 4000
+        interval: 5000
         running: true
         repeat: true
         onTriggered: root.refreshSystemStats(false)
