@@ -15,6 +15,7 @@
   boot.kernelParams = [
     "nvidia-drm.modeset=1"
     "nvidia-drm.fbdev=1"
+    "pcie_aspm=force"
   ];
 
   # Improve headset/external mic detection on many HDA laptops.
@@ -137,7 +138,19 @@
   # enable zram swap
   zramSwap = {
   enable = true;
+    algorithm = "zstd";
   memoryPercent = 50;
+    priority = 10;
+  };
+
+  # 2. Tối ưu Kernel Sysctl giúp hệ thống phản hồi cực nhanh & tận dụng zRAM
+  boot.kernel.sysctl = {
+     "vm.swappiness" = 180;          # Ưu tiên swap vào zRAM thay vì xả cache đĩa cứng
+     "vm.watermark_boost_factor" = 0; # Giảm bớt tải thu hồi trang rảnh rỗi không cần thiết
+     "vm.watermark_scale_factor" = 125;
+     "vm.page-cluster" = 0;          # Tối ưu hóa nén/giải nén đơn trang zRAM
+     "vm.vfs_cache_pressure" = 50;   # Giữ cache dentry & inode trong RAM để mở app & tìm file
+  nhanh hơn
   };
 
   services.fstrim.enable = true;
