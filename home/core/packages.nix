@@ -13,7 +13,6 @@
     eza
     cava
     clock-rs
-    sptlrx
 
     # Wayland essentials
     wl-clipboard
@@ -45,7 +44,7 @@
     anki
     vesktop
     localsend
-    droidcam
+    obsidian
 
     # dev
     jdk17
