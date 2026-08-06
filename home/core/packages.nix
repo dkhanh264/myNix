@@ -44,7 +44,7 @@
     anki
     vesktop
     localsend
-    notion-app-enhanced
+    obsidian
 
     # dev
     jdk17
