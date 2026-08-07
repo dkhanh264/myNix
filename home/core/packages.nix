@@ -45,6 +45,7 @@
     vesktop
     localsend
     obsidian
+    zoom-us
 
     # dev
     jdk17
