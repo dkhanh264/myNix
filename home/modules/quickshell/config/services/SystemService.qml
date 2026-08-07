@@ -201,6 +201,7 @@ Scope {
     function refreshSystemStats(refreshSlowStats) {
         cpuStatFile.reload();
         memoryInfoFile.reload();
+        cpuTempFile.reload();
 
         const shouldRefreshSlowStats = refreshSlowStats === undefined
             ? true : Boolean(refreshSlowStats);
@@ -591,6 +592,7 @@ Scope {
     }
 
     function refreshBrightness() {
+        brightnessFile.reload();
         if (!brightnessQuery.running)
             brightnessQuery.exec(["brightnessctl", "-m"]);
     }
@@ -1227,6 +1229,34 @@ Scope {
             root.batteryAvailable = Number.isFinite(value);
             if (root.batteryAvailable)
                 root.batteryPercent = root.clamp(value, 0, 100);
+        }
+    }
+
+    FileView {
+        id: cpuTempFile
+        path: "/sys/class/thermal/thermal_zone0/temp"
+        preload: true
+        watchChanges: false
+        printErrors: false
+        onLoaded: {
+            const millidegrees = parseInt(this.text().trim()) || 0;
+            if (millidegrees > 0) {
+                root.temperatureAvailable = true;
+                root.temperatureC = Math.round(millidegrees / 1000);
+            }
+        }
+    }
+
+    FileView {
+        id: brightnessFile
+        path: "/sys/class/backlight/nvidia_0/brightness"
+        preload: true
+        watchChanges: false
+        printErrors: false
+        onLoaded: {
+            const val = parseInt(this.text().trim());
+            if (Number.isFinite(val))
+                root.brightness = root.clamp(val, 0, 100);
         }
     }
 

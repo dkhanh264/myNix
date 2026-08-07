@@ -16,7 +16,12 @@
     "nvidia-drm.modeset=1"
     "nvidia-drm.fbdev=1"
     "pcie_aspm=force"
+    "nowatchdog"
+    "nmi_watchdog=0"
   ];
+
+  # High-performance C implementation of D-Bus daemon (slashes IPC CPU usage and latency)
+  services.dbus.implementation = "broker";
 
   # Improve headset/external mic detection on many HDA laptops.
   boot.extraModprobeConfig = ''
