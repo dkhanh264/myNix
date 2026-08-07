@@ -542,14 +542,15 @@ EOF
           ;;
       esac
 
-      pkill -x mpvpaper >/dev/null 2>&1 || true
+      pkill -9 -f mpvpaper >/dev/null 2>&1 || true
+      killall -9 mpvpaper >/dev/null 2>&1 || true
 
       if is_video "$NEW_BACKGROUND"; then
         swww kill >/dev/null 2>&1 \
           || pkill -x swww-daemon >/dev/null 2>&1 \
           || true
 
-        mpvpaper "*" --mpv-options "loop no-audio" \
+        mpvpaper "*" --mpv-options "loop no-audio hwdec=auto vo=gpu" \
           "$NEW_BACKGROUND" >/dev/null 2>&1 9>&- &
 
         FRAME_PATH="$HOME/.config/current-wallpaper-frame.png"
@@ -575,6 +576,9 @@ EOF
             -o ${walColorExport}/bin/wal-color-export || true
         fi
       else
+        pkill -9 -f mpvpaper >/dev/null 2>&1 || true
+        killall -9 mpvpaper >/dev/null 2>&1 || true
+
         daemon_ready=0
         if ! swww query >/dev/null 2>&1; then
           swww-daemon >/dev/null 2>&1 9>&- &
