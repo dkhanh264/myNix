@@ -554,7 +554,8 @@ EOF
 
         FRAME_PATH="$HOME/.config/current-wallpaper-frame.png"
         TEMP_FRAME=$(mktemp "$HOME/.config/.wallpaper-frame.XXXXXX.png")
-        if ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -ss 00:00:01 -frames:v 1 -q:v 2 "$TEMP_FRAME" >/dev/null 2>&1 || \
+        if ffmpeg -nostdin -y -ss 00:00:03 -i "$NEW_BACKGROUND" -vf "thumbnail=n=60" -frames:v 1 -q:v 2 "$TEMP_FRAME" >/dev/null 2>&1 || \
+           ffmpeg -nostdin -y -ss 00:00:01 -i "$NEW_BACKGROUND" -vf "thumbnail=n=30" -frames:v 1 -q:v 2 "$TEMP_FRAME" >/dev/null 2>&1 || \
            ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -frames:v 1 -q:v 2 "$TEMP_FRAME" >/dev/null 2>&1; then
           mv -f -- "$TEMP_FRAME" "$FRAME_PATH"
           TEMP_FRAME=""
@@ -564,7 +565,13 @@ EOF
         fi
 
         if (( ! RESTORE_ONLY )); then
-          wal -i "$FRAME_PATH" -n --saturate 0.7 -q \
+          WAL_SAMPLE=$(mktemp --suffix=.png /tmp/wallpaper-sample-XXXXXX)
+          TEMP_FILES+=("$WAL_SAMPLE")
+          magick "$FRAME_PATH" -resize 360x360^ "$WAL_SAMPLE" 2>/dev/null || cp -- "$FRAME_PATH" "$WAL_SAMPLE"
+
+          wal --backend colorthief -i "$WAL_SAMPLE" -n --saturate 0.7 -q \
+            -o ${walColorExport}/bin/wal-color-export || \
+          wal -i "$WAL_SAMPLE" -n --saturate 0.7 -q \
             -o ${walColorExport}/bin/wal-color-export || true
         fi
       else
@@ -603,8 +610,10 @@ EOF
 
           WAL_SAMPLE=$(mktemp --suffix=.png /tmp/wallpaper-sample-XXXXXX)
           TEMP_FILES+=("$WAL_SAMPLE")
-          convert "$NEW_BACKGROUND" -resize 360x360^ "$WAL_SAMPLE" 2>/dev/null || cp -- "$NEW_BACKGROUND" "$WAL_SAMPLE"
+          magick "$NEW_BACKGROUND" -resize 360x360^ "$WAL_SAMPLE" 2>/dev/null || cp -- "$NEW_BACKGROUND" "$WAL_SAMPLE"
 
+          wal --backend colorthief -i "$WAL_SAMPLE" -n --saturate 0.7 -q \
+            -o ${walColorExport}/bin/wal-color-export || \
           wal -i "$WAL_SAMPLE" -n --saturate 0.7 -q \
             -o ${walColorExport}/bin/wal-color-export || true
         fi
