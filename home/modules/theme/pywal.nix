@@ -714,7 +714,7 @@ in
     text = ''
       [general]
       live-config = 0
-      framerate = 60
+      framerate = 30
       autosens = 1
       sensitivity = 100
       bars = 0
@@ -723,7 +723,7 @@ in
       center_align = 1
       lower_cutoff_freq = 50
       higher_cutoff_freq = 12000
-      sleep_timer = 3
+      sleep_timer = 2
 
       [input]
       method = pipewire

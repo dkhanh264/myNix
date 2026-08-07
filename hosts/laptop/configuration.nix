@@ -176,6 +176,15 @@
 
     pulse.enable = true;
     jack.enable = true;
+    extraConfig.pipewire."92-audio-performance" = {
+      "context.properties" = {
+        "default.clock.rate" = 48000;
+        "default.clock.quantum" = 1024;
+        "default.clock.min-quantum" = 512;
+        "default.clock.max-quantum" = 2048;
+      };
+    };
+
     wireplumber = {
       enable = true;
       extraConfig."51-disable-node-suspend" = {
@@ -187,7 +196,7 @@
             ];
             actions = {
               update-props = {
-                "session.suspend-timeout-seconds" = 0;
+                "session.suspend-timeout-seconds" = 5;
               };
             };
           }

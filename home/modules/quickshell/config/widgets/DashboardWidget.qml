@@ -47,7 +47,7 @@ Item {
 
     Timer {
         id: playbackPosTimer
-        interval: 250
+        interval: (root.syncedLyricsData && root.syncedLyricsData.length > 0) ? 250 : 500
         repeat: true
         running: root.visible && root.isPlaying
         triggeredOnStart: true
