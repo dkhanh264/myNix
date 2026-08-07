@@ -42,6 +42,7 @@ Scope {
     property int memoryPercent: 0
     property int temperatureC: 0
     property bool temperatureAvailable: false
+    property string cpuTempSensorPath: ""
 
     property real diskBootUsedGib: 0
     property real diskBootTotalGib: 0
@@ -199,9 +200,13 @@ Scope {
     }
 
     function refreshSystemStats(refreshSlowStats) {
+        if (cpuTempSensorPath === "" && !cpuTempDetectQuery.running)
+            cpuTempDetectQuery.running = true;
+
         cpuStatFile.reload();
         memoryInfoFile.reload();
-        cpuTempFile.reload();
+        if (cpuTempSensorPath !== "")
+            cpuTempFile.reload();
 
         const shouldRefreshSlowStats = refreshSlowStats === undefined
             ? true : Boolean(refreshSlowStats);
@@ -249,9 +254,10 @@ Scope {
     function applySlowSystemStats(output) {
         const lines = String(output || "").trim().split("\n");
         const millidegrees = lines.length > 0 ? Number(lines[0]) || 0 : 0;
-        temperatureAvailable = millidegrees >= 10000;
-        if (temperatureAvailable)
+        if (!temperatureAvailable && millidegrees >= 10000) {
+            temperatureAvailable = true;
             temperatureC = Math.round(millidegrees / 1000);
+        }
 
         let dfDataIndex = 0;
         for (let i = 1; i < lines.length; ++i) {
@@ -1187,6 +1193,38 @@ Scope {
     }
 
     Process {
+        id: cpuTempDetectQuery
+        command: [
+            "sh", "-c",
+            "p=\"\"; "
+            + "for z in /sys/class/thermal/thermal_zone*; do "
+            + "if [ -f \"$z/type\" ] && [ -f \"$z/temp\" ]; then "
+            + "t=$(cat \"$z/type\" 2>/dev/null); "
+            + "case \"$t\" in x86_pkg_temp|k10temp|cpu-thermal|cpu_thermal|TCPU|coretemp|soc_thermal) p=\"$z/temp\"; break ;; esac; "
+            + "fi; done; "
+            + "if [ -z \"$p\" ]; then for h in /sys/class/hwmon/hwmon*; do "
+            + "if [ -f \"$h/name\" ]; then n=$(cat \"$h/name\" 2>/dev/null); "
+            + "case \"$n\" in coretemp|k10temp|zenpower|cpu_thermal) [ -f \"$h/temp1_input\" ] && p=\"$h/temp1_input\" && break ;; esac; "
+            + "fi; done; fi; "
+            + "if [ -z \"$p\" ]; then for z in /sys/class/thermal/thermal_zone*; do "
+            + "if [ -f \"$z/temp\" ]; then t=$(cat \"$z/type\" 2>/dev/null); v=$(cat \"$z/temp\" 2>/dev/null); "
+            + "if [ \"$t\" != \"INT3400 Thermal\" ] && [ \"$v\" -gt 25000 ] 2>/dev/null; then p=\"$z/temp\"; break; fi; "
+            + "fi; done; fi; "
+            + "echo \"${p:-/sys/class/thermal/thermal_zone0/temp}\""
+        ]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const detectedPath = this.text.trim();
+                if (detectedPath && detectedPath !== root.cpuTempSensorPath) {
+                    root.cpuTempSensorPath = detectedPath;
+                    cpuTempFile.path = detectedPath;
+                    cpuTempFile.reload();
+                }
+            }
+        }
+    }
+
+    Process {
         id: systemStatsQuery
         command: [
             "sh", "-c",
@@ -1234,8 +1272,10 @@ Scope {
 
     FileView {
         id: cpuTempFile
-        path: "/sys/class/thermal/thermal_zone0/temp"
-        preload: true
+        path: root.cpuTempSensorPath !== ""
+            ? root.cpuTempSensorPath
+            : "/sys/class/thermal/thermal_zone0/temp"
+        preload: false
         watchChanges: false
         printErrors: false
         onLoaded: {
@@ -1649,7 +1689,7 @@ Scope {
     }
 
     Timer {
-        interval: 5000
+        interval: 1000
         running: true
         repeat: true
         onTriggered: root.refreshSystemStats(false)
