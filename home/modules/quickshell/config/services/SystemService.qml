@@ -922,11 +922,43 @@ Scope {
     }
 
     function addNotificationToHistory(summary, appName, body) {
+        let cleanSummary = String(summary || "").replace(/<[^>]*>/g, "").trim();
+        let cleanBody = String(body || "").replace(/<[^>]*>/g, "").trim();
+        let cleanAppName = String(appName || "").trim();
+
+        const isUrlSummary = /^https?:\/\/[^\s]+|^[a-zA-Z0-9-]+\.(com|net|org|io|vn|app|co)[^\s]*$/i.test(cleanSummary);
+        if (isUrlSummary) {
+            let host = cleanSummary.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split('/')[0];
+            let domainTitle = host;
+            const hostLower = host.toLowerCase();
+            if (hostLower.indexOf("facebook") >= 0) domainTitle = "Facebook";
+            else if (hostLower.indexOf("instagram") >= 0) domainTitle = "Instagram";
+            else if (hostLower.indexOf("tiktok") >= 0) domainTitle = "TikTok";
+            else if (hostLower.indexOf("youtube") >= 0) domainTitle = "YouTube";
+            else if (hostLower.indexOf("twitter") >= 0 || hostLower === "x.com") domainTitle = "X (Twitter)";
+            else if (hostLower.indexOf("messenger") >= 0) domainTitle = "Messenger";
+            else if (domainTitle.length > 0) domainTitle = domainTitle.charAt(0).toUpperCase() + domainTitle.slice(1);
+
+            if (cleanBody.length > 0) {
+                const bodyLines = cleanBody.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+                if (bodyLines.length > 1) {
+                    cleanSummary = domainTitle + " · " + bodyLines[0];
+                    cleanBody = bodyLines.slice(1).join("\n");
+                } else {
+                    cleanSummary = domainTitle;
+                }
+            } else {
+                cleanSummary = domainTitle;
+                cleanBody = I18n.tr("Có thông báo mới", "New notification");
+            }
+            if (!cleanAppName) cleanAppName = domainTitle;
+        }
+
         notificationHistoryModel.insert(0, {
             "notificationId": Date.now(),
-            "summary": summary || I18n.tr("Thông báo", "Notification"),
-            "appName": appName || I18n.tr("Hệ thống", "System"),
-            "body": body || ""
+            "summary": cleanSummary || I18n.tr("Thông báo", "Notification"),
+            "appName": cleanAppName || I18n.tr("Hệ thống", "System"),
+            "body": cleanBody
         });
         if (notificationHistoryModel.count > 50) {
             notificationHistoryModel.remove(50, notificationHistoryModel.count - 50);

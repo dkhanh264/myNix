@@ -12,6 +12,10 @@
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "layers.acceleration.force-enabled" = true;
         "gfx.webrender.all" = true;
+        "alerts.useSystemBackend" = true;
+        "alerts.show_notification_snapshots" = true;
+        "dom.webnotifications.enabled" = true;
+        "dom.webnotifications.serviceworker.enabled" = true;
       };
 
       userChrome = ''

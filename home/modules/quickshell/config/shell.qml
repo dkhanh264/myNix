@@ -65,14 +65,17 @@ ShellRoot {
 
         onNotification: notification => {
             notification.tracked = true;
+            const norm = root.normalizeWebNotification(
+                notification.summary, notification.appName, notification.body);
+            const appName = norm.appName || notification.appName;
             const resolvedAppIcon = root.notificationAppIcon(notification);
             const systemNotification = root.isSystemNotification(
-                notification.appName, notification.desktopEntry,
+                appName, notification.desktopEntry,
                 resolvedAppIcon);
             const appIcon = systemNotification
                 ? "" : (resolvedAppIcon || root.fallbackAppIcon());
-            systemService.addNotificationToHistory(notification.summary, notification.appName, notification.body);
-            root.enqueueToast(notification.summary, notification.body,
+            systemService.addNotificationToHistory(norm.summary, appName, norm.body);
+            root.enqueueToast(norm.summary, norm.body,
                 appIcon, systemNotification, notification);
         }
     }
@@ -197,6 +200,51 @@ ShellRoot {
     function fallbackAppIcon() {
         return stableIconSource("application-x-executable")
             || stableIconSource("application-default-icon");
+    }
+
+    function normalizeWebNotification(summary, appName, body) {
+        let cleanSummary = String(summary || "").trim();
+        let cleanBody = String(body || "").trim();
+        let cleanAppName = String(appName || "").trim();
+
+        cleanSummary = cleanSummary.replace(/<[^>]*>/g, "").trim();
+        cleanBody = cleanBody.replace(/<[^>]*>/g, "").trim();
+
+        const isUrlSummary = /^https?:\/\/[^\s]+|^[a-zA-Z0-9-]+\.(com|net|org|io|vn|app|co)[^\s]*$/i.test(cleanSummary);
+        if (isUrlSummary) {
+            let host = cleanSummary.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split('/')[0];
+            let domainTitle = host;
+            const hostLower = host.toLowerCase();
+            if (hostLower.indexOf("facebook") >= 0) domainTitle = "Facebook";
+            else if (hostLower.indexOf("instagram") >= 0) domainTitle = "Instagram";
+            else if (hostLower.indexOf("tiktok") >= 0) domainTitle = "TikTok";
+            else if (hostLower.indexOf("youtube") >= 0) domainTitle = "YouTube";
+            else if (hostLower.indexOf("twitter") >= 0 || hostLower === "x.com") domainTitle = "X (Twitter)";
+            else if (hostLower.indexOf("messenger") >= 0) domainTitle = "Messenger";
+            else if (domainTitle.length > 0) domainTitle = domainTitle.charAt(0).toUpperCase() + domainTitle.slice(1);
+
+            if (cleanBody.length > 0) {
+                const bodyLines = cleanBody.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+                if (bodyLines.length > 1) {
+                    cleanSummary = domainTitle + " · " + bodyLines[0];
+                    cleanBody = bodyLines.slice(1).join("\n");
+                } else {
+                    cleanSummary = domainTitle;
+                }
+            } else {
+                cleanSummary = domainTitle;
+                cleanBody = I18n.tr("Có thông báo mới", "New notification");
+            }
+
+            if (!cleanAppName || cleanAppName.toLowerCase() === "notify")
+                cleanAppName = domainTitle;
+        }
+
+        return {
+            summary: cleanSummary || I18n.tr("Thông báo", "Notification"),
+            body: cleanBody,
+            appName: cleanAppName
+        };
     }
 
     function isSystemNotification(appName, desktopEntry, appIcon) {
