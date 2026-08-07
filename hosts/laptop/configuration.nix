@@ -20,9 +20,6 @@
     "nmi_watchdog=0"
   ];
 
-  # High-performance C implementation of D-Bus daemon (slashes IPC CPU usage and latency)
-  services.dbus.implementation = "broker";
-
   # Improve headset/external mic detection on many HDA laptops.
   boot.extraModprobeConfig = ''
     options snd_hda_intel dmic_detect=0
