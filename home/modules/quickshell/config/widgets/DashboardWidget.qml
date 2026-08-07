@@ -282,9 +282,11 @@ Item {
     }
 
     Component.onCompleted: {
-        if (!sysInfoProcess.running)
-            sysInfoProcess.running = true;
-        fetchLyrics();
+        if (visible) {
+            if (!sysInfoProcess.running)
+                sysInfoProcess.running = true;
+            fetchLyrics();
+        }
     }
 
     Component.onDestruction: {

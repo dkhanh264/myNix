@@ -153,8 +153,6 @@ in
       };
 
       decoration = {
-        # A restrained squircle reads consistently with the MD3 surfaces in
-        # Quickshell while leaving tiled windows visually compact.
         rounding = 16;
         rounding_power = 3.0;
         shadow = {
@@ -169,12 +167,10 @@ in
         };
         blur = {
           enabled            = true;
-          # Keep floating widgets readable without washing the wallpaper into
-          # a heavy glass haze.
           size               = 6;
-          passes             = 2;
+          passes             = 1;
           new_optimizations  = true;
-          ignore_opacity     = true;
+          ignore_opacity     = false;
           popups             = true;
           popups_ignorealpha = 0.05;
           noise              = 0.002;
@@ -273,20 +269,23 @@ in
         key_press_enables_dpms  = true;
       };
 
+      render = {
+        direct_scanout = true;
+      };
+
       windowrulev2 = [
         "float, class:^(pavucontrol)$"
         "float, class:^(blueman-manager)$"
         "float, title:^(Picture-in-Picture)$"
         "pin,   title:^(Picture-in-Picture)$"
-        "opacity 0.95 0.90, class:^(firefox)$"
-        "opacity 0.95 0.92, class:^(org\\.gnome\\.Nautilus)$"
-        "opacity 0.95 0.90, class:^(google-chrome)$"
-        "opacity 0.95 0.90, class:^(discord)$"
-        "opacity 0.95 0.90, class:^(Spotify)$"
-        "opacity 0.95 0.90, class:^(Code|code)$"
+        "opacity 1.0 0.95, class:^(firefox)$"
+        "opacity 1.0 0.95, class:^(org\\.gnome\\.Nautilus)$"
+        "opacity 1.0 0.95, class:^(google-chrome)$"
+        "opacity 1.0 0.95, class:^(discord)$"
+        "opacity 1.0 0.95, class:^(Spotify)$"
+        "opacity 1.0 0.95, class:^(Code|code)$"
         "noshadow, class:^(walker)$"
         "noshadow, title:^(walker)$"
-        # Cú pháp: opacity <độ_đục_khi_đang_dùng> <độ_đục_khi_không_dùng>, class:^(tên_app)$
       ];
 
       "$mainMod" = "SUPER";

@@ -135,21 +135,30 @@
     };
   };
 
-  # enable zram swap
+  # enable zram swap with 100% RAM allocation (zstd compression expands RAM capacity 2-3x)
   zramSwap = {
-  enable = true;
+    enable = true;
     algorithm = "zstd";
-  memoryPercent = 50;
+    memoryPercent = 100;
     priority = 10;
+  };
+
+  # Early OOM daemon to prevent system freeze under heavy memory pressure
+  services.earlyoom = {
+    enable = true;
+    enableNotifications = true;
+    freeMemThreshold = 5;
+    freeSwapThreshold = 5;
   };
 
   # 2. Tối ưu Kernel Sysctl giúp hệ thống phản hồi cực nhanh & tận dụng zRAM
   boot.kernel.sysctl = {
-     "vm.swappiness" = 180;          # Ưu tiên swap vào zRAM thay vì xả cache đĩa cứng
+     "vm.swappiness" = 160;          # Ưu tiên nén RAM zRAM trước khi đĩa cứng
      "vm.watermark_boost_factor" = 0; # Giảm bớt tải thu hồi trang rảnh rỗi không cần thiết
      "vm.watermark_scale_factor" = 125;
      "vm.page-cluster" = 0;          # Tối ưu hóa nén/giải nén đơn trang zRAM
-     "vm.vfs_cache_pressure" = 50;   # Giữ cache dentry & inode trong RAM để mở app & tìm file nhanh hơn
+     "vm.vfs_cache_pressure" = 100;  # Cân bằng thu hồi cache dentry & inode giải phóng RAM
+     "vm.max_map_count" = 1048576;   # Tăng giới hạn mmap cho IDE/JVM/Electron
   };
 
   services.fstrim.enable = true;
