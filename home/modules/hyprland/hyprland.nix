@@ -167,10 +167,12 @@ in
         };
         blur = {
           enabled            = true;
+          # Keep floating widgets readable without washing the wallpaper into
+          # a heavy glass haze.
           size               = 6;
-          passes             = 1;
+          passes             = 2;
           new_optimizations  = true;
-          ignore_opacity     = false;
+          ignore_opacity     = true;
           popups             = true;
           popups_ignorealpha = 0.05;
           noise              = 0.002;
@@ -278,12 +280,12 @@ in
         "float, class:^(blueman-manager)$"
         "float, title:^(Picture-in-Picture)$"
         "pin,   title:^(Picture-in-Picture)$"
-        "opacity 1.0 0.95, class:^(firefox)$"
-        "opacity 1.0 0.95, class:^(org\\.gnome\\.Nautilus)$"
-        "opacity 1.0 0.95, class:^(google-chrome)$"
-        "opacity 1.0 0.95, class:^(discord)$"
-        "opacity 1.0 0.95, class:^(Spotify)$"
-        "opacity 1.0 0.95, class:^(Code|code)$"
+        "opacity 0.95 0.90, class:^(firefox)$"
+        "opacity 0.95 0.92, class:^(org\\.gnome\\.Nautilus)$"
+        "opacity 0.95 0.90, class:^(google-chrome)$"
+        "opacity 0.95 0.90, class:^(discord)$"
+        "opacity 0.95 0.90, class:^(Spotify)$"
+        "opacity 0.95 0.90, class:^(Code|code)$"
         "noshadow, class:^(walker)$"
         "noshadow, title:^(walker)$"
       ];
