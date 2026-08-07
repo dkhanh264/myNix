@@ -44,6 +44,13 @@ Scope {
     property bool temperatureAvailable: false
     property string cpuTempSensorPath: ""
 
+    onCpuTempSensorPathChanged: {
+        if (cpuTempSensorPath !== "") {
+            cpuTempFile.path = cpuTempSensorPath;
+            cpuTempFile.reload();
+        }
+    }
+
     property real diskBootUsedGib: 0
     property real diskBootTotalGib: 0
     property int diskBootPercent: 0
@@ -205,8 +212,7 @@ Scope {
 
         cpuStatFile.reload();
         memoryInfoFile.reload();
-        if (cpuTempSensorPath !== "")
-            cpuTempFile.reload();
+        cpuTempFile.reload();
 
         const shouldRefreshSlowStats = refreshSlowStats === undefined
             ? true : Boolean(refreshSlowStats);
@@ -1307,14 +1313,17 @@ Scope {
         path: root.cpuTempSensorPath !== ""
             ? root.cpuTempSensorPath
             : "/sys/class/thermal/thermal_zone0/temp"
-        preload: false
+        preload: true
         watchChanges: false
         printErrors: false
         onLoaded: {
-            const millidegrees = parseInt(this.text().trim()) || 0;
-            if (millidegrees > 0) {
+            const val = parseInt(this.text().trim()) || 0;
+            if (val >= 10000 && val <= 120000) {
                 root.temperatureAvailable = true;
-                root.temperatureC = Math.round(millidegrees / 1000);
+                root.temperatureC = Math.round(val / 1000);
+            } else {
+                if (!cpuTempDetectQuery.running)
+                    cpuTempDetectQuery.running = true;
             }
         }
     }

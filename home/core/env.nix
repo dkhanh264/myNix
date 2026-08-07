@@ -6,10 +6,15 @@
     TERMINAL = "kitty";
     WALLPAPER = "${config.home.homeDirectory}/Pictures/wallpapers/wallpaper.jpg";
 
-    # NVIDIA + Wayland
+    # NVIDIA + Wayland + GPU Offloading
     LIBVA_DRIVER_NAME         = "nvidia";
     __GLX_VENDOR_LIBRARY_NAME = "nvidia";
     GBM_BACKEND               = "nvidia-drm";
+    NVD_BACKEND               = "direct";
+
+    # Dynamic GPU & Wayland Offloading for Chromium/Electron/Firefox
+    ELECTRON_OZONE_PLATFORM_HINT = "auto";
+    NIXOS_OZONE_WL               = "1";
 
     # Buộc các framework dùng Wayland backend
     QT_QPA_PLATFORM    = "wayland;xcb";

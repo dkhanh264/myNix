@@ -108,6 +108,14 @@
 
     extraPackages = with pkgs; [
       intel-media-driver
+      nvidia-vaapi-driver
+      libva-utils
+      libva-vdpau-driver
+      libvdpau-va-gl
+    ];
+
+    extraPackages32 = with pkgs.pkgsi686Linux; [
+      intel-media-driver
       libva-vdpau-driver
       libvdpau-va-gl
     ];

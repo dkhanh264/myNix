@@ -12,6 +12,8 @@
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "layers.acceleration.force-enabled" = true;
         "gfx.webrender.all" = true;
+        "media.ffmpeg.vaapi.enabled" = true;
+        "media.rdd-ffmpeg.enabled" = true;
         "alerts.useSystemBackend" = true;
         "alerts.show_notification_snapshots" = true;
         "dom.webnotifications.enabled" = true;
