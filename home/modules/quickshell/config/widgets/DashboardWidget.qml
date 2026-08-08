@@ -7,9 +7,7 @@ import Quickshell.Services.Mpris
 import "../components"
 import "../theme"
 
-// Material 3 Expressive Master System Dashboard Widget
-// Refactored Layout: No top title bar, 4 pure vitals rings inside 1 outer square container without labels,
-// dynamic weather condition icons (sunny, rainy, cloudy), spinning disc & cava visualizer music card, and square calendar card.
+// Material 3 Expressive dashboard for media, weather, system metrics and calendar.
 Item {
     id: root
 
@@ -25,7 +23,6 @@ Item {
 
     // MPRIS Media Player Integration
     readonly property var player: selectMprisPlayer()
-    readonly property bool hasPlayer: player !== null
     readonly property bool isPlaying: player ? player.isPlaying : false
     readonly property string trackTitle: player && player.trackTitle ? player.trackTitle : I18n.tr("Không có nhạc", "Nothing playing")
     readonly property string trackArtist: player && player.trackArtist ? player.trackArtist : I18n.tr("Trình phát nhạc", "Media Player")
@@ -46,7 +43,6 @@ Item {
     }
 
     Timer {
-        id: playbackPosTimer
         interval: (root.syncedLyricsData && root.syncedLyricsData.length > 0) ? 250 : 500
         repeat: true
         running: root.visible && root.isPlaying
@@ -262,7 +258,6 @@ Item {
     }
 
     Timer {
-        id: sysInfoTimer
         interval: 60000
         running: root.visible
         repeat: true
@@ -372,14 +367,6 @@ Item {
             + Math.round(Number(today.maximum)) + "°"
             + I18n.tr(" · Thấp ", " · Low ")
             + Math.round(Number(today.minimum)) + "°";
-    }
-
-    function shortWeatherTime(rawValue) {
-        const raw = String(rawValue || "");
-        const separator = raw.indexOf("T");
-        if (separator >= 0 && raw.length >= separator + 6)
-            return raw.slice(separator + 1, separator + 6);
-        return raw.length >= 5 ? raw.slice(-5) : "--:--";
     }
 
     component WeatherMetric: Rectangle {
@@ -1159,7 +1146,6 @@ Item {
 
                             // 1. Water Bottle 1: Boot Partition (/boot)
                             Rectangle {
-                                id: bootBottleVessel
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 1
                                 Layout.fillHeight: true
@@ -1180,14 +1166,18 @@ Item {
                                     onPctChanged: requestPaint()
                                     Component.onCompleted: requestPaint()
 
-                                    FrameAnimation {
+                                    // Keep decorative waves smooth without
+                                    // repainting at the monitor refresh rate.
+                                    Timer {
+                                        interval: 50
+                                        repeat: true
                                         running: Boolean(root.visible
                                             && (root.Window.window
                                                 ? root.Window.window.visible : true)
                                             && !Theme.reduceMotion)
                                         onTriggered: bootBottleCanvas.wavePhase =
                                             (bootBottleCanvas.wavePhase
-                                                + Math.PI * 2 * frameTime / 2.2)
+                                                + Math.PI * 2 * interval / 2200)
                                                 % (Math.PI * 2)
                                     }
 
@@ -1299,7 +1289,6 @@ Item {
 
                             // 2. Water Bottle 2: Home Partition (/home)
                             Rectangle {
-                                id: homeBottleVessel
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 1
                                 Layout.fillHeight: true
@@ -1320,14 +1309,18 @@ Item {
                                     onPctChanged: requestPaint()
                                     Component.onCompleted: requestPaint()
 
-                                    FrameAnimation {
+                                    // Keep decorative waves smooth without
+                                    // repainting at the monitor refresh rate.
+                                    Timer {
+                                        interval: 50
+                                        repeat: true
                                         running: Boolean(root.visible
                                             && (root.Window.window
                                                 ? root.Window.window.visible : true)
                                             && !Theme.reduceMotion)
                                         onTriggered: homeBottleCanvas.wavePhase =
                                             (homeBottleCanvas.wavePhase
-                                                + Math.PI * 2 * frameTime / 2.6)
+                                                + Math.PI * 2 * interval / 2600)
                                                 % (Math.PI * 2)
                                     }
 
@@ -1467,7 +1460,6 @@ Item {
 
                     // Sub-Card 1A: compact weather summary.
                     Rectangle {
-                        id: weatherCard
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.preferredHeight: 1
@@ -1707,7 +1699,8 @@ Item {
                         radius: Theme.cardRadius
                         color: Theme.surfaceContainerLow
 
-                        property date currentDate: new Date()
+                        readonly property date currentDate: root.controller
+                            ? root.controller.currentDate : new Date()
                         property int monthOffset: 0
                         readonly property date displayDate: new Date(
                             currentDate.getFullYear(),
@@ -1715,14 +1708,6 @@ Item {
                         readonly property var calendarLocale:
                             Qt.locale(I18n.vietnamese
                                 ? "vi_VN" : "en_US")
-
-                        Timer {
-                            interval: 30000
-                            running: miniCalendarCard.visible
-                            repeat: true
-                            onTriggered:
-                                miniCalendarCard.currentDate = new Date()
-                        }
 
                         ColumnLayout {
                             anchors.fill: parent
@@ -1736,14 +1721,12 @@ Item {
                                 color: Theme.primaryContainer
 
                                 RowLayout {
-                                    id: calendarHeaderRow
                                     anchors.fill: parent
                                     anchors.leftMargin: Theme.space1
                                     anchors.rightMargin: Theme.space1
                                     spacing: Theme.space1
 
                                     Item {
-                                        id: dashboardTodayBadge
 
                                         Layout.preferredWidth: 36
                                         Layout.preferredHeight: 36
@@ -1923,7 +1906,6 @@ Item {
 
                             // Concentric Inner Rounded Container (Outer: 22px - Padding: 10px = Inner: 12px)
                             Rectangle {
-                                id: albumArtBox
                                 width: parent.width - 23
                                 height: parent.height - 23
                                 anchors.centerIn: parent
@@ -1996,7 +1978,6 @@ Item {
 
                                 // Dark Dimming Overlay when Lyrics exist (Matching 12px Inner Radius)
                                 Rectangle {
-                                    id: lyricsOverlayBg
                                     anchors.fill: parent
                                     anchors.margins: -1
                                     radius: 13
@@ -2114,7 +2095,6 @@ Item {
                                     spacing: 2
 
                                     WaveformSlider {
-                                        id: trackSlider
                                         Layout.fillWidth: true
                                         from: 0
                                         to: root.player && root.player.lengthSupported ? root.player.length : 1
@@ -2157,7 +2137,6 @@ Item {
 
                                     // Button 1: Previous Track (Lighter Play Button Tint Background with Primary Accent Icon)
                                     Rectangle {
-                                        id: prevBtn
                                         Layout.fillWidth: true
                                         Layout.preferredWidth: 1
                                         implicitHeight: 48
@@ -2187,7 +2166,6 @@ Item {
 
                                     // Button 2: Play / Pause (Bright Primary Accent Button with Pure White Icon)
                                     Rectangle {
-                                        id: playPauseBtn
                                         Layout.fillWidth: true
                                         Layout.preferredWidth: 1
                                         implicitHeight: 48
@@ -2225,7 +2203,6 @@ Item {
 
                                     // Button 3: Next Track (Lighter Play Button Tint Background with Primary Accent Icon)
                                     Rectangle {
-                                        id: nextBtn
                                         Layout.fillWidth: true
                                         Layout.preferredWidth: 1
                                         implicitHeight: 48

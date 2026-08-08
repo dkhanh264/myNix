@@ -130,7 +130,6 @@ Rectangle {
                     spacing: Theme.space1
 
                     Rectangle {
-                        id: actionIconContainer
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: 36
                         height: 36
@@ -206,7 +205,6 @@ Rectangle {
     }
 
     Item {
-        id: confirmPane
         visible: opacity > 0.001
         enabled: root.confirming
         anchors.fill: parent

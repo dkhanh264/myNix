@@ -65,7 +65,8 @@ Rectangle {
     onPlayerChanged: syncPosition()
 
     Timer {
-        interval: 500
+        // The elapsed label only displays whole seconds.
+        interval: 1000
         running: Boolean(root.player && root.player.isPlaying && root.visible)
         repeat: true
         triggeredOnStart: true
@@ -90,7 +91,6 @@ Rectangle {
 
         // 2. Right Content Column (Metadata Header, Controls & Progress Bar)
         Column {
-            id: mainColumn
             anchors.left: albumArt.right
             anchors.leftMargin: 14
             anchors.right: parent.right
@@ -103,7 +103,6 @@ Rectangle {
                 implicitHeight: 24
 
                 M3Text {
-                    id: titleTextItem
                     anchors.left: parent.left
                     anchors.right: playerChip.left
                     anchors.rightMargin: 8
@@ -242,7 +241,6 @@ Rectangle {
 
             // Track Progress Bar Row (Time Elapsed ── Track Slider ── Time Total)
             Row {
-                id: progressRow
                 width: parent.width
                 height: 24
                 spacing: 6
@@ -257,7 +255,6 @@ Rectangle {
                 }
 
                 WaveformSlider {
-                    id: progressWave
                     width: parent.width - timeElapsed.implicitWidth - timeTotal.implicitWidth - (parent.spacing * 2)
                     anchors.verticalCenter: parent.verticalCenter
                     from: 0

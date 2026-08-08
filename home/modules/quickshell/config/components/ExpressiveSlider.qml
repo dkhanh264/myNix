@@ -253,7 +253,6 @@ Item {
 
         // ── 1. Inactive Rail (Left side of Centered Slider or Standard) ──
         Rectangle {
-            id: inactiveRailLeft
             visible: root.centered
             anchors.verticalCenter: parent.verticalCenter
             x: 0
@@ -271,7 +270,6 @@ Item {
 
         // ── 2. Inactive Rail (Right side for Standard / Centered Slider) ──
         Rectangle {
-            id: inactiveRailRight
             anchors.verticalCenter: parent.verticalCenter
             x: Math.min(parent.width, parent.handleCenter + parent.currentHandleW / 2 + parent.handleGap)
             width: Math.max(0, parent.width - x)
@@ -365,7 +363,6 @@ Item {
 
         // ── 5. Terminal Stop Dot near the end of the rail ──
         Rectangle {
-            id: stopDot
             width: 4
             height: 4
             radius: 2
@@ -434,4 +431,3 @@ Item {
         visible: root.activeFocus
     }
 }
-

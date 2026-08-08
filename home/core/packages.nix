@@ -50,8 +50,8 @@
     # dev
     jdk17
     nodejs_22
-    codex-cli-nix.packages.${pkgs.system}.default
-    antigravity-nix.packages.${pkgs.system}.google-antigravity-cli
+    codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
+    antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-cli
 
     # Thêm các công cụ từ nixparency-dots
     walker # Thay thế Rofi làm launcher

@@ -155,7 +155,6 @@ Item {
         // Selected date, displayed month, and month navigation share one
         // compact header instead of repeating the top bar's clock.
         Rectangle {
-            id: calendarHeader
 
             width: parent.width
             height: 72
@@ -279,7 +278,6 @@ Item {
         }
 
         Rectangle {
-            id: agendaRegion
 
             width: parent.width
             height: Math.max(0, parent.height - y)
@@ -361,14 +359,12 @@ Item {
                         }
 
                         Column {
-                            id: emptyAgenda
 
                             visible: root.selectedEventCount() === 0
                             anchors.centerIn: parent
                             spacing: Theme.space2
 
                             Item {
-                                id: emptyAgendaShape
 
                                 anchors.horizontalCenter:
                                     parent.horizontalCenter

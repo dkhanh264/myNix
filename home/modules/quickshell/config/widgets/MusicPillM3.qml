@@ -65,20 +65,8 @@ M3BarPill {
                 anchors.verticalCenter: parent.verticalCenter
                 width: 30
                 height: 30
-                RotationAnimation on rotation {
-                    from: 0
-                    to: 360
-                    duration: 9000
-                    loops: Animation.Infinite
-                    running: Boolean(root.visible && root.player
-                        && root.player.isPlaying
-                        && recordArt.artAvailable
-                        && (root.Window.window ? root.Window.window.visible : true)
-                        && !Theme.reduceMotion)
-                }
 
                 CircularAlbumArt {
-                    id: recordArt
                     anchors.fill: parent
                     source: root.player ? root.player.trackArtUrl : ""
                     accentColor: Theme.secondary

@@ -60,6 +60,12 @@ ShellRoot {
     NotificationServer {
         id: notifServer
         keepOnReload: false
+        // Advertise the payload shape this shell actually renders. Markup and
+        // hyperlinks stay disabled because notification text is normalized to
+        // plain text before it reaches the toast or history.
+        bodySupported: true
+        bodyMarkupSupported: false
+        bodyHyperlinksSupported: false
         actionsSupported: true
         imageSupported: true
 
@@ -74,7 +80,8 @@ ShellRoot {
                 resolvedAppIcon);
             const appIcon = systemNotification
                 ? "" : (resolvedAppIcon || root.fallbackAppIcon());
-            systemService.addNotificationToHistory(norm.summary, appName, norm.body);
+            systemService.upsertNotificationHistory(notification.id,
+                norm.summary, appName, norm.body);
             root.enqueueToast(norm.summary, norm.body,
                 appIcon, systemNotification, notification);
         }
@@ -202,42 +209,117 @@ ShellRoot {
             || stableIconSource("application-default-icon");
     }
 
+    function plainNotificationText(value) {
+        return String(value || "")
+            .replace(/<br\s*\/?\s*>/gi, "\n")
+            .replace(/&nbsp;/gi, " ")
+            .replace(/&amp;/gi, "&")
+            .replace(/&lt;/gi, "<")
+            .replace(/&gt;/gi, ">")
+            .replace(/&quot;/gi, "\"")
+            .replace(/&#39;|&apos;/gi, "'")
+            .replace(/<[^>]*>/g, "")
+            .replace(/\r\n?/g, "\n")
+            .split("\n")
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .join("\n");
+    }
+
+    function webOrigin(value) {
+        const text = String(value || "").trim();
+        const match = text.match(
+            /^(?:https?:\/\/)?(?:www\.)?([^\/\s?#]+)(?:[\/?#][^\s]*)?$/i);
+        if (!match || match[1].indexOf(".") < 0)
+            return { origin: false, known: false, title: "" };
+
+        const host = match[1].toLowerCase();
+        let title = "";
+        if (host.indexOf("facebook.") >= 0)
+            title = "Facebook";
+        else if (host.indexOf("instagram.") >= 0)
+            title = "Instagram";
+        else if (host.indexOf("messenger.") >= 0)
+            title = "Messenger";
+        else if (host.indexOf("tiktok.") >= 0)
+            title = "TikTok";
+        else if (host.indexOf("youtube.") >= 0)
+            title = "YouTube";
+        else if (host === "x.com" || host.endsWith(".x.com")
+                || host.indexOf("twitter.") >= 0)
+            title = "X (Twitter)";
+        else if (host.indexOf("whatsapp.") >= 0)
+            title = "WhatsApp";
+        else if (host.indexOf("discord.") >= 0)
+            title = "Discord";
+        else if (host.indexOf("linkedin.") >= 0)
+            title = "LinkedIn";
+        else if (host.indexOf("reddit.") >= 0)
+            title = "Reddit";
+        else if (host === "mail.google.com")
+            title = "Gmail";
+
+        const genericTitle = host.split(".")[0];
+        return {
+            origin: true,
+            known: title.length > 0,
+            title: title || (genericTitle.length > 0
+                ? genericTitle.charAt(0).toUpperCase()
+                    + genericTitle.slice(1) : host)
+        };
+    }
+
     function normalizeWebNotification(summary, appName, body) {
-        let cleanSummary = String(summary || "").trim();
-        let cleanBody = String(body || "").trim();
-        let cleanAppName = String(appName || "").trim();
+        let cleanSummary = plainNotificationText(summary);
+        let cleanBody = plainNotificationText(body);
+        let cleanAppName = plainNotificationText(appName);
 
-        cleanSummary = cleanSummary.replace(/<[^>]*>/g, "").trim();
-        cleanBody = cleanBody.replace(/<[^>]*>/g, "").trim();
+        const summaryOrigin = webOrigin(cleanSummary);
+        const appOrigin = webOrigin(cleanAppName);
+        const bodyLines = cleanBody.length > 0 ? cleanBody.split("\n") : [];
+        const contentLines = [];
+        let bodyOrigin = { origin: false, known: false, title: "" };
 
-        const isUrlSummary = /^https?:\/\/[^\s]+|^[a-zA-Z0-9-]+\.(com|net|org|io|vn|app|co)[^\s]*$/i.test(cleanSummary);
-        if (isUrlSummary) {
-            let host = cleanSummary.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split('/')[0];
-            let domainTitle = host;
-            const hostLower = host.toLowerCase();
-            if (hostLower.indexOf("facebook") >= 0) domainTitle = "Facebook";
-            else if (hostLower.indexOf("instagram") >= 0) domainTitle = "Instagram";
-            else if (hostLower.indexOf("tiktok") >= 0) domainTitle = "TikTok";
-            else if (hostLower.indexOf("youtube") >= 0) domainTitle = "YouTube";
-            else if (hostLower.indexOf("twitter") >= 0 || hostLower === "x.com") domainTitle = "X (Twitter)";
-            else if (hostLower.indexOf("messenger") >= 0) domainTitle = "Messenger";
-            else if (domainTitle.length > 0) domainTitle = domainTitle.charAt(0).toUpperCase() + domainTitle.slice(1);
-
-            if (cleanBody.length > 0) {
-                const bodyLines = cleanBody.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-                if (bodyLines.length > 1) {
-                    cleanSummary = domainTitle + " · " + bodyLines[0];
-                    cleanBody = bodyLines.slice(1).join("\n");
-                } else {
-                    cleanSummary = domainTitle;
-                }
+        for (let index = 0; index < bodyLines.length; ++index) {
+            const candidate = webOrigin(bodyLines[index]);
+            // Browsers often prepend or append the web origin as its own line.
+            // Remove only known application origins so links sent as actual
+            // message content remain untouched.
+            if (candidate.known && !bodyOrigin.origin) {
+                bodyOrigin = candidate;
             } else {
-                cleanSummary = domainTitle;
-                cleanBody = I18n.tr("Có thông báo mới", "New notification");
+                contentLines.push(bodyLines[index]);
             }
+        }
 
-            if (!cleanAppName || cleanAppName.toLowerCase() === "notify")
+        const origin = summaryOrigin.origin ? summaryOrigin
+            : appOrigin.known ? appOrigin : bodyOrigin;
+        if (origin.origin) {
+            const domainTitle = origin.title;
+            const genericSummary = cleanSummary.length === 0
+                || summaryOrigin.origin
+                || cleanSummary.toLowerCase() === domainTitle.toLowerCase()
+                || ["notify", "brave", "brave browser", "firefox",
+                    "chromium", "google chrome"].indexOf(
+                        cleanSummary.toLowerCase()) >= 0;
+
+            if (genericSummary) {
+                cleanSummary = domainTitle;
+                if (contentLines.length > 1)
+                    cleanSummary += " · " + contentLines.shift();
+            }
+            cleanBody = contentLines.join("\n");
+
+            const genericAppName = cleanAppName.length === 0
+                || appOrigin.origin
+                || ["notify", "brave", "brave browser", "firefox",
+                    "chromium", "google chrome"].indexOf(
+                        cleanAppName.toLowerCase()) >= 0;
+            if (genericAppName)
                 cleanAppName = domainTitle;
+
+            if (cleanBody.length === 0)
+                cleanBody = I18n.tr("Có thông báo mới", "New notification");
         }
 
         return {
@@ -414,15 +496,20 @@ ShellRoot {
         if (!notification)
             return;
         const notificationId = notification.id;
+        const norm = normalizeWebNotification(notification.summary,
+            notification.appName, notification.body);
+        const appName = norm.appName || notification.appName;
         const resolvedAppIcon = notificationAppIcon(notification);
         const systemNotification = isSystemNotification(
-            notification.appName, notification.desktopEntry,
+            appName, notification.desktopEntry,
             resolvedAppIcon);
         const iconSource = systemNotification
             ? "" : (resolvedAppIcon || fallbackAppIcon());
-        const title = notification.summary
-            || I18n.tr("Thông báo", "Notification");
-        const body = notification.body || "";
+        const title = norm.summary;
+        const body = norm.body;
+
+        systemService.upsertNotificationHistory(notificationId,
+            title, appName, body);
 
         if (toastNotificationId === notificationId && !toastClosing) {
             toastTitle = title;
@@ -858,14 +945,12 @@ ShellRoot {
             }
 
             HyprlandFocusGrab {
-                id: popupFocusGrab
                 windows: [barWindow, morphPopupHost]
                 active: root.popupOpen
                     && root.popupScreen === barWindow.modelData.name
             }
 
             PanelWindow {
-                id: volumeOsdWindow
                 screen: barWindow.modelData
                 visible: root.volumeOsdVisible && root.volumeOsdScreen === barWindow.modelData.name
                 color: "transparent"

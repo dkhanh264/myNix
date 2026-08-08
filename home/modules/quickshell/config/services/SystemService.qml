@@ -54,9 +54,6 @@ Scope {
     property real diskBootUsedGib: 0
     property real diskBootTotalGib: 0
     property int diskBootPercent: 0
-    property real diskRootUsedGib: diskBootUsedGib
-    property real diskRootTotalGib: diskBootTotalGib
-    property int diskRootPercent: diskBootPercent
     property real diskHomeUsedGib: 0
     property real diskHomeTotalGib: 0
     property int diskHomePercent: 0
@@ -140,9 +137,9 @@ Scope {
         return connected;
     }
 
-    readonly property string timeText: Qt.formatDateTime(systemClock.date, "HH:mm")
-    readonly property string shortDateText: systemClock.date.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), I18n.vietnamese ? "ddd, d MMM" : "ddd, MMM d")
-    readonly property string longDateText: systemClock.date.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), I18n.vietnamese ? "dddd, d MMMM yyyy" : "dddd, MMMM d, yyyy")
+    readonly property date currentDate: systemClock.date
+    readonly property string timeText: Qt.formatDateTime(currentDate, "HH:mm")
+    readonly property string longDateText: currentDate.toLocaleDateString(I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"), I18n.vietnamese ? "dddd, d MMMM yyyy" : "dddd, MMMM d, yyyy")
 
     ListModel {
         id: wifiNetworkModel
@@ -927,43 +924,32 @@ Scope {
             + (device.name || I18n.tr("thiết bị", "device")) + "”");
     }
 
-    function addNotificationToHistory(summary, appName, body) {
-        let cleanSummary = String(summary || "").replace(/<[^>]*>/g, "").trim();
-        let cleanBody = String(body || "").replace(/<[^>]*>/g, "").trim();
-        let cleanAppName = String(appName || "").trim();
+    function upsertNotificationHistory(notificationId, summary, appName, body) {
+        const stableId = Number(notificationId) > 0
+            ? Number(notificationId)
+            : Math.floor(Date.now() % 2147483647);
+        const cleanSummary = String(summary || "").trim()
+            || I18n.tr("Thông báo", "Notification");
+        const cleanAppName = String(appName || "").trim()
+            || I18n.tr("Hệ thống", "System");
+        const cleanBody = String(body || "").trim();
 
-        const isUrlSummary = /^https?:\/\/[^\s]+|^[a-zA-Z0-9-]+\.(com|net|org|io|vn|app|co)[^\s]*$/i.test(cleanSummary);
-        if (isUrlSummary) {
-            let host = cleanSummary.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split('/')[0];
-            let domainTitle = host;
-            const hostLower = host.toLowerCase();
-            if (hostLower.indexOf("facebook") >= 0) domainTitle = "Facebook";
-            else if (hostLower.indexOf("instagram") >= 0) domainTitle = "Instagram";
-            else if (hostLower.indexOf("tiktok") >= 0) domainTitle = "TikTok";
-            else if (hostLower.indexOf("youtube") >= 0) domainTitle = "YouTube";
-            else if (hostLower.indexOf("twitter") >= 0 || hostLower === "x.com") domainTitle = "X (Twitter)";
-            else if (hostLower.indexOf("messenger") >= 0) domainTitle = "Messenger";
-            else if (domainTitle.length > 0) domainTitle = domainTitle.charAt(0).toUpperCase() + domainTitle.slice(1);
-
-            if (cleanBody.length > 0) {
-                const bodyLines = cleanBody.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-                if (bodyLines.length > 1) {
-                    cleanSummary = domainTitle + " · " + bodyLines[0];
-                    cleanBody = bodyLines.slice(1).join("\n");
-                } else {
-                    cleanSummary = domainTitle;
-                }
-            } else {
-                cleanSummary = domainTitle;
-                cleanBody = I18n.tr("Có thông báo mới", "New notification");
+        for (let index = 0; index < notificationHistoryModel.count; ++index) {
+            if (notificationHistoryModel.get(index).notificationId === stableId) {
+                notificationHistoryModel.setProperty(index,
+                    "summary", cleanSummary);
+                notificationHistoryModel.setProperty(index,
+                    "appName", cleanAppName);
+                notificationHistoryModel.setProperty(index,
+                    "body", cleanBody);
+                return;
             }
-            if (!cleanAppName) cleanAppName = domainTitle;
         }
 
         notificationHistoryModel.insert(0, {
-            "notificationId": Date.now(),
-            "summary": cleanSummary || I18n.tr("Thông báo", "Notification"),
-            "appName": cleanAppName || I18n.tr("Hệ thống", "System"),
+            "notificationId": stableId,
+            "summary": cleanSummary,
+            "appName": cleanAppName,
             "body": cleanBody
         });
         if (notificationHistoryModel.count > 50) {
@@ -1361,16 +1347,7 @@ Scope {
         printErrors: false
 
         onLoaded: root.loadCalendarEvents()
-        onFileChanged: {
-            reload();
-            calendarReloadDelay.restart();
-        }
-    }
-
-    Timer {
-        id: calendarReloadDelay
-        interval: 80
-        onTriggered: root.loadCalendarEvents()
+        onFileChanged: reload()
     }
 
     Process {

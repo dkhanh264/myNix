@@ -171,7 +171,6 @@ Item {
 
     // ── Liquid Droplet Neck/Bridge (water drop joining/splitting effect) ──
     Rectangle {
-        id: liquidNeck
         anchors.centerIn: parent
         height: parent.height * (1.0 - 0.12 * Math.sin(root.mergeProgress * Math.PI))
         width: Math.max(0, (root.normalWidth - 16) * Math.sin(root.mergeProgress * Math.PI))
@@ -183,7 +182,6 @@ Item {
 
     // ── Clock & Weather Pills Item ──
     Item {
-        id: pillsContainer
         anchors.fill: parent
 
         ClockPillM3 {
@@ -232,7 +230,6 @@ Item {
 
     // ── Notification Content ──
     Item {
-        id: notifContent
         anchors.fill: parent
         visible: root.notifOpacity > 0.001
         opacity: root.notifOpacity
@@ -251,13 +248,11 @@ Item {
 
             // Left Thumbnail / Avatar
             Item {
-                id: thumbnailBox
                 width: 28
                 height: 28
                 anchors.verticalCenter: parent.verticalCenter
 
                 Rectangle {
-                    id: imageClipRect
                     anchors.fill: parent
                     radius: width / 2
                     color: Theme.primaryContainer
@@ -305,7 +300,6 @@ Item {
 
             // Notification Text Column (Title & Body)
             Column {
-                id: textColumn
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 0
 

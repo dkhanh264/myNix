@@ -46,7 +46,7 @@ Item {
     onHeightChanged: waveform.requestPaint()
 
     Behavior on displayProgress {
-        enabled: !root.interacting && !Theme.reduceMotion
+        enabled: !root.animated && !root.interacting && !Theme.reduceMotion
         NumberAnimation {
             duration: Theme.motionShort3
             easing.type: Easing.BezierSpline
@@ -105,14 +105,17 @@ Item {
         onWavePhaseChanged: requestPaint()
         Component.onCompleted: requestPaint()
 
-        FrameAnimation {
+        // Limit decorative repaints on high-refresh displays.
+        Timer {
+            interval: 50
+            repeat: true
             running: Boolean(root.animated && root.displayProgress > 0.002
                 && root.visible && root.enabled
                 && (root.Window.window ? root.Window.window.visible : true)
                 && !Theme.reduceMotion)
             onTriggered: waveform.wavePhase =
                 (waveform.wavePhase
-                    + Math.PI * 2 * frameTime / 1.8) % (Math.PI * 2)
+                    + Math.PI * 2 * interval / 1800) % (Math.PI * 2)
         }
 
         onPaint: {

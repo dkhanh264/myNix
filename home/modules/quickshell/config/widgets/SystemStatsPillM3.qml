@@ -35,6 +35,7 @@ M3BarPill {
                 strokeWidth: 3
                 value: root.controller ? root.controller.cpuUsage : 0
                 showValue: false
+                animateValue: false
                 animatedWave: false
                 progressColor: Theme.primary
                 accessibleName: "CPU"
@@ -63,6 +64,7 @@ M3BarPill {
                 value: root.controller && root.controller.temperatureAvailable
                     ? Math.max(0, Math.min(100, root.controller.temperatureC)) : 0
                 showValue: false
+                animateValue: false
                 animatedWave: false
                 progressColor: root.controller && root.controller.temperatureC >= 80
                     ? Theme.error
@@ -93,6 +95,7 @@ M3BarPill {
                 strokeWidth: 3
                 value: root.controller ? root.controller.memoryPercent : 0
                 showValue: false
+                animateValue: false
                 animatedWave: false
                 progressColor: Theme.secondary
                 accessibleName: "RAM"

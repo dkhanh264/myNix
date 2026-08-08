@@ -31,15 +31,10 @@ Item {
         return "unknown";
     }
     readonly property bool isCharging: normalizedState === "charging"
-    readonly property bool isFull: normalizedState === "full"
-    readonly property bool isNotCharging:
-        normalizedState === "not-charging"
     readonly property bool isCritical: available && !isCharging
         && displayPercent <= 10
     readonly property bool isLow: available && !isCharging
         && displayPercent >= 11 && displayPercent <= 20
-    readonly property bool isHealthy: available && !isCharging
-        && displayPercent >= 80
     readonly property real fillRatio:
         available ? displayPercent / 100 : 0
     readonly property color accentColor: !available
@@ -93,7 +88,6 @@ Item {
         }
 
         Rectangle {
-            id: capacityFill
 
             x: 0
             y: 0

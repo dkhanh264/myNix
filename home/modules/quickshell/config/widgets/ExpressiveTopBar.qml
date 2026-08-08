@@ -38,7 +38,6 @@ Item {
     }
 
     Row {
-        id: leftGroup
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         spacing: Theme.space2
@@ -55,7 +54,6 @@ Item {
         }
 
         MusicPillM3 {
-            id: mediaPill
             anchors.verticalCenter: parent.verticalCenter
             visible: root.showMedia && available
             compact: root.width < 1680
@@ -65,7 +63,6 @@ Item {
     }
 
     MergedCenterPills {
-        id: centerPills
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         controller: root.controller
@@ -86,7 +83,6 @@ Item {
     }
 
     Row {
-        id: rightGroup
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         spacing: Theme.space2

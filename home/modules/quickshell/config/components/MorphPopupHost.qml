@@ -634,7 +634,6 @@ PanelWindow {
         id: musicPageComponent
 
         PopupPage {
-            id: musicPage
             popupKind: "music"
             preferredWidth: Math.min(490,
                 root.width - Theme.popupEdgeInset * 2)
@@ -674,7 +673,6 @@ PanelWindow {
         id: weatherPageComponent
 
         PopupPage {
-            id: weatherPage
             popupKind: "weather"
             preferredWidth: Math.min(590,
                 root.width - Theme.popupEdgeInset * 2)
@@ -695,7 +693,6 @@ PanelWindow {
         id: controlsPageComponent
 
         PopupPage {
-            id: controlsPage
             popupKind: "controls"
             preferredWidth: Math.min(410,
                 root.width - Theme.popupEdgeInset * 2)
@@ -727,7 +724,6 @@ PanelWindow {
         id: wifiPageComponent
 
         PopupPage {
-            id: wifiPage
             popupKind: "wifi"
             preferredWidth: Math.min(430,
                 root.width - Theme.popupEdgeInset * 2)
@@ -760,7 +756,6 @@ PanelWindow {
         id: bluetoothPageComponent
 
         PopupPage {
-            id: bluetoothPage
             popupKind: "bluetooth"
             preferredWidth: Math.min(430,
                 root.width - Theme.popupEdgeInset * 2)
@@ -794,7 +789,6 @@ PanelWindow {
         id: powerPageComponent
 
         PopupPage {
-            id: powerPage
             popupKind: "power"
             preferredWidth: Math.min(430,
                 root.width - Theme.popupEdgeInset * 2)
@@ -884,7 +878,6 @@ PanelWindow {
         id: activityPageComponent
 
         PopupPage {
-            id: activityPage
             popupKind: "activity"
             preferredWidth: Math.min(560,
                 root.width - Theme.popupEdgeInset * 2)
@@ -902,7 +895,6 @@ PanelWindow {
         id: recorderPageComponent
 
         PopupPage {
-            id: recorderPage
             popupKind: "recorder"
             preferredWidth: Math.min(470,
                 root.width - Theme.popupEdgeInset * 2)
@@ -925,7 +917,6 @@ PanelWindow {
         id: languagePageComponent
 
         PopupPage {
-            id: languagePage
             popupKind: "language"
             preferredWidth: Math.min(430,
                 root.width - Theme.popupEdgeInset * 2)
@@ -945,7 +936,6 @@ PanelWindow {
         id: settingsPageComponent
 
         PopupPage {
-            id: settingsPage
             popupKind: "settings"
             preferredWidth: Math.min(540,
                 root.width - Theme.popupEdgeInset * 2)
@@ -963,7 +953,6 @@ PanelWindow {
         id: wallpaperPageComponent
 
         PopupPage {
-            id: wallpaperPage
             popupKind: "wallpaper"
             preferredWidth: Math.min(1080,
                 root.width - Theme.popupEdgeInset * 2)
@@ -991,7 +980,6 @@ PanelWindow {
         id: dashboardPageComponent
 
         PopupPage {
-            id: dashboardPage
             popupKind: "dashboard"
             preferredWidth: Math.min(1080,
                 root.width - Theme.popupEdgeInset * 2)

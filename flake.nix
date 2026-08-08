@@ -30,7 +30,6 @@
 
   outputs =
     {
-      self,
       nixpkgs,
       home-manager,
       nixvim,

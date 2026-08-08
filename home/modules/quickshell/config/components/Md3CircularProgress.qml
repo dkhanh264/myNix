@@ -17,6 +17,7 @@ Item {
     property real diameter: 68
     property real strokeWidth: 5
     property bool showValue: true
+    property bool animateValue: true
     property bool animatedWave: true
     property bool showStopIndicator: false
     property string valueText: Math.round(value).toString()
@@ -51,7 +52,7 @@ Item {
     onHeightChanged: progressCanvas.requestPaint()
 
     Behavior on displayLevel {
-        enabled: !Theme.reduceMotion
+        enabled: root.animateValue && !Theme.reduceMotion
         NumberAnimation {
             duration: Theme.motionMedium3
             easing.type: Easing.BezierSpline
@@ -69,14 +70,17 @@ Item {
         onWavePhaseChanged: requestPaint()
         Component.onCompleted: requestPaint()
 
-        FrameAnimation {
+        // Limit decorative repaints on high-refresh displays.
+        Timer {
+            interval: 50
+            repeat: true
             running: Boolean(root.animatedWave && root.displayLevel > 0.03
                 && root.displayLevel < 0.999 && root.visible
                 && (root.Window.window ? root.Window.window.visible : true)
                 && !Theme.reduceMotion)
             onTriggered: progressCanvas.wavePhase =
                 (progressCanvas.wavePhase
-                    + Math.PI * 2 * frameTime / 1.5) % (Math.PI * 2)
+                    + Math.PI * 2 * interval / 1500) % (Math.PI * 2)
         }
 
         onPaint: {

@@ -52,7 +52,6 @@ M3BarPill {
     accessibleName: I18n.tr("Không gian làm việc", "Workspaces")
 
     Row {
-        id: rowLayout
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
         spacing: root.nodeGap

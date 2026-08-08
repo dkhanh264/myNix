@@ -10,7 +10,6 @@ Item {
     property bool interactive: false
     property bool checked: false
     property bool alert: false
-    property bool elevated: false
     property int horizontalPadding: Theme.componentPadding
     property int verticalPadding: 0
     property int minimumWidth: Theme.barItemHeight

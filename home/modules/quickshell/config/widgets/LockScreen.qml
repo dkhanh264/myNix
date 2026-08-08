@@ -130,7 +130,6 @@ WlSessionLock {
             // Always keep the lock surface opaque, including while a video
             // wallpaper cannot be decoded by Qt's Image type.
             Rectangle {
-                id: scene
                 anchors.fill: parent
                 color: Theme.background
 
@@ -197,7 +196,6 @@ WlSessionLock {
                 // A few oversized, edge-anchored forms replace the former
                 // center bullseye. Their motion only reflects auth state.
                 Item {
-                    id: ambientShapes
                     anchors.fill: parent
                     Accessible.ignored: true
 
@@ -487,7 +485,6 @@ WlSessionLock {
                                 }
 
                                 Rectangle {
-                                    id: passwordSurface
                                     width: parent.width
                                     height: 64
                                     radius: lock.authError
@@ -728,7 +725,6 @@ WlSessionLock {
                                 }
 
                                 Item {
-                                    id: authStatus
 
                                     width: parent.width
                                     height: Math.max(32,
@@ -865,7 +861,8 @@ WlSessionLock {
                             }
 
                             Timer {
-                                interval: 500
+                                // The elapsed label is displayed in whole seconds.
+                                interval: 1000
                                 repeat: true
                                 triggeredOnStart: true
                                 running: mediaCard.visible

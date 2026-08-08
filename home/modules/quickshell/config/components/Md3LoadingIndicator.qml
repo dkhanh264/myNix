@@ -65,7 +65,11 @@ Item {
         property double epochMs: Date.now()
         property real elapsedMs: 0
 
-        FrameAnimation {
+        // Loading indicators are transient; 20 FPS remains fluid while
+        // avoiding full-refresh-rate canvas repaints.
+        Timer {
+            interval: 50
+            repeat: true
             running: Boolean(root.active && root.visible && !Theme.reduceMotion
                 && (root.Window.window ? root.Window.window.visible : true))
             onTriggered: {

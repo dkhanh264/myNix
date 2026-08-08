@@ -370,8 +370,6 @@ in
         "blur, walker"
         "ignorezero, walker"
         "ignorealpha 0.05, walker"
-        "blur, waybar"
-        "ignorezero, waybar"
         "blur, notifications"
         "ignorezero, notifications"
         "blur, m3-shell"

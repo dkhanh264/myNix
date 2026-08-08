@@ -6,7 +6,6 @@ M3BarPill {
     id: root
 
     property var controller
-    property date currentDate: new Date()
 
     interactive: true
     horizontalPadding: Theme.space3
@@ -14,13 +13,6 @@ M3BarPill {
     accessibleName: controller
         ? controller.longDateText + ", " + controller.timeText
         : I18n.tr("Đồng hồ và lịch", "Clock and calendar")
-
-    Timer {
-        interval: 30000
-        running: root.visible
-        repeat: true
-        onTriggered: root.currentDate = new Date()
-    }
 
     Row {
         id: clockContent
@@ -30,7 +22,7 @@ M3BarPill {
 
         ExpressiveDateBadge {
             anchors.verticalCenter: parent.verticalCenter
-            dateValue: root.currentDate
+            dateValue: root.controller ? root.controller.currentDate : new Date()
             badgeSize: Theme.space6
             shapeName: "cookie6"
             fillColor: root.checked

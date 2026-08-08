@@ -63,7 +63,6 @@ Item {
         spacing: 8
 
         M3BarPill {
-            id: controlsPill
 
             interactive: true
             horizontalPadding: root.showLabels ? Theme.space3 : 0
@@ -140,7 +139,6 @@ Item {
         }
 
         M3BarPill {
-            id: statusGroupPill
 
             interactive: true
             checked: root.activePopup === "wifi" || root.activePopup === "bluetooth" || root.activePopup === "power"
@@ -175,7 +173,6 @@ Item {
                     z: 1
 
                     MaterialIcon {
-                        id: wifiIconComp
                         anchors.centerIn: parent
                         text: root.wifiIcon()
                         iconSize: 18
@@ -207,7 +204,6 @@ Item {
                     z: 1
 
                     MaterialIcon {
-                        id: btIconComp
                         anchors.centerIn: parent
                         text: root.controller && !root.controller.bluetoothEnabled
                             ? "bluetooth_disabled"
@@ -273,7 +269,6 @@ Item {
         }
 
         M3BarPill {
-            id: activityPill
 
             interactive: true
             checked: root.activePopup === "activity"
@@ -312,7 +307,6 @@ Item {
         }
 
         M3BarPill {
-            id: recorderPill
 
             visible: root.controller
                 && (root.controller.recording

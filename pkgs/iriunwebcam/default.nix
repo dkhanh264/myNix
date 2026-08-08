@@ -29,8 +29,6 @@ stdenv.mkDerivation rec {
   src = fetchurl {
     url = "https://iriun.gitlab.io/iriunwebcam-${version}.deb";
 
-    # Lần đầu để fakeHash, build sẽ báo hash đúng.
-    # Sau đó copy dòng "got: sha256-..." thay vào đây.
     hash = "sha256-slpTyetT96waR7XvcXSZDdl/Ziacc4hgM5XCxX8WC4Q=";
   };
 

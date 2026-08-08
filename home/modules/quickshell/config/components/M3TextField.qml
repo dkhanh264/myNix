@@ -17,7 +17,6 @@ Item {
     property bool enabled: true
     property bool error: false
     property string supportingText: ""
-    readonly property bool focused: input.activeFocus
 
     signal accepted
     signal trailingIconClicked

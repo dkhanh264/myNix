@@ -322,7 +322,6 @@ FocusScope {
 
                 // Card background container (provides surface color when preview is loading or missing)
                 Rectangle {
-                    id: cardBg
                     anchors.fill: parent
                     radius: 28
                     color: Theme.surfaceContainerLow
@@ -510,7 +509,6 @@ FocusScope {
                 }
 
                 MouseArea {
-                    id: cardPointer
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
