@@ -6,9 +6,13 @@
   # ── Bootloader ─────────────────────────────────────────────────────────
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # tat firewall
+  # Firewall configuration for LocalSend & custom ports
   networking.firewall.allowedUDPPorts = [
     4698
+    53317 # LocalSend Multicast / UDP Discovery
+  ];
+  networking.firewall.allowedTCPPorts = [
+    53317 # LocalSend TCP File Transfer
   ];
 
 
