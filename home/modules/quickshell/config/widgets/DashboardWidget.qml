@@ -925,7 +925,8 @@ Item {
                                 label: I18n.tr("Tiết kiệm", "Saver")
                                 selected: root.controller && root.controller.powerProfile === "power-saver"
                                 loading: root.powerProfileLoading
-                                    && root.controller.powerProfile
+                                    && (root.controller.pendingPowerProfile
+                                            || root.controller.powerProfile)
                                         === "power-saver"
                                 loadingAccessibleName: I18n.tr(
                                     "Đang áp dụng chế độ tiết kiệm",
@@ -944,7 +945,8 @@ Item {
                                 label: I18n.tr("Cân bằng", "Balanced")
                                 selected: root.controller && root.controller.powerProfile === "balanced"
                                 loading: root.powerProfileLoading
-                                    && root.controller.powerProfile
+                                    && (root.controller.pendingPowerProfile
+                                            || root.controller.powerProfile)
                                         === "balanced"
                                 loadingAccessibleName: I18n.tr(
                                     "Đang áp dụng chế độ cân bằng",
@@ -963,7 +965,8 @@ Item {
                                 label: I18n.tr("Hiệu năng", "Perf")
                                 selected: root.controller && root.controller.powerProfile === "performance"
                                 loading: root.powerProfileLoading
-                                    && root.controller.powerProfile
+                                    && (root.controller.pendingPowerProfile
+                                            || root.controller.powerProfile)
                                         === "performance"
                                 loadingAccessibleName: I18n.tr(
                                     "Đang áp dụng chế độ hiệu năng",

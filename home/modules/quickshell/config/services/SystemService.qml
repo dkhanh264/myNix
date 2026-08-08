@@ -30,9 +30,11 @@ Scope {
     property bool savedWifiConnectionsLoaded: false
 
     property string powerProfile: "balanced"
+    property string pendingPowerProfile: ""
     property bool powerProfileBusy: false
     readonly property bool powerProfileLoading: powerProfileQuery.running
     property string powerProfileError: ""
+    property bool powerProfileQueryFailed: false
     property int batteryPercent: 0
     property string batteryState: "Unknown"
     property bool batteryAvailable: false
@@ -812,26 +814,53 @@ Scope {
 
     function refreshPowerProfile() {
         if (!powerProfileQuery.running)
-            powerProfileQuery.exec(["powerprofilesctl", "get"]);
+            powerProfileQuery.exec([
+                "env", "LC_ALL=C", "m3-power-profile", "sync"
+            ]);
+    }
+
+    function normalizedPowerProfile(profile) {
+        const requested = String(profile || "").trim().toLowerCase();
+        if (requested === "performance" || requested === "perf")
+            return "performance";
+        if (requested === "balanced" || requested === "balance")
+            return "balanced";
+        if (requested === "power-saver" || requested === "powersave"
+                || requested === "saver" || requested === "save")
+            return "power-saver";
+        return "";
+    }
+
+    function powerProfileAppliedMessage(profile) {
+        if (profile === "performance")
+            return I18n.tr("Đã bật chế độ Hiệu năng",
+                "Performance mode enabled");
+        if (profile === "power-saver")
+            return I18n.tr("Đã bật chế độ Tiết kiệm pin",
+                "Power saver mode enabled");
+        return I18n.tr("Đã bật chế độ Cân bằng",
+            "Balanced mode enabled");
     }
 
     function setPowerProfile(profile) {
         if (!profile || powerProfileCommand.running)
             return;
 
-        let cleanProfile = "balanced";
-        if (profile === "performance" || profile === "perf") {
-            cleanProfile = "performance";
-        } else if (profile === "power-saver" || profile === "powersave" || profile === "saver" || profile === "save") {
-            cleanProfile = "power-saver";
+        const cleanProfile = normalizedPowerProfile(profile);
+        if (!cleanProfile) {
+            powerProfileError = I18n.tr("Chế độ nguồn không hợp lệ",
+                "Unsupported power profile");
+            showMessage(powerProfileError);
+            return;
         }
 
         powerProfileBusy = true;
         powerProfileError = "";
-        powerProfile = cleanProfile;
+        powerProfileQueryFailed = false;
+        pendingPowerProfile = cleanProfile;
 
         powerProfileCommand.exec([
-            "powerprofilesctl", "set", cleanProfile
+            "env", "LC_ALL=C", "m3-power-profile", "set", cleanProfile
         ]);
     }
 
@@ -1666,19 +1695,32 @@ Scope {
 
     Process {
         id: powerProfileQuery
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const profile = this.text.trim();
-                if (profile)
-                    root.powerProfile = profile;
+        stdout: StdioCollector { id: powerProfileQueryOutput }
+        stderr: StdioCollector { id: powerProfileQueryError }
+        onExited: (exitCode, exitStatus) => {
+            const profile = root.normalizedPowerProfile(
+                powerProfileQueryOutput.text);
+            if (exitCode === 0 && profile) {
+                root.powerProfile = profile;
+                if (root.powerProfileQueryFailed) {
+                    root.powerProfileError = "";
+                    root.powerProfileQueryFailed = false;
+                }
+            } else if (!root.powerProfileBusy) {
+                root.powerProfileQueryFailed = true;
+                root.powerProfileError = powerProfileQueryError.text.trim()
+                    || I18n.tr("Không thể đọc chế độ nguồn",
+                        "Could not read power profile");
             }
         }
     }
 
     Process {
         id: powerProfileCommand
+        stdout: StdioCollector { id: powerProfileCommandOutput }
         stderr: StdioCollector { id: powerProfileCommandError }
         onExited: (exitCode, exitStatus) => {
+            const requestedProfile = root.pendingPowerProfile;
             root.powerProfileBusy = false;
             if (exitCode !== 0) {
                 root.powerProfileError = powerProfileCommandError.text.trim()
@@ -1686,16 +1728,16 @@ Scope {
                         "Could not change power profile");
                 root.showMessage(root.powerProfileError);
             } else {
+                const appliedProfile = root.normalizedPowerProfile(
+                    powerProfileCommandOutput.text) || requestedProfile;
+                if (appliedProfile)
+                    root.powerProfile = appliedProfile;
                 root.powerProfileError = "";
-                const refreshRate = root.powerProfile === "power-saver"
-                    ? "60" : "144";
-                Quickshell.execDetached([
-                    "hyprctl", "keyword", "monitor",
-                    "eDP-1, 1920x1080@" + refreshRate + ", 1920x0, 1"
-                ]);
-                root.showMessage(I18n.tr("Đã áp dụng chế độ nguồn",
-                    "Power profile applied"));
+                root.powerProfileQueryFailed = false;
+                root.showMessage(root.powerProfileAppliedMessage(
+                    appliedProfile));
             }
+            root.pendingPowerProfile = "";
             powerProfileRefreshDelay.restart();
         }
     }
@@ -1721,6 +1763,7 @@ Scope {
             root.refreshSystemStats(true);
             root.refreshWifi(false);
             root.refreshBattery();
+            root.refreshPowerProfile();
         }
     }
 

@@ -604,6 +604,11 @@ ShellRoot {
             break;
         case "settings":
             systemService.refreshSystemStats();
+            systemService.refreshPowerProfile();
+            break;
+        case "dashboard":
+            systemService.refreshSystemStats();
+            systemService.refreshPowerProfile();
             break;
         }
     }

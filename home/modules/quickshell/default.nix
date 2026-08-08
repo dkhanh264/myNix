@@ -1,4 +1,7 @@
 { config, pkgs, ... }:
+let
+  m3PowerProfile = pkgs.callPackage ../m3-power-profile { };
+in
 
 {
   # Keep every command used by the control center in the same module. Nix
@@ -16,6 +19,7 @@
     nwg-look
     curl
     ffmpeg
+    m3PowerProfile
   ];
 
   xdg.configFile."quickshell" = {
@@ -32,7 +36,7 @@
     Service = {
       ExecStart = "${pkgs.quickshell}/bin/quickshell";
       Environment = [
-        "PATH=${pkgs.gpu-screen-recorder}/bin:/run/wrappers/bin:${config.home.profileDirectory}/bin:/run/current-system/sw/bin"
+        "PATH=${m3PowerProfile}/bin:${pkgs.gpu-screen-recorder}/bin:/run/wrappers/bin:${config.home.profileDirectory}/bin:/run/current-system/sw/bin"
         "QSG_RENDER_LOOP=threaded"
       ];
       Restart = "on-failure";

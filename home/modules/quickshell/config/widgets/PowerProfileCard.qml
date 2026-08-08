@@ -109,7 +109,7 @@ Rectangle {
                     selected: root.controller && root.controller.powerProfile === profileKey
                     loading: root.controller
                         && root.controller.powerProfileBusy
-                        && root.controller.powerProfile === profileKey
+                        && root.controller.pendingPowerProfile === profileKey
                     loadingAccessibleName: I18n.tr(
                         "Đang áp dụng chế độ nguồn",
                         "Applying power profile")

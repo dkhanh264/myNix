@@ -1,13 +1,14 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 let
+  m3PowerProfile = pkgs.callPackage ../m3-power-profile { };
+
   walkerMenu = pkgs.writeShellApplication {
     name = "walker-menu";
     runtimeInputs = with pkgs; [
       walker
       hyprland
       systemd
-      power-profiles-daemon
-      brightnessctl
+      m3PowerProfile
       findutils
       coreutils
       libnotify
@@ -15,13 +16,6 @@ let
     text = ''
       app_theme="transparent-apps"
       system_theme="transparent-system"
-      if [[ -n "''${XDG_RUNTIME_DIR:-}" ]]; then
-        runtime_dir="$XDG_RUNTIME_DIR/m3-shell"
-      else
-        runtime_dir="/tmp/m3-shell-$UID"
-      fi
-      brightness_state="$runtime_dir/brightness-before-powersave"
-      mkdir -p -- "$runtime_dir"
 
       menu() {
         local prompt="$1"
@@ -66,50 +60,53 @@ let
         esac
       }
 
-      set_refresh_rate() {
-        local refresh_rate="$1"
-        hyprctl keyword monitor \
-          "eDP-1, 1920x1080@''${refresh_rate}, 1920x0, 1" >/dev/null 2>&1 || true
-      }
-
-      restore_brightness() {
-        local previous_brightness
-        [[ -r "$brightness_state" ]] || return 0
-        read -r previous_brightness < "$brightness_state" || true
-        if [[ "$previous_brightness" =~ ^[0-9]+$ ]]; then
-          brightnessctl set "$previous_brightness" >/dev/null 2>&1 || true
-        fi
-        rm -f -- "$brightness_state"
-      }
-
-      remember_brightness() {
-        local temporary_state
-        [[ -e "$brightness_state" ]] && return 0
-        temporary_state="$(mktemp "$runtime_dir/brightness.XXXXXX")"
-        brightnessctl get > "$temporary_state" 2>/dev/null || true
-        mv -f -- "$temporary_state" "$brightness_state"
-      }
-
       set_profile() {
         local profile="$1"
-        local refresh_rate="$2"
-        local label="$3"
-        local description="$4"
+        local label description error_title error_body
 
-        if ! powerprofilesctl set "$profile" 2>/dev/null; then
+        if [[ "$current_lang" == "en" ]]; then
+          error_title="Power mode"
+          case "$profile" in
+            performance)
+              label="Performance"
+              description="144 Hz · Maximum speed"
+              ;;
+            balanced)
+              label="Balanced"
+              description="144 Hz · Balanced performance and battery"
+              ;;
+            power-saver)
+              label="Power Saver"
+              description="60 Hz · Brightness capped at 40%"
+              ;;
+          esac
+          error_body="Could not apply $label"
+        else
+          error_title="Chế độ nguồn"
+          case "$profile" in
+            performance)
+              label="Hiệu năng"
+              description="144 Hz · Ưu tiên tốc độ tối đa"
+              ;;
+            balanced)
+              label="Cân bằng"
+              description="144 Hz · Cân bằng hiệu năng và pin"
+              ;;
+            power-saver)
+              label="Tiết kiệm pin"
+              description="60 Hz · Giới hạn độ sáng tối đa 40%"
+              ;;
+          esac
+          error_body="Không thể áp dụng chế độ $label"
+        fi
+
+        if ! m3-power-profile set "$profile" >/dev/null 2>&1; then
           notify-send -a "System controls" -u critical -t 2400 \
-            -i "dialog-error-symbolic" "Power mode" \
-            "Could not apply $label" || true
+            -i "dialog-error-symbolic" "$error_title" \
+            "$error_body" || true
           return 1
         fi
 
-        set_refresh_rate "$refresh_rate"
-        if [[ "$profile" == "power-saver" || "$profile" == "powersave" ]]; then
-          remember_brightness
-          brightnessctl set 40% >/dev/null 2>&1 || true
-        else
-          restore_brightness
-        fi
         notify_system "battery-good-symbolic" "$label" "$description"
       }
 
@@ -126,16 +123,13 @@ let
 
         case "$selection" in
           *"Performance"*|*"Hiệu năng"*)
-            set_profile "performance" 144 "Performance" \
-              "144 Hz · Maximum speed"
+            set_profile "performance"
             ;;
           *"Balanced"*|*"Cân bằng"*)
-            set_profile "balanced" 144 "Balanced" \
-              "144 Hz · Balanced performance and battery"
+            set_profile "balanced"
             ;;
           *"Power Saver"*|*"Tiết kiệm"*|*"saver"*)
-            set_profile "power-saver" 60 "Power Saver" \
-              "60 Hz · Brightness limited to 40%"
+            set_profile "power-saver"
             ;;
           "") return 0 ;;
         esac
@@ -204,6 +198,14 @@ let
 in
 {
   home.packages = [ walkerMenu ];
+
+  # Pin the power-profile shortcut to this generation so it never falls back
+  # to an older walker-menu from the system profile during a Home Manager-only
+  # activation.
+  wayland.windowManager.hyprland.settings.bind = lib.mkAfter [
+    "$mainMod, P, exec, ${walkerMenu}/bin/walker-menu profile"
+  ];
+
   xdg.configFile."walker" = {
     source = ./walker;
     recursive = true;

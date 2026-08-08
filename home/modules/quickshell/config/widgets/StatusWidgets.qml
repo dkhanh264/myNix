@@ -65,7 +65,7 @@ Item {
         M3BarPill {
 
             interactive: true
-            horizontalPadding: root.showLabels ? Theme.space3 : 0
+            horizontalPadding: Theme.space2
             minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
                 controlsRow.implicitWidth + horizontalPadding * 2)
@@ -82,47 +82,38 @@ Item {
             Row {
                 id: controlsRow
                 anchors.centerIn: parent
-                spacing: root.showLabels ? 8 : 4
+                spacing: Theme.space2
 
-                MaterialIcon {
+                Md3CircularProgress {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: root.volumeIcon()
-                    iconSize: 18
-                    color: root.controller && root.controller.muted
+                    diameter: 22
+                    strokeWidth: 3
+                    value: root.controller && !root.controller.muted
+                        ? root.controller.volume : 0
+                    showValue: false
+                    animateValue: false
+                    animatedWave: false
+                    progressColor: root.controller && root.controller.muted
                         ? Theme.error : Theme.primary
-                    filled: true
-                }
-                M3Text {
-                    visible: root.showLabels
-                    role: "labelSmall"
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.controller ? root.controller.volume + "%" : "--%"
-                    color: Theme.textSecondary
-                    font.weight: Font.DemiBold
+                    accessibleName: I18n.tr("Âm lượng", "Volume")
+                    valueText: root.controller
+                        ? root.controller.volume + "%" : "--%"
+                    icon: root.volumeIcon()
                 }
 
-                Item {
-                    visible: root.showLabels
+                Md3CircularProgress {
                     anchors.verticalCenter: parent.verticalCenter
-                    width: Theme.space1
-                    height: 18
-                }
-
-                MaterialIcon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "brightness_6"
-                    iconSize: 18
-                    color: Theme.tertiary
-                    filled: true
-                }
-                M3Text {
-                    visible: root.showLabels
-                    role: "labelSmall"
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.controller
+                    diameter: 22
+                    strokeWidth: 3
+                    value: root.controller ? root.controller.brightness : 0
+                    showValue: false
+                    animateValue: false
+                    animatedWave: false
+                    progressColor: Theme.tertiary
+                    accessibleName: I18n.tr("Độ sáng", "Brightness")
+                    valueText: root.controller
                         ? root.controller.brightness + "%" : "--%"
-                    color: Theme.textSecondary
-                    font.weight: Font.DemiBold
+                    icon: "brightness_6"
                 }
             }
 
