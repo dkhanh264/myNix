@@ -35,6 +35,7 @@
 
     # user apps
     discord
+    discord-ptb
     spotify
     vscode
     fastfetch
