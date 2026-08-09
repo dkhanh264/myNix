@@ -18,37 +18,27 @@ Item {
         {
             "key": "lock",
             "icon": "lock",
-            "label": I18n.tr("Khóa màn hình", "Lock screen"),
-            "description": I18n.tr("Giữ nguyên ứng dụng và phiên làm việc",
-                "Keep applications and this session running")
+            "label": I18n.tr("Khóa", "Lock")
         },
         {
             "key": "suspend",
             "icon": "bedtime",
-            "label": I18n.tr("Tạm dừng", "Suspend"),
-            "description": I18n.tr("Đưa máy vào trạng thái ngủ",
-                "Put the computer to sleep")
+            "label": I18n.tr("Tạm dừng", "Suspend")
         },
         {
             "key": "logout",
             "icon": "logout",
-            "label": I18n.tr("Đăng xuất", "Sign out"),
-            "description": I18n.tr("Kết thúc phiên Hyprland hiện tại",
-                "End the current Hyprland session")
+            "label": I18n.tr("Đăng xuất", "Sign out")
         },
         {
             "key": "reboot",
             "icon": "restart_alt",
-            "label": I18n.tr("Khởi động lại", "Restart"),
-            "description": I18n.tr("Đóng ứng dụng và khởi động lại máy",
-                "Close applications and restart the computer")
+            "label": I18n.tr("Khởi động lại", "Restart")
         },
         {
             "key": "shutdown",
             "icon": "power_settings_new",
-            "label": I18n.tr("Tắt máy", "Shut down"),
-            "description": I18n.tr("Đóng ứng dụng và tắt nguồn",
-                "Close applications and power off")
+            "label": I18n.tr("Tắt máy", "Shut down")
         }
     ]
 
@@ -70,17 +60,7 @@ Item {
             if (actions[index].key === action)
                 return actions[index].label;
         }
-        return I18n.tr("Tùy chọn nguồn", "Power option");
-    }
-
-    function confirmationTitle(action) {
-        if (action === "logout")
-            return I18n.tr("Đăng xuất khỏi phiên này?",
-                "Sign out of this session?");
-        if (action === "reboot")
-            return I18n.tr("Khởi động lại máy tính?",
-                "Restart the computer?");
-        return I18n.tr("Tắt máy tính?", "Shut down the computer?");
+        return I18n.tr("Xác nhận", "Confirm");
     }
 
     function confirmAction() {
@@ -92,10 +72,10 @@ Item {
         closeRequested();
     }
 
-    Column {
+    Row {
         id: actionContent
 
-        width: parent.width
+        anchors.horizontalCenter: parent.horizontalCenter
         spacing: Theme.space3
         opacity: root.confirming ? 0 : 1
         scale: root.confirming ? 0.96 : 1
@@ -116,75 +96,20 @@ Item {
             }
         }
 
-        Item {
-            width: parent.width
-            height: 60
+        Repeater {
+            id: actionRepeater
+            model: root.actions
 
-            Rectangle {
-                id: headerIcon
+            SquareActionButton {
+                required property var modelData
 
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                width: 48
-                height: 48
-                radius: Theme.shapeLarge
-                color: Theme.primaryContainer
-
-                MaterialIcon {
-                    anchors.centerIn: parent
-                    text: "power_settings_new"
-                    iconSize: Theme.iconSizeMedium
-                    color: Theme.primaryContainerContent
-                    filled: true
-                }
-            }
-
-            Column {
-                anchors.left: headerIcon.right
-                anchors.leftMargin: Theme.space3
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 1
-
-                M3Text {
-                    width: parent.width
-                    role: "titleLarge"
-                    text: I18n.tr("Tùy chọn nguồn", "Power options")
-                    color: Theme.textPrimary
-                    font.weight: Font.Bold
-                    elide: Text.ElideRight
-                }
-
-                M3Text {
-                    width: parent.width
-                    role: "bodySmall"
-                    text: I18n.tr(
-                        "Quản lý phiên làm việc và trạng thái nguồn",
-                        "Manage the session and computer power state")
-                    color: Theme.textSecondary
-                    elide: Text.ElideRight
-                }
-            }
-        }
-
-        Column {
-            width: parent.width
-            spacing: Theme.space2
-
-            Repeater {
-                id: actionRepeater
-                model: root.actions
-
-                ActionChip {
-                    required property var modelData
-
-                    width: parent.width
-                    icon: modelData.icon
-                    label: modelData.label
-                    supportingText: modelData.description
-                    enabled: root.controller !== null
-                    onClicked: root.requestAction(modelData.key)
-                }
+                buttonSize: Math.min(116,
+                    (root.width - Theme.space3 * 4) / 5)
+                icon: modelData.icon
+                label: modelData.label
+                destructive: modelData.key === "shutdown"
+                enabled: root.controller !== null
+                onClicked: root.requestAction(modelData.key)
             }
         }
     }
@@ -213,84 +138,35 @@ Item {
             }
         }
 
-        Column {
+        Row {
             anchors.centerIn: parent
-            width: Math.min(parent.width - Theme.space8, 360)
-            spacing: Theme.space4
+            spacing: Theme.space3
 
-            Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: 64
-                height: 64
-                radius: Theme.shapeLarge
-                color: Theme.errorContainer
-
-                MaterialIcon {
-                    anchors.centerIn: parent
-                    text: root.pendingAction === "shutdown"
-                        ? "power_settings_new"
-                        : root.pendingAction === "reboot"
-                            ? "restart_alt" : "logout"
-                    iconSize: Theme.iconSizeLarge
-                    color: Theme.errorContainerContent
-                    filled: true
+            SquareActionButton {
+                buttonSize: 104
+                icon: "close"
+                label: I18n.tr("Hủy", "Cancel")
+                onClicked: {
+                    root.pendingAction = "";
+                    Qt.callLater(() => {
+                        if (root.initialFocusItem)
+                            root.initialFocusItem.forceActiveFocus(
+                                Qt.PopupFocusReason);
+                    });
                 }
             }
 
-            Column {
-                width: parent.width
-                spacing: Theme.space2
+            SquareActionButton {
+                id: confirmButton
 
-                M3Text {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    role: "titleLarge"
-                    text: root.confirmationTitle(root.pendingAction)
-                    color: Theme.textPrimary
-                    font.weight: Font.Bold
-                    wrapMode: Text.WordWrap
-                }
-
-                M3Text {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    role: "bodyMedium"
-                    text: I18n.tr(
-                        "Thao tác này sẽ đóng mọi ứng dụng đang chạy.",
-                        "This action will close all running applications.")
-                    color: Theme.textSecondary
-                    wrapMode: Text.WordWrap
-                }
-            }
-
-            Row {
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: Theme.space2
-
-                M3Button {
-                    text: I18n.tr("Hủy", "Cancel")
-                    icon: "close"
-                    variant: "outlined"
-                    disableShapeMorph: false
-                    onClicked: {
-                        root.pendingAction = "";
-                        Qt.callLater(() => {
-                            if (root.initialFocusItem)
-                                root.initialFocusItem.forceActiveFocus(
-                                    Qt.PopupFocusReason);
-                        });
-                    }
-                }
-
-                M3Button {
-                    id: confirmButton
-
-                    text: root.actionLabel(root.pendingAction)
-                    icon: "check"
-                    destructive: true
-                    disableShapeMorph: false
-                    onClicked: root.confirmAction()
-                }
+                buttonSize: 104
+                icon: root.pendingAction === "shutdown"
+                    ? "power_settings_new"
+                    : root.pendingAction === "reboot"
+                        ? "restart_alt" : "logout"
+                label: root.actionLabel(root.pendingAction)
+                destructive: true
+                onClicked: root.confirmAction()
             }
         }
     }

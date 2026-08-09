@@ -662,7 +662,7 @@ PanelWindow {
         PopupPage {
             id: calendarPage
             popupKind: "calendar"
-            preferredWidth: Math.min(440,
+            preferredWidth: Math.min(416,
                 root.width - Theme.popupEdgeInset * 2)
             preferredHeight: Math.min(
                 calendarWidget.implicitHeight + Theme.popupVerticalChrome,
@@ -888,12 +888,16 @@ PanelWindow {
 
         PopupPage {
             popupKind: "profile"
-            preferredWidth: Math.min(480,
+            preferredWidth: Math.min(672,
                 root.width - Theme.popupEdgeInset * 2)
             preferredHeight: Math.min(
                 powerModeWidget.implicitHeight + Theme.popupVerticalChrome,
                 root.availableHeight(16))
             preferredX: root.popupAnchor("profile", preferredWidth)
+            preferredY: Math.round(
+                ((root.screen ? root.screen.height
+                    : root.height + Theme.barHeight)
+                - preferredHeight) / 2)
             initialFocusItem: powerModeWidget.initialFocusItem
 
             PowerModeWidget {
@@ -910,13 +914,17 @@ PanelWindow {
 
         PopupPage {
             popupKind: "session"
-            preferredWidth: Math.min(500,
+            preferredWidth: Math.min(440,
                 root.width - Theme.popupEdgeInset * 2)
             preferredHeight: Math.min(
                 powerOptionsWidget.implicitHeight
                     + Theme.popupVerticalChrome,
                 root.availableHeight(16))
             preferredX: root.popupAnchor("session", preferredWidth)
+            preferredY: Math.round(
+                ((root.screen ? root.screen.height
+                    : root.height + Theme.barHeight)
+                - preferredHeight) / 2)
             initialFocusItem: powerOptionsWidget.initialFocusItem
 
             PowerOptionsWidget {
