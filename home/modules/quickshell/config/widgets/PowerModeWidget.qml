@@ -15,7 +15,10 @@ Item {
             ? controller.powerProfile : "balanced")) : null
     signal closeRequested
 
-    implicitHeight: profileRow.implicitHeight
+    // SquareActionButton draws its keyboard focus state 3 px outside its
+    // surface. Reserve half of Theme.space2 on every edge so the popup
+    // viewport keeps the complete focus state visible.
+    implicitHeight: profileRow.implicitHeight + Theme.space2
 
     function profileIndex(profile) {
         if (profile === "performance")
@@ -93,7 +96,7 @@ Item {
     Row {
         id: profileRow
 
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.centerIn: parent
         spacing: Theme.space3
 
         Repeater {

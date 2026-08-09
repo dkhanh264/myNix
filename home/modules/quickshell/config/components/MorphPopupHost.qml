@@ -888,7 +888,7 @@ PanelWindow {
 
         PopupPage {
             popupKind: "profile"
-            preferredWidth: Math.min(416,
+            preferredWidth: Math.min(424,
                 root.width - Theme.popupEdgeInset * 2)
             preferredHeight: Math.min(
                 powerModeWidget.implicitHeight + Theme.popupVerticalChrome,
