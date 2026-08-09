@@ -74,13 +74,22 @@ FocusScope {
         wallpapersData = list;
     }
 
-    Connections {
-        target: root.controller ? root.controller.wallpapers : null
-        function onCountChanged() { root.refreshFilteredData(); }
-        function onDataChanged() { root.refreshFilteredData(); }
+    // ListModel emits once for every append/setProperty. Coalesce those bursts
+    // into one JS snapshot so a directory with many wallpapers stays O(n).
+    Timer {
+        id: wallpaperDataRefresh
+        interval: 1
+        repeat: false
+        onTriggered: root.refreshFilteredData()
     }
 
-    onControllerChanged: refreshFilteredData()
+    Connections {
+        target: root.controller ? root.controller.wallpapers : null
+        function onCountChanged() { wallpaperDataRefresh.restart(); }
+        function onDataChanged() { wallpaperDataRefresh.restart(); }
+    }
+
+    onControllerChanged: wallpaperDataRefresh.restart()
     Component.onCompleted: {
         refreshFilteredData();
         root.forceActiveFocus();
@@ -353,7 +362,9 @@ FocusScope {
                     sourceSize.width: 800
                     sourceSize.height: 600
                     smooth: true
-                    mipmap: true
+                    // The cache already stores an 800x600 preview. Building a
+                    // mip chain adds GPU memory without improving this card.
+                    mipmap: false
                     visible: false
                 }
 

@@ -65,7 +65,7 @@ Item {
         M3BarPill {
 
             interactive: true
-            horizontalPadding: Theme.space2
+            horizontalPadding: Theme.space1
             minimumWidth: Theme.barItemHeight
             implicitWidth: Math.max(minimumWidth,
                 controlsRow.implicitWidth + horizontalPadding * 2)
@@ -82,11 +82,11 @@ Item {
             Row {
                 id: controlsRow
                 anchors.centerIn: parent
-                spacing: Theme.space2
+                spacing: Theme.space1
 
                 Md3CircularProgress {
                     anchors.verticalCenter: parent.verticalCenter
-                    diameter: 22
+                    diameter: 26
                     strokeWidth: 3
                     value: root.controller && !root.controller.muted
                         ? root.controller.volume : 0
@@ -103,7 +103,7 @@ Item {
 
                 Md3CircularProgress {
                     anchors.verticalCenter: parent.verticalCenter
-                    diameter: 22
+                    diameter: 26
                     strokeWidth: 3
                     value: root.controller ? root.controller.brightness : 0
                     showValue: false

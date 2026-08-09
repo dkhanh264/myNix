@@ -95,6 +95,7 @@ Scope {
 
     property string currentWallpaper: ""
     property string pendingWallpaper: ""
+    property string wallpaperListSignature: ""
     property bool wallpapersLoading: false
     readonly property bool wallpaperApplying: wallpaperCommand.running
 
@@ -415,7 +416,7 @@ Scope {
         wallpapersLoading = true;
         const directory = Quickshell.env("HOME") + "/Pictures/wallpapers";
         wallpaperQuery.exec([
-            "find", directory, "-type", "f", "(",
+            "env", "LC_ALL=C", "find", directory, "-type", "f", "(",
             "-iname", "*.jpg", "-o", "-iname", "*.jpeg", "-o",
             "-iname", "*.png", "-o", "-iname", "*.webp", "-o",
             "-iname", "*.mp4", "-o", "-iname", "*.mkv", "-o",
@@ -450,7 +451,12 @@ Scope {
     function applyWallpaperList(output) {
         const paths = output.split("\n").filter(path => path.length > 0);
         paths.sort((first, second) => first.localeCompare(second));
-        wallpaperModel.clear();
+        const signature = paths.join("\n");
+        const rebuildModel = signature !== wallpaperListSignature
+            || wallpaperModel.count !== paths.length;
+
+        if (rebuildModel)
+            wallpaperModel.clear();
 
         let hasVideos = false;
         for (let index = 0; index < paths.length; ++index) {
@@ -463,41 +469,28 @@ Scope {
             const isVideo = ["mp4", "mkv", "webm", "avi", "mov"]
                 .indexOf(extension) >= 0;
             if (isVideo) hasVideos = true;
-            wallpaperModel.append({
-                "filePath": path,
-                "fileName": name,
-                "fileUrl": encodeURI("file://" + path),
-                "fileType": isVideo ? "Video" : extension.toUpperCase(),
-                "isVideo": isVideo,
-                "thumbnailUrl": ""
-            });
+            if (rebuildModel) {
+                wallpaperModel.append({
+                    "filePath": path,
+                    "fileName": name,
+                    "fileUrl": encodeURI("file://" + path),
+                    "fileType": isVideo ? "Video" : extension.toUpperCase(),
+                    "isVideo": isVideo,
+                    "thumbnailUrl": ""
+                });
+            }
         }
+        wallpaperListSignature = signature;
         wallpapersLoading = false;
 
         if (hasVideos && !wallpaperThumbnailQuery.running) {
             const directory = Quickshell.env("HOME") + "/Pictures/wallpapers";
-            wallpaperThumbnailQuery.exec([
-                "sh", "-c",
-                "mkdir -p \"$HOME/.cache/wallpaper-thumbnails\" && " +
-                "find \"$1\" -type f \\( -iname \"*.mp4\" -o -iname \"*.mkv\" -o -iname \"*.webm\" -o -iname \"*.avi\" -o -iname \"*.mov\" \\) | while read -r f; do " +
-                "  [ -n \"$f\" ] || continue; " +
-                "  hash=$(printf \"%s\" \"$f\" | md5sum | cut -d' ' -f1); " +
-                "  thumb=\"$HOME/.cache/wallpaper-thumbnails/${hash}.png\"; " +
-                "  if [ ! -f \"$thumb\" ]; then " +
-                "    ffmpeg -nostdin -y -i \"$f\" -ss 00:00:01 -frames:v 1 -q:v 2 \"$thumb\" >/dev/null 2>&1 || " +
-                "    ffmpeg -nostdin -y -i \"$f\" -frames:v 1 -q:v 2 \"$thumb\" >/dev/null 2>&1 || true; " +
-                "  fi; " +
-                "  if [ -f \"$thumb\" ]; then " +
-                "    printf \"%s\\t%s\\n\" \"$f\" \"$thumb\"; " +
-                "  fi; " +
-                "done",
-                "quickshell-thumb", directory
-            ]);
+            wallpaperThumbnailQuery.exec(["wallpaper-thumbnails", directory]);
         }
     }
 
     function setWallpaper(path) {
-        if (!path || wallpaperCommand.running)
+        if (!path || path === currentWallpaper || wallpaperCommand.running)
             return;
         pendingWallpaper = path;
         wallpaperCommand.exec(["set-background", path]);

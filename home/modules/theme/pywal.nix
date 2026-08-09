@@ -415,6 +415,68 @@ EOF
     '';
   };
 
+  wallpaperThumbnails = pkgs.writeShellApplication {
+    name = "wallpaper-thumbnails";
+    runtimeInputs = with pkgs; [ coreutils ffmpeg findutils util-linux ];
+    text = ''
+      set -Eeuo pipefail
+
+      BACKGROUNDS_DIR="''${1:-$HOME/Pictures/wallpapers}"
+      CACHE_DIR="''${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper-thumbnails"
+
+      [[ -d "$BACKGROUNDS_DIR" ]] || exit 0
+      mkdir -p -- "$CACHE_DIR"
+      exec 9>"$CACHE_DIR/.lock"
+      flock 9
+
+      create_thumbnail() {
+        local video="$1"
+        local thumbnail="$2"
+        local temporary
+        temporary=$(mktemp --tmpdir="$CACHE_DIR" ".wallpaper-thumb.XXXXXX.jpg")
+
+        if ffmpeg -hide_banner -loglevel error -nostdin -y \
+          -hwaccel auto -ss 00:00:01 -i "$video" \
+          -map 0:v:0 -an -sn -dn \
+          -vf "scale=800:600:force_original_aspect_ratio=increase:force_divisible_by=2:flags=fast_bilinear,crop=800:600" \
+          -frames:v 1 -threads 2 -q:v 5 "$temporary" 2>/dev/null \
+          || ffmpeg -hide_banner -loglevel error -nostdin -y \
+            -ss 00:00:01 -i "$video" \
+            -map 0:v:0 -an -sn -dn \
+            -vf "scale=800:600:force_original_aspect_ratio=increase:force_divisible_by=2:flags=fast_bilinear,crop=800:600" \
+            -frames:v 1 -threads 2 -q:v 5 "$temporary"; then
+          mv -f -- "$temporary" "$thumbnail"
+        else
+          rm -f -- "$temporary"
+          return 1
+        fi
+      }
+
+      while IFS= read -r -d "" video; do
+        metadata=$(stat -c '%Y:%s' -- "$video") || continue
+        hash=$(printf '%s\0%s' "$video" "$metadata" \
+          | sha256sum | cut -d' ' -f1)
+        thumbnail="$CACHE_DIR/$hash.jpg"
+
+        if [[ ! -s "$thumbnail" ]]; then
+          create_thumbnail "$video" "$thumbnail" || continue
+        fi
+        touch -- "$thumbnail"
+        printf '%s\t%s\n' "$video" "$thumbnail"
+      done < <(
+        LC_ALL=C find "$BACKGROUNDS_DIR" -type f \( \
+          -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.webm" -o \
+          -iname "*.avi" -o -iname "*.mov" \
+        \) -print0 | LC_ALL=C sort -z
+      )
+
+      # v1 cached full-resolution PNGs. They are reproducible and no longer
+      # consumed, so remove them after the compact v2 mapping is available.
+      find "$CACHE_DIR" -maxdepth 1 -type f -name '*.png' -delete
+      find "$CACHE_DIR" -maxdepth 1 -type f -name '*.jpg' -mtime +30 -delete
+    '';
+  };
+
   setBackground = pkgs.writeShellApplication {
     name = "set-background";
     runtimeInputs = with pkgs; [
@@ -489,6 +551,28 @@ EOF
         esac
       }
 
+      mpvpaper_running() {
+        pgrep -x mpvpaper >/dev/null 2>&1 \
+          || pgrep -f '/bin/(mpvpaper|\.mpvpaper-wrapped)([[:space:]]|$)' \
+            >/dev/null 2>&1
+      }
+
+      stop_mpvpaper() {
+        mpvpaper_running || return 0
+
+        pkill -TERM -x mpvpaper >/dev/null 2>&1 || true
+        pkill -TERM -f '/bin/(mpvpaper|\.mpvpaper-wrapped)([[:space:]]|$)' \
+          >/dev/null 2>&1 || true
+        for _ in {1..20}; do
+          mpvpaper_running || return 0
+          sleep 0.05
+        done
+
+        pkill -KILL -x mpvpaper >/dev/null 2>&1 || true
+        pkill -KILL -f '/bin/(mpvpaper|\.mpvpaper-wrapped)([[:space:]]|$)' \
+          >/dev/null 2>&1 || true
+      }
+
       swww_outputs_ready() {
         local outputs
         outputs=$(swww query 2>/dev/null) || return 1
@@ -542,27 +626,62 @@ EOF
           ;;
       esac
 
-      pkill -9 -f mpvpaper >/dev/null 2>&1 || true
-      killall -9 mpvpaper >/dev/null 2>&1 || true
+      CURRENT_BACKGROUND=""
+      if [[ -L "$CURRENT_BACKGROUND_LINK" ]]; then
+        CURRENT_BACKGROUND=$(realpath -m -- "$CURRENT_BACKGROUND_LINK")
+      fi
+
+      FRAME_PATH=""
+      if is_video "$NEW_BACKGROUND"; then
+        FRAME_PATH="$HOME/.config/current-wallpaper-frame.png"
+        FRAME_CACHE_VERSION="$HOME/.config/current-wallpaper-frame.version"
+        if [[ "$CURRENT_BACKGROUND" != "$NEW_BACKGROUND" \
+              || ! -s "$FRAME_PATH" \
+              || ! -f "$FRAME_CACHE_VERSION" \
+              || "$(<"$FRAME_CACHE_VERSION")" != "2" \
+              || "$NEW_BACKGROUND" -nt "$FRAME_PATH" ]]; then
+          TEMP_FRAME=$(mktemp "$HOME/.config/.wallpaper-frame.XXXXXX.png")
+          FRAME_FILTER="scale=2560:1440:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=fast_bilinear"
+          if ffmpeg -hide_banner -loglevel error -nostdin -y \
+               -hwaccel auto -ss 00:00:03 -i "$NEW_BACKGROUND" \
+               -map 0:v:0 -an -sn -dn -vf "$FRAME_FILTER" \
+               -frames:v 1 -compression_level 3 "$TEMP_FRAME" \
+             || ffmpeg -hide_banner -loglevel error -nostdin -y \
+               -ss 00:00:01 -i "$NEW_BACKGROUND" \
+               -map 0:v:0 -an -sn -dn -vf "$FRAME_FILTER" \
+               -frames:v 1 -compression_level 3 "$TEMP_FRAME" \
+             || ffmpeg -hide_banner -loglevel error -nostdin -y \
+               -i "$NEW_BACKGROUND" -map 0:v:0 -an -sn -dn \
+               -vf "$FRAME_FILTER" -frames:v 1 -compression_level 3 \
+               "$TEMP_FRAME"; then
+            mv -f -- "$TEMP_FRAME" "$FRAME_PATH"
+            TEMP_FRAME=""
+            printf '2\n' > "$FRAME_CACHE_VERSION"
+          else
+            rm -f -- "$TEMP_FRAME" 2>/dev/null || true
+            TEMP_FRAME=""
+            notify_wallpaper_error "Could not extract a preview from the video wallpaper."
+            exit 1
+          fi
+        fi
+      fi
+
+      stop_mpvpaper
 
       if is_video "$NEW_BACKGROUND"; then
         swww kill >/dev/null 2>&1 \
           || pkill -x swww-daemon >/dev/null 2>&1 \
           || true
 
-        mpvpaper "*" --mpv-options "loop no-audio hwdec=auto vo=gpu" \
+        MPVPAPER_OPTIONS="no-config no-audio loop-file=inf hwdec=auto-safe profile=fast interpolation=no video-sync=display-vdrop sub-auto=no no-osc"
+        mpvpaper --auto-pause --mpv-options "$MPVPAPER_OPTIONS" ALL \
           "$NEW_BACKGROUND" >/dev/null 2>&1 9>&- &
-
-        FRAME_PATH="$HOME/.config/current-wallpaper-frame.png"
-        TEMP_FRAME=$(mktemp "$HOME/.config/.wallpaper-frame.XXXXXX.png")
-        if ffmpeg -nostdin -y -ss 00:00:03 -i "$NEW_BACKGROUND" -vf "thumbnail=n=60" -frames:v 1 -q:v 2 "$TEMP_FRAME" >/dev/null 2>&1 || \
-           ffmpeg -nostdin -y -ss 00:00:01 -i "$NEW_BACKGROUND" -vf "thumbnail=n=30" -frames:v 1 -q:v 2 "$TEMP_FRAME" >/dev/null 2>&1 || \
-           ffmpeg -nostdin -y -i "$NEW_BACKGROUND" -frames:v 1 -q:v 2 "$TEMP_FRAME" >/dev/null 2>&1; then
-          mv -f -- "$TEMP_FRAME" "$FRAME_PATH"
-          TEMP_FRAME=""
-        else
-          rm -f -- "$TEMP_FRAME" 2>/dev/null || true
-          TEMP_FRAME=""
+        MPVPAPER_PID=$!
+        sleep 0.2
+        if ! kill -0 "$MPVPAPER_PID" >/dev/null 2>&1; then
+          wait "$MPVPAPER_PID" 2>/dev/null || true
+          notify_wallpaper_error "The video wallpaper player failed to start."
+          exit 1
         fi
 
         if (( ! RESTORE_ONLY )); then
@@ -576,9 +695,6 @@ EOF
             -o ${walColorExport}/bin/wal-color-export || true
         fi
       else
-        pkill -9 -f mpvpaper >/dev/null 2>&1 || true
-        killall -9 mpvpaper >/dev/null 2>&1 || true
-
         daemon_ready=0
         if ! swww query >/dev/null 2>&1; then
           swww-daemon >/dev/null 2>&1 9>&- &
@@ -796,6 +912,7 @@ in
   home.packages = [
     pkgs.pywal
     walColorExport
+    wallpaperThumbnails
     setBackground
     restoreBackground
     cycleBackground
