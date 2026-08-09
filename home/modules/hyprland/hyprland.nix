@@ -300,11 +300,12 @@ in
         "$mainMod, W,         exec, brave"
         "$mainMod, E,         exec, nautilus"
         
-        # ── Walker & Hình nền ──────────────────────────────────────────
+        # ── Launcher ứng dụng & widget hệ thống ────────────────────────
         "$mainMod, space,     exec, walker-menu apps"
         "$mainMod SHIFT, space, exec, quickshell ipc call launcher wallpapers"
         "$mainMod, A,         exec, qs ipc call controlCenter toggle"
-        "$mainMod, escape,    exec, walker-menu system"
+        "$mainMod, P,         exec, quickshell ipc call shellPopup profile"
+        "$mainMod, escape,    exec, quickshell ipc call shellPopup session"
         "$mainMod CTRL, space, exec, cycle-background"
         "$mainMod SHIFT, R,   exec, systemctl --user restart quickshell"
         

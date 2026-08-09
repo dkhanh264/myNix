@@ -550,7 +550,8 @@ ShellRoot {
     function validPopup(kind) {
         return [
             "music", "calendar", "weather", "controls",
-            "wifi", "bluetooth", "power", "activity", "recorder",
+            "wifi", "bluetooth", "power", "profile", "session",
+            "activity", "recorder",
             "language", "settings", "wallpaper", "dashboard"
         ].indexOf(kind) >= 0;
     }
@@ -590,6 +591,7 @@ ShellRoot {
                 systemService.toggleBluetoothScan();
             break;
         case "power":
+        case "profile":
             systemService.refreshPowerProfile();
             break;
         case "weather":
@@ -834,6 +836,8 @@ ShellRoot {
         function wifi(): void { root.showPopup("wifi", ""); }
         function bluetooth(): void { root.showPopup("bluetooth", ""); }
         function power(): void { root.showPopup("power", ""); }
+        function profile(): void { root.showPopup("profile", ""); }
+        function session(): void { root.showPopup("session", ""); }
         function activity(): void { root.showPopup("activity", ""); }
         function recorder(): void { root.showPopup("recorder", ""); }
         function language(): void { root.showPopup("language", ""); }

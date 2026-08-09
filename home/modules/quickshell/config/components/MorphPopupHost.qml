@@ -96,7 +96,8 @@ PanelWindow {
         const barWidth = root.anchorWindow
             ? root.anchorWindow.width : root.width;
         let desired = barWidth - popupWidth - Theme.popupEdgeInset;
-        if (kind === "wallpaper" || kind === "dashboard")
+        if (kind === "wallpaper" || kind === "dashboard"
+                || kind === "profile" || kind === "session")
             desired = Math.round((barWidth - popupWidth) / 2);
         else if (kind === "music")
             desired = Theme.popupEdgeInset;
@@ -145,6 +146,10 @@ PanelWindow {
             return "Bluetooth";
         case "power":
             return I18n.tr("Nguồn và pin", "Power and battery");
+        case "profile":
+            return I18n.tr("Chế độ nguồn", "Power mode");
+        case "session":
+            return I18n.tr("Tùy chọn nguồn", "Power options");
         case "activity":
             return I18n.tr("Lịch sử hoạt động", "Activity history");
         case "recorder":
@@ -178,6 +183,10 @@ PanelWindow {
             return bluetoothPageComponent;
         case "power":
             return powerPageComponent;
+        case "profile":
+            return powerModePageComponent;
+        case "session":
+            return powerOptionsPageComponent;
         case "activity":
             return activityPageComponent;
         case "recorder":
@@ -870,6 +879,51 @@ PanelWindow {
                     controller: root.controller
                     onCloseRequested: root.closeRequested()
                 }
+            }
+        }
+    }
+
+    Component {
+        id: powerModePageComponent
+
+        PopupPage {
+            popupKind: "profile"
+            preferredWidth: Math.min(480,
+                root.width - Theme.popupEdgeInset * 2)
+            preferredHeight: Math.min(
+                powerModeWidget.implicitHeight + Theme.popupVerticalChrome,
+                root.availableHeight(16))
+            preferredX: root.popupAnchor("profile", preferredWidth)
+            initialFocusItem: powerModeWidget.initialFocusItem
+
+            PowerModeWidget {
+                id: powerModeWidget
+                anchors.fill: parent
+                controller: root.controller
+                onCloseRequested: root.closeRequested()
+            }
+        }
+    }
+
+    Component {
+        id: powerOptionsPageComponent
+
+        PopupPage {
+            popupKind: "session"
+            preferredWidth: Math.min(500,
+                root.width - Theme.popupEdgeInset * 2)
+            preferredHeight: Math.min(
+                powerOptionsWidget.implicitHeight
+                    + Theme.popupVerticalChrome,
+                root.availableHeight(16))
+            preferredX: root.popupAnchor("session", preferredWidth)
+            initialFocusItem: powerOptionsWidget.initialFocusItem
+
+            PowerOptionsWidget {
+                id: powerOptionsWidget
+                anchors.fill: parent
+                controller: root.controller
+                onCloseRequested: root.closeRequested()
             }
         }
     }

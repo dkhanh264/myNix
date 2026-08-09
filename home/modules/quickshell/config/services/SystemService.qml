@@ -1226,6 +1226,9 @@ Scope {
         case "lock":
             execDetached(["sh", "-c", "qs ipc call lockscreen lock"]);
             break;
+        case "suspend":
+            execDetached(["systemctl", "suspend"]);
+            break;
         case "logout":
             execDetached(["hyprctl", "dispatch", "exit"]);
             break;
