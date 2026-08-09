@@ -23,7 +23,7 @@ in
   ];
 
   xdg.configFile."quickshell" = {
-    source = config.lib.file.mkOutOfStoreSymlink "/home/dk/Test/myNix/home/modules/quickshell/config";
+    source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/home/modules/quickshell/config";
     force = true;
   };
 
