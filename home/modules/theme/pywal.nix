@@ -673,7 +673,9 @@ EOF
           || pkill -x swww-daemon >/dev/null 2>&1 \
           || true
 
-        MPVPAPER_OPTIONS="no-config no-audio loop-file=inf hwdec=auto-safe profile=fast interpolation=no video-sync=display-vdrop sub-auto=no no-osc"
+        # Limit only animated wallpapers to 30 FPS. Filtering before presentation
+        # reduces compositor surface commits without lowering monitor refresh rates.
+        MPVPAPER_OPTIONS="no-config no-audio loop-file=inf hwdec=auto-safe profile=fast interpolation=no vf=fps=30 sub-auto=no no-osc"
         mpvpaper --auto-pause --mpv-options "$MPVPAPER_OPTIONS" ALL \
           "$NEW_BACKGROUND" >/dev/null 2>&1 9>&- &
         MPVPAPER_PID=$!
