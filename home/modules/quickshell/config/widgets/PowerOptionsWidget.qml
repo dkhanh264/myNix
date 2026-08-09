@@ -12,7 +12,10 @@ Item {
         ? actionRepeater.itemAt(0) : null
     signal closeRequested
 
-    implicitHeight: actionContent.implicitHeight
+    // SquareActionButton draws its keyboard focus state 3 px outside its
+    // surface. Keep one 4 px M3 spacing unit around the row so the shared
+    // popup viewport never clips that state at its edges.
+    implicitHeight: actionContent.implicitHeight + Theme.space2
 
     readonly property var actions: [
         {
@@ -75,7 +78,7 @@ Item {
     Row {
         id: actionContent
 
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.centerIn: parent
         spacing: Theme.space3
         opacity: root.confirming ? 0 : 1
         scale: root.confirming ? 0.96 : 1
