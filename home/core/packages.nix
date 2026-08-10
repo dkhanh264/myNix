@@ -47,6 +47,7 @@
     localsend
     obsidian
     zoom-us
+    zathura
 
     # dev
     jdk17
