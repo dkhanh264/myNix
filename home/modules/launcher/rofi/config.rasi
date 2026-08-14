@@ -7,6 +7,7 @@ configuration {
     display-window:             "󱂬";
     drun-display-format:        "{name}";
     window-format:              "{w} · {c} · {t}";
+    drun-match-fields:          "name,generic,exec,categories,keywords";
 }
 
 @import "/home/dk/.config/current/wal-colors.rasi"

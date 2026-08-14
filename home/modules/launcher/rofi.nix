@@ -1,12 +1,8 @@
 { pkgs, ... }:
 let
-  rofiLauncher = pkgs.writeShellApplication {
-    name = "rofi-launcher";
-    runtimeInputs = [ pkgs.rofi ];
-    text = ''
-      exec rofi -show drun -config "$HOME/.config/rofi/config.rasi"
-    '';
-  };
+  rofiLauncher = pkgs.writeShellScriptBin "rofi-launcher" ''
+    exec ${pkgs.rofi}/bin/rofi -show drun -config "$HOME/.config/rofi/config.rasi"
+  '';
 
 in
 {
