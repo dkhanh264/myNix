@@ -14,6 +14,8 @@ configuration {
 
 * {
     font:                       "Noto Sans 12";
+    background-color:           transparent;
+    text-color:                 var(fg-col);
 }
 
 window {
@@ -41,8 +43,6 @@ mainbox {
     margin:                     0px;
     padding:                    24px;
     border:                     0px solid;
-    border-radius:              0px;
-    border-color:               transparent;
     background-color:           transparent;
     children:                   [ "inputbar", "listview" ];
 }
@@ -88,7 +88,7 @@ listview {
     fixed-height:               true;
     fixed-columns:              true;
     
-    spacing:                    8px;
+    spacing:                    6px;
     margin:                     0px;
     padding:                    0px;
     border:                     0px solid;
@@ -110,15 +110,38 @@ element {
     cursor:                     pointer;
 }
 
-element normal.normal {
+element normal.normal,
+element alternate.normal {
     background-color:           transparent;
     text-color:                 var(fg-col);
+    border-color:               transparent;
 }
 
-element selected.normal {
+element normal.urgent,
+element alternate.urgent {
+    background-color:           transparent;
+    text-color:                 var(urgent-col);
+    border-color:               transparent;
+}
+
+element normal.active,
+element alternate.active {
+    background-color:           transparent;
+    text-color:                 var(primary-col);
+    border-color:               transparent;
+}
+
+element selected.normal,
+element selected.active {
     background-color:           var(bg-selected);
     border-color:               var(border-selected);
     text-color:                 var(primary-col);
+}
+
+element selected.urgent {
+    background-color:           var(bg-selected);
+    border-color:               var(border-selected);
+    text-color:                 var(urgent-col);
 }
 
 element-icon {
@@ -136,4 +159,9 @@ element-text {
     vertical-align:             0.5;
     horizontal-align:           0.0;
     font:                       "Noto Sans SemiBold 12";
+}
+
+element selected.normal element-text,
+element selected.active element-text {
+    text-color:                 var(primary-col);
 }
