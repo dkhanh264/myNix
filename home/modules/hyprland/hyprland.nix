@@ -28,7 +28,13 @@ let
 
   captureScreen = pkgs.writeShellApplication {
     name = "capture-screen";
-    runtimeInputs = with pkgs; [ coreutils grim slurp wl-clipboard libnotify ];
+    runtimeInputs = with pkgs; [
+      coreutils
+      grim
+      slurp
+      wl-clipboard
+      libnotify
+    ];
     text = ''
       set -Eeuo pipefail
 
@@ -86,19 +92,18 @@ let
 
 in
 {
-  home.activation.ensureHyprlandPalette = lib.hm.dag.entryBetween
-    [ "linkGeneration" ]
-    [ "writeBoundary" ]
-    ''
-      palette_dir="$HOME/.config/hypr"
-      palette_path="$palette_dir/wal-colors.conf"
+  home.activation.ensureHyprlandPalette =
+    lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ]
+      ''
+        palette_dir="$HOME/.config/hypr"
+        palette_path="$palette_dir/wal-colors.conf"
 
-      $DRY_RUN_CMD mkdir -p "$palette_dir"
-      if [ ! -e "$palette_path" ]; then
-        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 \
-          ${defaultHyprlandPalette} "$palette_path"
-      fi
-    '';
+        $DRY_RUN_CMD mkdir -p "$palette_dir"
+        if [ ! -e "$palette_path" ]; then
+          $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 \
+            ${defaultHyprlandPalette} "$palette_path"
+        fi
+      '';
 
   home.packages = [
     captureScreen
@@ -111,8 +116,8 @@ in
       # ── Monitors ──────────────────────────────────────────────────────
       # eDP-1 là màn hình laptop, HDMI-A-1 là màn hình ngoài.
       monitor = [
-        "eDP-1, 1920x1080@144, 1920x0, 1"
-        "HDMI-A-1, highrr, 0x0, 1"
+        "eDP-1, highrr, 0x0, 1"
+        "HDMI-A-1, highrr, 1920x0, 1"
       ];
 
       # ── NVIDIA + Wayland env vars ──────────────────────────────────────
@@ -143,81 +148,81 @@ in
 
       # ── General ───────────────────────────────────────────────────────
       general = {
-        gaps_in               = 6;
-        gaps_out              = 12;
-        border_size           = 2;
+        gaps_in = 6;
+        gaps_out = 12;
+        border_size = 2;
         # Static semantic fallback.  The sourced Pywal fragment below is
         # appended last and overrides these colors without rebuilding Home
         # Manager whenever the wallpaper changes.
-        "col.active_border"   = "rgba(bec2ffff) rgba(c6bfffff) 45deg";
+        "col.active_border" = "rgba(bec2ffff) rgba(c6bfffff) 45deg";
         "col.inactive_border" = "rgba(8e9099a6)";
-        layout                = "dwindle";
-        resize_on_border      = true;
+        layout = "dwindle";
+        resize_on_border = true;
       };
 
       decoration = {
         rounding = 16;
         rounding_power = 3.0;
         shadow = {
-          enabled        = true;
-          range          = 8;
-          render_power   = 3;
-          ignore_window  = true;
-          color          = "rgba(05070ca6)";
+          enabled = true;
+          range = 8;
+          render_power = 3;
+          ignore_window = true;
+          color = "rgba(05070ca6)";
           color_inactive = "rgba(05070c66)";
-          offset         = "0 3";
-          scale          = 0.985;
+          offset = "0 3";
+          scale = 0.985;
         };
         blur = {
-          enabled            = true;
+          enabled = true;
           # Keep floating widgets readable without washing the wallpaper into
           # a heavy glass haze.
-          size               = 6;
-          passes             = 2;
-          new_optimizations  = true;
-          ignore_opacity     = true;
-          popups             = true;
+          size = 6;
+          passes = 2;
+          new_optimizations = true;
+          ignore_opacity = true;
+          popups = true;
           popups_ignorealpha = 0.05;
-          noise              = 0.002;
-          contrast           = 0.97;
-          brightness         = 1.03;
-          vibrancy           = 0.04;
-          vibrancy_darkness  = 0.00;
+          noise = 0.002;
+          contrast = 0.97;
+          brightness = 1.03;
+          vibrancy = 0.04;
+          vibrancy_darkness = 0.00;
         };
       };
 
       # Hyprland only draws text itself for a few compositor-owned surfaces.
       # Match those to the same UI family and semantic palette as Quickshell.
       group = {
-        "col.border_active"          = "rgba(bec2ffff) rgba(c6bfffff) 45deg";
-        "col.border_inactive"        = "rgba(8e909986)";
-        "col.border_locked_active"   = "rgba(c6bfffff) rgba(bec2ffff) 45deg";
+        "col.border_active" = "rgba(bec2ffff) rgba(c6bfffff) 45deg";
+        "col.border_inactive" = "rgba(8e909986)";
+        "col.border_locked_active" = "rgba(c6bfffff) rgba(bec2ffff) 45deg";
         "col.border_locked_inactive" = "rgba(8e909970)";
 
         groupbar = {
-          enabled                     = true;
-          font_family                 = "Noto Sans";
-          font_size                   = 11;
-          font_weight_active          = "semibold";
-          font_weight_inactive        = "normal";
-          height                      = 28;
-          indicator_height            = 3;
-          indicator_gap               = 2;
-          gradients                   = true;
-          gradient_rounding           = 8;
-          gradient_rounding_power     = 3.0;
-          gradient_round_only_edges   = false;
-          gaps_in                     = 3;
-          gaps_out                    = 3;
-          keep_upper_gap              = true;
-          "col.active"               = "rgba(bec2ffff)";
-          "col.inactive"             = "rgba(242731ee)";
-          "col.locked_active"        = "rgba(c6bfffff)";
-          "col.locked_inactive"      = "rgba(242731ee)";
-          text_color                  = "rgba(191b24ff)";
-          text_color_inactive         = "rgba(c6c5ccff)";
-          text_color_locked_active    = "rgba(191b24ff)";
-          text_color_locked_inactive  = "rgba(c6c5ccff)";
+          enabled = true;
+          font_family = "Noto Sans";
+          font_size = 11;
+          font_weight_active = "semibold";
+          font_weight_inactive = "normal";
+          height = 28;
+          indicator_height = 3;
+          indicator_gap = 2;
+          gradients = true;
+          gradient_rounding = 8;
+          gradient_rounding_power = 3.0;
+          gradient_round_only_edges = false;
+          gaps_in = 3;
+          gaps_out = 3;
+          keep_upper_gap = true;
+          "col.active" = "rgba(bec2ffff)";
+          "col.inactive" = "rgba(242731ee)";
+          "col.locked_active" = "rgba(c6bfffff)";
+          "col.locked_inactive" = "rgba(242731ee)";
+          text_color = "rgba(191b24ff)";
+          text_color_inactive = "rgba(c6c5ccff)";
+          text_color_locked_active = "rgba(191b24ff)";
+          text_color_locked_inactive = "rgba(c6c5ccff)";
         };
       };
 
@@ -241,14 +246,14 @@ in
       };
 
       input = {
-        kb_layout    = "us";
+        kb_layout = "us";
         follow_mouse = 1;
         touchpad = {
-          natural_scroll       = true;
+          natural_scroll = true;
           disable_while_typing = true;
-          tap-to-click         = true;
+          tap-to-click = true;
           # 1 ngón = click trái (l), 2 ngón = click phải (r)
-          tap_button_map       = "lrm";
+          tap_button_map = "lrm";
         };
         sensitivity = 0;
       };
@@ -260,18 +265,18 @@ in
       ];
 
       dwindle = {
-        pseudotile     = true;
+        pseudotile = true;
         preserve_split = true;
       };
 
       misc = {
-        vfr                     = true;
-        disable_hyprland_logo   = true;
+        vfr = true;
+        disable_hyprland_logo = true;
         disable_splash_rendering = true;
-        font_family             = "Noto Sans";
-        splash_font_family      = "Noto Sans";
+        font_family = "Noto Sans";
+        splash_font_family = "Noto Sans";
         mouse_move_enables_dpms = true;
-        key_press_enables_dpms  = true;
+        key_press_enables_dpms = true;
       };
 
       render = {
@@ -299,7 +304,7 @@ in
         "$mainMod, Q,    exec, kitty"
         "$mainMod, W,         exec, brave"
         "$mainMod, E,         exec, nautilus"
-        
+
         # ── Launcher ứng dụng & widget hệ thống ────────────────────────
         "$mainMod, space,     exec, walker-menu apps"
         "$mainMod SHIFT, space, exec, quickshell ipc call launcher wallpapers"
@@ -308,15 +313,15 @@ in
         "$mainMod, escape,    exec, quickshell ipc call shellPopup session"
         "$mainMod CTRL, space, exec, cycle-background"
         "$mainMod SHIFT, R,   exec, systemctl --user restart quickshell"
-        
+
         "ALT, F4,         killactive"
         "$mainMod, V,         togglefloating"
         "$mainMod, F,         fullscreen, 0"
         "$mainMod, L,         exec, qs ipc call lockscreen lock"
-        
+
         # Dùng walker --dmenu thay cho rofi -dmenu để gọi clipboard
         "$mainMod, C,         exec, cliphist list | walker --dmenu | cliphist decode | wl-copy"
-        
+
         "$mainMod, left,      movefocus, l"
         "$mainMod, right,     movefocus, r"
         "$mainMod, up,        movefocus, u"
@@ -325,7 +330,7 @@ in
         "$mainMod SHIFT, right, movewindow, r"
         "$mainMod SHIFT, up,    movewindow, u"
         "$mainMod SHIFT, down,  movewindow, d"
-        
+
         "$mainMod, 1, workspace, 1"
         "$mainMod, 2, workspace, 2"
         "$mainMod, 3, workspace, 3"
@@ -342,13 +347,13 @@ in
         "$mainMod SHIFT, 6, movetoworkspace, 6"
         "$mainMod SHIFT, 7, movetoworkspace, 7"
         "$mainMod SHIFT, 8, movetoworkspace, 8"
-        
+
         "$mainMod, S,       togglespecialworkspace, magic"
         "$mainMod SHIFT, S, movetoworkspace, special:magic"
-        
+
         ", Print,      exec, capture-screen region"
         "SHIFT, Print, exec, capture-screen full"
-        
+
         # ── OSD Âm lượng & Truyền thông ────────────────────────────────
         ", XF86AudioRaiseVolume, exec, volume-osd up"
         ", XF86AudioLowerVolume, exec, volume-osd down"
@@ -356,7 +361,7 @@ in
         ", XF86AudioPlay,        exec, playerctl play-pause"
         ", XF86AudioNext,        exec, playerctl next"
         ", XF86AudioPrev,        exec, playerctl previous"
-        
+
         ", XF86MonBrightnessUp,   exec, brightness-osd up"
         ", XF86MonBrightnessDown, exec, brightness-osd down"
       ];
