@@ -48,6 +48,7 @@
     obsidian
     zoom-us
     zathura
+    davinci-resolve
 
     # dev
     jdk17
