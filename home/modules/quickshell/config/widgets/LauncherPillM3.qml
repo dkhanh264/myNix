@@ -57,6 +57,6 @@ M3BarPill {
         }
     }
 
-    onClicked: launcherProc.exec(["walker-menu", "apps"])
+    onClicked: launcherProc.exec(["rofi-launcher"])
     onSecondaryClicked: root.wallpaperRequested()
 }

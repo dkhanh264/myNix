@@ -1,7 +1,7 @@
 ## Tính năng chính
 
 - **NixOS flake** với cấu hình `nixosConfigurations.HiMeo`.
-- **Hyprland (Wayland)**: Quickshell, Walker, swww và hypridle.
+- **Hyprland (Wayland)**: Quickshell, Rofi, swww và hypridle.
 - **NVIDIA + Intel PRIME Sync Mode** và biến môi trường Wayland cần thiết.
 - **Home Manager** cho user `dk` với module tách theo chủ đề.
 - **NixVim** cấu hình hoàn toàn bằng Nix (LSP, Treesitter, Telescope, v.v.).
@@ -27,7 +27,7 @@ File chính: `hosts/laptop/configuration.nix`
 File chính: `home/home.nix`
 
 - Core packages + môi trường
-- Hyprland + Quickshell + Walker + swww + hypridle
+- Hyprland + Quickshell + Rofi + swww + hypridle
 - Terminal: Kitty
 - Dev: Git + NixVim
 - Theme: GTK/Qt + Pywal

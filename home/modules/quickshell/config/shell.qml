@@ -851,7 +851,7 @@ ShellRoot {
         target: "launcher"
 
         function apps(): void {
-            systemService.execDetached(["walker-menu", "apps"]);
+            systemService.execDetached(["rofi-launcher"]);
         }
 
         function wallpapers(): void {

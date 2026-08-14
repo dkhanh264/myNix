@@ -294,8 +294,7 @@ in
         "opacity 0.95 0.90, class:^(discord)$"
         "opacity 0.95 0.90, class:^(Spotify)$"
         "opacity 0.95 0.90, class:^(Code|code)$"
-        "noshadow, class:^(walker)$"
-        "noshadow, title:^(walker)$"
+        "noshadow, class:^(Rofi|rofi)$"
       ];
 
       "$mainMod" = "SUPER";
@@ -306,7 +305,7 @@ in
         "$mainMod, E,         exec, nautilus"
 
         # ── Launcher ứng dụng & widget hệ thống ────────────────────────
-        "$mainMod, space,     exec, walker-menu apps"
+        "$mainMod, space,     exec, rofi-launcher"
         "$mainMod SHIFT, space, exec, quickshell ipc call launcher wallpapers"
         "$mainMod, A,         exec, qs ipc call controlCenter toggle"
         "$mainMod, P,         exec, quickshell ipc call shellPopup profile"
@@ -319,8 +318,8 @@ in
         "$mainMod, F,         fullscreen, 0"
         "$mainMod, L,         exec, qs ipc call lockscreen lock"
 
-        # Dùng walker --dmenu thay cho rofi -dmenu để gọi clipboard
-        "$mainMod, C,         exec, cliphist list | walker --dmenu | cliphist decode | wl-copy"
+        # Dùng rofi -dmenu để gọi clipboard
+        "$mainMod, C,         exec, cliphist list | rofi -dmenu -p \"Clipboard\" | cliphist decode | wl-copy"
 
         "$mainMod, left,      movefocus, l"
         "$mainMod, right,     movefocus, r"
@@ -372,9 +371,9 @@ in
       ];
       # ── Blur cho các giao diện nổi (Android 17 Glassmorphic Backdrop) ────
       layerrule = [
-        "blur, walker"
-        "ignorezero, walker"
-        "ignorealpha 0.05, walker"
+        "blur, rofi"
+        "ignorezero, rofi"
+        "ignorealpha 0.05, rofi"
         "blur, notifications"
         "ignorezero, notifications"
         "blur, m3-shell"

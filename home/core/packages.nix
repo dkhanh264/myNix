@@ -56,9 +56,7 @@
     codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
     antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-cli
 
-    # Thêm các công cụ từ nixparency-dots
-    walker # Thay thế Rofi làm launcher
-    libqalculate # Cho module máy tính của walker
-
+    # App launcher
+    rofi
   ];
 }

@@ -12,6 +12,20 @@ let
   '';
 
 
+  fallbackRofiTheme = pkgs.writeText "rofi-wal-fallback" ''
+    * {
+        bg-col: rgba(27, 27, 31, 0.92);
+        bg-search: rgba(169, 199, 255, 0.14);
+        bg-selected: rgba(169, 199, 255, 0.24);
+        border-col: rgba(169, 199, 255, 0.45);
+        border-selected: rgba(169, 199, 255, 0.65);
+        primary-col: #a9c7ff;
+        fg-col: rgba(229, 225, 230, 0.94);
+        fg-muted: rgba(229, 225, 230, 0.60);
+        urgent-col: #ffb4ab;
+    }
+  '';
+
   fallbackBtopTheme = pkgs.writeText "btop-wal-fallback" ''
     theme[main_bg]="#1b1b1f"
     theme[main_fg]="#e5e1e6"
@@ -75,6 +89,7 @@ let
       CURRENT_DIR="$HOME/.config/current"
       SEMANTIC_PALETTE="$CURRENT_DIR/system-palette.json"
       GTK_COLORS="$CURRENT_DIR/wal-colors.css"
+      ROFI_COLORS="$CURRENT_DIR/wal-colors.rasi"
       KITTY_COLORS="$HOME/.config/kitty/wal-theme.conf"
       BTOP_COLORS="$HOME/.config/btop/themes/wal.theme"
       CAVA_COLORS="$HOME/.config/cava/themes/wal"
@@ -219,7 +234,25 @@ EOF
         changed_any=1
       fi
 
-      # Legacy role names stay available for Waybar and Walker, while the new
+            if atomic_write "$ROFI_COLORS" <<EOF
+      * {
+          bg-col: $(css_rgba "$BG" 0.92);
+          bg-search: $(css_rgba "$PRIMARY" 0.14);
+          bg-selected: $(css_rgba "$PRIMARY" 0.24);
+          border-col: $(css_rgba "$PRIMARY" 0.45);
+          border-selected: $(css_rgba "$PRIMARY" 0.65);
+          primary-col: $PRIMARY;
+          fg-col: $(css_rgba "$FG" 0.94);
+          fg-muted: $(css_rgba "$FG" 0.60);
+          urgent-col: $ERROR;
+      }
+EOF
+      then
+        changed_any=1
+        css_changed=1
+      fi
+
+      # Legacy role names stay available for Waybar and Rofi, while the new
       # semantic names give future consumers one stable palette contract.
       if atomic_write "$GTK_COLORS" <<EOF
       @define-color selected-text $PRIMARY;
@@ -398,7 +431,7 @@ EOF
 
       # Reload consumers whose generated files changed
       if (( css_changed )); then
-        pkill -x walker >/dev/null 2>&1 || true
+        pkill -x rofi >/dev/null 2>&1 || true
       fi
       if (( kitty_changed )); then
         kitty @ set-colors --all "$KITTY_COLORS" >/dev/null 2>&1 || true
@@ -887,6 +920,12 @@ in
       run install -m 0644 ${fallbackBtopTheme} "$btop_theme"
     fi
 
+
+        rofi_theme="$HOME/.config/current/wal-colors.rasi"
+    if [[ ! -e "$rofi_theme" ]]; then
+      run mkdir -p "$(dirname "$rofi_theme")"
+      run install -m 0644 ${fallbackRofiTheme} "$rofi_theme"
+    fi
 
     cava_theme="$HOME/.config/cava/themes/wal"
     if [[ ! -e "$cava_theme" ]]; then
