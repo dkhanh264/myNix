@@ -231,17 +231,21 @@ in
         bezier = [
           "m3Standard, 0.2, 0.0, 0.0, 1.0"
           "m3Emphasized, 0.05, 0.7, 0.1, 1.0"
+          "winIn, 0.1, 1.1, 0.1, 1.0"
+          "winOut, 0.3, -0.2, 0.7, -0.15"
+          "easeOutExpo, 0.16, 1, 0.3, 1"
         ];
         animation = [
           "border,        1, 5, m3Standard"
-          "windows,       1, 6, m3Emphasized"
-          "windowsIn,     1, 6, m3Emphasized, popin 94%"
-          "windowsOut,    1, 5, m3Standard, popin 88%"
-          "fadeIn,        1, 5, m3Emphasized"
-          "fadeOut,       1, 4, m3Standard"
-          "layersIn,      1, 5, m3Emphasized, fade"
-          "layersOut,     1, 4, m3Standard, fade"
-          "workspaces,    1, 5, m3Emphasized, slide"
+          "windows,       1, 4.5, winIn"
+          "windowsIn,     1, 4.5, winIn, popin 80%"
+          "windowsOut,    1, 3.5, winOut, popin 80%"
+          "windowsMove,   1, 4, easeOutExpo, slide"
+          "fadeIn,        1, 3.5, easeOutExpo"
+          "fadeOut,       1, 3, winOut"
+          "layersIn,      1, 4, winIn, popin 85%"
+          "layersOut,     1, 3, winOut, popin 85%"
+          "workspaces,    1, 4.5, easeOutExpo, slidefade 15%"
         ];
       };
 
