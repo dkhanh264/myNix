@@ -1745,7 +1745,7 @@ Scope {
     }
 
     Timer {
-        interval: 1000
+        interval: 2000
         running: true
         repeat: true
         onTriggered: root.refreshSystemStats(false)

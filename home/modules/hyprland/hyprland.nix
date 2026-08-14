@@ -114,10 +114,12 @@ in
 
     settings = {
       # ── Monitors ──────────────────────────────────────────────────────
-      # eDP-1 là màn hình laptop, HDMI-A-1 là màn hình ngoài.
+      # eDP-1: Màn hình laptop 1920x1080@144Hz tại vị trí 0x0
+      # HDMI-A-1: Màn hình rời LG UltraGear 1920x1080@180Hz tại vị trí 1920x0
       monitor = [
-        "eDP-1,1920x1080@144, 0x0, 1"
-        "HDMI-A-1, highrr, 1920x0, 1"
+        "eDP-1, 1920x1080@144, 0x0, 1"
+        "HDMI-A-1, 1920x1080@180, 1920x0, 1"
+        ", preferred, auto, 1"
       ];
 
       # ── NVIDIA + Wayland env vars ──────────────────────────────────────
@@ -281,10 +283,13 @@ in
         splash_font_family = "Noto Sans";
         mouse_move_enables_dpms = true;
         key_press_enables_dpms = true;
+        animate_manual_resizes = false;
+        animate_mouse_windowdragging = false;
       };
 
       render = {
         direct_scanout = true;
+        explicit_sync = 1;
       };
 
       windowrulev2 = [

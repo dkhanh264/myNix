@@ -432,7 +432,7 @@ PanelWindow {
         focus: root.popupOpen && root.hostActive
         enabled: root.popupOpen && root.hostActive
         opacity: revealProgress
-        scale: 0.94 + revealProgress * 0.06
+        scale: 0.92 + revealProgress * 0.08
         transformOrigin: Item.Top
         clip: true
 
@@ -443,7 +443,7 @@ PanelWindow {
         Accessible.focusable: true
 
         transform: Translate {
-            y: (1 - morphPanel.revealProgress) * -8
+            y: (1 - morphPanel.revealProgress) * -12
         }
 
         Keys.onEscapePressed: event => {
@@ -466,7 +466,7 @@ PanelWindow {
             NumberAnimation {
                 duration: Theme.popupMorphDuration
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.standardCurve
+                easing.bezierCurve: Theme.emphasizedDecelerate
             }
         }
 
@@ -475,7 +475,7 @@ PanelWindow {
             NumberAnimation {
                 duration: Theme.popupMorphDuration
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.standardCurve
+                easing.bezierCurve: Theme.emphasizedDecelerate
             }
         }
 
@@ -484,7 +484,7 @@ PanelWindow {
             NumberAnimation {
                 duration: Theme.popupMorphDuration
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.standardCurve
+                easing.bezierCurve: Theme.emphasizedDecelerate
             }
         }
 
@@ -493,7 +493,7 @@ PanelWindow {
             NumberAnimation {
                 duration: Theme.popupMorphDuration
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.standardCurve
+                easing.bezierCurve: Theme.emphasizedDecelerate
             }
         }
 
@@ -504,7 +504,7 @@ PanelWindow {
                     : Theme.popupCloseDuration
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: root.popupOpen
-                    ? Theme.springCurve : Theme.emphasizedAccelerate
+                    ? Theme.popupSpringCurve : Theme.emphasizedAccelerate
             }
         }
 

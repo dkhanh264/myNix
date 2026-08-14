@@ -104,7 +104,7 @@ writeShellApplication {
       # profile and retry the display policy when the graphical session syncs.
       hyprctl monitors -j >/dev/null 2>&1 || return 1
       hyprctl keyword monitor \
-        "eDP-1, 1920x1080@$refresh_rate, 1920x0, 1" >/dev/null
+        "eDP-1, 1920x1080@$refresh_rate, 0x0, 1" >/dev/null
     }
 
     write_applied_profile() {

@@ -177,6 +177,16 @@
 
   services.fstrim.enable = true;
 
+  # Giới hạn dung lượng lưu log của systemd journald để giảm bớt ghi đĩa (I/O) và tiết kiệm RAM
+  services.journald.extraConfig = ''
+    SystemMaxUse=100M
+    SystemMaxFileSize=20M
+    Storage=persistent
+  '';
+
+  # Quản lý nhiệt độ & điện năng thông minh cho CPU Intel
+  services.thermald.enable = true;
+
   # ── Audio — PipeWire ───────────────────────────────────────────────────
   services.pipewire = {
     enable = true;
