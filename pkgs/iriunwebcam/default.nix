@@ -94,6 +94,7 @@ stdenv.mkDerivation rec {
 
     if [ -f $out/share/applications/iriunwebcam.desktop ]; then
      substituteInPlace $out/share/applications/iriunwebcam.desktop \
+       --replace "/usr/local/bin/iriunwebcam" "$out/bin/iriunwebcam" \
        --replace "/usr/bin/iriunwebcam" "$out/bin/iriunwebcam" || true
     fi
 
