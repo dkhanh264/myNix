@@ -182,6 +182,7 @@ in
           size = 6;
           passes = 2;
           new_optimizations = true;
+          xray = true;
           ignore_opacity = true;
           popups = true;
           popups_ignorealpha = 0.05;
@@ -285,6 +286,7 @@ in
         key_press_enables_dpms = true;
         animate_manual_resizes = false;
         animate_mouse_windowdragging = false;
+        disable_autoreload = true;
       };
 
       render = {
