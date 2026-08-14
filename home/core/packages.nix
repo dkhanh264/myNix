@@ -48,7 +48,18 @@
     obsidian
     zoom-us
     zathura
-    davinci-resolve
+
+    (pkgs.symlinkJoin {
+      name = "davinci-resolve";
+      paths = [ pkgs.davinci-resolve ];
+
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+
+      postBuild = ''
+        wrapProgram $out/bin/davinci-resolve \
+          --set QT_QPA_PLATFORM xcb
+      '';
+    })
 
     # dev
     jdk17
