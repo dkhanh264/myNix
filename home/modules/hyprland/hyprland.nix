@@ -289,7 +289,6 @@ in
 
       render = {
         direct_scanout = true;
-        explicit_sync = 1;
       };
 
       windowrulev2 = [
