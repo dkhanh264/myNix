@@ -271,9 +271,9 @@ WlSessionLock {
                 Item {
                     id: stage
                     anchors.centerIn: parent
-                    width: Math.max(0, Math.min(1180,
+                    width: Math.max(0, Math.min(1240,
                         parent.width - lockSurface.stageInset * 2))
-                    height: Math.max(0, Math.min(720,
+                    height: Math.max(0, Math.min(760,
                         parent.height - lockSurface.stageInset * 2))
                     opacity: lockSurface.revealProgress
 
@@ -281,6 +281,7 @@ WlSessionLock {
                         y: (1 - lockSurface.revealProgress) * 12
                     }
 
+                    // ── LEFT HERO PANE (Android 17 Massive Clock & At-A-Glance) ────
                     Item {
                         id: heroPane
                         x: 0
@@ -290,7 +291,7 @@ WlSessionLock {
                             : stage.width
                         height: lockSurface.wideLayout
                             ? stage.height
-                            : Math.max(lockSurface.shortLayout ? 200 : 230,
+                            : Math.max(lockSurface.shortLayout ? 220 : 260,
                                 heroContent.implicitHeight)
 
                         Column {
@@ -302,55 +303,156 @@ WlSessionLock {
                                     : parent.horizontalCenter
                             anchors.verticalCenter: parent.verticalCenter
                             width: lockSurface.wideLayout
-                                ? parent.width : Math.min(parent.width, 520)
+                                ? parent.width : Math.min(parent.width, 560)
                             spacing: Theme.space4
 
-                            // 1. Clock Display
+                            // 1. Android 17 Signature Dual-Line Stacked Clock (Wide) / Horizontal (Compact)
+                            Column {
+                                visible: lockSurface.wideLayout
+                                spacing: -46
+
+                                Text {
+                                    text: Qt.formatDateTime(systemClock.date, "HH")
+                                    color: Theme.wallpaperPrimary
+                                    font.family: Theme.textFont
+                                    font.pixelSize: 136
+                                    font.weight: Font.Bold
+                                    font.letterSpacing: -6
+                                }
+
+                                Text {
+                                    text: Qt.formatDateTime(systemClock.date, "mm")
+                                    color: Theme.wallpaperSecondary
+                                    font.family: Theme.textFont
+                                    font.pixelSize: 136
+                                    font.weight: Font.Bold
+                                    font.letterSpacing: -6
+                                }
+                            }
+
                             Row {
-                                x: lockSurface.wideLayout ? 0
-                                    : Math.round((parent.width - width) / 2)
+                                visible: !lockSurface.wideLayout
+                                x: Math.round((parent.width - width) / 2)
                                 spacing: 2
 
                                 Text {
-                                    text: Qt.formatDateTime(
-                                        systemClock.date, "HH")
-                                    color: Theme.textPrimary
+                                    text: Qt.formatDateTime(systemClock.date, "HH")
+                                    color: Theme.wallpaperPrimary
                                     font.family: Theme.textFont
-                                    font.pixelSize: lockSurface.compactLayout
-                                        ? 72
-                                        : lockSurface.shortLayout ? 88 : 108
+                                    font.pixelSize: lockSurface.compactLayout ? 68 : 84
                                     font.weight: Font.Bold
-                                    font.letterSpacing: -4
+                                    font.letterSpacing: -3
                                 }
 
                                 Text {
                                     text: ":"
-                                    color: Theme.alpha(Theme.primaryText, 0.75)
+                                    color: Theme.alpha(Theme.primaryText, 0.70)
                                     font.family: Theme.textFont
-                                    font.pixelSize: lockSurface.compactLayout
-                                        ? 72
-                                        : lockSurface.shortLayout ? 88 : 108
+                                    font.pixelSize: lockSurface.compactLayout ? 68 : 84
                                     font.weight: Font.Bold
-                                    font.letterSpacing: -4
+                                    font.letterSpacing: -3
                                 }
 
                                 Text {
-                                    text: Qt.formatDateTime(
-                                        systemClock.date, "mm")
-                                    color: Theme.primaryText
+                                    text: Qt.formatDateTime(systemClock.date, "mm")
+                                    color: Theme.wallpaperSecondary
                                     font.family: Theme.textFont
-                                    font.pixelSize: lockSurface.compactLayout
-                                        ? 72
-                                        : lockSurface.shortLayout ? 88 : 108
+                                    font.pixelSize: lockSurface.compactLayout ? 68 : 84
                                     font.weight: Font.Bold
-                                    font.letterSpacing: -4
+                                    font.letterSpacing: -3
                                 }
                             }
 
-                            // 2. Status Chips Row (Date, Battery, Network)
+                            // 2. Android 17 "At A Glance" Weather Card
+                            Rectangle {
+                                id: atAGlanceCard
+                                x: lockSurface.wideLayout ? 0 : Math.round((parent.width - width) / 2)
+                                width: Math.min(parent.width, 460)
+                                implicitHeight: weatherRow.implicitHeight + Theme.space4 * 2
+                                radius: 28
+                                color: Theme.alpha(Theme.blend(Theme.surfaceContainerHigh, Theme.primary, 0.08), 0.86)
+                                border.width: 1
+                                border.color: Theme.alpha(Theme.primary, 0.16)
+
+                                RowLayout {
+                                    id: weatherRow
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    anchors.top: parent.top
+                                    anchors.margins: Theme.space4
+                                    spacing: Theme.space3
+
+                                    Rectangle {
+                                        Layout.preferredWidth: 48
+                                        Layout.preferredHeight: 48
+                                        Layout.alignment: Qt.AlignVCenter
+                                        radius: 24
+                                        color: Theme.primaryContainer
+
+                                        MaterialIcon {
+                                            anchors.centerIn: parent
+                                            text: lockSurface.weatherIconName(lock.systemService ? lock.systemService.weatherCode : 0)
+                                            iconSize: 26
+                                            color: Theme.primaryContainerContent
+                                            filled: true
+                                        }
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        Layout.alignment: Qt.AlignVCenter
+                                        spacing: 2
+
+                                        RowLayout {
+                                            spacing: Theme.space2
+
+                                            M3Text {
+                                                role: "titleLarge"
+                                                text: (lock.systemService && lock.systemService.weatherAvailable)
+                                                    ? lock.systemService.weatherTemperature + "°C"
+                                                    : "--°C"
+                                                color: Theme.textPrimary
+                                                font.weight: Font.Bold
+                                            }
+
+                                            M3Text {
+                                                Layout.fillWidth: true
+                                                role: "titleSmall"
+                                                text: (lock.systemService && lock.systemService.weatherAvailable)
+                                                    ? (lock.systemService.weatherDescription || lockSurface.weatherDescriptionText(lock.systemService.weatherCode))
+                                                    : (lock.systemService && lock.systemService.weatherLoading ? I18n.tr("Đang cập nhật…", "Updating…") : I18n.tr("Thời tiết", "Weather"))
+                                                color: Theme.primaryText
+                                                font.weight: Font.DemiBold
+                                                elide: Text.ElideRight
+                                            }
+                                        }
+
+                                        RowLayout {
+                                            spacing: 4
+
+                                            MaterialIcon {
+                                                text: "location_on"
+                                                iconSize: 14
+                                                color: Theme.textSecondary
+                                            }
+
+                                            M3Text {
+                                                Layout.fillWidth: true
+                                                role: "labelMedium"
+                                                text: (lock.systemService && lock.systemService.weatherLocation.length > 0)
+                                                    ? lock.systemService.weatherLocation
+                                                    : I18n.tr("Vị trí cục bộ", "Local location")
+                                                color: Theme.textSecondary
+                                                elide: Text.ElideRight
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // 3. Android 17 Status Badges Row (Date, Battery, Network)
                             Flow {
-                                x: lockSurface.wideLayout ? 0
-                                    : Math.round((parent.width - width) / 2)
+                                x: lockSurface.wideLayout ? 0 : Math.round((parent.width - width) / 2)
                                 width: Math.min(parent.width, 480)
                                 spacing: Theme.space2
 
@@ -380,12 +482,8 @@ WlSessionLock {
                                             anchors.verticalCenter: parent.verticalCenter
                                             role: "labelMedium"
                                             text: systemClock.date.toLocaleDateString(
-                                                I18n.vietnamese
-                                                    ? Qt.locale("vi_VN")
-                                                    : Qt.locale("en_US"),
-                                                I18n.vietnamese
-                                                    ? "dddd, d MMMM yyyy"
-                                                    : "dddd, MMMM d, yyyy")
+                                                I18n.vietnamese ? Qt.locale("vi_VN") : Qt.locale("en_US"),
+                                                I18n.vietnamese ? "dddd, d MMMM yyyy" : "dddd, MMMM d, yyyy")
                                             color: Theme.textPrimary
                                             font.weight: Font.Medium
                                             elide: Text.ElideRight
@@ -395,8 +493,7 @@ WlSessionLock {
 
                                 // Battery Chip
                                 Rectangle {
-                                    visible: lock.systemService !== null
-                                        && lock.systemService.batteryPercent >= 0
+                                    visible: lock.systemService !== null && lock.systemService.batteryPercent >= 0
                                     implicitWidth: batteryRow.implicitWidth + Theme.space4 * 2
                                     implicitHeight: 34
                                     radius: height / 2
@@ -432,8 +529,7 @@ WlSessionLock {
 
                                 // Wi-Fi Chip
                                 Rectangle {
-                                    visible: lock.systemService !== null
-                                        && lock.systemService.wifiSsid.length > 0
+                                    visible: lock.systemService !== null && lock.systemService.wifiSsid.length > 0
                                     implicitWidth: wifiRow.implicitWidth + Theme.space4 * 2
                                     implicitHeight: 34
                                     radius: height / 2
@@ -464,97 +560,10 @@ WlSessionLock {
                                     }
                                 }
                             }
-
-                            // 3. Dedicated Material 3 Weather Widget
-                            Rectangle {
-                                id: lockWeatherWidget
-                                x: lockSurface.wideLayout ? 0
-                                    : Math.round((parent.width - width) / 2)
-                                width: Math.min(parent.width, 420)
-                                implicitHeight: weatherInnerLayout.implicitHeight + Theme.space4 * 2
-                                radius: Theme.shapeExtraLarge
-                                color: Theme.alpha(Theme.blend(Theme.surfaceContainerLow, Theme.primary, 0.07), 0.88)
-                                border.width: 1
-                                border.color: Theme.alpha(Theme.primary, 0.16)
-
-                                RowLayout {
-                                    id: weatherInnerLayout
-                                    anchors.left: parent.left
-                                    anchors.right: parent.right
-                                    anchors.top: parent.top
-                                    anchors.margins: Theme.space4
-                                    spacing: Theme.space3
-
-                                    Rectangle {
-                                        Layout.preferredWidth: 50
-                                        Layout.preferredHeight: 50
-                                        Layout.alignment: Qt.AlignVCenter
-                                        radius: Theme.shapeLarge
-                                        color: Theme.alpha(Theme.primary, 0.15)
-
-                                        MaterialIcon {
-                                            anchors.centerIn: parent
-                                            text: lockSurface.weatherIconName(lock.systemService ? lock.systemService.weatherCode : 0)
-                                            iconSize: 26
-                                            color: Theme.primaryText
-                                            filled: true
-                                        }
-                                    }
-
-                                    ColumnLayout {
-                                        Layout.fillWidth: true
-                                        Layout.alignment: Qt.AlignVCenter
-                                        spacing: 2
-
-                                        RowLayout {
-                                            spacing: Theme.space2
-
-                                            M3Text {
-                                                role: "titleLarge"
-                                                text: (lock.systemService && lock.systemService.weatherAvailable)
-                                                    ? lock.systemService.weatherTemperature + "°C"
-                                                    : "--°C"
-                                                color: Theme.textPrimary
-                                                font.weight: Font.Bold
-                                            }
-
-                                            M3Text {
-                                                Layout.fillWidth: true
-                                                role: "labelLarge"
-                                                text: (lock.systemService && lock.systemService.weatherAvailable)
-                                                    ? (lock.systemService.weatherDescription || lockSurface.weatherDescriptionText(lock.systemService.weatherCode))
-                                                    : (lock.systemService && lock.systemService.weatherLoading ? I18n.tr("Đang tải…", "Loading…") : I18n.tr("Thời tiết", "Weather"))
-                                                color: Theme.primaryText
-                                                font.weight: Font.DemiBold
-                                                elide: Text.ElideRight
-                                            }
-                                        }
-
-                                        RowLayout {
-                                            spacing: 4
-
-                                            MaterialIcon {
-                                                text: "location_on"
-                                                iconSize: 14
-                                                color: Theme.textSecondary
-                                            }
-
-                                            M3Text {
-                                                Layout.fillWidth: true
-                                                role: "labelMedium"
-                                                text: (lock.systemService && lock.systemService.weatherLocation.length > 0)
-                                                    ? lock.systemService.weatherLocation
-                                                    : I18n.tr("Vị trí địa phương", "Local location")
-                                                color: Theme.textSecondary
-                                                elide: Text.ElideRight
-                                            }
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
 
+                    // ── RIGHT / ACTION RAIL (Android 17 Keyguard Card & Media) ────
                     Column {
                         id: actionRail
                         width: Math.min(480, stage.width)
@@ -566,23 +575,23 @@ WlSessionLock {
                             ? Math.round((stage.height - height) / 2)
                             : heroPane.height + Theme.space3
 
+                        // 1. Android 17 Keyguard Auth Container
                         Rectangle {
                             id: authCard
                             readonly property int contentPadding:
-                                lockSurface.compactLayout
-                                    ? Theme.space4 : Theme.space6
+                                lockSurface.compactLayout ? Theme.space4 : Theme.space6
 
                             width: parent.width
-                            implicitHeight: authContent.implicitHeight
-                                + contentPadding * 2
-                            radius: Theme.shapeExtraLarge
+                            implicitHeight: authContent.implicitHeight + contentPadding * 2
+                            radius: 36
                             color: Theme.alpha(Theme.blend(
                                 Theme.popupSurfaceStrong,
-                                lock.authError ? Theme.error
-                                    : Theme.wallpaperPrimary,
-                                lock.authError ? 0.12 : 0.055), 0.94)
-                            border.width: lock.authError ? 2 : 0
-                            border.color: Theme.alpha(Theme.errorText, 0.72)
+                                lock.authError ? Theme.error : Theme.wallpaperPrimary,
+                                lock.authError ? 0.12 : 0.05), 0.92)
+                            border.width: lock.authError ? 2 : 1
+                            border.color: lock.authError
+                                ? Theme.alpha(Theme.errorText, 0.80)
+                                : Theme.alpha(Theme.primary, 0.15)
                             property real shakeOffset: 0
 
                             transform: Translate {
@@ -592,32 +601,16 @@ WlSessionLock {
                             SequentialAnimation on shakeOffset {
                                 id: shakeAnimation
                                 running: false
-                                NumberAnimation {
-                                    to: -8
-                                    duration: Theme.reduceMotion ? 0 : 45
-                                }
-                                NumberAnimation {
-                                    to: 8
-                                    duration: Theme.reduceMotion ? 0 : 55
-                                }
-                                NumberAnimation {
-                                    to: -6
-                                    duration: Theme.reduceMotion ? 0 : 50
-                                }
-                                NumberAnimation {
-                                    to: 6
-                                    duration: Theme.reduceMotion ? 0 : 50
-                                }
-                                NumberAnimation {
-                                    to: 0
-                                    duration: Theme.reduceMotion ? 0 : 70
-                                }
+                                NumberAnimation { to: -10; duration: 40; easing.type: Easing.OutQuad }
+                                NumberAnimation { to: 10; duration: 45; easing.type: Easing.InOutQuad }
+                                NumberAnimation { to: -8; duration: 45; easing.type: Easing.InOutQuad }
+                                NumberAnimation { to: 8; duration: 45; easing.type: Easing.InOutQuad }
+                                NumberAnimation { to: -4; duration: 40; easing.type: Easing.InOutQuad }
+                                NumberAnimation { to: 0; duration: 50; easing.type: Easing.OutQuad }
                             }
 
                             Behavior on color {
-                                ColorAnimation {
-                                    duration: Theme.motionShort4
-                                }
+                                ColorAnimation { duration: Theme.motionShort4 }
                             }
 
                             Column {
@@ -626,38 +619,41 @@ WlSessionLock {
                                 anchors.right: parent.right
                                 anchors.top: parent.top
                                 anchors.margins: authCard.contentPadding
-                                spacing: Theme.space3
+                                spacing: Theme.space4
 
+                                // Android 17 Header: Padlock Glyph + User Greeting
                                 RowLayout {
                                     width: parent.width
                                     spacing: Theme.space3
 
                                     Rectangle {
-                                        Layout.preferredWidth: 52
-                                        Layout.preferredHeight: 52
+                                        Layout.preferredWidth: 54
+                                        Layout.preferredHeight: 54
                                         Layout.alignment: Qt.AlignVCenter
-                                        radius: lock.authError
-                                            ? Theme.shapeMedium
-                                            : Theme.shapeLarge
+                                        radius: 27
                                         color: lock.authError
                                             ? Theme.errorContainer
-                                            : Theme.primaryContainer
+                                            : (lock.authenticating ? Theme.primarySolid : Theme.primaryContainer)
 
-                                        Md3ExpressiveShape {
+                                        MaterialIcon {
                                             anchors.centerIn: parent
-                                            size: Theme.iconSizeLarge
-                                            shapeName: lock.authError
-                                                ? "boom"
-                                                : (lock.authenticating
-                                                    ? "sunny" : "shield")
+                                            text: lock.authError ? "lock_reset" : (lock.authenticating ? "lock_open" : "lock")
+                                            iconSize: 26
                                             color: lock.authError
                                                 ? Theme.errorContainerContent
-                                                : Theme.primaryContainerContent
-                                            rotationAngle:
-                                                lock.authenticating ? 45 : 0
-                                            shapeScale:
-                                                lock.authenticating ? 0.86 : 1
-                                            Accessible.ignored: true
+                                                : (lock.authenticating ? Theme.primaryContent : Theme.primaryContainerContent)
+                                            filled: true
+                                        }
+
+                                        // Subtle pulse ring on auth
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            anchors.margins: -4
+                                            radius: 31
+                                            color: "transparent"
+                                            border.width: 2
+                                            border.color: Theme.alpha(Theme.primary, 0.40)
+                                            visible: lock.authenticating
                                         }
                                     }
 
@@ -669,9 +665,7 @@ WlSessionLock {
                                         M3Text {
                                             Layout.fillWidth: true
                                             role: "titleLarge"
-                                            text: I18n.tr(
-                                                "Chào mừng trở lại",
-                                                "Welcome back")
+                                            text: I18n.tr("Chào mừng trở lại", "Welcome back")
                                             color: Theme.textPrimary
                                             font.weight: Font.Bold
                                         }
@@ -679,48 +673,28 @@ WlSessionLock {
                                         M3Text {
                                             Layout.fillWidth: true
                                             role: "labelMedium"
-                                            text: I18n.tr(
-                                                "Mở khóa phiên của ",
-                                                "Unlock the session for ")
-                                                + lockSurface.userName
+                                            text: I18n.tr("Mở khóa phiên của ", "Unlock session for ") + lockSurface.userName
                                             color: Theme.textSecondary
                                             elide: Text.ElideRight
                                         }
                                     }
                                 }
 
+                                // Android 17 Password Input Pill
                                 Rectangle {
                                     width: parent.width
                                     height: 64
-                                    radius: lock.authError
-                                        ? Theme.shapeLarge
-                                        : (passwordInput.activeFocus
-                                            ? Theme.shapeSelected
-                                            : height / 2)
+                                    radius: 32
                                     color: lock.authError
-                                        ? Theme.blend(
-                                            Theme.surfaceContainerHighest,
-                                            Theme.error, 0.16)
+                                        ? Theme.blend(Theme.surfaceContainerHighest, Theme.error, 0.16)
                                         : Theme.surfaceContainerHighest
-                                    border.width:
-                                        passwordInput.activeFocus ? 2 : 0
+                                    border.width: passwordInput.activeFocus ? 2 : 1
                                     border.color: lock.authError
                                         ? Theme.errorText
-                                        : Theme.alpha(Theme.primary, 0.72)
-
-                                    Behavior on radius {
-                                        NumberAnimation {
-                                            duration: Theme.motionMedium1
-                                            easing.type: Easing.BezierSpline
-                                            easing.bezierCurve:
-                                                Theme.springCurve
-                                        }
-                                    }
+                                        : (passwordInput.activeFocus ? Theme.primary : Theme.alpha("#ffffff", 0.08))
 
                                     Behavior on color {
-                                        ColorAnimation {
-                                            duration: Theme.motionShort3
-                                        }
+                                        ColorAnimation { duration: Theme.motionShort3 }
                                     }
 
                                     RowLayout {
@@ -730,86 +704,55 @@ WlSessionLock {
                                         spacing: Theme.space2
 
                                         MaterialIcon {
-                                            visible:
-                                                !lockSurface.compactLayout
+                                            visible: !lockSurface.compactLayout
                                             Layout.alignment: Qt.AlignVCenter
-                                            text: "key"
+                                            text: "pin"
                                             iconSize: Theme.iconSizeSmall
-                                            color: lock.authError
-                                                ? Theme.errorText
-                                                : Theme.primaryText
+                                            color: lock.authError ? Theme.errorText : Theme.primaryText
                                             filled: passwordInput.activeFocus
                                         }
 
                                         Item {
                                             Layout.fillWidth: true
-                                            Layout.preferredHeight:
-                                                parent.height
+                                            Layout.preferredHeight: parent.height
                                             Layout.alignment: Qt.AlignVCenter
                                             clip: true
 
                                             TextInput {
                                                 id: passwordInput
                                                 anchors.fill: parent
-                                                verticalAlignment:
-                                                    TextInput.AlignVCenter
-                                                echoMode:
-                                                    showPasswordToggle.checked
-                                                        ? TextInput.Normal
-                                                        : TextInput.NoEcho
-                                                color:
-                                                    showPasswordToggle.checked
-                                                        ? (lock.authError
-                                                            ? Theme.errorText
-                                                            : Theme.textPrimary)
-                                                        : "transparent"
-                                                selectionColor:
-                                                    Theme.primaryContainer
-                                                selectedTextColor:
-                                                    Theme.primaryContainerContent
+                                                verticalAlignment: TextInput.AlignVCenter
+                                                echoMode: showPasswordToggle.checked ? TextInput.Normal : TextInput.NoEcho
+                                                color: showPasswordToggle.checked
+                                                    ? (lock.authError ? Theme.errorText : Theme.textPrimary)
+                                                    : "transparent"
+                                                selectionColor: Theme.primaryContainer
+                                                selectedTextColor: Theme.primaryContainerContent
                                                 font.family: Theme.textFont
                                                 font.pixelSize: 16
                                                 font.weight: Font.Medium
                                                 focus: lock.locked
                                                 activeFocusOnTab: true
-                                                readOnly:
-                                                    lock.authenticating
+                                                readOnly: lock.authenticating
                                                 clip: true
 
-                                                Accessible.role:
-                                                    Accessible.EditableText
-                                                Accessible.name: I18n.tr(
-                                                    "Mật khẩu",
-                                                    "Password")
-                                                Accessible.passwordEdit:
-                                                    !showPasswordToggle.checked
-                                                Accessible.description:
-                                                    lock.authError
-                                                        ? lock.errorMessage
-                                                        : I18n.tr(
-                                                            "Enter để mở khóa",
-                                                            "Enter to unlock")
-                                                Accessible.readOnly:
-                                                    lock.authenticating
+                                                Accessible.role: Accessible.EditableText
+                                                Accessible.name: I18n.tr("Mật khẩu", "Password")
+                                                Accessible.passwordEdit: !showPasswordToggle.checked
+                                                Accessible.description: lock.authError ? lock.errorMessage : I18n.tr("Enter để mở khóa", "Enter to unlock")
+                                                Accessible.readOnly: lock.authenticating
 
                                                 M3Text {
                                                     anchors.left: parent.left
-                                                    anchors.verticalCenter:
-                                                        parent.verticalCenter
-                                                    visible:
-                                                        passwordInput.text.length
-                                                            === 0
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    visible: passwordInput.text.length === 0
                                                     role: "bodyLarge"
-                                                    text: I18n.tr(
-                                                        "Nhập mật khẩu",
-                                                        "Enter password")
-                                                    color:
-                                                        Theme.textSecondary
+                                                    text: I18n.tr("Nhập mã PIN hoặc mật khẩu", "Enter PIN or password")
+                                                    color: Theme.textSecondary
                                                     Accessible.ignored: true
                                                 }
 
-                                                onAccepted:
-                                                    lockSurface.submitPassword()
+                                                onAccepted: lockSurface.submitPassword()
                                                 Keys.onEscapePressed: event => {
                                                     lockSurface.clearPassword();
                                                     event.accepted = true;
@@ -823,14 +766,10 @@ WlSessionLock {
                                             }
 
                                             Md3PasswordDots {
-                                                anchors.verticalCenter:
-                                                    parent.verticalCenter
-                                                x: Math.min(0,
-                                                    parent.width - width)
-                                                passwordLength:
-                                                    passwordInput.text.length
-                                                showPassword:
-                                                    showPasswordToggle.checked
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                x: Math.min(0, parent.width - width)
+                                                passwordLength: passwordInput.text.length
+                                                showPassword: showPasswordToggle.checked
                                                 dotSize: Theme.iconSizeMedium
                                                 dotGap: 6
                                                 entryScale: 0.55
@@ -838,12 +777,9 @@ WlSessionLock {
 
                                                 Behavior on x {
                                                     NumberAnimation {
-                                                        duration:
-                                                            Theme.motionShort4
-                                                        easing.type:
-                                                            Easing.BezierSpline
-                                                        easing.bezierCurve:
-                                                            Theme.standardCurve
+                                                        duration: Theme.motionShort4
+                                                        easing.type: Easing.BezierSpline
+                                                        easing.bezierCurve: Theme.standardCurve
                                                     }
                                                 }
                                             }
@@ -856,26 +792,13 @@ WlSessionLock {
                                             Layout.alignment: Qt.AlignVCenter
                                             buttonSize: 48
                                             iconSize: 20
-                                            icon: checked
-                                                ? "visibility_off"
-                                                : "visibility"
-                                            foregroundColor:
-                                                Theme.textSecondary
-                                            enabled: passwordInput.text.length
-                                                > 0 && !lock.authenticating
-                                            accessibleName: checked
-                                                ? I18n.tr(
-                                                    "Ẩn mật khẩu",
-                                                    "Hide password")
-                                                : I18n.tr(
-                                                    "Hiện mật khẩu",
-                                                    "Show password")
-                                            Accessible.role:
-                                                Accessible.CheckBox
+                                            icon: checked ? "visibility_off" : "visibility"
+                                            foregroundColor: Theme.textSecondary
+                                            enabled: passwordInput.text.length > 0 && !lock.authenticating
+                                            accessibleName: checked ? I18n.tr("Ẩn mật khẩu", "Hide password") : I18n.tr("Hiện mật khẩu", "Show password")
+                                            Accessible.role: Accessible.CheckBox
                                             Accessible.checked: checked
-                                            onClicked: {
-                                                checked = !checked;
-                                            }
+                                            onClicked: checked = !checked
                                         }
 
                                         Item {
@@ -885,70 +808,37 @@ WlSessionLock {
 
                                             IconButton {
                                                 anchors.fill: parent
-                                                visible:
-                                                    !lock.authenticating
+                                                visible: !lock.authenticating
                                                 buttonSize: 48
-                                                iconSize:
-                                                    Theme.iconSizeSmall
+                                                iconSize: Theme.iconSizeSmall
                                                 icon: "arrow_forward"
                                                 variant: "filled"
-                                                fillColor:
-                                                    Theme.primarySolid
-                                                foregroundColor:
-                                                    Theme.primaryContent
-                                                enabled:
-                                                    passwordInput.text.length
-                                                        > 0
-                                                    && !lock.authenticating
-                                                accessibleName: I18n.tr(
-                                                    "Mở khóa",
-                                                    "Unlock")
-                                                onClicked:
-                                                    lockSurface
-                                                        .submitPassword()
+                                                fillColor: Theme.primarySolid
+                                                foregroundColor: Theme.primaryContent
+                                                enabled: passwordInput.text.length > 0 && !lock.authenticating
+                                                accessibleName: I18n.tr("Mở khóa", "Unlock")
+                                                onClicked: lockSurface.submitPassword()
                                             }
 
                                             Md3LoadingIndicator {
                                                 anchors.centerIn: parent
-                                                visible:
-                                                    lock.authenticating
-                                                active:
-                                                    lock.authenticating
-                                                size: 44
+                                                visible: lock.authenticating
+                                                active: lock.authenticating
+                                                size: 40
                                                 showContainer: true
-                                                color:
-                                                    Theme.primaryContainerContent
-                                                containerColor:
-                                                    Theme.primaryContainer
-                                                accessibleName: I18n.tr(
-                                                    "Đang xác thực",
-                                                    "Authenticating")
+                                                color: Theme.primaryContainerContent
+                                                containerColor: Theme.primaryContainer
+                                                accessibleName: I18n.tr("Đang xác thực", "Authenticating")
                                                 Accessible.ignored: true
                                             }
                                         }
                                     }
                                 }
 
+                                // Status & Error Message Container
                                 Item {
-
                                     width: parent.width
-                                    height: Math.max(32,
-                                        lock.authError
-                                            ? errorMessageText.implicitHeight
-                                            : 0)
-                                    Accessible.role: lock.authError
-                                        ? Accessible.AlertMessage
-                                        : Accessible.StatusBar
-                                    Accessible.name: lock.authError
-                                        ? errorMessageText.text
-                                        : lock.authenticating
-                                            ? I18n.tr(
-                                                "Đang xác thực an toàn",
-                                                "Authenticating securely")
-                                            : I18n.tr(
-                                                "Enter để mở khóa, Esc để xóa",
-                                                "Enter to unlock, Escape to clear")
-                                    Accessible.focusable: false
+                                    height: Math.max(30, lock.authError ? errorMessageText.implicitHeight : 0)
 
                                     Item {
                                         anchors.fill: parent
@@ -957,8 +847,7 @@ WlSessionLock {
                                         MaterialIcon {
                                             id: errorIcon
                                             anchors.left: parent.left
-                                            anchors.verticalCenter:
-                                                parent.verticalCenter
+                                            anchors.verticalCenter: parent.verticalCenter
                                             text: "error"
                                             iconSize: Theme.iconSizeSmall
                                             color: Theme.errorText
@@ -967,17 +856,12 @@ WlSessionLock {
 
                                         M3Text {
                                             id: errorMessageText
-
                                             anchors.left: errorIcon.right
                                             anchors.leftMargin: Theme.space2
                                             anchors.right: parent.right
-                                            anchors.verticalCenter:
-                                                parent.verticalCenter
+                                            anchors.verticalCenter: parent.verticalCenter
                                             role: "labelMedium"
-                                            text: lock.errorMessage
-                                                || I18n.tr(
-                                                    "Mật khẩu không đúng. Vui lòng thử lại.",
-                                                    "Incorrect password. Please try again.")
+                                            text: lock.errorMessage || I18n.tr("Mật khẩu không đúng. Vui lòng thử lại.", "Incorrect password. Please try again.")
                                             color: Theme.errorText
                                             wrapMode: Text.Wrap
                                             maximumLineCount: 2
@@ -988,27 +872,21 @@ WlSessionLock {
 
                                     Row {
                                         anchors.centerIn: parent
-                                        visible: lock.authenticating
-                                            && !lock.authError
+                                        visible: lock.authenticating && !lock.authError
                                         spacing: Theme.space2
 
                                         MaterialIcon {
-                                            anchors.verticalCenter:
-                                                parent.verticalCenter
-                                            text: "encrypted"
-                                            iconSize:
-                                                Theme.iconSizeExtraSmall
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            text: "security"
+                                            iconSize: Theme.iconSizeExtraSmall
                                             color: Theme.primaryText
                                             Accessible.ignored: true
                                         }
 
                                         M3Text {
-                                            anchors.verticalCenter:
-                                                parent.verticalCenter
+                                            anchors.verticalCenter: parent.verticalCenter
                                             role: "labelMedium"
-                                            text: I18n.tr(
-                                                "Đang xác thực an toàn…",
-                                                "Authenticating securely…")
+                                            text: I18n.tr("Đang mở khóa an toàn…", "Authenticating securely…")
                                             color: Theme.primaryText
                                             Accessible.ignored: true
                                         }
@@ -1016,12 +894,9 @@ WlSessionLock {
 
                                     M3Text {
                                         anchors.centerIn: parent
-                                        visible: !lock.authenticating
-                                            && !lock.authError
+                                        visible: !lock.authenticating && !lock.authError
                                         role: "labelMedium"
-                                        text: I18n.tr(
-                                            "Enter để mở khóa  •  Esc để xóa",
-                                            "Enter to unlock  •  Esc to clear")
+                                        text: I18n.tr("Nhấn Enter để mở khóa  •  Esc để xóa", "Press Enter to unlock  •  Esc to clear")
                                         color: Theme.textSecondary
                                         Accessible.ignored: true
                                     }
@@ -1029,52 +904,38 @@ WlSessionLock {
                             }
                         }
 
+                        // 2. Android 17 Media Island / Player Card
                         Rectangle {
                             id: mediaCard
                             width: parent.width
                             height: 180
-                            radius: Theme.shapeExtraLarge
-                            color: Theme.alpha(Theme.blend(
-                                Theme.surfaceContainerLow,
-                                Theme.secondary, 0.08), 0.94)
-                            visible: lockSurface.height >= 700
-                                && stage.width >= 440
-                                && mediaCard.hasTrack
+                            radius: 32
+                            color: Theme.alpha(Theme.blend(Theme.surfaceContainerLow, Theme.secondary, 0.08), 0.94)
+                            border.width: 1
+                            border.color: Theme.alpha(Theme.secondary, 0.16)
+                            visible: lockSurface.height >= 700 && stage.width >= 440 && mediaCard.hasTrack
 
-                            readonly property var activePlayer:
-                                lockSurface.selectPlayer()
-                            readonly property bool hasTrack:
-                                activePlayer
-                                    && activePlayer.trackTitle
-                                    && activePlayer.trackTitle.length > 0
+                            readonly property var activePlayer: lockSurface.selectPlayer()
+                            readonly property bool hasTrack: activePlayer && activePlayer.trackTitle && activePlayer.trackTitle.length > 0
                             property real playbackPosition: 0
 
                             function syncPlaybackPosition() {
-                                if (activePlayer
-                                        && activePlayer.positionSupported) {
-                                    playbackPosition = Math.max(0,
-                                        Number(activePlayer.position) || 0);
+                                if (activePlayer && activePlayer.positionSupported) {
+                                    playbackPosition = Math.max(0, Number(activePlayer.position) || 0);
                                 } else {
                                     playbackPosition = 0;
                                 }
                             }
 
                             onActivePlayerChanged: syncPlaybackPosition()
-                            onVisibleChanged: {
-                                if (visible)
-                                    syncPlaybackPosition();
-                            }
+                            onVisibleChanged: if (visible) syncPlaybackPosition()
 
                             Timer {
-                                // The elapsed label is displayed in whole seconds.
                                 interval: 1000
                                 repeat: true
                                 triggeredOnStart: true
-                                running: mediaCard.visible
-                                    && mediaCard.activePlayer
-                                    && mediaCard.activePlayer.isPlaying
-                                onTriggered:
-                                    mediaCard.syncPlaybackPosition()
+                                running: mediaCard.visible && mediaCard.activePlayer && mediaCard.activePlayer.isPlaying
+                                onTriggered: mediaCard.syncPlaybackPosition()
                             }
 
                             Column {
@@ -1091,11 +952,9 @@ WlSessionLock {
                                         Layout.preferredWidth: 76
                                         Layout.preferredHeight: 76
                                         Layout.alignment: Qt.AlignVCenter
-                                        source: mediaCard.activePlayer
-                                            ? mediaCard.activePlayer.trackArtUrl
-                                            : ""
+                                        source: mediaCard.activePlayer ? mediaCard.activePlayer.trackArtUrl : ""
                                         accentColor: Theme.secondary
-                                        cornerRadius: Theme.shapeLarge
+                                        cornerRadius: 20
                                     }
 
                                     ColumnLayout {
@@ -1106,12 +965,7 @@ WlSessionLock {
                                         M3Text {
                                             Layout.fillWidth: true
                                             role: "titleMedium"
-                                            text: mediaCard.hasTrack
-                                                ? mediaCard.activePlayer
-                                                    .trackTitle
-                                                : I18n.tr(
-                                                    "Chưa có nhạc phát",
-                                                    "No media playing")
+                                            text: mediaCard.hasTrack ? mediaCard.activePlayer.trackTitle : I18n.tr("Chưa có nhạc phát", "No media playing")
                                             color: Theme.textPrimary
                                             font.weight: Font.Bold
                                             elide: Text.ElideRight
@@ -1120,15 +974,7 @@ WlSessionLock {
                                         M3Text {
                                             Layout.fillWidth: true
                                             role: "labelMedium"
-                                            text: mediaCard.hasTrack
-                                                ? (mediaCard.activePlayer
-                                                    .trackArtist
-                                                    || I18n.tr(
-                                                        "Nghệ sĩ chưa rõ",
-                                                        "Unknown artist"))
-                                                : I18n.tr(
-                                                    "Mở trình phát để điều khiển tại đây",
-                                                    "Open a player to control it here")
+                                            text: mediaCard.hasTrack ? (mediaCard.activePlayer.trackArtist || I18n.tr("Nghệ sĩ chưa rõ", "Unknown artist")) : ""
                                             color: Theme.textSecondary
                                             elide: Text.ElideRight
                                         }
@@ -1142,59 +988,30 @@ WlSessionLock {
                                             buttonSize: 48
                                             iconSize: Theme.iconSizeSmall
                                             icon: "skip_previous"
-                                            foregroundColor:
-                                                Theme.textPrimary
-                                            enabled: mediaCard.activePlayer
-                                                && mediaCard.activePlayer
-                                                    .canGoPrevious
-                                            accessibleName: I18n.tr(
-                                                "Bài trước",
-                                                "Previous track")
-                                            onClicked: {
-                                                if (mediaCard.activePlayer)
-                                                    mediaCard.activePlayer
-                                                        .previous();
-                                            }
+                                            foregroundColor: Theme.textPrimary
+                                            enabled: mediaCard.activePlayer && mediaCard.activePlayer.canGoPrevious
+                                            accessibleName: I18n.tr("Bài trước", "Previous track")
+                                            onClicked: if (mediaCard.activePlayer) mediaCard.activePlayer.previous()
                                         }
 
                                         MediaPlayButton {
                                             buttonSize: 48
                                             iconSize: Theme.iconSizeMedium
-                                            isPlaying:
-                                                mediaCard.activePlayer
-                                                && mediaCard.activePlayer
-                                                    .isPlaying
-                                            fillColor:
-                                                Theme.secondarySolid
-                                            foregroundColor:
-                                                Theme.secondaryContent
-                                            enabled: mediaCard.activePlayer
-                                                && mediaCard.activePlayer
-                                                    .canTogglePlaying
-                                            onClicked: {
-                                                if (mediaCard.activePlayer)
-                                                    mediaCard.activePlayer
-                                                        .togglePlaying();
-                                            }
+                                            isPlaying: mediaCard.activePlayer && mediaCard.activePlayer.isPlaying
+                                            fillColor: Theme.secondarySolid
+                                            foregroundColor: Theme.secondaryContent
+                                            enabled: mediaCard.activePlayer && mediaCard.activePlayer.canTogglePlaying
+                                            onClicked: if (mediaCard.activePlayer) mediaCard.activePlayer.togglePlaying()
                                         }
 
                                         IconButton {
                                             buttonSize: 48
                                             iconSize: Theme.iconSizeSmall
                                             icon: "skip_next"
-                                            foregroundColor:
-                                                Theme.textPrimary
-                                            enabled: mediaCard.activePlayer
-                                                && mediaCard.activePlayer
-                                                    .canGoNext
-                                            accessibleName: I18n.tr(
-                                                "Bài tiếp theo",
-                                                "Next track")
-                                            onClicked: {
-                                                if (mediaCard.activePlayer)
-                                                    mediaCard.activePlayer
-                                                        .next();
-                                            }
+                                            foregroundColor: Theme.textPrimary
+                                            enabled: mediaCard.activePlayer && mediaCard.activePlayer.canGoNext
+                                            accessibleName: I18n.tr("Bài tiếp theo", "Next track")
+                                            onClicked: if (mediaCard.activePlayer) mediaCard.activePlayer.next()
                                         }
                                     }
                                 }
@@ -1203,31 +1020,114 @@ WlSessionLock {
                                     width: parent.width
                                     height: 48
                                     from: 0
-                                    to: mediaCard.activePlayer
-                                            && mediaCard.activePlayer
-                                                .lengthSupported
-                                        ? mediaCard.activePlayer.length : 1
+                                    to: mediaCard.activePlayer && mediaCard.activePlayer.lengthSupported ? mediaCard.activePlayer.length : 1
                                     value: mediaCard.playbackPosition
-                                    enabled: mediaCard.activePlayer
-                                        && mediaCard.activePlayer.canSeek
-                                        && mediaCard.activePlayer
-                                            .lengthSupported
-                                        && mediaCard.activePlayer.length > 0
-                                    animated: mediaCard.activePlayer
-                                        && mediaCard.activePlayer.isPlaying
+                                    enabled: mediaCard.activePlayer && mediaCard.activePlayer.canSeek && mediaCard.activePlayer.lengthSupported && mediaCard.activePlayer.length > 0
+                                    animated: mediaCard.activePlayer && mediaCard.activePlayer.isPlaying
                                     activeColor: Theme.secondary
-                                    accessibleName: I18n.tr(
-                                        "Vị trí phát",
-                                        "Playback position")
+                                    accessibleName: I18n.tr("Vị trí phát", "Playback position")
                                     onMoved: value => {
-                                        if (mediaCard.activePlayer
-                                                && mediaCard.activePlayer
-                                                    .canSeek) {
-                                            mediaCard.activePlayer.position =
-                                                value;
-                                        }
+                                        if (mediaCard.activePlayer && mediaCard.activePlayer.canSeek)
+                                            mediaCard.activePlayer.position = value;
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+
+                // ── ANDROID 17 BOTTOM LOCKSCREEN SHORTCUTS ────
+                Item {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.margins: lockSurface.compactLayout ? 18 : 28
+                    height: 56
+                    opacity: lockSurface.revealProgress
+
+                    // Left Quick Action: Audio Mute Toggle
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 52
+                        height: 52
+                        radius: 26
+                        color: Theme.alpha(Theme.surfaceContainerHighest, 0.82)
+                        border.width: 1
+                        border.color: Theme.alpha("#ffffff", 0.12)
+
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: lock.systemService && lock.systemService.muted ? "volume_off" : "volume_up"
+                            iconSize: 22
+                            color: lock.systemService && lock.systemService.muted ? Theme.error : Theme.textPrimary
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (lock.systemService)
+                                    lock.systemService.toggleMute();
+                            }
+                        }
+                    }
+
+                    // Center Home/Unlock Hint Pill
+                    Rectangle {
+                        anchors.centerIn: parent
+                        implicitWidth: hintRow.implicitWidth + 24
+                        height: 36
+                        radius: 18
+                        color: Theme.alpha(Theme.surfaceContainerHigh, 0.70)
+                        border.width: 1
+                        border.color: Theme.alpha("#ffffff", 0.06)
+
+                        Row {
+                            id: hintRow
+                            anchors.centerIn: parent
+                            spacing: 4
+
+                            MaterialIcon {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "keyboard_arrow_up"
+                                iconSize: 18
+                                color: Theme.textSecondary
+                            }
+
+                            M3Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                role: "labelMedium"
+                                text: I18n.tr("Nhập mật khẩu để mở khóa", "Enter password to unlock")
+                                color: Theme.textSecondary
+                            }
+                        }
+                    }
+
+                    // Right Quick Action: Power Menu / Lock
+                    Rectangle {
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 52
+                        height: 52
+                        radius: 26
+                        color: Theme.alpha(Theme.surfaceContainerHighest, 0.82)
+                        border.width: 1
+                        border.color: Theme.alpha("#ffffff", 0.12)
+
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: "power_settings_new"
+                            iconSize: 22
+                            color: Theme.textPrimary
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (lock.systemService)
+                                    lock.systemService.execDetached(["wlogout"]);
                             }
                         }
                     }
