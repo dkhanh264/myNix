@@ -21,24 +21,6 @@ FocusScope {
 
     focus: true
 
-    opacity: shown ? 1.0 : 0.0
-    scale: 0.95 + (shown ? 0.05 : 0.0)
-
-    Behavior on opacity {
-        NumberAnimation {
-            duration: Theme.motionMedium1
-            easing.type: Easing.BezierSpline
-            easing.bezierCurve: Theme.springCurve
-        }
-    }
-    Behavior on scale {
-        NumberAnimation {
-            duration: Theme.motionMedium1
-            easing.type: Easing.BezierSpline
-            easing.bezierCurve: Theme.springCurve
-        }
-    }
-
     onShownChanged: {
         if (shown) {
             root.forceActiveFocus();

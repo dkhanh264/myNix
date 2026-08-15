@@ -25,7 +25,6 @@ PanelWindow {
     property bool pendingSwitch: false
     property bool pendingSlotIsA: true
     property string pendingKind: ""
-    property bool keyboardFocusPulse: false
 
     signal closeRequested
     signal sectionRequested(string section)
@@ -34,16 +33,16 @@ PanelWindow {
     readonly property var incomingPage: incomingIsA
         ? slotALoader.item : slotBLoader.item
     readonly property real targetWidth: incomingPage
-        ? incomingPage.preferredWidth : 400
+        ? incomingPage.preferredWidth : defaultPreferredWidth(activePopup)
     readonly property real targetHeight: incomingPage
-        ? incomingPage.preferredHeight : 400
+        ? incomingPage.preferredHeight : defaultPreferredHeight(activePopup)
     readonly property real targetX: incomingPage
-        ? incomingPage.preferredX : Theme.popupEdgeInset
+        ? incomingPage.preferredX : defaultPreferredX(activePopup, targetWidth)
     readonly property real targetY: incomingPage
         ? Math.max(0, incomingPage.preferredY - Theme.barHeight)
-        : Theme.space3
+        : defaultPreferredY(activePopup, targetHeight)
     readonly property bool targetFrameless: incomingPage
-        ? incomingPage.frameless : false
+        ? incomingPage.frameless : (activePopup === "wallpaper")
     readonly property real contentInset: targetFrameless ? 0
         : Theme.popupWindowInset + Theme.popupContentPadding
     readonly property real chromeProgress: targetFrameless ? 0 : 1
@@ -76,9 +75,7 @@ PanelWindow {
     WlrLayershell.namespace: "m3-morph-popup-host"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: popupOpen && hostActive
-        ? (keyboardFocusPulse
-            ? WlrKeyboardFocus.Exclusive
-            : WlrKeyboardFocus.OnDemand)
+        ? WlrKeyboardFocus.OnDemand
         : WlrKeyboardFocus.None
 
     anchors {
@@ -90,6 +87,89 @@ PanelWindow {
 
     margins {
         top: Theme.barHeight
+    }
+
+    function defaultPreferredWidth(kind) {
+        switch (kind) {
+        case "wallpaper":
+        case "dashboard":
+            return Math.min(1080, root.width - Theme.popupEdgeInset * 2);
+        case "session":
+            return Math.min(680, root.width - Theme.popupEdgeInset * 2);
+        case "weather":
+            return Math.min(590, root.width - Theme.popupEdgeInset * 2);
+        case "activity":
+            return Math.min(560, root.width - Theme.popupEdgeInset * 2);
+        case "settings":
+            return Math.min(540, root.width - Theme.popupEdgeInset * 2);
+        case "music":
+            return Math.min(490, root.width - Theme.popupEdgeInset * 2);
+        case "recorder":
+            return Math.min(470, root.width - Theme.popupEdgeInset * 2);
+        case "wifi":
+        case "bluetooth":
+        case "power":
+        case "language":
+            return Math.min(430, root.width - Theme.popupEdgeInset * 2);
+        case "profile":
+            return Math.min(424, root.width - Theme.popupEdgeInset * 2);
+        case "calendar":
+            return Math.min(416, root.width - Theme.popupEdgeInset * 2);
+        case "controls":
+            return Math.min(410, root.width - Theme.popupEdgeInset * 2);
+        default:
+            return 400;
+        }
+    }
+
+    function defaultPreferredHeight(kind) {
+        switch (kind) {
+        case "wallpaper":
+            return Math.min(520, root.availableHeight(32));
+        case "dashboard":
+            return Math.min(500, root.availableHeight(32));
+        case "activity":
+        case "wifi":
+        case "bluetooth":
+            return Math.min(610, root.availableHeight(16));
+        case "recorder":
+            return Math.min(root.controller && root.controller.recording ? 390 : 558,
+                root.availableHeight(16));
+        case "controls":
+            return Math.min(520, root.availableHeight(16));
+        case "power":
+            return Math.min(460, root.availableHeight(16));
+        case "calendar":
+            return Math.min(440, root.availableHeight(16));
+        case "weather":
+            return Math.min(420, root.availableHeight(16));
+        case "language":
+            return Math.min(350, root.availableHeight(16));
+        case "settings":
+            return Math.min(320, root.availableHeight(16));
+        case "session":
+            return Math.min(260, root.availableHeight(16));
+        case "profile":
+            return Math.min(300, root.availableHeight(16));
+        case "music":
+            return Math.min(220, root.availableHeight(16));
+        default:
+            return 400;
+        }
+    }
+
+    function defaultPreferredX(kind, popupWidth) {
+        return root.popupAnchor(kind, popupWidth);
+    }
+
+    function defaultPreferredY(kind, popupHeight) {
+        if (kind === "wallpaper" || kind === "dashboard"
+                || kind === "profile" || kind === "session") {
+            const screenHeight = root.screen
+                ? root.screen.height : root.height + Theme.barHeight;
+            return Math.max(0, Math.round((screenHeight - popupHeight) / 2) - Theme.barHeight);
+        }
+        return Theme.space3;
     }
 
     function popupAnchor(kind, popupWidth) {
@@ -317,13 +397,6 @@ PanelWindow {
         focusTimer.restart();
     }
 
-    function pulseKeyboardFocus() {
-        if (!popupOpen || !hostActive)
-            return;
-        keyboardFocusPulse = true;
-        keyboardFocusReleaseTimer.restart();
-    }
-
     function focusIncoming() {
         if (!root.visible || !root.hostActive
                 || !root.popupOpen || !root.incomingPage
@@ -347,11 +420,8 @@ PanelWindow {
 
     onPopupOpenChanged: {
         if (popupOpen && hostActive) {
-            pulseKeyboardFocus();
             scheduleIncomingFocus(Theme.reduceMotion ? 0 : 32);
         } else {
-            keyboardFocusPulse = false;
-            keyboardFocusReleaseTimer.stop();
             focusTimer.stop();
         }
     }
@@ -359,7 +429,6 @@ PanelWindow {
     onMorphRevisionChanged: {
         if (!hostActive)
             return;
-        pulseKeyboardFocus();
         morphPanel.forceActiveFocus(Qt.PopupFocusReason);
     }
 
@@ -375,12 +444,9 @@ PanelWindow {
         if (hostActive) {
             syncActivePopup();
             if (popupOpen) {
-                pulseKeyboardFocus();
                 scheduleIncomingFocus(Theme.reduceMotion ? 0 : 16);
             }
         } else {
-            keyboardFocusPulse = false;
-            keyboardFocusReleaseTimer.stop();
             slotAKind = "";
             slotBKind = "";
             incomingIsA = true;
@@ -403,15 +469,6 @@ PanelWindow {
         id: focusTimer
         interval: 0
         onTriggered: root.focusIncoming()
-    }
-
-    Timer {
-        id: keyboardFocusReleaseTimer
-        interval: Theme.reduceMotion ? 0 : 48
-        onTriggered: {
-            root.keyboardFocusPulse = false;
-            root.focusIncoming();
-        }
     }
 
     // The stable backdrop both provides modal click-away dismissal and keeps
