@@ -432,9 +432,8 @@ PanelWindow {
         focus: root.popupOpen && root.hostActive
         enabled: root.popupOpen && root.hostActive
         opacity: revealProgress
-        scale: 0.92 + revealProgress * 0.08
+        scale: 0.95 + revealProgress * 0.05
         transformOrigin: Item.Top
-        clip: true
 
         property real revealProgress: root.popupOpen ? 1 : 0
 
@@ -443,7 +442,7 @@ PanelWindow {
         Accessible.focusable: true
 
         transform: Translate {
-            y: (1 - morphPanel.revealProgress) * -12
+            y: (1 - morphPanel.revealProgress) * -8
         }
 
         Keys.onEscapePressed: event => {
@@ -514,21 +513,6 @@ PanelWindow {
             anchors.fill: parent
             onPressed: mouse => mouse.accepted = true
             onWheel: wheel => wheel.accepted = true
-        }
-
-        M3Elevation {
-            anchors.fill: sharedSurface
-            level: 5
-            radius: Theme.popupRadius
-            opacity: root.chromeProgress
-
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Theme.popupContentExitDuration
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Theme.standardCurve
-                }
-            }
         }
 
         Rectangle {

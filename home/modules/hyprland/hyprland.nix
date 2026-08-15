@@ -384,8 +384,12 @@ in
         "$mainMod, mouse:272, movewindow"
         "$mainMod, mouse:273, resizewindow"
       ];
-      # ── Blur cho các giao diện nổi (Android 17 Glassmorphic Backdrop) ────
+      # ── Blur & Layer rules (Chuyển động mượt mà, không xung đột layer compositor) ────
       layerrule = [
+        "noanim, m3-morph-popup-host"
+        "noanim, m3-shell"
+        "noanim, volume-osd"
+        "noanim, quickshell"
         "blur, rofi"
         "ignorezero, rofi"
         "ignorealpha 0.60, rofi"
