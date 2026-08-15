@@ -45,25 +45,28 @@ M3BarPill {
     }
 
     function resolveIconName(toplevel) {
-        if (!toplevel) return "utilities-terminal";
+        if (!toplevel) return "";
 
-        // Prioritize static initialClass / class / appId (never use dynamic title)
         let cls = "";
         try {
             if (typeof toplevel === "string") {
                 cls = toplevel;
             } else if (toplevel) {
-                cls = toplevel.initialClass || toplevel["class"] || toplevel.appId || toplevel.waylandAppId || "";
-                if (!cls && toplevel.lastIpcObject) {
+                if (toplevel.wayland && toplevel.wayland.appId)
+                    cls = toplevel.wayland.appId;
+                
+                if (!cls && toplevel.lastIpcObject)
                     cls = toplevel.lastIpcObject.initialClass || toplevel.lastIpcObject["class"] || "";
-                }
+                    
+                if (!cls)
+                    cls = toplevel.initialClass || toplevel["class"] || toplevel.appId || "";
             }
         } catch (e) {
             cls = "";
         }
 
         let name = String(cls).toLowerCase().trim();
-        if (!name) return "utilities-terminal";
+        if (!name) return "";
 
         // Terminals
         if (name.includes("kitty")) return "kitty";
@@ -113,8 +116,7 @@ M3BarPill {
             let path = Quickshell.iconPath(name, true);
             if (path) return path;
             
-            path = Quickshell.iconPath("utilities-terminal", true)
-                || Quickshell.iconPath("application-x-executable", true);
+            path = Quickshell.iconPath(name, false);
             return path || "";
         } catch (e) {
             return "";
@@ -252,7 +254,6 @@ M3BarPill {
                             delegate: Item {
                                 width: 14
                                 height: 14
-                                anchors.verticalCenter: parent.verticalCenter
 
                                 readonly property var itemToplevel: workspaceButton.toplevelList[index]
                                 readonly property string iconUrl: root.resolveAppIconUrl(itemToplevel)
@@ -279,7 +280,6 @@ M3BarPill {
 
                         M3Text {
                             role: "labelSmall"
-                            anchors.verticalCenter: parent
                             visible: workspaceButton.toplevelCount > 4
                             text: "+" + (workspaceButton.toplevelCount - 4)
                             color: Theme.primaryContent
