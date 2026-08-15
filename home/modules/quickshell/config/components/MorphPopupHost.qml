@@ -560,7 +560,7 @@ PanelWindow {
                     : Theme.popupCloseDuration
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: root.popupOpen
-                    ? Theme.popupSpringCurve : Theme.emphasizedAccelerate
+                    ? Theme.popupSpringCurve : Theme.popupCloseCurve
             }
         }
 

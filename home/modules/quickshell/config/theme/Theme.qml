@@ -183,21 +183,21 @@ Singleton {
         || reducedMotionPreference === "yes"
 
     // Duration Tokens (ms)
-    readonly property int motionShort2: reduceMotion ? 0 : 100
-    readonly property int motionShort3: reduceMotion ? 0 : 150
-    readonly property int motionShort4: reduceMotion ? 0 : 200
+    readonly property int motionShort2: reduceMotion ? 0 : 120
+    readonly property int motionShort3: reduceMotion ? 0 : 180
+    readonly property int motionShort4: reduceMotion ? 0 : 240
 
-    readonly property int motionMedium1: reduceMotion ? 0 : 250
-    readonly property int motionMedium2: reduceMotion ? 0 : 300
-    readonly property int motionMedium3: reduceMotion ? 0 : 350
+    readonly property int motionMedium1: reduceMotion ? 0 : 300
+    readonly property int motionMedium2: reduceMotion ? 0 : 360
+    readonly property int motionMedium3: reduceMotion ? 0 : 420
 
-    readonly property int motionLong2: reduceMotion ? 0 : 450
-    readonly property int popupTransitionDuration: reduceMotion ? 0 : 240
-    readonly property int popupCloseDuration: reduceMotion ? 0 : 180
-    readonly property int popupMorphDuration: reduceMotion ? 0 : 260
-    readonly property int popupContentExitDuration: reduceMotion ? 0 : 100
+    readonly property int motionLong2: reduceMotion ? 0 : 550
+    readonly property int popupTransitionDuration: reduceMotion ? 0 : 380
+    readonly property int popupCloseDuration: reduceMotion ? 0 : 280
+    readonly property int popupMorphDuration: reduceMotion ? 0 : 360
+    readonly property int popupContentExitDuration: reduceMotion ? 0 : 140
     readonly property int popupHideDelay: reduceMotion ? 0
-        : popupCloseDuration + 10
+        : popupCloseDuration + 20
 
     readonly property int motionShort: motionShort3
     readonly property int motionMedium: motionMedium2
@@ -207,7 +207,8 @@ Singleton {
     readonly property var emphasizedDecelerate: [0.05, 0.9, 0.1, 1.0, 1.0, 1.0]
     readonly property var emphasizedAccelerate: [0.3, 0.0, 0.8, 0.15, 1.0, 1.0]
     readonly property var springCurve: [0.16, 1.0, 0.3, 1.0, 1.0, 1.0]
-    readonly property var popupSpringCurve: [0.05, 0.9, 0.1, 1.0, 1.0, 1.0]
+    readonly property var popupSpringCurve: [0.05, 0.95, 0.15, 1.0, 1.0, 1.0]
+    readonly property var popupCloseCurve: [0.2, 0.0, 0.2, 1.0, 1.0, 1.0]
 
 
     // =========================================================================
