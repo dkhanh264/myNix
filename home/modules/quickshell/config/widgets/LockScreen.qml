@@ -20,6 +20,7 @@ WlSessionLock {
     property bool authenticating: false
     property bool authError: false
     property string errorMessage: ""
+    property var systemService: null
 
     signal unlocked()
 
@@ -40,6 +41,28 @@ WlSessionLock {
                     + "/.config/current-wallpaper-frame.png"
             property real revealProgress: 0
             property bool pamTransportError: false
+
+            function weatherIconName(code) {
+                if (code === 0) return "sunny";
+                if (code === 1 || code === 2) return "partly_cloudy_day";
+                if (code === 3) return "cloud";
+                if (code === 45 || code === 48) return "foggy";
+                if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return "rainy";
+                if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "weather_snowy";
+                if (code >= 95) return "thunderstorm";
+                return "thermostat";
+            }
+
+            function weatherDescriptionText(code) {
+                if (code === 0) return I18n.tr("Trời quang", "Clear");
+                if (code === 1 || code === 2) return I18n.tr("Ít mây", "Partly cloudy");
+                if (code === 3) return I18n.tr("Nhiều mây", "Cloudy");
+                if (code === 45 || code === 48) return I18n.tr("Có sương", "Foggy");
+                if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return I18n.tr("Có mưa", "Rain");
+                if ((code >= 71 && code <= 77) || code === 85 || code === 86) return I18n.tr("Có tuyết", "Snow");
+                if (code >= 95) return I18n.tr("Giông bão", "Thunderstorm");
+                return I18n.tr("Đang cập nhật", "Updating");
+            }
 
             function selectPlayer() {
                 const players = Mpris.players.values;
@@ -97,6 +120,8 @@ WlSessionLock {
                         lockSurface.pamTransportError = false;
                         if (!pam.active)
                             pam.start();
+                        if (lock.systemService)
+                            lock.systemService.refreshWeather(false);
                         passwordInput.forceActiveFocus();
                     } else {
                         passwordInput.text = "";
@@ -110,6 +135,8 @@ WlSessionLock {
             Component.onCompleted: {
                 if (lock.locked && !pam.active)
                     pam.start();
+                if (lock.systemService)
+                    lock.systemService.refreshWeather(false);
                 passwordInput.forceActiveFocus();
                 Qt.callLater(() => lockSurface.revealProgress = 1);
             }
@@ -263,7 +290,7 @@ WlSessionLock {
                             : stage.width
                         height: lockSurface.wideLayout
                             ? stage.height
-                            : Math.max(lockSurface.shortLayout ? 164 : 190,
+                            : Math.max(lockSurface.shortLayout ? 200 : 230,
                                 heroContent.implicitHeight)
 
                         Column {
@@ -276,20 +303,35 @@ WlSessionLock {
                             anchors.verticalCenter: parent.verticalCenter
                             width: lockSurface.wideLayout
                                 ? parent.width : Math.min(parent.width, 520)
-                            spacing: Theme.space5
+                            spacing: Theme.space4
 
-                            Column {
-                                visible: lockSurface.wideLayout
-                                spacing: -40
+                            // 1. Clock Display
+                            Row {
+                                x: lockSurface.wideLayout ? 0
+                                    : Math.round((parent.width - width) / 2)
+                                spacing: 2
 
                                 Text {
                                     text: Qt.formatDateTime(
                                         systemClock.date, "HH")
                                     color: Theme.textPrimary
                                     font.family: Theme.textFont
-                                    font.pixelSize: 148
+                                    font.pixelSize: lockSurface.compactLayout
+                                        ? 72
+                                        : lockSurface.shortLayout ? 88 : 108
                                     font.weight: Font.Bold
-                                    font.letterSpacing: -6
+                                    font.letterSpacing: -4
+                                }
+
+                                Text {
+                                    text: ":"
+                                    color: Theme.alpha(Theme.primaryText, 0.75)
+                                    font.family: Theme.textFont
+                                    font.pixelSize: lockSurface.compactLayout
+                                        ? 72
+                                        : lockSurface.shortLayout ? 88 : 108
+                                    font.weight: Font.Bold
+                                    font.letterSpacing: -4
                                 }
 
                                 Text {
@@ -297,54 +339,217 @@ WlSessionLock {
                                         systemClock.date, "mm")
                                     color: Theme.primaryText
                                     font.family: Theme.textFont
-                                    font.pixelSize: 148
+                                    font.pixelSize: lockSurface.compactLayout
+                                        ? 72
+                                        : lockSurface.shortLayout ? 88 : 108
                                     font.weight: Font.Bold
-                                    font.letterSpacing: -6
+                                    font.letterSpacing: -4
                                 }
                             }
 
-                            Text {
-                                visible: !lockSurface.wideLayout
-                                x: Math.round((parent.width - width) / 2)
-                                text: Qt.formatDateTime(
-                                    systemClock.date, "HH:mm")
-                                color: Theme.textPrimary
-                                font.family: Theme.textFont
-                                font.pixelSize: lockSurface.compactLayout
-                                    ? 72
-                                    : lockSurface.shortLayout ? 82 : 96
-                                font.weight: Font.Bold
-                                font.letterSpacing: -4
-                            }
-
-                            Rectangle {
+                            // 2. Status Chips Row (Date, Battery, Network)
+                            Flow {
                                 x: lockSurface.wideLayout ? 0
                                     : Math.round((parent.width - width) / 2)
-                                width: Math.min(parent.width,
-                                    dateText.implicitWidth + Theme.space4 * 2)
-                                implicitHeight: 36
-                                radius: height / 2
-                                color: Theme.alpha(
-                                    Theme.surfaceContainerHighest, 0.90)
+                                width: Math.min(parent.width, 480)
+                                spacing: Theme.space2
 
-                                M3Text {
-                                    id: dateText
+                                // Date Chip
+                                Rectangle {
+                                    implicitWidth: dateRow.implicitWidth + Theme.space4 * 2
+                                    implicitHeight: 34
+                                    radius: height / 2
+                                    color: Theme.alpha(Theme.surfaceContainerHigh, 0.85)
+                                    border.width: 1
+                                    border.color: Theme.alpha("#ffffff", 0.08)
+
+                                    Row {
+                                        id: dateRow
+                                        anchors.centerIn: parent
+                                        spacing: Theme.space2
+
+                                        MaterialIcon {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            text: "calendar_today"
+                                            iconSize: 15
+                                            color: Theme.primaryText
+                                        }
+
+                                        M3Text {
+                                            id: dateText
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            role: "labelMedium"
+                                            text: systemClock.date.toLocaleDateString(
+                                                I18n.vietnamese
+                                                    ? Qt.locale("vi_VN")
+                                                    : Qt.locale("en_US"),
+                                                I18n.vietnamese
+                                                    ? "dddd, d MMMM yyyy"
+                                                    : "dddd, MMMM d, yyyy")
+                                            color: Theme.textPrimary
+                                            font.weight: Font.Medium
+                                            elide: Text.ElideRight
+                                        }
+                                    }
+                                }
+
+                                // Battery Chip
+                                Rectangle {
+                                    visible: lock.systemService !== null
+                                        && lock.systemService.batteryPercent >= 0
+                                    implicitWidth: batteryRow.implicitWidth + Theme.space4 * 2
+                                    implicitHeight: 34
+                                    radius: height / 2
+                                    color: Theme.alpha(Theme.surfaceContainerHigh, 0.85)
+                                    border.width: 1
+                                    border.color: Theme.alpha("#ffffff", 0.08)
+
+                                    Row {
+                                        id: batteryRow
+                                        anchors.centerIn: parent
+                                        spacing: Theme.space2
+
+                                        MaterialIcon {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            text: lock.systemService
+                                                ? (lock.systemService.batteryCharging ? "battery_charging_full" : "battery_std")
+                                                : "battery_std"
+                                            iconSize: 15
+                                            color: lock.systemService && lock.systemService.batteryPercent <= 20 && !lock.systemService.batteryCharging
+                                                ? Theme.error : Theme.secondary
+                                        }
+
+                                        M3Text {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            role: "labelMedium"
+                                            text: (lock.systemService ? lock.systemService.batteryPercent : 100) + "%"
+                                                + (lock.systemService && lock.systemService.batteryCharging ? " · " + I18n.tr("Đang sạc", "Charging") : "")
+                                            color: Theme.textPrimary
+                                            font.weight: Font.Medium
+                                        }
+                                    }
+                                }
+
+                                // Wi-Fi Chip
+                                Rectangle {
+                                    visible: lock.systemService !== null
+                                        && lock.systemService.wifiSsid.length > 0
+                                    implicitWidth: wifiRow.implicitWidth + Theme.space4 * 2
+                                    implicitHeight: 34
+                                    radius: height / 2
+                                    color: Theme.alpha(Theme.surfaceContainerHigh, 0.85)
+                                    border.width: 1
+                                    border.color: Theme.alpha("#ffffff", 0.08)
+
+                                    Row {
+                                        id: wifiRow
+                                        anchors.centerIn: parent
+                                        spacing: Theme.space2
+
+                                        MaterialIcon {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            text: "wifi"
+                                            iconSize: 15
+                                            color: Theme.primary
+                                        }
+
+                                        M3Text {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            role: "labelMedium"
+                                            text: lock.systemService ? lock.systemService.wifiSsid : ""
+                                            color: Theme.textPrimary
+                                            font.weight: Font.Medium
+                                            elide: Text.ElideRight
+                                        }
+                                    }
+                                }
+                            }
+
+                            // 3. Dedicated Material 3 Weather Widget
+                            Rectangle {
+                                id: lockWeatherWidget
+                                x: lockSurface.wideLayout ? 0
+                                    : Math.round((parent.width - width) / 2)
+                                width: Math.min(parent.width, 420)
+                                implicitHeight: weatherInnerLayout.implicitHeight + Theme.space4 * 2
+                                radius: Theme.shapeExtraLarge
+                                color: Theme.alpha(Theme.blend(Theme.surfaceContainerLow, Theme.primary, 0.07), 0.88)
+                                border.width: 1
+                                border.color: Theme.alpha(Theme.primary, 0.16)
+
+                                RowLayout {
+                                    id: weatherInnerLayout
                                     anchors.left: parent.left
                                     anchors.right: parent.right
-                                    anchors.leftMargin: Theme.space4
-                                    anchors.rightMargin: Theme.space4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    role: "labelLarge"
-                                    text: systemClock.date.toLocaleDateString(
-                                        I18n.vietnamese
-                                            ? Qt.locale("vi_VN")
-                                            : Qt.locale("en_US"),
-                                        I18n.vietnamese
-                                            ? "dddd, d MMMM yyyy"
-                                            : "dddd, MMMM d, yyyy")
-                                    color: Theme.textPrimary
-                                    font.weight: Font.Medium
-                                    elide: Text.ElideRight
+                                    anchors.top: parent.top
+                                    anchors.margins: Theme.space4
+                                    spacing: Theme.space3
+
+                                    Rectangle {
+                                        Layout.preferredWidth: 50
+                                        Layout.preferredHeight: 50
+                                        Layout.alignment: Qt.AlignVCenter
+                                        radius: Theme.shapeLarge
+                                        color: Theme.alpha(Theme.primary, 0.15)
+
+                                        MaterialIcon {
+                                            anchors.centerIn: parent
+                                            text: lockSurface.weatherIconName(lock.systemService ? lock.systemService.weatherCode : 0)
+                                            iconSize: 26
+                                            color: Theme.primaryText
+                                            filled: true
+                                        }
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        Layout.alignment: Qt.AlignVCenter
+                                        spacing: 2
+
+                                        RowLayout {
+                                            spacing: Theme.space2
+
+                                            M3Text {
+                                                role: "titleLarge"
+                                                text: (lock.systemService && lock.systemService.weatherAvailable)
+                                                    ? lock.systemService.weatherTemperature + "°C"
+                                                    : "--°C"
+                                                color: Theme.textPrimary
+                                                font.weight: Font.Bold
+                                            }
+
+                                            M3Text {
+                                                Layout.fillWidth: true
+                                                role: "labelLarge"
+                                                text: (lock.systemService && lock.systemService.weatherAvailable)
+                                                    ? (lock.systemService.weatherDescription || lockSurface.weatherDescriptionText(lock.systemService.weatherCode))
+                                                    : (lock.systemService && lock.systemService.weatherLoading ? I18n.tr("Đang tải…", "Loading…") : I18n.tr("Thời tiết", "Weather"))
+                                                color: Theme.primaryText
+                                                font.weight: Font.DemiBold
+                                                elide: Text.ElideRight
+                                            }
+                                        }
+
+                                        RowLayout {
+                                            spacing: 4
+
+                                            MaterialIcon {
+                                                text: "location_on"
+                                                iconSize: 14
+                                                color: Theme.textSecondary
+                                            }
+
+                                            M3Text {
+                                                Layout.fillWidth: true
+                                                role: "labelMedium"
+                                                text: (lock.systemService && lock.systemService.weatherLocation.length > 0)
+                                                    ? lock.systemService.weatherLocation
+                                                    : I18n.tr("Vị trí địa phương", "Local location")
+                                                color: Theme.textSecondary
+                                                elide: Text.ElideRight
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -878,6 +878,7 @@ ShellRoot {
 
     LockScreen {
         id: lockScreen
+        systemService: systemService
     }
 
     Variants {
