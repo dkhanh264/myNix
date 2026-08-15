@@ -489,7 +489,7 @@ PanelWindow {
         focus: root.popupOpen && root.hostActive
         enabled: root.hostActive
         opacity: revealProgress
-        scale: 0.96 + revealProgress * 0.04
+        scale: root.popupOpen ? (0.96 + revealProgress * 0.04) : 1.0
         transformOrigin: Item.Center
 
         property real revealProgress: root.popupOpen ? 1 : 0
@@ -499,7 +499,7 @@ PanelWindow {
         Accessible.focusable: true
 
         transform: Translate {
-            y: (1 - morphPanel.revealProgress) * -8
+            y: root.popupOpen ? (1 - morphPanel.revealProgress) * -8 : 0
         }
 
         Keys.onEscapePressed: event => {
