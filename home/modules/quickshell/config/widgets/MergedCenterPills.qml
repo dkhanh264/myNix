@@ -267,6 +267,8 @@ Item {
                         anchors.margins: 2
                         source: root.toastIsSystem
                             ? "" : root.toastIconSource
+                        sourceSize.width: 48
+                        sourceSize.height: 48
                         fillMode: Image.PreserveAspectFit
                         asynchronous: true
                         opacity: status === Image.Ready ? 1 : 0

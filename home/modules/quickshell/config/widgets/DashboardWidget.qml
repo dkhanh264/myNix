@@ -530,6 +530,8 @@ Item {
                                         id: userAvatarImg
                                         anchors.fill: parent
                                         source: root.sysUserAvatar !== "" ? (root.sysUserAvatar.startsWith("file://") ? root.sysUserAvatar : "file://" + root.sysUserAvatar) : ""
+                                        sourceSize.width: 128
+                                        sourceSize.height: 128
                                         fillMode: Image.PreserveAspectCrop
                                         smooth: true
                                         mipmap: true
@@ -1936,6 +1938,8 @@ Item {
                                     id: albumArtImage
                                     anchors.fill: parent
                                     source: root.player ? root.player.trackArtUrl : ""
+                                    sourceSize.width: 300
+                                    sourceSize.height: 300
                                     fillMode: Image.PreserveAspectCrop
                                     asynchronous: true
                                     cache: true

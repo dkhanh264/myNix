@@ -183,31 +183,31 @@ Singleton {
         || reducedMotionPreference === "yes"
 
     // Duration Tokens (ms)
-    readonly property int motionShort2: reduceMotion ? 0 : 90
-    readonly property int motionShort3: reduceMotion ? 0 : 130
-    readonly property int motionShort4: reduceMotion ? 0 : 170
+    readonly property int motionShort2: reduceMotion ? 0 : 80
+    readonly property int motionShort3: reduceMotion ? 0 : 120
+    readonly property int motionShort4: reduceMotion ? 0 : 160
 
-    readonly property int motionMedium1: reduceMotion ? 0 : 210
-    readonly property int motionMedium2: reduceMotion ? 0 : 250
-    readonly property int motionMedium3: reduceMotion ? 0 : 290
+    readonly property int motionMedium1: reduceMotion ? 0 : 200
+    readonly property int motionMedium2: reduceMotion ? 0 : 230
+    readonly property int motionMedium3: reduceMotion ? 0 : 260
 
-    readonly property int motionLong2: reduceMotion ? 0 : 400
-    readonly property int popupTransitionDuration: reduceMotion ? 0 : 240
-    readonly property int popupCloseDuration: reduceMotion ? 0 : 170
-    readonly property int popupMorphDuration: reduceMotion ? 0 : 320
-    readonly property int popupContentExitDuration: reduceMotion ? 0 : 130
+    readonly property int motionLong2: reduceMotion ? 0 : 360
+    readonly property int popupTransitionDuration: reduceMotion ? 0 : 220
+    readonly property int popupCloseDuration: reduceMotion ? 0 : 150
+    readonly property int popupMorphDuration: reduceMotion ? 0 : 260
+    readonly property int popupContentExitDuration: reduceMotion ? 0 : 100
     readonly property int popupHideDelay: reduceMotion ? 0
         : popupCloseDuration + 20
 
     readonly property int motionShort: motionShort3
     readonly property int motionMedium: motionMedium2
 
-    // Physics & Bezier Easing Spline Curves
+    // Physics & Bezier Easing Spline Curves (Material 3 Expressive)
     readonly property var standardCurve: [0.2, 0.0, 0.0, 1.0, 1.0, 1.0]
-    readonly property var emphasizedDecelerate: [0.05, 0.7, 0.1, 1.0, 1.0, 1.0]
+    readonly property var emphasizedDecelerate: [0.05, 0.9, 0.1, 1.0, 1.0, 1.0]
     readonly property var emphasizedAccelerate: [0.3, 0.0, 0.8, 0.15, 1.0, 1.0]
     readonly property var springCurve: [0.16, 1.0, 0.3, 1.0, 1.0, 1.0]
-    readonly property var popupSpringCurve: [0.05, 0.9, 0.1, 1.05, 1.0, 1.0]
+    readonly property var popupSpringCurve: [0.05, 0.9, 0.1, 1.02, 1.0, 1.0]
 
 
     // =========================================================================

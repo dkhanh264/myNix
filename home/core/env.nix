@@ -16,6 +16,9 @@
     ELECTRON_OZONE_PLATFORM_HINT = "auto";
     NIXOS_OZONE_WL               = "1";
 
+    # Tối ưu hóa bộ cấp phát bộ nhớ (trả RAM nhàn rỗi về cho Kernel ngay lập tức)
+    MALLOC_TRIM_THRESHOLD_ = "131072";
+
     # Buộc các framework dùng Wayland backend
     QT_QPA_PLATFORM    = "wayland;xcb";
     GDK_BACKEND        = "wayland,x11,*";

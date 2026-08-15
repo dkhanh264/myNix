@@ -359,10 +359,10 @@ FocusScope {
                     asynchronous: true
                     cache: true
                     fillMode: Image.PreserveAspectCrop
-                    sourceSize.width: 800
-                    sourceSize.height: 600
+                    sourceSize.width: 480
+                    sourceSize.height: 360
                     smooth: true
-                    // The cache already stores an 800x600 preview. Building a
+                    // The cache already stores a 480x360 preview. Building a
                     // mip chain adds GPU memory without improving this card.
                     mipmap: false
                     visible: false

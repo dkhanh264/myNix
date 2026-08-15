@@ -38,6 +38,9 @@ in
       Environment = [
         "PATH=${m3PowerProfile}/bin:${pkgs.gpu-screen-recorder}/bin:/run/wrappers/bin:${config.home.profileDirectory}/bin:/run/current-system/sw/bin"
         "QSG_RENDER_LOOP=threaded"
+        "MALLOC_TRIM_THRESHOLD_=131072"
+        "MALLOC_MMAP_THRESHOLD_=131072"
+        "QML_DISABLE_DISK_CACHE=0"
       ];
       Restart = "on-failure";
       RestartSec = "1s";
