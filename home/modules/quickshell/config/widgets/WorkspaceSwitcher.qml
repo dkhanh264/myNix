@@ -46,47 +46,59 @@ M3BarPill {
     function resolveIconName(toplevel) {
         if (!toplevel) return "utilities-terminal";
 
+        // Prioritize static initialClass / class / appId (never use dynamic title)
         let cls = "";
         try {
-            if (typeof toplevel === "string")
+            if (typeof toplevel === "string") {
                 cls = toplevel;
-            else if (toplevel)
-                cls = toplevel["class"] || toplevel.initialClass || toplevel.appId || toplevel.waylandAppId || "";
+            } else if (toplevel) {
+                cls = toplevel.initialClass || toplevel["class"] || toplevel.appId || toplevel.waylandAppId || "";
+                if (!cls && toplevel.lastIpcObject) {
+                    cls = toplevel.lastIpcObject.initialClass || toplevel.lastIpcObject["class"] || "";
+                }
+            }
         } catch (e) {
             cls = "";
-        }
-
-        if (!cls && toplevel && toplevel.lastIpcObject) {
-            try {
-                cls = toplevel.lastIpcObject["class"] || toplevel.lastIpcObject.initialClass || "";
-            } catch (e2) {}
-        }
-
-        if (!cls && toplevel && toplevel.title) {
-            cls = toplevel.title;
         }
 
         let name = String(cls).toLowerCase().trim();
         if (!name) return "utilities-terminal";
 
-        // Application class name / title mappings
-        if (name.includes("firefox")) return "firefox";
-        if (name.includes("chrome")) return "google-chrome";
-        if (name.includes("code") || name.includes("vsc")) return "com.visualstudio.code";
+        // Terminals
         if (name.includes("kitty")) return "kitty";
         if (name.includes("foot")) return "foot";
         if (name.includes("alacritty")) return "alacritty";
+        if (name.includes("wezterm")) return "org.wezfurlong.wezterm";
+        if (name.includes("ghostty")) return "com.mitchellh.ghostty";
         if (name.includes("konsole")) return "org.kde.konsole";
-        if (name.includes("terminal") || name.includes("bash") || name.includes("zsh")) return "utilities-terminal";
+        if (name.includes("terminal") || name.includes("console") || name.includes("term")) return "utilities-terminal";
+
+        // Browsers
+        if (name.includes("firefox")) return "firefox";
+        if (name.includes("zen")) return "zen-browser";
+        if (name.includes("chrome")) return "google-chrome";
+        if (name.includes("chromium")) return "chromium";
+        if (name.includes("brave")) return "brave-browser";
+
+        // Editors & IDEs
+        if (name.includes("code") || name.includes("vsc")) return "com.visualstudio.code";
+        if (name.includes("neovide")) return "neovide";
+        if (name.includes("zed")) return "dev.zed.Zed";
+        if (name.includes("sublime")) return "sublime-text";
+
+        // File Managers
         if (name.includes("nautilus")) return "org.gnome.Nautilus";
         if (name.includes("thunar")) return "system-file-manager";
         if (name.includes("dolphin")) return "system-file-manager";
-        if (name.includes("discord") || name.includes("vesktop")) return "discord";
+
+        // Communication & Media
+        if (name.includes("discord") || name.includes("vesktop") || name.includes("webcord")) return "discord";
         if (name.includes("spotify")) return "spotify";
         if (name.includes("telegram")) return "telegram";
         if (name.includes("obsidian")) return "obsidian";
         if (name.includes("steam")) return "steam";
         if (name.includes("vlc")) return "vlc";
+        if (name.includes("mpv")) return "mpv";
         if (name.includes("pavucontrol")) return "multimedia-volume-control";
 
         return name;
