@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell.Hyprland
-import Quickshell.Widgets
 import "../components"
 import "../theme"
 
@@ -49,31 +48,36 @@ M3BarPill {
 
         let cls = "";
         try {
-            cls = toplevel["class"] || toplevel.initialClass || toplevel.appId || "";
+            if (typeof toplevel === "string")
+                cls = toplevel;
+            else if (toplevel)
+                cls = toplevel["class"] || toplevel.initialClass || toplevel.appId || toplevel.waylandAppId || "";
         } catch (e) {
             cls = "";
         }
 
-        if (!cls && toplevel.lastIpcObject) {
-            cls = toplevel.lastIpcObject["class"] || toplevel.lastIpcObject.initialClass || "";
+        if (!cls && toplevel && toplevel.lastIpcObject) {
+            try {
+                cls = toplevel.lastIpcObject["class"] || toplevel.lastIpcObject.initialClass || "";
+            } catch (e2) {}
         }
 
-        if (!cls && toplevel.title) {
+        if (!cls && toplevel && toplevel.title) {
             cls = toplevel.title;
         }
 
         let name = String(cls).toLowerCase().trim();
         if (!name) return "utilities-terminal";
 
-        // Application class name mappings
+        // Application class name / title mappings
         if (name.includes("firefox")) return "firefox";
         if (name.includes("chrome")) return "google-chrome";
-        if (name.includes("code") || name.includes("vscode")) return "com.visualstudio.code";
+        if (name.includes("code") || name.includes("vsc")) return "com.visualstudio.code";
         if (name.includes("kitty")) return "kitty";
         if (name.includes("foot")) return "foot";
         if (name.includes("alacritty")) return "alacritty";
         if (name.includes("konsole")) return "org.kde.konsole";
-        if (name.includes("terminal")) return "utilities-terminal";
+        if (name.includes("terminal") || name.includes("bash") || name.includes("zsh")) return "utilities-terminal";
         if (name.includes("nautilus")) return "org.gnome.Nautilus";
         if (name.includes("thunar")) return "system-file-manager";
         if (name.includes("dolphin")) return "system-file-manager";
@@ -224,9 +228,32 @@ M3BarPill {
                                 readonly property var itemToplevel: workspaceButton.toplevelList[index]
                                 readonly property string iconName: root.resolveIconName(itemToplevel)
 
-                                IconImage {
+                                Image {
+                                    id: appImg
                                     anchors.fill: parent
-                                    source: iconName
+                                    source: "image://icon/" + iconName
+                                    sourceSize.width: 14
+                                    sourceSize.height: 14
+                                    fillMode: Image.PreserveAspectFit
+                                    visible: status === Image.Ready
+                                }
+
+                                Image {
+                                    id: fallbackImg
+                                    anchors.fill: parent
+                                    source: "image://icon/application-x-executable"
+                                    sourceSize.width: 14
+                                    sourceSize.height: 14
+                                    fillMode: Image.PreserveAspectFit
+                                    visible: appImg.status !== Image.Ready && status === Image.Ready
+                                }
+
+                                MaterialIcon {
+                                    anchors.centerIn: parent
+                                    visible: appImg.status !== Image.Ready && fallbackImg.status !== Image.Ready
+                                    text: "window"
+                                    iconSize: 12
+                                    color: Theme.primaryContent
                                 }
                             }
                         }
