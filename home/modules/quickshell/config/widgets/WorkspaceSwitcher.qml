@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Hyprland
 import "../components"
 import "../theme"
@@ -102,6 +103,22 @@ M3BarPill {
         if (name.includes("pavucontrol")) return "multimedia-volume-control";
 
         return name;
+    }
+
+    function resolveAppIconUrl(toplevel) {
+        const name = resolveIconName(toplevel);
+        if (!name) return "";
+        
+        try {
+            let path = Quickshell.iconPath(name, true);
+            if (path) return path;
+            
+            path = Quickshell.iconPath("utilities-terminal", true)
+                || Quickshell.iconPath("application-x-executable", true);
+            return path || "";
+        } catch (e) {
+            return "";
+        }
     }
 
     readonly property int nodeSize: 24
@@ -238,31 +255,21 @@ M3BarPill {
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 readonly property var itemToplevel: workspaceButton.toplevelList[index]
-                                readonly property string iconName: root.resolveIconName(itemToplevel)
+                                readonly property string iconUrl: root.resolveAppIconUrl(itemToplevel)
 
                                 Image {
                                     id: appImg
                                     anchors.fill: parent
-                                    source: "image://icon/" + iconName
+                                    source: iconUrl
                                     sourceSize.width: 14
                                     sourceSize.height: 14
                                     fillMode: Image.PreserveAspectFit
-                                    visible: status === Image.Ready
-                                }
-
-                                Image {
-                                    id: fallbackImg
-                                    anchors.fill: parent
-                                    source: "image://icon/application-x-executable"
-                                    sourceSize.width: 14
-                                    sourceSize.height: 14
-                                    fillMode: Image.PreserveAspectFit
-                                    visible: appImg.status !== Image.Ready && status === Image.Ready
+                                    visible: iconUrl !== "" && status === Image.Ready
                                 }
 
                                 MaterialIcon {
                                     anchors.centerIn: parent
-                                    visible: appImg.status !== Image.Ready && fallbackImg.status !== Image.Ready
+                                    visible: iconUrl === "" || appImg.status !== Image.Ready
                                     text: "window"
                                     iconSize: 12
                                     color: Theme.primaryContent
