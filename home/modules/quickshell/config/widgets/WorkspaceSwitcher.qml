@@ -45,27 +45,47 @@ M3BarPill {
     }
 
     function resolveIconName(toplevel) {
-        if (!toplevel) return "application-x-executable";
-        let cls = (toplevel.class || toplevel.initialClass || "").toLowerCase();
-        if (!cls) return "application-x-executable";
+        if (!toplevel) return "utilities-terminal";
 
-        if (cls.includes("firefox")) return "firefox";
-        if (cls.includes("chrome")) return "google-chrome";
-        if (cls.includes("code") || cls.includes("vscode")) return "com.visualstudio.code";
-        if (cls.includes("kitty")) return "kitty";
-        if (cls.includes("foot")) return "foot";
-        if (cls.includes("alacritty")) return "alacritty";
-        if (cls.includes("terminal") || cls.includes("konsole")) return "utilities-terminal";
-        if (cls.includes("nautilus")) return "org.gnome.Nautilus";
-        if (cls.includes("thunar")) return "system-file-manager";
-        if (cls.includes("discord") || cls.includes("vesktop")) return "discord";
-        if (cls.includes("spotify")) return "spotify";
-        if (cls.includes("telegram")) return "telegram";
-        if (cls.includes("obsidian")) return "obsidian";
-        if (cls.includes("steam")) return "steam";
-        if (cls.includes("vlc")) return "vlc";
+        let cls = "";
+        try {
+            cls = toplevel["class"] || toplevel.initialClass || toplevel.appId || "";
+        } catch (e) {
+            cls = "";
+        }
 
-        return cls;
+        if (!cls && toplevel.lastIpcObject) {
+            cls = toplevel.lastIpcObject["class"] || toplevel.lastIpcObject.initialClass || "";
+        }
+
+        if (!cls && toplevel.title) {
+            cls = toplevel.title;
+        }
+
+        let name = String(cls).toLowerCase().trim();
+        if (!name) return "utilities-terminal";
+
+        // Application class name mappings
+        if (name.includes("firefox")) return "firefox";
+        if (name.includes("chrome")) return "google-chrome";
+        if (name.includes("code") || name.includes("vscode")) return "com.visualstudio.code";
+        if (name.includes("kitty")) return "kitty";
+        if (name.includes("foot")) return "foot";
+        if (name.includes("alacritty")) return "alacritty";
+        if (name.includes("konsole")) return "org.kde.konsole";
+        if (name.includes("terminal")) return "utilities-terminal";
+        if (name.includes("nautilus")) return "org.gnome.Nautilus";
+        if (name.includes("thunar")) return "system-file-manager";
+        if (name.includes("dolphin")) return "system-file-manager";
+        if (name.includes("discord") || name.includes("vesktop")) return "discord";
+        if (name.includes("spotify")) return "spotify";
+        if (name.includes("telegram")) return "telegram";
+        if (name.includes("obsidian")) return "obsidian";
+        if (name.includes("steam")) return "steam";
+        if (name.includes("vlc")) return "vlc";
+        if (name.includes("pavucontrol")) return "multimedia-volume-control";
+
+        return name;
     }
 
     readonly property int nodeSize: 24
@@ -205,17 +225,8 @@ M3BarPill {
                                 readonly property string iconName: root.resolveIconName(itemToplevel)
 
                                 IconImage {
-                                    id: appIconImg
                                     anchors.fill: parent
                                     source: iconName
-                                }
-
-                                MaterialIcon {
-                                    anchors.centerIn: parent
-                                    visible: appIconImg.status === Image.Error || appIconImg.status === Image.Null
-                                    text: "window"
-                                    iconSize: 12
-                                    color: Theme.primaryContent
                                 }
                             }
                         }
