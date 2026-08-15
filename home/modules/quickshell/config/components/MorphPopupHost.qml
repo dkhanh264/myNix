@@ -518,7 +518,7 @@ PanelWindow {
         }
 
         Behavior on x {
-            enabled: root.popupOpen && !Theme.reduceMotion
+            enabled: root.popupMorphing && !Theme.reduceMotion
             NumberAnimation {
                 duration: Theme.popupMorphDuration
                 easing.type: Easing.BezierSpline
@@ -527,7 +527,7 @@ PanelWindow {
         }
 
         Behavior on y {
-            enabled: root.popupOpen && !Theme.reduceMotion
+            enabled: root.popupMorphing && !Theme.reduceMotion
             NumberAnimation {
                 duration: Theme.popupMorphDuration
                 easing.type: Easing.BezierSpline
@@ -536,7 +536,7 @@ PanelWindow {
         }
 
         Behavior on width {
-            enabled: root.popupOpen && !Theme.reduceMotion
+            enabled: root.popupMorphing && !Theme.reduceMotion
             NumberAnimation {
                 duration: Theme.popupMorphDuration
                 easing.type: Easing.BezierSpline
@@ -545,7 +545,7 @@ PanelWindow {
         }
 
         Behavior on height {
-            enabled: root.popupOpen && !Theme.reduceMotion
+            enabled: root.popupMorphing && !Theme.reduceMotion
             NumberAnimation {
                 duration: Theme.popupMorphDuration
                 easing.type: Easing.BezierSpline
@@ -598,7 +598,7 @@ PanelWindow {
             clip: true
 
             Behavior on animatedInset {
-                enabled: root.popupOpen && !Theme.reduceMotion
+                enabled: root.popupMorphing && !Theme.reduceMotion
                 NumberAnimation {
                     duration: Theme.popupMorphDuration
                     easing.type: Easing.BezierSpline

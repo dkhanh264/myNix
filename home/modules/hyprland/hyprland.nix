@@ -182,7 +182,7 @@ in
           size = 6;
           passes = 2;
           new_optimizations = true;
-          xray = true;
+          xray = false;
           ignore_opacity = true;
           popups = true;
           popups_ignorealpha = 0.05;
@@ -295,7 +295,7 @@ in
       };
 
       render = {
-        direct_scanout = true;
+        direct_scanout = false;
       };
 
       windowrulev2 = [
