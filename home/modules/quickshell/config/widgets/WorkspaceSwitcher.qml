@@ -1,11 +1,12 @@
 import QtQuick
 import Quickshell.Hyprland
+import Quickshell.Widgets
 import "../components"
 import "../theme"
 
 // Android 17 Expressive Workspace Switcher.
 // Dynamically displays ONLY active & occupied workspaces with centered numbers
-// inside expressive morphing capsules.
+// for inactive nodes and open window icons for the active node with auto-expanding width.
 M3BarPill {
     id: root
 
@@ -43,8 +44,31 @@ M3BarPill {
         return result;
     }
 
+    function resolveIconName(toplevel) {
+        if (!toplevel) return "application-x-executable";
+        let cls = (toplevel.class || toplevel.initialClass || "").toLowerCase();
+        if (!cls) return "application-x-executable";
+
+        if (cls.includes("firefox")) return "firefox";
+        if (cls.includes("chrome")) return "google-chrome";
+        if (cls.includes("code") || cls.includes("vscode")) return "com.visualstudio.code";
+        if (cls.includes("kitty")) return "kitty";
+        if (cls.includes("foot")) return "foot";
+        if (cls.includes("alacritty")) return "alacritty";
+        if (cls.includes("terminal") || cls.includes("konsole")) return "utilities-terminal";
+        if (cls.includes("nautilus")) return "org.gnome.Nautilus";
+        if (cls.includes("thunar")) return "system-file-manager";
+        if (cls.includes("discord") || cls.includes("vesktop")) return "discord";
+        if (cls.includes("spotify")) return "spotify";
+        if (cls.includes("telegram")) return "telegram";
+        if (cls.includes("obsidian")) return "obsidian";
+        if (cls.includes("steam")) return "steam";
+        if (cls.includes("vlc")) return "vlc";
+
+        return cls;
+    }
+
     readonly property int nodeSize: 24
-    readonly property int activeNodeWidth: 44
     readonly property int nodeGap: 6
 
     interactive: false
@@ -75,12 +99,26 @@ M3BarPill {
                     }
                     return null;
                 }
-                readonly property bool occupied: workspace
-                    && workspace.toplevels
-                    && workspace.toplevels.values.length > 0
+                readonly property var toplevelList: {
+                    if (!workspace || !workspace.toplevels) return [];
+                    return workspace.toplevels.values || [];
+                }
+                readonly property int toplevelCount: toplevelList.length
+                readonly property bool occupied: toplevelCount > 0
                 readonly property bool urgent: workspace && workspace.urgent
 
-                implicitWidth: active ? root.activeNodeWidth : root.nodeSize
+                readonly property int activeTargetWidth: {
+                    if (toplevelCount === 0) return 32;
+                    const visibleIcons = Math.min(toplevelCount, 4);
+                    const hasOverflow = toplevelCount > 4;
+                    const iconWidths = visibleIcons * 14;
+                    const gaps = (visibleIcons - 1) * 4;
+                    const padding = 16;
+                    const overflowWidth = hasOverflow ? 18 : 0;
+                    return Math.max(36, padding + iconWidths + gaps + overflowWidth);
+                }
+
+                implicitWidth: active ? activeTargetWidth : root.nodeSize
                 implicitHeight: root.nodeSize
                 activeFocusOnTab: true
 
@@ -123,11 +161,13 @@ M3BarPill {
                         }
                     }
 
+                    // Workspace number (visible when inactive, or when active with 0 open windows)
                     M3Text {
                         role: "labelSmall"
                         anchors.centerIn: parent
+                        visible: opacity > 0
+                        opacity: (!workspaceButton.active || workspaceButton.toplevelCount === 0) ? 1 : 0
                         text: workspaceButton.workspaceId
-                        opacity: workspaceButton.active ? 0 : 1
                         color: workspaceButton.urgent
                             ? Theme.errorContent
                             : workspaceButton.active
@@ -139,6 +179,55 @@ M3BarPill {
 
                         Behavior on opacity {
                             NumberAnimation { duration: Theme.motionShort3 }
+                        }
+                    }
+
+                    // Active workspace open windows icons
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 4
+                        visible: opacity > 0
+                        opacity: (workspaceButton.active && workspaceButton.toplevelCount > 0) ? 1 : 0
+
+                        Behavior on opacity {
+                            NumberAnimation { duration: Theme.motionShort3 }
+                        }
+
+                        Repeater {
+                            model: Math.min(workspaceButton.toplevelCount, 4)
+
+                            delegate: Item {
+                                width: 14
+                                height: 14
+                                anchors.verticalCenter: parent.verticalCenter
+
+                                readonly property var itemToplevel: workspaceButton.toplevelList[index]
+                                readonly property string iconName: root.resolveIconName(itemToplevel)
+
+                                IconImage {
+                                    id: appIconImg
+                                    anchors.fill: parent
+                                    source: iconName
+                                }
+
+                                MaterialIcon {
+                                    anchors.centerIn: parent
+                                    visible: appIconImg.status === Image.Error || appIconImg.status === Image.Null
+                                    text: "window"
+                                    iconSize: 12
+                                    color: Theme.primaryContent
+                                }
+                            }
+                        }
+
+                        M3Text {
+                            role: "labelSmall"
+                            anchors.verticalCenter: parent
+                            visible: workspaceButton.toplevelCount > 4
+                            text: "+" + (workspaceButton.toplevelCount - 4)
+                            color: Theme.primaryContent
+                            font.weight: Font.Bold
+                            font.pixelSize: 10
                         }
                     }
                 }
