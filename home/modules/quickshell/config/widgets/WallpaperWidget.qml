@@ -403,29 +403,32 @@ FocusScope {
 
                 // Video Badge Chip (Top Right Corner)
                 Rectangle {
+                    id: videoBadge
                     anchors.top: parent.top
                     anchors.right: parent.right
                     anchors.margins: 12
                     visible: cardItem.modelData.isVideo && cardItem.width >= carousel.mediumCardWidth * 0.8
+                    width: videoBadgeContent.implicitWidth + 16
                     height: 26
-                    radius: 13
-                    color: "#b0000000"
-                    border.color: "#40ffffff"
+                    radius: height / 2
+                    color: Theme.alpha("#000000", 0.72)
+                    border.color: Theme.alpha("#ffffff", 0.20)
                     border.width: 1
 
-                    RowLayout {
+                    Row {
+                        id: videoBadgeContent
                         anchors.centerIn: parent
-                        anchors.leftMargin: 8
-                        anchors.rightMargin: 10
                         spacing: 4
 
                         MaterialIcon {
+                            anchors.verticalCenter: parent.verticalCenter
                             text: "movie"
                             iconSize: 14
                             color: "#ffffff"
                         }
 
                         M3Text {
+                            anchors.verticalCenter: parent.verticalCenter
                             role: "labelSmall"
                             text: "VIDEO"
                             color: "#ffffff"
