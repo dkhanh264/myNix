@@ -6,7 +6,7 @@ Rectangle {
     id: root
 
     property var controller
-    property bool expanded: false
+    property bool expanded: true
     property real detailsProgress: expanded ? 1 : 0
 
     signal expansionRequested(bool expanded)

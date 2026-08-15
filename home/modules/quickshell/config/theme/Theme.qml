@@ -192,12 +192,12 @@ Singleton {
     readonly property int motionMedium3: reduceMotion ? 0 : 350
 
     readonly property int motionLong2: reduceMotion ? 0 : 450
-    readonly property int popupTransitionDuration: reduceMotion ? 0 : 320
-    readonly property int popupCloseDuration: reduceMotion ? 0 : 220
-    readonly property int popupMorphDuration: reduceMotion ? 0 : 340
-    readonly property int popupContentExitDuration: reduceMotion ? 0 : 140
+    readonly property int popupTransitionDuration: reduceMotion ? 0 : 240
+    readonly property int popupCloseDuration: reduceMotion ? 0 : 180
+    readonly property int popupMorphDuration: reduceMotion ? 0 : 260
+    readonly property int popupContentExitDuration: reduceMotion ? 0 : 100
     readonly property int popupHideDelay: reduceMotion ? 0
-        : popupCloseDuration + 40
+        : popupCloseDuration + 10
 
     readonly property int motionShort: motionShort3
     readonly property int motionMedium: motionMedium2

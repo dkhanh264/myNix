@@ -487,10 +487,10 @@ PanelWindow {
         width: root.targetWidth
         height: root.targetHeight
         focus: root.popupOpen && root.hostActive
-        enabled: root.popupOpen && root.hostActive
+        enabled: root.hostActive
         opacity: revealProgress
-        scale: 0.95 + revealProgress * 0.05
-        transformOrigin: Item.Top
+        scale: 0.96 + revealProgress * 0.04
+        transformOrigin: Item.Center
 
         property real revealProgress: root.popupOpen ? 1 : 0
 
@@ -620,7 +620,7 @@ PanelWindow {
                     ? root.componentForPopup(root.slotAKind) : null
                 visible: item !== null && !pendingSlot
                     && opacity > 0.001
-                enabled: !pendingSlot && incomingSlot && root.popupOpen
+                enabled: !pendingSlot && incomingSlot && root.hostActive
                     && (!root.contentMorphActive
                     || root.morphProgress >= 0.55)
                 opacity: pendingSlot ? 0 : incomingSlot
@@ -656,7 +656,7 @@ PanelWindow {
                     ? root.componentForPopup(root.slotBKind) : null
                 visible: item !== null && !pendingSlot
                     && opacity > 0.001
-                enabled: !pendingSlot && incomingSlot && root.popupOpen
+                enabled: !pendingSlot && incomingSlot && root.hostActive
                     && (!root.contentMorphActive
                     || root.morphProgress >= 0.55)
                 opacity: pendingSlot ? 0 : incomingSlot
