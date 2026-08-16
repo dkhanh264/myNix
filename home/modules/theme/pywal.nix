@@ -706,8 +706,12 @@ EOF
           || pkill -x swww-daemon >/dev/null 2>&1 \
           || true
 
-        # Limit only animated wallpapers to 30 FPS. Offload video decoding 100% to GPU.
-        MPVPAPER_OPTIONS="no-config no-audio loop-file=inf hwdec=auto profile=fast vo=gpu gpu-context=wayland interpolation=no vf=fps=30 sub-auto=no no-osc"
+        # Optimize memory, CPU and GPU usage for wallpaper playback.
+        # - cache=no, demuxer-max-bytes=16M, demuxer-max-back-bytes=0, demuxer-readahead-secs=1: prevents video buffering leaks during loops.
+        # - vd-lavc-threads=1, vd-lavc-dr=yes: reduces frame buffer queues in RAM.
+        # - no-audio, sub-auto=no, audio-file-auto=no, no-osc, no-osd-bar, osd-level=0, load-scripts=no, icc-profile-auto=no: disables unused features.
+        # - vf=fps=30, hwdec=auto-safe: limits frame rate and safely uses hardware acceleration.
+        MPVPAPER_OPTIONS="no-config no-audio no-osc no-osd-bar osd-level=0 load-scripts=no loop-file=inf hwdec=auto-safe profile=fast vo=gpu gpu-context=wayland interpolation=no vf=fps=30 sub-auto=no audio-file-auto=no cache=no demuxer-max-bytes=16M demuxer-max-back-bytes=0 demuxer-readahead-secs=1 vd-lavc-threads=1 vd-lavc-dr=yes icc-profile-auto=no"
         mpvpaper --auto-pause --mpv-options "$MPVPAPER_OPTIONS" ALL \
           "$NEW_BACKGROUND" >/dev/null 2>&1 9>&- &
         MPVPAPER_PID=$!
