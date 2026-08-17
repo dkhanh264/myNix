@@ -476,10 +476,25 @@ PanelWindow {
     MouseArea {
         anchors.fill: parent
         onPressed: root.closeRequested()
+
+        Rectangle {
+            id: modalBackdrop
+            anchors.fill: parent
+            color: "#000000"
+            opacity: (morphPanel.isCenteredPopup && root.hostActive)
+                ? (morphPanel.revealProgress * 0.32) : 0
+            visible: opacity > 0.001
+        }
     }
 
     FocusScope {
         id: morphPanel
+
+        readonly property bool isCenteredPopup: root.activePopup === "wallpaper"
+            || root.activePopup === "dashboard"
+            || root.activePopup === "profile"
+            || root.activePopup === "session"
+        property real revealProgress: root.popupOpen ? 1 : 0
 
         visible: root.hostActive
         x: root.targetX
@@ -489,17 +504,17 @@ PanelWindow {
         focus: root.popupOpen && root.hostActive
         enabled: root.hostActive
         opacity: revealProgress
-        scale: root.popupOpen ? (0.96 + revealProgress * 0.04) : 1.0
-        transformOrigin: Item.Center
-
-        property real revealProgress: root.popupOpen ? 1 : 0
+        scale: 0.94 + revealProgress * 0.06
+        transformOrigin: isCenteredPopup ? Item.Center : Item.Top
 
         Accessible.role: Accessible.Dialog
         Accessible.name: root.popupAccessibleName(root.activePopup)
         Accessible.focusable: true
 
         transform: Translate {
-            y: root.popupOpen ? (1 - morphPanel.revealProgress) * -8 : 0
+            y: morphPanel.isCenteredPopup
+                ? ((1 - morphPanel.revealProgress) * 14)
+                : ((1 - morphPanel.revealProgress) * -12)
         }
 
         Keys.onEscapePressed: event => {

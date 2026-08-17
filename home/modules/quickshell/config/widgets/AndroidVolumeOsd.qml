@@ -21,17 +21,17 @@ Item {
 
     Behavior on opacity {
         NumberAnimation {
-            duration: Theme.motionMedium2
+            duration: root.shown ? Theme.motionShort3 : Theme.motionShort2
             easing.type: Easing.BezierSpline
-            easing.bezierCurve: Theme.emphasizedDecelerate
+            easing.bezierCurve: root.shown ? Theme.emphasizedDecelerate : Theme.emphasizedAccelerate
         }
     }
 
     Behavior on scale {
         NumberAnimation {
-            duration: Theme.motionMedium2
+            duration: root.shown ? Theme.motionShort3 : Theme.motionShort2
             easing.type: Easing.BezierSpline
-            easing.bezierCurve: Theme.springCurve
+            easing.bezierCurve: root.shown ? Theme.springCurve : Theme.standardCurve
         }
     }
 
