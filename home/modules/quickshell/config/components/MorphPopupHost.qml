@@ -476,15 +476,6 @@ PanelWindow {
     MouseArea {
         anchors.fill: parent
         onPressed: root.closeRequested()
-
-        Rectangle {
-            id: modalBackdrop
-            anchors.fill: parent
-            color: "#000000"
-            opacity: (morphPanel.isCenteredPopup && root.hostActive)
-                ? (morphPanel.revealProgress * 0.32) : 0
-            visible: opacity > 0.001
-        }
     }
 
     FocusScope {
@@ -503,9 +494,11 @@ PanelWindow {
         height: root.targetHeight
         focus: root.popupOpen && root.hostActive
         enabled: root.hostActive
-        opacity: revealProgress
-        scale: 0.94 + revealProgress * 0.06
+        opacity: Math.min(1.0, Math.max(0.0, revealProgress))
+        scale: 0.96 + revealProgress * 0.04
         transformOrigin: isCenteredPopup ? Item.Center : Item.Top
+        layer.enabled: revealProgress > 0.001 && revealProgress < 0.999 && !Theme.reduceMotion
+        layer.smooth: true
 
         Accessible.role: Accessible.Dialog
         Accessible.name: root.popupAccessibleName(root.activePopup)
@@ -513,8 +506,8 @@ PanelWindow {
 
         transform: Translate {
             y: morphPanel.isCenteredPopup
-                ? ((1 - morphPanel.revealProgress) * 14)
-                : ((1 - morphPanel.revealProgress) * -12)
+                ? ((1 - morphPanel.revealProgress) * 8)
+                : ((1 - morphPanel.revealProgress) * -8)
         }
 
         Keys.onEscapePressed: event => {

@@ -192,8 +192,8 @@ Singleton {
     readonly property int motionMedium3: reduceMotion ? 0 : 420
 
     readonly property int motionLong2: reduceMotion ? 0 : 550
-    readonly property int popupTransitionDuration: reduceMotion ? 0 : 280
-    readonly property int popupCloseDuration: reduceMotion ? 0 : 190
+    readonly property int popupTransitionDuration: reduceMotion ? 0 : 260
+    readonly property int popupCloseDuration: reduceMotion ? 0 : 180
     readonly property int popupMorphDuration: reduceMotion ? 0 : 240
     readonly property int popupContentExitDuration: reduceMotion ? 0 : 110
     readonly property int popupHideDelay: reduceMotion ? 0
@@ -207,8 +207,8 @@ Singleton {
     readonly property var emphasizedDecelerate: [0.05, 0.9, 0.1, 1.0, 1.0, 1.0]
     readonly property var emphasizedAccelerate: [0.3, 0.0, 0.8, 0.15, 1.0, 1.0]
     readonly property var springCurve: [0.16, 1.0, 0.3, 1.0, 1.0, 1.0]
-    readonly property var popupSpringCurve: [0.05, 0.95, 0.15, 1.0, 1.0, 1.0]
-    readonly property var popupCloseCurve: [0.35, 0.0, 0.85, 0.15, 1.0, 1.0]
+    readonly property var popupSpringCurve: [0.16, 1.0, 0.3, 1.0, 1.0, 1.0]
+    readonly property var popupCloseCurve: [0.3, 0.0, 0.8, 0.15, 1.0, 1.0]
 
 
     // =========================================================================
