@@ -251,7 +251,7 @@ in
           "layers,        1, 4.5, m3Decel, popin 90%"
           "layersIn,      1, 4.5, m3Decel, popin 90%"
           "layersOut,     1, 3.0, m3Accel, popin 90%"
-          "workspaces,    1, 5.0, m3Decel, slidefade 20%"
+          "workspaces,    1, 4.0, m3Decel, slide"
           "specialWorkspace, 1, 4.0, m3Decel, slidevert"
           "border,        1, 5.0, m3Decel"
         ];
@@ -282,6 +282,7 @@ in
       };
 
       misc = {
+        background_color = "0x11111b";
         vfr = true;
         disable_hyprland_logo = true;
         disable_splash_rendering = true;
@@ -295,6 +296,8 @@ in
       };
 
       render = {
+        explicit_sync = 1;
+        explicit_sync_kms = 1;
         direct_scanout = false;
       };
 

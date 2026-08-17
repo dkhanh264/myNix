@@ -707,11 +707,13 @@ EOF
           || true
 
         # Optimize memory, CPU and GPU usage for wallpaper playback.
-        # - cache=no, demuxer-max-bytes=16M, demuxer-max-back-bytes=0, demuxer-readahead-secs=1: prevents video buffering leaks during loops.
-        # - vd-lavc-threads=1, vd-lavc-dr=yes: reduces frame buffer queues in RAM.
+        # - cache=no, demuxer-max-bytes=2048KiB, demuxer-max-back-bytes=0, demuxer-readahead-secs=0.5: strictly minimizes packet queue in RAM.
+        # - vd-lavc-threads=1, vd-lavc-dr=no: disables Direct Rendering to prevent Wayland loop memory leaks.
+        # - video-sync=desync: prevents internal frame queue buildup when running without audio.
+        # - scale=bilinear, cscale=bilinear, dscale=bilinear, opengl-pbo=no: lightweight scaling without texture buffer bloat.
         # - no-audio, sub-auto=no, audio-file-auto=no, no-osc, no-osd-bar, osd-level=0, load-scripts=no, icc-profile-auto=no: disables unused features.
         # - vf=fps=30, hwdec=auto-safe: limits frame rate and safely uses hardware acceleration.
-        MPVPAPER_OPTIONS="no-config no-audio no-osc no-osd-bar osd-level=0 load-scripts=no loop-file=inf hwdec=auto-safe profile=fast vo=gpu gpu-context=wayland interpolation=no vf=fps=30 sub-auto=no audio-file-auto=no cache=no demuxer-max-bytes=16M demuxer-max-back-bytes=0 demuxer-readahead-secs=1 vd-lavc-threads=1 vd-lavc-dr=yes icc-profile-auto=no"
+        MPVPAPER_OPTIONS="no-config no-audio no-osc no-osd-bar osd-level=0 load-scripts=no loop-file=inf hwdec=auto-safe profile=fast vo=gpu gpu-context=wayland video-sync=desync interpolation=no scale=bilinear cscale=bilinear dscale=bilinear opengl-pbo=no vf=fps=30 sub-auto=no audio-file-auto=no cache=no demuxer-max-bytes=2048KiB demuxer-max-back-bytes=0 demuxer-readahead-secs=0.5 vd-lavc-threads=1 vd-lavc-dr=no reset-on-next-file=all icc-profile-auto=no"
         mpvpaper --auto-pause --mpv-options "$MPVPAPER_OPTIONS" ALL \
           "$NEW_BACKGROUND" >/dev/null 2>&1 9>&- &
         MPVPAPER_PID=$!
