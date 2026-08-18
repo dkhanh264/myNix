@@ -7,9 +7,10 @@ _:
       size = 11;
     };
     settings = {
-      # Let the smoother compositor blur show through while glyphs stay opaque.
-      # Keep the near-black palette from becoming a heavy "smoke" layer.
-      background_opacity = "0.46";
+      # Background opacity & compositor blur
+      background_opacity = "0.80";
+      background_blur = 30;
+      hide_window_decorations = "yes";
       confirm_os_window_close = 0;
       enable_audio_bell = false;
       cursor_shape = "beam";

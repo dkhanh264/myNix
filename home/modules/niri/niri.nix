@@ -100,6 +100,9 @@ in
         position x=1920 y=0
     }
 
+    // Disable Client-Side Decorations globally (remove titlebars / close-minimize-maximize buttons)
+    prefer-no-csd
+
     // Environment variables
     environment {
         LIBVA_DRIVER_NAME "nvidia"
@@ -112,6 +115,7 @@ in
         XCURSOR_THEME "FrierenBLZ"
         MOZ_ENABLE_WAYLAND "1"
         QT_QPA_PLATFORM "wayland"
+        QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
         GDK_BACKEND "wayland,x11"
     }
 
@@ -190,6 +194,12 @@ in
     window-rule {
         geometry-corner-radius 12
         clip-to-geometry true
+        draw-border-with-background false
+    }
+
+    window-rule {
+        match app-id=r#"kitty$"#
+        opacity 0.90
     }
 
     // Keybindings

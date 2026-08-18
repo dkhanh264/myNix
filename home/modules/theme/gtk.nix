@@ -37,10 +37,12 @@ in
 
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = true;
+      gtk-decoration-layout = ":";
     };
 
     gtk4.extraConfig = {
       gtk-application-prefer-dark-theme = true;
+      gtk-decoration-layout = ":";
     };
   };
 
