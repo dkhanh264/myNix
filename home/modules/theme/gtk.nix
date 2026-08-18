@@ -46,6 +46,15 @@ in
     };
   };
 
+  dconf = {
+    enable = true;
+    settings = {
+      "org/gnome/desktop/wm/preferences" = {
+        button-layout = ":";
+      };
+    };
+  };
+
   home.pointerCursor = {
     enable = true;
 

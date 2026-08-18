@@ -78,7 +78,7 @@ in
         }
 
         mouse {
-            natural-scroll
+            // natural-scroll // Bỏ natural-scroll để cuộn chuột theo hướng chuẩn truyền thống
         }
 
         warp-mouse-to-focus
@@ -152,12 +152,20 @@ in
             inactive-color "#8e9099"
         }
 
+        tab-indicator {
+            hide-when-single-tab
+            corner-radius 6
+            gap 4
+            width 3
+            position "top"
+        }
+
         shadow {
             on
-            softness 16
+            softness 20
             spread 2
             offset x=0 y=4
-            color "#05070ca6"
+            color "#00000080"
         }
     }
 
@@ -195,11 +203,6 @@ in
         geometry-corner-radius 12
         clip-to-geometry true
         draw-border-with-background false
-    }
-
-    window-rule {
-        match app-id=r#"kitty$"#
-        opacity 0.90
     }
 
     // Keybindings
