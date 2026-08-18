@@ -186,7 +186,7 @@ in
     blur {
         passes 3
         offset 2.0
-        noise 0.02
+        noise 0.0
         saturation 1.2
     }
 
@@ -215,7 +215,7 @@ in
     }
 
     window-rule {
-        geometry-corner-radius 12
+        geometry-corner-radius 16
         clip-to-geometry true
         draw-border-with-background false
     }
