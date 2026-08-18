@@ -58,7 +58,7 @@
                 useUserPackages = true;
                 backupFileExtension = "backup";
 
-                extraSpecialArgs = { inherit nixvim codex-cli-nix antigravity-nix; };
+                extraSpecialArgs = { inherit codex-cli-nix antigravity-nix; };
 
                 sharedModules = [
                   nixvim.homeModules.nixvim

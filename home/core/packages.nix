@@ -13,6 +13,7 @@
     eza
     cava
     clock-rs
+    trash-cli
 
     # Wayland essentials
     wl-clipboard
@@ -39,7 +40,6 @@
     discord
     discord-ptb
     spotify
-    vscode
     fastfetch
     jetbrains.idea-oss
     brave
@@ -68,8 +68,5 @@
     nodejs_22
     codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
     antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-cli
-
-    # App launcher
-    rofi
   ];
 }
