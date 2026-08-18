@@ -26,8 +26,10 @@
     imv
     gnome-sound-recorder
 
-    # Hardware control
+    # Hardware control & Audio GUI
     playerctl
+    brightnessctl
+    pavucontrol
 
     # Archive
     zip

@@ -21,7 +21,7 @@
     };
 
     scripts = with pkgs.mpvScripts; [
-      # Tích hợp phím Media và đồng bộ trạng thái media với Quickshell.
+      # Tích hợp phím Media qua giao thức MPRIS.
       mpris
 
       # Thanh điều khiển nổi và ảnh thu nhỏ khi tua video.

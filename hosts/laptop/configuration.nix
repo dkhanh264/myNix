@@ -37,9 +37,7 @@
 
   programs.nix-ld.enable = true;
 
-  # Direct monitor capture uses gsr-kms-server. The NixOS module installs the
-  # capability wrapper that lets Quickshell start it without an interactive
-  # Polkit password prompt.
+  # Direct monitor capture uses gsr-kms-server.
   programs.gpu-screen-recorder.enable = true;
 
   # ── Network ────────────────────────────────────────────────────────────
@@ -132,7 +130,6 @@
   };
 
   security.polkit.enable = true;
-  security.pam.services.quickshell = {};
   security.pam.services.hyprlock = {};
 
   services.displayManager.sddm = {

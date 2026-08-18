@@ -410,20 +410,9 @@ EOF
 
       # Notify immediately as soon as colors are updated so user feedback is instant
       if (( changed_any )); then
-        lang_file="$HOME/.config/m3-shell-language"
-        current_lang="vi"
-        if [[ -r "$lang_file" ]]; then
-          read -r current_lang < "$lang_file" || current_lang="vi"
-        fi
-
-        app_title="System Theme"
-        msg="Theme updated"
-        body="System colors synchronized with new wallpaper."
-        if [[ "$current_lang" == "vi" ]]; then
-          app_title="Giao diện hệ thống"
-          msg="Đã cập nhật giao diện"
-          body="Màu hệ thống đã đồng bộ theo hình nền mới."
-        fi
+        app_title="Giao diện hệ thống"
+        msg="Đã cập nhật giao diện"
+        body="Màu hệ thống đã đồng bộ theo hình nền mới."
 
         notify-send -a "$app_title" -i preferences-desktop-theme -t 3000 \
           "$msg" "$body" || true
@@ -539,9 +528,9 @@ EOF
       fi
 
       if [[ -n "''${XDG_RUNTIME_DIR:-}" ]]; then
-        LOCK_DIR="$XDG_RUNTIME_DIR/m3-shell"
+        LOCK_DIR="$XDG_RUNTIME_DIR/wallpaper"
       else
-        LOCK_DIR="/tmp/m3-shell-$UID"
+        LOCK_DIR="/tmp/wallpaper-$UID"
       fi
       mkdir -p -- "$LOCK_DIR"
       exec 9>"$LOCK_DIR/set-background.lock"

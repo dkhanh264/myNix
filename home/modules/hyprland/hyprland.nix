@@ -68,20 +68,9 @@ let
       wl-copy --type image/png < "$screenshot_path"
       completed=1
 
-      lang_file="$HOME/.config/m3-shell-language"
-      current_lang="vi"
-      if [[ -r "$lang_file" ]]; then
-        read -r current_lang < "$lang_file" || current_lang="vi"
-      fi
-
-      app_title="Screenshot"
-      msg="Screenshot copied"
-      body="Saved to $screenshot_path"
-      if [[ "$current_lang" == "vi" ]]; then
-        app_title="Chụp màn hình"
-        msg="Đã sao chép ảnh chụp màn hình"
-        body="Đã lưu tại $screenshot_path"
-      fi
+      app_title="Chụp màn hình"
+      msg="Đã sao chép ảnh chụp màn hình"
+      body="Đã lưu tại $screenshot_path"
 
       notify-send -a "$app_title" -u normal -t 4500 \
         -h string:x-canonical-private-synchronous:screenshot \
@@ -195,7 +184,6 @@ in
       };
 
       # Hyprland only draws text itself for a few compositor-owned surfaces.
-      # Match those to the same UI family and semantic palette as Quickshell.
       group = {
         "col.border_active" = "rgba(bec2ffff) rgba(c6bfffff) 45deg";
         "col.border_inactive" = "rgba(8e909986)";
@@ -320,19 +308,14 @@ in
         "$mainMod, W,         exec, brave"
         "$mainMod, E,         exec, nautilus"
 
-        # ── Launcher ứng dụng & widget hệ thống ────────────────────────
+        # ── Launcher ứng dụng & tiện ích hệ thống ──────────────────────
         "$mainMod, space,     exec, rofi-launcher"
-        "$mainMod SHIFT, space, exec, quickshell ipc call launcher wallpapers"
-        "$mainMod, A,         exec, qs ipc call controlCenter toggle"
-        "$mainMod, P,         exec, quickshell ipc call shellPopup profile"
-        "$mainMod, escape,    exec, quickshell ipc call shellPopup session"
         "$mainMod CTRL, space, exec, cycle-background"
-        "$mainMod SHIFT, R,   exec, systemctl --user restart quickshell"
 
         "ALT, F4,         killactive"
         "$mainMod, V,         togglefloating"
         "$mainMod, F,         fullscreen, 0"
-        "$mainMod, L,         exec, qs ipc call lockscreen lock"
+        "$mainMod, L,         exec, pidof hyprlock || hyprlock"
 
         # Dùng rofi -dmenu để gọi clipboard
         "$mainMod, C,         exec, cliphist list | rofi -dmenu -p \"Clipboard\" | cliphist decode | wl-copy"
@@ -385,30 +368,14 @@ in
         "$mainMod, mouse:272, movewindow"
         "$mainMod, mouse:273, resizewindow"
       ];
-      # ── Blur & Layer rules (Chuyển động mượt mà, không xung đột layer compositor) ────
+      # ── Blur & Layer rules ──────────────────────────────────────────
       layerrule = [
-        "noanim, m3-morph-popup-host"
-        "noanim, m3-shell"
-        "noanim, volume-osd"
-        "noanim, quickshell"
         "blur, rofi"
         "ignorezero, rofi"
         "ignorealpha 0.05, rofi"
         "blur, notifications"
         "ignorezero, notifications"
         "ignorealpha 0.05, notifications"
-        "blur, m3-shell"
-        "ignorezero, m3-shell"
-        "ignorealpha 0.05, m3-shell"
-        "blur, m3-morph-popup-host"
-        "ignorezero, m3-morph-popup-host"
-        "ignorealpha 0.05, m3-morph-popup-host"
-        "blur, quickshell"
-        "ignorezero, quickshell"
-        "ignorealpha 0.05, quickshell"
-        "blur, volume-osd"
-        "ignorezero, volume-osd"
-        "ignorealpha 0.05, volume-osd"
       ];
     };
 

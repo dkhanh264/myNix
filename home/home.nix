@@ -15,6 +15,5 @@
     ./modules/theme
     ./modules/media
     ./modules/browser
-    ./modules/quickshell
   ];
 }

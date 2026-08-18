@@ -6,7 +6,7 @@
       general = {
         after_sleep_cmd     = "hyprctl dispatch dpms on";
         ignore_dbus_inhibit = false;
-        lock_cmd            = "qs ipc call lockscreen lock";
+        lock_cmd            = "pidof hyprlock || hyprlock";
       };
 
       listener = [
