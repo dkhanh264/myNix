@@ -123,11 +123,8 @@
     ];
   };
 
-  # ── Wayland & Hyprland ─────────────────────────────────────────────────
-  programs.hyprland = {
-    enable = true;
-    xwayland.enable = true;
-  };
+  # ── Wayland & Niri ─────────────────────────────────────────────────────
+  programs.niri.enable = true;
 
   security.polkit.enable = true;
   security.pam.services.hyprlock = {};
@@ -306,6 +303,8 @@
     pciutils
     libimobiledevice
     sddm-sugar-dark
+    xwayland-satellite
+    hyprlock
   ];
 
   environment.sessionVariables = {

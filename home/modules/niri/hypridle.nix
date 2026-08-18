@@ -4,7 +4,6 @@
     enable = true;
     settings = {
       general = {
-        after_sleep_cmd     = "hyprctl dispatch dpms on";
         ignore_dbus_inhibit = false;
         lock_cmd            = "pidof hyprlock || hyprlock";
       };
@@ -15,6 +14,11 @@
           timeout = 180;
           on-timeout = "${pkgs.brightnessctl}/bin/brightnessctl -s set 10";
           on-resume = "${pkgs.brightnessctl}/bin/brightnessctl -r";
+        }
+        # Tắt màn hình sau 10 phút (600s)
+        {
+          timeout = 600;
+          on-timeout = "niri msg action power-off-monitors";
         }
       ];
     };
