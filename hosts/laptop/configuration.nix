@@ -327,6 +327,8 @@
     experimental-features = [ "nix-command" "flakes" ];
     max-jobs = "auto";
     auto-optimise-store = true;
+    extra-substituters = [ "https://niri.cachix.org" ];
+    extra-trusted-public-keys = [ "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964=" ];
   };
   boot.extraModulePackages = with config.boot.kernelPackages; [
   v4l2loopback

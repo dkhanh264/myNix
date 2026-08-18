@@ -182,7 +182,22 @@ in
         slowdown 1.0
     }
 
+    // Compositor background blur settings
+    blur {
+        passes 3
+        offset 2.0
+        noise 0.02
+        saturation 1.2
+    }
+
     // Window rules
+    window-rule {
+        match app-id=r#"kitty"#
+        background-effect {
+            blur true
+        }
+    }
+
     window-rule {
         match app-id=r#"pavucontrol$"#
         match app-id=r#"blueman-manager$"#

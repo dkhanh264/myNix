@@ -290,6 +290,24 @@
         "type": "github"
       }
     },
+    "niri": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_3"
+      },
+      "locked": {
+        "lastModified": 1786710356,
+        "narHash": "sha256-ptAftnlkdXaVjEzA2e1DBM9NPPDOpHtsAhOI6KzY4NY=",
+        "owner": "niri-wm",
+        "repo": "niri",
+        "rev": "606284464d4a99bb35710fee68192bc71085ee7c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "niri-wm",
+        "repo": "niri",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1785747939,
@@ -323,6 +341,22 @@
       }
     },
     "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1786963906,
+        "narHash": "sha256-3tkeMWSvHPo3tYljfXbPC/TgknikU1GvdVr/DkdfvE0=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "f4b6996c4e8b9ee06ce147ec344c885f51071b14",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_4": {
       "locked": {
         "lastModified": 1782847189,
         "narHash": "sha256-twXPFqFsrrY5r28Zh7Homgcp2gUMBgQ6WDS98Q/3xFI=",
@@ -414,7 +448,8 @@
         "fcitx5-lotus": "fcitx5-lotus",
         "home-manager": "home-manager",
         "lanzaboote": "lanzaboote",
-        "nixpkgs": "nixpkgs_3",
+        "niri": "niri",
+        "nixpkgs": "nixpkgs_4",
         "nixvim": "nixvim"
       }
     },

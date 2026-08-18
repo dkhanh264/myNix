@@ -26,6 +26,13 @@
       url = "github:LotusInputMethod/fcitx5-lotus";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    niri.url = "github:niri-wm/niri";
+  };
+
+  nixConfig = {
+    extra-substituters = [ "https://niri.cachix.org" ];
+    extra-trusted-public-keys = [ "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964=" ];
   };
 
   outputs =
@@ -37,6 +44,7 @@
       codex-cli-nix,
       antigravity-nix,
       fcitx5-lotus,
+      niri,
       ...
     }@inputs:
     let
@@ -51,6 +59,13 @@
             lanzaboote.nixosModules.lanzaboote
             home-manager.nixosModules.home-manager
             fcitx5-lotus.nixosModules.fcitx5-lotus
+            {
+              nixpkgs.overlays = [
+                (final: prev: {
+                  niri = niri.packages.${prev.system}.niri;
+                })
+              ];
+            }
 
             {
               home-manager = {
