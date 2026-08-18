@@ -154,20 +154,6 @@ let
           "$alpha"
       }
 
-      readable_on_color() {
-        local hex="''${1#\#}"
-        local red green blue yiq
-        red=$((16#''${hex:0:2}))
-        green=$((16#''${hex:2:2}))
-        blue=$((16#''${hex:4:2}))
-        yiq=$(((red * 299 + green * 587 + blue * 114) / 1000))
-        if (( yiq >= 150 )); then
-          printf '111318'
-        else
-          printf 'f5f3fa'
-        fi
-      }
-
       if [[ ! -r "$WAL_JSON" ]]; then
         notify_error "No readable Pywal palette was found."
         exit 1
@@ -212,19 +198,11 @@ let
       ERROR_CONTAINER="#5a2225"
       ON_ERROR="#2b0b0e"
 
-      FG_HEX="''${FG#\#}"
-      PRIMARY_HEX="''${PRIMARY#\#}"
-      SECONDARY_HEX="''${SECONDARY#\#}"
-      MUTED_HEX="''${MUTED#\#}"
-      ON_PRIMARY_HEX=$(readable_on_color "$PRIMARY")
-      ON_SECONDARY_HEX=$(readable_on_color "$SECONDARY")
-
       changed_any=0
       css_changed=0
       kitty_changed=0
       btop_changed=0
       cava_changed=0
-      niri_changed=0
 
       if atomic_write "$SEMANTIC_PALETTE" <<EOF
       {
@@ -417,7 +395,6 @@ EOF
 EOF
       then
         changed_any=1
-        niri_changed=1
       fi
 
 
