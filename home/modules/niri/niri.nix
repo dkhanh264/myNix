@@ -88,14 +88,15 @@ in
     // Output configuration
     // Laptop display (eDP-1)
     output "eDP-1" {
-        mode "1920x1080@144.0"
+        mode "1920x1080@144.003"
         scale 1.0
         position x=0 y=0
+        variable-refresh-rate
     }
 
     // External display (HDMI-A-1)
     output "HDMI-A-1" {
-        mode "1920x1080@180.0"
+        mode "1920x1080@179.961"
         scale 1.0
         position x=1920 y=0
     }
@@ -154,7 +155,7 @@ in
 
         tab-indicator {
             hide-when-single-tab
-            corner-radius 6
+            corner-radius 10
             gap 4
             width 3
             position "top"
@@ -215,7 +216,7 @@ in
     }
 
     window-rule {
-        geometry-corner-radius 16
+        geometry-corner-radius 24
         clip-to-geometry true
         draw-border-with-background false
     }
