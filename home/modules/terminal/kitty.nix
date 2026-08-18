@@ -6,6 +6,7 @@ _:
       name = "JetBrainsMono Nerd Font Mono";
       size = 11;
     };
+    settings = {
       # Frosted glass background opacity & compositor blur
       background_opacity = "0.85";
       background_blur = 32;
