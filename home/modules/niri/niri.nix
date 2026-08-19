@@ -124,7 +124,6 @@ in
     spawn-sh-at-startup "wl-paste --type text --watch cliphist store"
     spawn-at-startup "fcitx5" "-d"
     spawn-at-startup "restore-background"
-    spawn-at-startup "xwayland-satellite"
 
     // Layout configuration
     layout {
