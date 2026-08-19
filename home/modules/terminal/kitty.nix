@@ -1,5 +1,4 @@
-_:
-{
+_: {
   programs.kitty = {
     enable = true;
     font = {
@@ -8,7 +7,7 @@ _:
     };
     settings = {
       # Frosted glass effect
-      background_opacity = "0.75";
+      background_opacity = "0.47";
       dynamic_background_opacity = "yes";
       hide_window_decorations = "yes";
       confirm_os_window_close = 0;

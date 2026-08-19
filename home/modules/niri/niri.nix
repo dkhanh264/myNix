@@ -175,10 +175,10 @@ in
 
     // Compositor background blur settings (frosted glass)
     blur {
-        passes 4
-        offset 3.0
-        noise 0.02
-        saturation 1.1
+        passes 3
+        offset 2.2
+        noise 0.015
+        saturation 1.05
     }
 
     // Window rules
