@@ -13,8 +13,6 @@ let
           exit 2
           ;;
       esac
-
-      quickshell ipc call volumeOsd trigger >/dev/null 2>&1 || true
     '';
   };
 
@@ -22,9 +20,10 @@ let
     name = "brightness-osd";
     runtimeInputs = with pkgs; [ brightnessctl libnotify ];
     text = ''
+
       case "''${1:-}" in
-        up) brightnessctl set 10%+ >/dev/null ;;
-        down) brightnessctl set 10%- >/dev/null ;;
+        up) brightness_output="$(brightnessctl -m set 10%+)" ;;
+        down) brightness_output="$(brightnessctl -m set 10%-)" ;;
         *)
           printf 'Usage: brightness-osd {up|down}\n' >&2
           exit 2
@@ -32,15 +31,18 @@ let
       esac
 
       IFS=, read -r _device _class _current percentage _maximum \
-        <<< "$(brightnessctl -m info)"
+        <<< "$brightness_output"
       percentage="''${percentage%%%}"
       [[ "$percentage" =~ ^[0-9]+$ ]] || percentage=0
 
-      notify-send -a "System controls" -u low -t 1600 \
+      app_title="Điều khiển hệ thống"
+      label="Độ sáng · ''${percentage}%"
+
+      notify-send -a "$app_title" -u low -t 1600 \
         -i "display-brightness-symbolic" \
         -h string:x-canonical-private-synchronous:brightness \
         -h int:value:"$percentage" \
-        "Độ sáng · ''${percentage}%" || true
+        "$label" || true
     '';
   };
 

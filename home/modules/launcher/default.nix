@@ -1,6 +1,6 @@
 { ... }:
 {
   imports = [
-    ./walker.nix
+    ./rofi.nix
   ];
 }

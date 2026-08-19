@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   programs.nixvim = {
@@ -66,8 +66,7 @@
       eslint_d
       nixfmt-rfc-style
 
-      # Existing tooling
-      kdePackages.qtdeclarative
+      # Formatters & Linters
       kdlfmt
     ];
 
@@ -513,11 +512,6 @@
           };
 
           nixd.enable = true;
-
-          qmlls = {
-            enable = true;
-            filetypes = [ "qmljs" "qml" ];
-          };
         };
       };
 

@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, ... }:
 
 {
   imports = [ ./hardware-configuration.nix ];
@@ -6,15 +6,22 @@
   # ── Bootloader ─────────────────────────────────────────────────────────
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # tat firewall
+  # Firewall configuration for LocalSend & custom ports
   networking.firewall.allowedUDPPorts = [
     4698
+    53317 # LocalSend Multicast / UDP Discovery
+  ];
+  networking.firewall.allowedTCPPorts = [
+    53317 # LocalSend TCP File Transfer
   ];
 
 
   boot.kernelParams = [
     "nvidia-drm.modeset=1"
     "nvidia-drm.fbdev=1"
+    "pcie_aspm=force"
+    "nowatchdog"
+    "nmi_watchdog=0"
   ];
 
   # Improve headset/external mic detection on many HDA laptops.
@@ -30,9 +37,7 @@
 
   programs.nix-ld.enable = true;
 
-  # Direct monitor capture uses gsr-kms-server. The NixOS module installs the
-  # capability wrapper that lets Quickshell start it without an interactive
-  # Polkit password prompt.
+  # Direct monitor capture uses gsr-kms-server.
   programs.gpu-screen-recorder.enable = true;
 
   # ── Network ────────────────────────────────────────────────────────────
@@ -105,22 +110,45 @@
 
     extraPackages = with pkgs; [
       intel-media-driver
+      nvidia-vaapi-driver
+      libva-utils
       libva-vdpau-driver
       libvdpau-va-gl
-      vulkan-tools
-      vulkan-loader
-      mesa
+    ];
+
+    extraPackages32 = with pkgs.pkgsi686Linux; [
+      intel-media-driver
+      libva-vdpau-driver
+      libvdpau-va-gl
     ];
   };
 
-  # ── Wayland & Hyprland ─────────────────────────────────────────────────
-  programs.hyprland = {
+  # ── Wayland & Niri ─────────────────────────────────────────────────────
+  programs.niri.enable = true;
+
+  # ── XDG Desktop Portal (File chooser, Screencast, etc.) ────────────────
+  xdg.portal = {
     enable = true;
-    xwayland.enable = true;
+    xdgOpenUsePortal = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-gtk
+      xdg-desktop-portal-gnome
+    ];
+    config = {
+      common = {
+        default = [ "gtk" ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+      };
+      niri = {
+        default = [ "gnome" "gtk" ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+        "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ];
+        "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
+      };
+    };
   };
 
   security.polkit.enable = true;
-  security.pam.services.quickshell = {};
   security.pam.services.hyprlock = {};
 
   services.displayManager.sddm = {
@@ -137,13 +165,46 @@
     };
   };
 
-  # enable zram swap
+  # enable zram swap with 100% RAM allocation (zstd compression expands RAM capacity 2-3x)
   zramSwap = {
-  enable = true;
-  memoryPercent = 50;
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 100;
+    priority = 10;
+  };
+
+  # Early OOM daemon to prevent system freeze under heavy memory pressure
+  services.earlyoom = {
+    enable = true;
+    enableNotifications = true;
+    freeMemThreshold = 5;
+    freeSwapThreshold = 5;
+  };
+  systemd.oomd.enable = false;
+
+  # 2. Tối ưu Kernel Sysctl giúp hệ thống phản hồi cực nhanh & tận dụng zRAM
+  boot.kernel.sysctl = {
+     "vm.swappiness" = 160;          # Ưu tiên nén RAM zRAM trước khi đĩa cứng
+     "vm.watermark_boost_factor" = 0; # Giảm bớt tải thu hồi trang rảnh rỗi không cần thiết
+     "vm.watermark_scale_factor" = 125;
+     "vm.page-cluster" = 0;          # Tối ưu hóa nén/giải nén đơn trang zRAM
+     "vm.vfs_cache_pressure" = 125;  # Thu hồi cache dentry & inode giải phóng RAM khi cần
+     "vm.dirty_ratio" = 10;          # Giới hạn dirty memory tối đa 10% RAM
+     "vm.dirty_background_ratio" = 5; # Xả dirty cache xuống đĩa sớm khi đạt 5% RAM
+     "vm.max_map_count" = 1048576;   # Tăng giới hạn mmap cho IDE/JVM/Electron
   };
 
   services.fstrim.enable = true;
+
+  # Giới hạn dung lượng lưu log của systemd journald để giảm bớt ghi đĩa (I/O) và tiết kiệm RAM
+  services.journald.extraConfig = ''
+    SystemMaxUse=100M
+    SystemMaxFileSize=20M
+    Storage=persistent
+  '';
+
+  # Quản lý nhiệt độ & điện năng thông minh cho CPU Intel
+  services.thermald.enable = true;
 
   # ── Audio — PipeWire ───────────────────────────────────────────────────
   services.pipewire = {
@@ -156,6 +217,15 @@
 
     pulse.enable = true;
     jack.enable = true;
+    extraConfig.pipewire."92-audio-performance" = {
+      "context.properties" = {
+        "default.clock.rate" = 48000;
+        "default.clock.quantum" = 1024;
+        "default.clock.min-quantum" = 512;
+        "default.clock.max-quantum" = 2048;
+      };
+    };
+
     wireplumber = {
       enable = true;
       extraConfig."51-disable-node-suspend" = {
@@ -167,7 +237,7 @@
             ];
             actions = {
               update-props = {
-                "session.suspend-timeout-seconds" = 0;
+                "session.suspend-timeout-seconds" = 5;
               };
             };
           }
@@ -194,14 +264,6 @@
   services.pulseaudio.enable = false;
 
   security.rtkit.enable = true;
-
-  xdg.portal = {
-    enable = true;
-    extraPortals = with pkgs; [
-      xdg-desktop-portal-hyprland
-      xdg-desktop-portal-gtk
-    ];
-  };
 
   # ── Bluetooth ──────────────────────────────────────────────────────────
   hardware.bluetooth = {
@@ -242,7 +304,6 @@
   fonts.packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
-    noto-fonts-color-emoji
     material-symbols
     nerd-fonts.jetbrains-mono
     nerd-fonts.fira-code
@@ -261,11 +322,11 @@
     vim
     git
     wget
-    curl
     pciutils
     libimobiledevice
-    usbmuxd
     sddm-sugar-dark
+    xwayland-satellite
+    hyprlock
   ];
 
   environment.sessionVariables = {
@@ -288,6 +349,8 @@
     experimental-features = [ "nix-command" "flakes" ];
     max-jobs = "auto";
     auto-optimise-store = true;
+    extra-substituters = [ "https://niri.cachix.org" ];
+    extra-trusted-public-keys = [ "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964=" ];
   };
   boot.extraModulePackages = with config.boot.kernelPackages; [
   v4l2loopback

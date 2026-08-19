@@ -1,5 +1,5 @@
 {
-  description = "NixOS 25.11 — Dual Boot Laptop với Hyprland";
+  description = "NixOS 25.11 — Dual Boot Laptop với Niri";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
@@ -26,11 +26,17 @@
       url = "github:LotusInputMethod/fcitx5-lotus";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    niri.url = "github:niri-wm/niri";
+  };
+
+  nixConfig = {
+    extra-substituters = [ "https://niri.cachix.org" ];
+    extra-trusted-public-keys = [ "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964=" ];
   };
 
   outputs =
     {
-      self,
       nixpkgs,
       home-manager,
       nixvim,
@@ -38,6 +44,7 @@
       codex-cli-nix,
       antigravity-nix,
       fcitx5-lotus,
+      niri,
       ...
     }@inputs:
     let
@@ -52,6 +59,13 @@
             lanzaboote.nixosModules.lanzaboote
             home-manager.nixosModules.home-manager
             fcitx5-lotus.nixosModules.fcitx5-lotus
+            {
+              nixpkgs.overlays = [
+                (final: prev: {
+                  niri = niri.packages.${prev.system}.niri;
+                })
+              ];
+            }
 
             {
               home-manager = {
@@ -59,7 +73,7 @@
                 useUserPackages = true;
                 backupFileExtension = "backup";
 
-                extraSpecialArgs = { inherit nixvim codex-cli-nix antigravity-nix; };
+                extraSpecialArgs = { inherit codex-cli-nix antigravity-nix; };
 
                 sharedModules = [
                   nixvim.homeModules.nixvim

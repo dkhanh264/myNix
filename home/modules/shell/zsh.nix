@@ -1,20 +1,21 @@
-{ ... }:
+_:
 {
-  programs.zoxide = {
-    enable = true;
-    enableZshIntegration = true;
-  };
+  programs = {
+    zoxide = {
+      enable = true;
+      enableZshIntegration = true;
+    };
 
-  programs.fzf = {
-    enable = true;
-    enableZshIntegration = true;
-  };
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
+    };
 
-  programs.zsh = {
-    enable                    = true;
-    autosuggestion.enable     = true;
-    enableCompletion          = true;
-    syntaxHighlighting.enable = true;
+    zsh = {
+      enable = true;
+      autosuggestion.enable = true;
+      enableCompletion = true;
+      syntaxHighlighting.enable = true;
 
     shellAliases = {
       ls  = "eza --icons";
@@ -26,7 +27,6 @@
       # Khởi động emulator android
       runadr = "emulator -avd test -gpu host";
 
-      # THAY "your-laptop" bằng hostname thực tế
       rebuild     = "sudo nixos-rebuild switch --flake /etc/nixos#HiMeo";
       update      = "sudo nix flake update /etc/nixos";
       gc          = "sudo nix-collect-garbage -d";
@@ -38,7 +38,7 @@
       gcm = "git commit -m";
       gp  = "git push";
       gl  = "git log --oneline --graph --decorate";
+      };
     };
-
   };
 }

@@ -1,4 +1,4 @@
-{ ... }:
+_:
 {
   programs.kitty = {
     enable = true;
@@ -7,7 +7,11 @@
       size = 11;
     };
     settings = {
-      background_opacity = "0.4";
+      # High transparency frosted glass (removes heavy dark smoke layer)
+      background_opacity = "0.60";
+      background_blur = 32;
+      dynamic_background_opacity = "yes";
+      hide_window_decorations = "yes";
       confirm_os_window_close = 0;
       enable_audio_bell = false;
       cursor_shape = "beam";
@@ -15,9 +19,6 @@
     };
     themeFile = "tokyo_night_night";
     extraConfig = ''
-      # Enable bold text rendering with bright colors (like Alacritty)
-      draw_bold_text_with_bright_colors yes
-      
       # Window padding (14px uniform padding like Alacritty x=14 y=14)
       window_padding_width 14
 

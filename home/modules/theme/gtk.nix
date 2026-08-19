@@ -22,10 +22,6 @@ let
   };
 in
 {
-  home.packages = with pkgs; [
-    pywal
-  ];
-
   gtk = {
     enable = true;
 
@@ -41,10 +37,21 @@ in
 
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = true;
+      gtk-decoration-layout = ":";
     };
 
     gtk4.extraConfig = {
       gtk-application-prefer-dark-theme = true;
+      gtk-decoration-layout = ":";
+    };
+  };
+
+  dconf = {
+    enable = true;
+    settings = {
+      "org/gnome/desktop/wm/preferences" = {
+        button-layout = ":";
+      };
     };
   };
 
