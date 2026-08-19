@@ -7,9 +7,8 @@ _:
       size = 11;
     };
     settings = {
-      # High transparency frosted glass (removes heavy dark smoke layer)
-      background_opacity = "0.60";
-      background_blur = 32;
+      # Frosted glass effect
+      background_opacity = "0.75";
       dynamic_background_opacity = "yes";
       hide_window_decorations = "yes";
       confirm_os_window_close = 0;

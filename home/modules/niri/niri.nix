@@ -173,12 +173,12 @@ in
         slowdown 1.0
     }
 
-    // Compositor background blur settings
+    // Compositor background blur settings (frosted glass)
     blur {
-        passes 2
-        offset 2.0
-        noise 0.0
-        saturation 1.0
+        passes 4
+        offset 3.0
+        noise 0.02
+        saturation 1.1
     }
 
     // Window rules
