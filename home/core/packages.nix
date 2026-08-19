@@ -41,15 +41,10 @@
     discord-ptb
     spotify
     fastfetch
-    jetbrains.idea-oss
+    jetbrains.idea
     brave
     papers
     anki
-    vesktop
-    localsend
-    obsidian
-    zoom-us
-    zathura
 
     (pkgs.symlinkJoin {
       name = "davinci-resolve";

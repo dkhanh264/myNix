@@ -106,20 +106,13 @@ in
 
     // Environment variables
     environment {
-        LIBVA_DRIVER_NAME "nvidia"
-        __GLX_VENDOR_LIBRARY_NAME "nvidia"
-        GBM_BACKEND "nvidia-drm"
-        NVD_BACKEND "direct"
-        ELECTRON_OZONE_PLATFORM_HINT "auto"
-        NIXOS_OZONE_WL "1"
         XCURSOR_SIZE "24"
         XCURSOR_THEME "FrierenBLZ"
-        MOZ_ENABLE_WAYLAND "1"
-        QT_QPA_PLATFORM "wayland"
         QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
     }
 
     // Autostart services
+    spawn-at-startup "dbus-update-activation-environment" "--systemd" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP=niri"
     spawn-at-startup "rfkill" "unblock" "bluetooth"
     spawn-sh-at-startup "wl-paste --type text --watch cliphist store"
     spawn-at-startup "fcitx5" "-d"
@@ -168,8 +161,8 @@ in
         }
     }
 
-    // Include dynamic Pywal palette
-    include "${config.home.homeDirectory}/.config/niri/wal-colors.kdl"
+    // Include dynamic Pywal palette (optional so missing file won't break config)
+    include optional=true "${config.home.homeDirectory}/.config/niri/wal-colors.kdl"
 
     hotkey-overlay {
         skip-at-startup
@@ -261,7 +254,7 @@ in
         Mod+K     { focus-window-up; }
         Mod+L     { focus-column-right; }
 
-        // Moving windows & columns
+        // Moving windows & columns within monitor
         Mod+Ctrl+Left  { move-column-left; }
         Mod+Ctrl+Right { move-column-right; }
         Mod+Ctrl+Up    { move-window-up; }
@@ -271,14 +264,25 @@ in
         Mod+Ctrl+K     { move-window-up; }
         Mod+Ctrl+L     { move-column-right; }
 
-        Mod+Shift+Left  { move-column-left; }
-        Mod+Shift+Right { move-column-right; }
-        Mod+Shift+Up    { move-window-up; }
-        Mod+Shift+Down  { move-window-down; }
-        Mod+Shift+H     { move-column-left; }
-        Mod+Shift+J     { move-window-down; }
-        Mod+Shift+K     { move-window-up; }
-        Mod+Shift+L     { move-column-right; }
+        // Focus monitor navigation
+        Mod+Shift+Left  { focus-monitor-left; }
+        Mod+Shift+Right { focus-monitor-right; }
+        Mod+Shift+Up    { focus-monitor-up; }
+        Mod+Shift+Down  { focus-monitor-down; }
+        Mod+Shift+H     { focus-monitor-left; }
+        Mod+Shift+J     { focus-monitor-down; }
+        Mod+Shift+K     { focus-monitor-up; }
+        Mod+Shift+L     { focus-monitor-right; }
+
+        // Moving columns across monitors
+        Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
+        Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
+        Mod+Shift+Ctrl+Up    { move-column-to-monitor-up; }
+        Mod+Shift+Ctrl+Down  { move-column-to-monitor-down; }
+        Mod+Shift+Ctrl+H     { move-column-to-monitor-left; }
+        Mod+Shift+Ctrl+J     { move-column-to-monitor-down; }
+        Mod+Shift+Ctrl+K     { move-column-to-monitor-up; }
+        Mod+Shift+Ctrl+L     { move-column-to-monitor-right; }
 
         // Column layout adjustments
         Mod+BracketLeft  { consume-or-expel-window-left; }
@@ -308,6 +312,7 @@ in
         Mod+8 { focus-workspace 8; }
         Mod+9 { focus-workspace 9; }
 
+        // Move whole column to workspace
         Mod+Ctrl+1 { move-column-to-workspace 1; }
         Mod+Ctrl+2 { move-column-to-workspace 2; }
         Mod+Ctrl+3 { move-column-to-workspace 3; }
@@ -318,15 +323,16 @@ in
         Mod+Ctrl+8 { move-column-to-workspace 8; }
         Mod+Ctrl+9 { move-column-to-workspace 9; }
 
-        Mod+Shift+1 { move-column-to-workspace 1; }
-        Mod+Shift+2 { move-column-to-workspace 2; }
-        Mod+Shift+3 { move-column-to-workspace 3; }
-        Mod+Shift+4 { move-column-to-workspace 4; }
-        Mod+Shift+5 { move-column-to-workspace 5; }
-        Mod+Shift+6 { move-column-to-workspace 6; }
-        Mod+Shift+7 { move-column-to-workspace 7; }
-        Mod+Shift+8 { move-column-to-workspace 8; }
-        Mod+Shift+9 { move-column-to-workspace 9; }
+        // Move single focused window to workspace
+        Mod+Shift+1 { move-window-to-workspace 1; }
+        Mod+Shift+2 { move-window-to-workspace 2; }
+        Mod+Shift+3 { move-window-to-workspace 3; }
+        Mod+Shift+4 { move-window-to-workspace 4; }
+        Mod+Shift+5 { move-window-to-workspace 5; }
+        Mod+Shift+6 { move-window-to-workspace 6; }
+        Mod+Shift+7 { move-window-to-workspace 7; }
+        Mod+Shift+8 { move-window-to-workspace 8; }
+        Mod+Shift+9 { move-window-to-workspace 9; }
 
         // Mouse wheel workspace / column scrolling
         Mod+WheelScrollDown      cooldown-ms=150 { focus-workspace-down; }

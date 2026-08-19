@@ -9,7 +9,6 @@
     # NVIDIA + Wayland + GPU Offloading
     LIBVA_DRIVER_NAME         = "nvidia";
     __GLX_VENDOR_LIBRARY_NAME = "nvidia";
-    GBM_BACKEND               = "nvidia-drm";
     NVD_BACKEND               = "direct";
 
     # Dynamic GPU & Wayland Offloading for Chromium/Electron/Firefox

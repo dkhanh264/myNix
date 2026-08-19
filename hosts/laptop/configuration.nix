@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [ ./hardware-configuration.nix ];
@@ -17,8 +17,6 @@
 
 
   boot.kernelParams = [
-    "nvidia-drm.modeset=1"
-    "nvidia-drm.fbdev=1"
     "pcie_aspm=force"
     "nowatchdog"
     "nmi_watchdog=0"
@@ -140,7 +138,7 @@
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
       };
       niri = {
-        default = [ "gnome" "gtk" ];
+        default = lib.mkForce [ "gtk" ];
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ];
         "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
@@ -339,10 +337,6 @@
     dates = "weekly";           # Chạy mỗi tuần (hoặc daily)
     options = "--delete-older-than 14d";
   };
-
-  # Tối ưu hoá Nix Store tự động
-  nix.optimise.automatic = true;
-  nix.optimise.dates = [ "weekly" ];
 
   # ── Nix Settings ───────────────────────────────────────────────────────
   nix.settings = {
