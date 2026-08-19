@@ -37,14 +37,14 @@
     unzip
 
     # user apps
-    discord
-    discord-ptb
-    spotify
-    fastfetch
-    jetbrains.idea-oss
-    brave
-    papers
-    anki
+    (discord.override {
+      withOpenASAR = true;
+      withVencord = true;
+    })
+    (discord-ptb.override {
+      withOpenASAR = true;
+      withVencord = true;
+    })
     vesktop
     localsend
     obsidian
