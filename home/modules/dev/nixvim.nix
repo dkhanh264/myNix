@@ -64,7 +64,7 @@
       prettier
       prettierd
       eslint_d
-      nixfmt-rfc-style
+      nixfmt
 
       # Formatters & Linters
       kdlfmt

@@ -13,7 +13,14 @@
   zlib,
   glib,
   dbus,
-  xorg,
+  libx11,
+  libxcb,
+  libxext,
+  libxrender,
+  libxi,
+  libxrandr,
+  libxcursor,
+  libxinerama,
   wayland,
   avahi,
   libusbmuxd,
@@ -59,14 +66,14 @@ stdenv.mkDerivation rec {
     usbmuxd
     stdenv.cc.cc.lib
 
-    xorg.libX11
-    xorg.libxcb
-    xorg.libXext
-    xorg.libXrender
-    xorg.libXi
-    xorg.libXrandr
-    xorg.libXcursor
-    xorg.libXinerama
+    libx11
+    libxcb
+    libxext
+    libxrender
+    libxi
+    libxrandr
+    libxcursor
+    libxinerama
   ];
 
   dontBuild = true;

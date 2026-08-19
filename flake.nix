@@ -1,21 +1,28 @@
 {
-  description = "NixOS 25.11 — Dual Boot Laptop với Niri";
+  description = "NixOS 26.05 — Dual Boot Laptop với Niri";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
-    lanzaboote.url = "github:nix-community/lanzaboote";
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nixvim = {
-      url = "github:nix-community/nixvim/nixos-25.11";
+      url = "github:nix-community/nixvim/nixos-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    codex-cli-nix.url = "github:sadjow/codex-cli-nix";
+    codex-cli-nix = {
+      url = "github:sadjow/codex-cli-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     antigravity-nix = {
       url = "github:jacopone/antigravity-nix";
@@ -27,7 +34,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    niri.url = "github:niri-wm/niri";
+    niri = {
+      url = "github:niri-wm/niri";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -59,13 +69,6 @@
             lanzaboote.nixosModules.lanzaboote
             home-manager.nixosModules.home-manager
             fcitx5-lotus.nixosModules.fcitx5-lotus
-            {
-              nixpkgs.overlays = [
-                (final: prev: {
-                  niri = niri.packages.${prev.system}.niri;
-                })
-              ];
-            }
 
             {
               home-manager = {
@@ -87,7 +90,7 @@
                   home = {
                     username = "dk";
                     homeDirectory = "/home/dk";
-                    stateVersion = "25.11";
+                    stateVersion = "26.05";
                   };
                 };
               };

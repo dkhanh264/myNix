@@ -41,7 +41,7 @@
     discord-ptb
     spotify
     fastfetch
-    jetbrains.idea-oss
+    jetbrains.idea
     brave
     papers
     anki

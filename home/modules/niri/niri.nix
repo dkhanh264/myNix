@@ -106,22 +106,13 @@ in
 
     // Environment variables
     environment {
-        LIBVA_DRIVER_NAME "nvidia"
-        __GLX_VENDOR_LIBRARY_NAME "nvidia"
-        GBM_BACKEND "nvidia-drm"
-        NVD_BACKEND "direct"
-        ELECTRON_OZONE_PLATFORM_HINT "auto"
-        NIXOS_OZONE_WL "1"
         XCURSOR_SIZE "24"
         XCURSOR_THEME "FrierenBLZ"
-        MOZ_ENABLE_WAYLAND "1"
-        QT_QPA_PLATFORM "wayland;xcb"
         QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
     }
 
     // Autostart services
     spawn-at-startup "dbus-update-activation-environment" "--systemd" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP=niri"
-    spawn-sh-at-startup "while ! busctl --user status org.gnome.Mutter.ScreenCast >/dev/null 2>&1; do sleep 0.2; done; systemctl --user restart xdg-desktop-portal-gnome"
     spawn-at-startup "rfkill" "unblock" "bluetooth"
     spawn-sh-at-startup "wl-paste --type text --watch cliphist store"
     spawn-at-startup "fcitx5" "-d"

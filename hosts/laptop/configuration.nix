@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [ ./hardware-configuration.nix ];
@@ -138,7 +138,7 @@
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
       };
       niri = {
-        default = [ "gnome" "gtk" ];
+        default = lib.mkForce [ "gtk" ];
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ];
         "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
