@@ -50,6 +50,7 @@
     obsidian
     zoom-us
     zathura
+    brave
 
     (pkgs.symlinkJoin {
       name = "davinci-resolve";
