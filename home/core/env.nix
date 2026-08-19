@@ -21,7 +21,6 @@
 
     # Buộc các framework dùng Wayland backend
     QT_QPA_PLATFORM    = "wayland;xcb";
-    GDK_BACKEND        = "wayland,x11,*";
     SDL_VIDEODRIVER    = "wayland";
     MOZ_ENABLE_WAYLAND = "1";
 

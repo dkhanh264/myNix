@@ -117,7 +117,11 @@ in
         MOZ_ENABLE_WAYLAND "1"
         QT_QPA_PLATFORM "wayland"
         QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
-        GDK_BACKEND "wayland,x11"
+    }
+
+    // Fix screencast tearing/flickering on NVIDIA
+    debug {
+        wait-for-frame-completion-in-pipewire
     }
 
     // Autostart services

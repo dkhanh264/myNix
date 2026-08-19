@@ -129,6 +129,7 @@
   # ── XDG Desktop Portal (File chooser, Screencast, etc.) ────────────────
   xdg.portal = {
     enable = true;
+    xdgOpenUsePortal = true;
     extraPortals = with pkgs; [
       xdg-desktop-portal-gtk
       xdg-desktop-portal-gnome
