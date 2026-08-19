@@ -45,17 +45,7 @@
     papers
     anki
 
-    (pkgs.symlinkJoin {
-      name = "davinci-resolve";
-      paths = [ pkgs.davinci-resolve ];
-
-      nativeBuildInputs = [ pkgs.makeWrapper ];
-
-      postBuild = ''
-        wrapProgram $out/bin/davinci-resolve \
-          --set QT_QPA_PLATFORM xcb
-      '';
-    })
+    (pkgs.callPackage ../../pkgs/davinci-resolve { })
 
     # dev
     jdk17
