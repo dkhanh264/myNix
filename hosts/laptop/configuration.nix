@@ -16,15 +16,8 @@
   ];
 
 
-  boot.kernelParams = [
-    "pcie_aspm=force"
-    "nowatchdog"
-    "nmi_watchdog=0"
-  ];
-
-  # Improve headset/external mic detection on many HDA laptops.
+  # Extra module configurations
   boot.extraModprobeConfig = ''
-    options snd_hda_intel dmic_detect=0
     options v4l2loopback devices=1 video_nr=2 card_label="Iriun Webcam" exclusive_caps=1
   '';
 
@@ -135,10 +128,10 @@
     config = {
       common = {
         default = [ "gtk" ];
-        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
       };
       niri = {
-        default = lib.mkForce [ "gtk" ];
+        default = [ "gnome" "gtk" ];
+        "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ];
         "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
@@ -175,21 +168,16 @@
   services.earlyoom = {
     enable = true;
     enableNotifications = true;
-    freeMemThreshold = 5;
-    freeSwapThreshold = 5;
+    freeMemThreshold = 10;
+    freeSwapThreshold = 10;
   };
   systemd.oomd.enable = false;
 
-  # 2. Tối ưu Kernel Sysctl giúp hệ thống phản hồi cực nhanh & tận dụng zRAM
+  # Sysctl: RAM-first memory policy, zRAM single-page decompression, and IDE mmap capacity
   boot.kernel.sysctl = {
-     "vm.swappiness" = 160;          # Ưu tiên nén RAM zRAM trước khi đĩa cứng
-     "vm.watermark_boost_factor" = 0; # Giảm bớt tải thu hồi trang rảnh rỗi không cần thiết
-     "vm.watermark_scale_factor" = 125;
-     "vm.page-cluster" = 0;          # Tối ưu hóa nén/giải nén đơn trang zRAM
-     "vm.vfs_cache_pressure" = 125;  # Thu hồi cache dentry & inode giải phóng RAM khi cần
-     "vm.dirty_ratio" = 10;          # Giới hạn dirty memory tối đa 10% RAM
-     "vm.dirty_background_ratio" = 5; # Xả dirty cache xuống đĩa sớm khi đạt 5% RAM
-     "vm.max_map_count" = 1048576;   # Tăng giới hạn mmap cho IDE/JVM/Electron
+    "vm.swappiness" = 60;          # RAM first, zRAM under memory pressure
+    "vm.page-cluster" = 0;         # Optimize single-page compression/decompression for zRAM
+    "vm.max_map_count" = 1048576;  # Max mmap limit for JVM, Android Studio, IDEs, and Electron
   };
 
   services.fstrim.enable = true;

@@ -38,7 +38,6 @@
 
     # user apps
     discord
-    discord-ptb
     spotify
     fastfetch
     jetbrains.idea

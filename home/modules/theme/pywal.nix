@@ -496,7 +496,7 @@ EOF
       mpvpaper
       procps
       pywal
-      swww
+      awww
       util-linux
     ];
     text = ''
@@ -526,7 +526,7 @@ EOF
           printf 'restore-background: A wallpaper update is already running.\n' >&2
         else
           notify-send -a "Wallpaper" -u critical -t 5000 \
-            "Wallpaper error" "A wallpaper update is already running."
+            "Wallpaper error" "A wallpaper update is already running." || true
           printf 'set-background error: A wallpaper update is already running.\n' >&2
         fi
         exit 1
@@ -547,7 +547,7 @@ EOF
           printf 'restore-background: %s\n' "$1" >&2
         else
           notify-send -a "Wallpaper" -u critical -t 5000 \
-            "Wallpaper error" "$1"
+            "Wallpaper error" "$1" || true
           printf 'set-background error: %s\n' "$1" >&2
         fi
       }
@@ -582,9 +582,9 @@ EOF
           >/dev/null 2>&1 || true
       }
 
-      swww_outputs_ready() {
+      awww_outputs_ready() {
         local outputs
-        outputs=$(swww query 2>/dev/null) || return 1
+        outputs=$(awww query 2>/dev/null) || return 1
         [[ -n "$outputs" ]]
       }
 
@@ -678,8 +678,8 @@ EOF
       stop_mpvpaper
 
       if is_video "$NEW_BACKGROUND"; then
-        swww kill >/dev/null 2>&1 \
-          || pkill -x swww-daemon >/dev/null 2>&1 \
+        awww kill >/dev/null 2>&1 \
+          || pkill -x awww-daemon >/dev/null 2>&1 \
           || true
 
         # Optimize memory, CPU and GPU usage for wallpaper playback.
@@ -712,11 +712,11 @@ EOF
         fi
       else
         daemon_ready=0
-        if ! swww query >/dev/null 2>&1; then
-          swww-daemon >/dev/null 2>&1 9>&- &
+        if ! awww query >/dev/null 2>&1; then
+          awww-daemon >/dev/null 2>&1 9>&- &
         fi
         for _ in {1..50}; do
-          if swww_outputs_ready; then
+          if awww_outputs_ready; then
             daemon_ready=1
             break
           fi
@@ -729,18 +729,18 @@ EOF
         fi
 
         if (( RESTORE_ONLY )); then
-          if ! swww_err=$(swww img "$NEW_BACKGROUND" --transition-type none 2>&1); then
-            notify_wallpaper_error "Failed to apply wallpaper: $swww_err"
+          if ! awww_err=$(awww img "$NEW_BACKGROUND" --transition-type none 2>&1); then
+            notify_wallpaper_error "Failed to apply wallpaper: $awww_err"
             exit 1
           fi
         else
           TRANSITIONS=(fade wipe wave grow center outer)
           SELECTED_TRANSITION="''${TRANSITIONS[RANDOM % ''${#TRANSITIONS[@]}]}"
-          if ! swww_err=$(swww img "$NEW_BACKGROUND" \
+          if ! awww_err=$(awww img "$NEW_BACKGROUND" \
             --transition-type "$SELECTED_TRANSITION" \
             --transition-duration 1 \
             --transition-fps 60 2>&1); then
-            notify_wallpaper_error "Failed to apply wallpaper: $swww_err"
+            notify_wallpaper_error "Failed to apply wallpaper: $awww_err"
             exit 1
           fi
 
@@ -814,7 +814,7 @@ EOF
 
       if [[ ! -d "$BACKGROUNDS_DIR" ]]; then
         notify-send -a "Wallpaper" -u critical -t 5000 \
-          "Wallpaper error" "The wallpaper folder does not exist."
+          "Wallpaper error" "The wallpaper folder does not exist." || true
         exit 1
       fi
 
@@ -829,7 +829,7 @@ EOF
 
       if (( TOTAL == 0 )); then
         notify-send -a "Wallpaper" -u normal -t 3500 \
-          "Wallpaper" "The wallpaper folder is empty."
+          "Wallpaper" "The wallpaper folder is empty." || true
         exit 1
       fi
 

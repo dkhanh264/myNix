@@ -58,7 +58,6 @@ in
 {
   home.packages = [
     captureScreen
-    pkgs.xwayland-satellite
   ];
 
   xdg.configFile."niri/config.kdl".text = ''
@@ -176,10 +175,10 @@ in
 
     // Compositor background blur settings
     blur {
-        passes 3
+        passes 2
         offset 2.0
         noise 0.0
-        saturation 1.2
+        saturation 1.0
     }
 
     // Window rules
