@@ -5,5 +5,6 @@
     ./mpv.nix
     ./volume.nix
     ./iriun.nix
+    ./zathura.nix
   ];
 }
