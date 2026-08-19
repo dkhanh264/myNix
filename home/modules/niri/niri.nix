@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, config, ... }:
 
 let
   captureScreen = pkgs.writeShellApplication {
@@ -119,11 +119,6 @@ in
         QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
     }
 
-    // Fix screencast tearing/flickering on NVIDIA
-    debug {
-        wait-for-frame-completion-in-pipewire
-    }
-
     // Autostart services
     spawn-at-startup "rfkill" "unblock" "bluetooth"
     spawn-sh-at-startup "wl-paste --type text --watch cliphist store"
@@ -175,7 +170,7 @@ in
     }
 
     // Include dynamic Pywal palette
-    include "wal-colors.kdl"
+    include "${config.home.homeDirectory}/.config/niri/wal-colors.kdl"
 
     hotkey-overlay {
         skip-at-startup

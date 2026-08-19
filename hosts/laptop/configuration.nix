@@ -133,7 +133,18 @@
     extraPortals = with pkgs; [
       xdg-desktop-portal-gtk
       xdg-desktop-portal-gnome
+      xdg-desktop-portal-wlr
     ];
+    wlr = {
+      enable = true;
+      settings = {
+        screencast = {
+          max_fps = 60;
+          chooser_type = "simple";
+          chooser_cmd = "${pkgs.slurp}/bin/slurp -f %o -ro";
+        };
+      };
+    };
     config = {
       common = {
         default = [ "gtk" ];
@@ -142,7 +153,7 @@
       niri = {
         default = [ "gnome" "gtk" ];
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-        "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ];
+        "org.freedesktop.impl.portal.ScreenCast" = [ "wlr" "gnome" ];
         "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
       };
     };
