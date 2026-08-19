@@ -37,20 +37,14 @@
     unzip
 
     # user apps
-    (discord.override {
-      withOpenASAR = true;
-      withVencord = true;
-    })
-    (discord-ptb.override {
-      withOpenASAR = true;
-      withVencord = true;
-    })
-    vesktop
-    localsend
-    obsidian
-    zoom-us
-    zathura
+    discord
+    discord-ptb
+    spotify
+    fastfetch
+    jetbrains.idea-oss
     brave
+    papers
+    anki
 
     (pkgs.symlinkJoin {
       name = "davinci-resolve";
