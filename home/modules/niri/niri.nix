@@ -106,7 +106,7 @@ in
     // Environment variables
     environment {
         XCURSOR_SIZE "24"
-        XCURSOR_THEME "FrierenBLZ"
+        XCURSOR_THEME "aosp-cursors"
         QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
     }
 

@@ -2,11 +2,11 @@
 { pkgs, ... }:
 
 let
-  frierenCursor = pkgs.stdenvNoCC.mkDerivation {
-    pname = "frierenblz-cursor-theme";
+  aospCursor = pkgs.stdenvNoCC.mkDerivation {
+    pname = "aosp-cursors";
     version = "local";
 
-    src = ../../assets/cursors/FrierenBLZ;
+    src = ../../assets/cursors/aosp-cursors;
 
     dontUnpack = true;
     dontBuild = true;
@@ -14,8 +14,8 @@ let
     installPhase = ''
       runHook preInstall
 
-      mkdir -p "$out/share/icons/FrierenBLZ"
-      cp -r "$src"/. "$out/share/icons/FrierenBLZ/"
+      mkdir -p "$out/share/icons/aosp-cursors"
+      cp -r "$src"/. "$out/share/icons/aosp-cursors/"
 
       runHook postInstall
     '';
@@ -58,8 +58,8 @@ in
   home.pointerCursor = {
     enable = true;
 
-    name = "FrierenBLZ";
-    package = frierenCursor;
+    name = "aosp-cursors";
+    package = aospCursor;
     size = 24;
 
     gtk.enable = true;
