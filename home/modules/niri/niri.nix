@@ -1,4 +1,9 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 
 let
   captureScreen = pkgs.writeShellApplication {
@@ -119,7 +124,7 @@ in
 
     // Layout configuration
     layout {
-        gaps 12
+        gaps 6
         center-focused-column "never"
 
         preset-column-widths {
@@ -138,7 +143,7 @@ in
 
         border {
             off
-            width 2
+            width 1
             active-color "#bec2ff"
             inactive-color "#8e9099"
         }
@@ -206,7 +211,7 @@ in
     }
 
     window-rule {
-        geometry-corner-radius 24
+        geometry-corner-radius 0
         clip-to-geometry true
         draw-border-with-background false
     }
