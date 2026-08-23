@@ -133,6 +133,12 @@ in
             proportion 0.66667
         }
 
+        preset-window-heights {
+            proportion 0.33333
+            proportion 0.5
+            proportion 0.66667
+        }
+
         default-column-width { proportion 0.5; }
 
         focus-ring {
@@ -293,6 +299,12 @@ in
         Mod+BracketRight { consume-or-expel-window-right; }
         Mod+Comma  { consume-window-into-column; }
         Mod+Period { expel-window-from-column; }
+
+        // Column & window resizing
+        Mod+Minus { set-column-width "-10%"; }
+        Mod+Equal { set-column-width "+10%"; }
+        Mod+Shift+Minus { set-window-height "-10%"; }
+        Mod+Shift+Equal { set-window-height "+10%"; }
 
         Mod+R { switch-preset-column-width; }
         Mod+Shift+R { switch-preset-column-width-back; }
