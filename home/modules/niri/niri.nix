@@ -136,7 +136,7 @@ in
         default-column-width { proportion 0.5; }
 
         focus-ring {
-            width 3
+            width 2
             active-color "#bec2ff"
             inactive-color "#8e9099"
         }
@@ -157,7 +157,7 @@ in
         }
 
         shadow {
-            on
+            off
             softness 20
             spread 2
             offset x=0 y=4
@@ -211,7 +211,7 @@ in
     }
 
     window-rule {
-        geometry-corner-radius 0
+        geometry-corner-radius 8
         clip-to-geometry true
         draw-border-with-background false
     }
