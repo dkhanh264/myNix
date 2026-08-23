@@ -11,5 +11,6 @@
     ./modules/dev
     ./modules/theme
     ./modules/media
+    ./modules/notification
   ];
 }
