@@ -242,6 +242,7 @@ in
         XF86AudioRaiseVolume allow-when-locked=true { spawn "volume-osd" "up"; }
         XF86AudioLowerVolume allow-when-locked=true { spawn "volume-osd" "down"; }
         XF86AudioMute        allow-when-locked=true { spawn "volume-osd" "mute"; }
+        XF86AudioMicMute     allow-when-locked=true { spawn "volume-osd" "mute-mic"; }
         XF86MonBrightnessUp   allow-when-locked=true { spawn "brightness-osd" "up"; }
         XF86MonBrightnessDown allow-when-locked=true { spawn "brightness-osd" "down"; }
         XF86AudioPlay        allow-when-locked=true { spawn "playerctl" "play-pause"; }
