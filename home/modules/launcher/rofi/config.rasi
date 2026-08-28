@@ -44,36 +44,11 @@ mainbox {
     padding:                    24px;
     border:                     0px solid;
     background-color:           transparent;
-    children:                   [ "inputbar", "listview" ];
+    children:                   [ "listview" ];
 }
 
 inputbar {
-    enabled:                    true;
-    spacing:                    12px;
-    margin:                     0px;
-    padding:                    12px 18px;
-    border:                     1px solid;
-    border-radius:              24px;
-    border-color:               var(border-col);
-    background-color:           var(bg-search);
-    text-color:                 var(fg-col);
-    children:                   [ "prompt", "entry" ];
-}
-
-prompt {
-    enabled:                    true;
-    background-color:           transparent;
-    text-color:                 var(primary-col);
-    font:                       "Noto Sans Bold 13";
-}
-
-entry {
-    enabled:                    true;
-    background-color:           transparent;
-    text-color:                 var(fg-col);
-    cursor:                     text;
-    placeholder:                "Search apps...";
-    placeholder-color:          var(fg-muted);
+    enabled:                    false;
 }
 
 listview {
@@ -95,6 +70,10 @@ listview {
     background-color:           transparent;
     text-color:                 var(fg-col);
     cursor:                     "default";
+}
+
+scrollbar {
+    enabled:                    false;
 }
 
 element {

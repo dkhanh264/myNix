@@ -1,9 +1,5 @@
 { pkgs, ... }:
 {
-  home.packages = with pkgs; [
-    quickshell
-  ];
-
   xdg.configFile."quickshell".source = ./config;
 
   systemd.user.services.quickshell = {

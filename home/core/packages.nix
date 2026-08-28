@@ -18,6 +18,8 @@
     # Wayland essentials
     wl-clipboard
     cliphist
+    quickshell
+
     # System tray & GUI tools
     nautilus
     mesa-demos
