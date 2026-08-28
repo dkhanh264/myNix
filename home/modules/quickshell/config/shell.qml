@@ -91,13 +91,16 @@ ShellRoot {
                         bottomMargin: 2
                     }
 
+                    // ── Left Side: Launcher & CPU/RAM Islands ───────────────
                     RowLayout {
-                        anchors.fill: parent
+                        anchors {
+                            left: parent.left
+                            verticalCenter: parent.verticalCenter
+                        }
                         spacing: 8
 
-                        // ── Left Island: App Launcher & Hostname ────────────
+                        // ── Left Island 1: App Launcher & Hostname ──────────
                         Rectangle {
-                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                             implicitHeight: 28
                             implicitWidth: leftLayout.implicitWidth + 14
                             radius: 8
@@ -150,380 +153,459 @@ ShellRoot {
                             }
                         }
 
-                        // Spacer
-                        Item {
-                            Layout.fillWidth: true
-                        }
-
-                        // ── Center Island: Clock & Date ─────────────────────
+                        // ── Left Island 2: CPU & RAM Monitor ────────────────
                         Rectangle {
-                            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                             implicitHeight: 28
-                            implicitWidth: timeText.implicitWidth + 24
+                            implicitWidth: resLayout.implicitWidth + 16
                             radius: 8
-                            color: theme.barBg
+                            color: resMouse.containsMouse ? theme.cardHover : theme.barBg
                             border.color: theme.barBorder
                             border.width: 1
 
                             RowLayout {
+                                id: resLayout
                                 anchors.centerIn: parent
-                                spacing: 6
+                                spacing: 8
 
-                                Text {
-                                    text: "󰥔"
-                                    font.family: "JetBrainsMono Nerd Font"
-                                    font.pixelSize: 13
-                                    color: theme.primary
+                                // CPU Item
+                                RowLayout {
+                                    spacing: 4
+                                    Text {
+                                        text: ""
+                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.pixelSize: 12
+                                        color: theme.primary
+                                    }
+                                    Text {
+                                        id: cpuText
+                                        text: "0%"
+                                        font.family: "Noto Sans"
+                                        font.pixelSize: 11
+                                        color: theme.fg
+                                    }
                                 }
 
-                                Text {
-                                    id: timeText
-                                    font.family: "Noto Sans"
-                                    font.weight: Font.DemiBold
-                                    font.pixelSize: 12
-                                    color: theme.fg
+                                // RAM Item
+                                RowLayout {
+                                    spacing: 4
+                                    Text {
+                                        text: "󰘚"
+                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.pixelSize: 12
+                                        color: theme.primary
+                                    }
+                                    Text {
+                                        id: ramText
+                                        text: "0%"
+                                        font.family: "Noto Sans"
+                                        font.pixelSize: 11
+                                        color: theme.fg
+                                    }
+                                }
+                            }
+
+                            Process {
+                                id: sysResProc
+                                command: ["bash", "-c", "cpu=$(top -bn1 | awk '/%Cpu/ { printf \"%d\", 100 - $8 }'); ram=$(free -m | awk '/Mem:/ { printf \"%d\", $3*100/$2 }'); echo \"$cpu:$ram\""]
+                                stdout: SplitParser {
+                                    onRead: data => {
+                                        var str = data.trim();
+                                        if (str.indexOf(":") !== -1) {
+                                            var parts = str.split(":");
+                                            var cpuVal = parts[0] || "0";
+                                            var ramVal = parts[1] || "0";
+                                            cpuText.text = cpuVal + "%";
+                                            ramText.text = ramVal + "%";
+                                        }
+                                    }
                                 }
                             }
 
                             Timer {
-                                interval: 1000
+                                interval: 3000
                                 running: true
                                 repeat: true
                                 triggeredOnStart: true
-                                onTriggered: {
-                                    var now = new Date();
-                                    timeText.text = Qt.formatDateTime(now, "hh:mm AP  •  ddd, dd/MM");
-                                }
+                                onTriggered: sysResProc.running = true
+                            }
+
+                            MouseArea {
+                                id: resMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: btopProc.running = true
+                            }
+
+                            Process {
+                                id: btopProc
+                                command: ["kitty", "-e", "btop"]
+                            }
+                        }
+                    }
+
+                    // ── Center Island: Clock & Date (Precisely Screen Centered) ──
+                    Rectangle {
+                        anchors {
+                            horizontalCenter: parent.horizontalCenter
+                            verticalCenter: parent.verticalCenter
+                        }
+                        implicitHeight: 28
+                        implicitWidth: timeText.implicitWidth + 24
+                        radius: 8
+                        color: theme.barBg
+                        border.color: theme.barBorder
+                        border.width: 1
+
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: 0
+
+                            Text {
+                                id: timeText
+                                font.family: "Noto Sans"
+                                font.weight: Font.DemiBold
+                                font.pixelSize: 12
+                                color: theme.fg
                             }
                         }
 
-                        // Spacer
-                        Item {
-                            Layout.fillWidth: true
+                        Timer {
+                            interval: 1000
+                            running: true
+                            repeat: true
+                            triggeredOnStart: true
+                            onTriggered: {
+                                var now = new Date();
+                                timeText.text = Qt.formatDateTime(now, "HH:mm  •  ddd, dd/MM");
+                            }
                         }
+                    }
 
-                        // ── Right Island: Widgets & Controls ────────────────
-                        Rectangle {
-                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                            implicitHeight: 28
-                            implicitWidth: rightLayout.implicitWidth + 14
-                            radius: 8
-                            color: theme.barBg
-                            border.color: theme.barBorder
-                            border.width: 1
+                    // ── Right Side: Widgets & Controls Island ───────────────
+                    Rectangle {
+                        anchors {
+                            right: parent.right
+                            verticalCenter: parent.verticalCenter
+                        }
+                        implicitHeight: 28
+                        implicitWidth: rightLayout.implicitWidth + 14
+                        radius: 8
+                        color: theme.barBg
+                        border.color: theme.barBorder
+                        border.width: 1
 
-                            RowLayout {
-                                id: rightLayout
-                                anchors.centerIn: parent
-                                spacing: 6
+                        RowLayout {
+                            id: rightLayout
+                            anchors.centerIn: parent
+                            spacing: 6
 
-                                // ── Wifi Widget ─────────────────────────────────
-                                Rectangle {
-                                    implicitHeight: 22
-                                    implicitWidth: wifiLayout.implicitWidth + 8
-                                    radius: 5
-                                    color: wifiMouse.containsMouse ? theme.cardHover : "transparent"
+                            // ── Wifi Widget ─────────────────────────────────
+                            Rectangle {
+                                implicitHeight: 22
+                                implicitWidth: wifiLayout.implicitWidth + 8
+                                radius: 5
+                                color: wifiMouse.containsMouse ? theme.cardHover : "transparent"
 
-                                    RowLayout {
-                                        id: wifiLayout
-                                        anchors.centerIn: parent
-                                        spacing: 4
-
-                                        Text {
-                                            id: wifiIcon
-                                            text: "󰤨"
-                                            font.family: "JetBrainsMono Nerd Font"
-                                            font.pixelSize: 13
-                                            color: theme.primary
-                                        }
-
-                                        Text {
-                                            id: wifiText
-                                            text: "Wifi"
-                                            font.family: "Noto Sans"
-                                            font.pixelSize: 11
-                                            color: theme.fg
-                                            elide: Text.ElideRight
-                                            Layout.maximumWidth: 110
-                                        }
-                                    }
-
-                                    Process {
-                                        id: wifiProc
-                                        command: ["bash", "-c", "nmcli -t -f TYPE,STATE,CONNECTION dev | awk -F: '$1==\"wifi\"{print $2\":\"$3; exit}'"]
-                                        stdout: SplitParser {
-                                            onRead: data => {
-                                                var str = data.trim();
-                                                var parts = str.split(":");
-                                                var state = parts[0] || "";
-                                                var ssid = parts[1] || "";
-                                                if (state === "connected") {
-                                                    wifiIcon.text = "󰤨";
-                                                    wifiText.text = ssid || "Connected";
-                                                } else if (state === "connecting") {
-                                                    wifiIcon.text = "󰤩";
-                                                    wifiText.text = "Connecting";
-                                                } else {
-                                                    wifiIcon.text = "󰤮";
-                                                    wifiText.text = "Off";
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    Timer {
-                                        interval: 4000
-                                        running: true
-                                        repeat: true
-                                        triggeredOnStart: true
-                                        onTriggered: wifiProc.running = true
-                                    }
-
-                                    MouseArea {
-                                        id: wifiMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: netEditorProc.running = true
-                                    }
-
-                                    Process { id: netEditorProc; command: ["kitty", "-e", "nmtui"] }
-                                }
-
-                                // ── Bluetooth Widget ────────────────────────────
-                                Rectangle {
-                                    implicitHeight: 22
-                                    implicitWidth: 22
-                                    radius: 5
-                                    color: btMouse.containsMouse ? theme.cardHover : "transparent"
+                                RowLayout {
+                                    id: wifiLayout
+                                    anchors.centerIn: parent
+                                    spacing: 4
 
                                     Text {
-                                        id: btIcon
-                                        anchors.centerIn: parent
-                                        text: "󰂯"
+                                        id: wifiIcon
+                                        text: "󰤨"
                                         font.family: "JetBrainsMono Nerd Font"
                                         font.pixelSize: 13
                                         color: theme.primary
                                     }
 
-                                    Process {
-                                        id: btProc
-                                        command: ["bash", "-c", "if bluetoothctl show | grep -q 'Powered: yes'; then if [[ $(bluetoothctl devices Connected 2>/dev/null | wc -l) -gt 0 ]]; then echo 'connected'; else echo 'on'; fi; else echo 'off'; fi"]
-                                        stdout: SplitParser {
-                                            onRead: data => {
-                                                var status = data.trim();
-                                                if (status === "connected") {
-                                                    btIcon.text = "󰂱";
-                                                    btIcon.color = theme.primaryBright;
-                                                } else if (status === "on") {
-                                                    btIcon.text = "󰂯";
-                                                    btIcon.color = theme.primary;
-                                                } else {
-                                                    btIcon.text = "󰂲";
-                                                    btIcon.color = theme.surfaceVariant;
-                                                }
-                                            }
-                                        }
+                                    Text {
+                                        id: wifiText
+                                        text: "Wifi"
+                                        font.family: "Noto Sans"
+                                        font.pixelSize: 11
+                                        color: theme.fg
+                                        elide: Text.ElideRight
+                                        Layout.maximumWidth: 110
                                     }
-
-                                    Timer {
-                                        interval: 4000
-                                        running: true
-                                        repeat: true
-                                        triggeredOnStart: true
-                                        onTriggered: btProc.running = true
-                                    }
-
-                                    MouseArea {
-                                        id: btMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: bluemanProc.running = true
-                                    }
-
-                                    Process { id: bluemanProc; command: ["blueman-manager"] }
                                 }
 
-                                // ── Volume Widget ───────────────────────────────
-                                Rectangle {
-                                    implicitHeight: 22
-                                    implicitWidth: volLayout.implicitWidth + 8
-                                    radius: 5
-                                    color: volMouse.containsMouse ? theme.cardHover : "transparent"
-
-                                    RowLayout {
-                                        id: volLayout
-                                        anchors.centerIn: parent
-                                        spacing: 4
-
-                                        Text {
-                                            id: volIcon
-                                            text: "󰕾"
-                                            font.family: "JetBrainsMono Nerd Font"
-                                            font.pixelSize: 13
-                                            color: theme.primary
-                                        }
-
-                                        Text {
-                                            id: volText
-                                            text: "..."
-                                            font.family: "Noto Sans"
-                                            font.pixelSize: 11
-                                            color: theme.fg
-                                        }
-                                    }
-
-                                    Process {
-                                        id: getVolProc
-                                        command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]
-                                        stdout: SplitParser {
-                                            onRead: data => {
-                                                var str = data.trim();
-                                                if (str.indexOf("[MUTED]") !== -1) {
-                                                    volIcon.text = "󰝟";
-                                                    volText.text = "Mute";
-                                                } else {
-                                                    var parts = str.split(" ");
-                                                    if (parts.length >= 2) {
-                                                        var val = Math.round(parseFloat(parts[1]) * 100);
-                                                        volText.text = val + "%";
-                                                        if (val <= 30) volIcon.text = "󰕿";
-                                                        else if (val <= 70) volIcon.text = "󰖀";
-                                                        else volIcon.text = "󰕾";
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    Timer {
-                                        interval: 2000
-                                        running: true
-                                        repeat: true
-                                        triggeredOnStart: true
-                                        onTriggered: getVolProc.running = true
-                                    }
-
-                                    MouseArea {
-                                        id: volMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: pavuProc.running = true
-                                        onWheel: wheel => {
-                                            if (wheel.angleDelta.y > 0) {
-                                                volUpProc.running = true;
+                                Process {
+                                    id: wifiProc
+                                    command: ["bash", "-c", "nmcli -t -f TYPE,STATE,CONNECTION dev | awk -F: '$1==\"wifi\"{print $2\":\"$3; exit}'"]
+                                    stdout: SplitParser {
+                                        onRead: data => {
+                                            var str = data.trim();
+                                            var parts = str.split(":");
+                                            var state = parts[0] || "";
+                                            var ssid = parts[1] || "";
+                                            if (state === "connected") {
+                                                wifiIcon.text = "󰤨";
+                                                wifiText.text = ssid || "Connected";
+                                            } else if (state === "connecting") {
+                                                wifiIcon.text = "󰤩";
+                                                wifiText.text = "Connecting";
                                             } else {
-                                                volDownProc.running = true;
-                                            }
-                                            getVolProc.running = true;
-                                        }
-                                    }
-
-                                    Process { id: pavuProc; command: ["pavucontrol"] }
-                                    Process { id: volUpProc; command: ["volume-osd", "up"] }
-                                    Process { id: volDownProc; command: ["volume-osd", "down"] }
-                                }
-
-                                // ── Battery Widget ──────────────────────────────
-                                Rectangle {
-                                    id: batContainer
-                                    implicitHeight: 22
-                                    implicitWidth: batLayout.implicitWidth + 8
-                                    radius: 5
-                                    color: "transparent"
-                                    visible: false
-
-                                    RowLayout {
-                                        id: batLayout
-                                        anchors.centerIn: parent
-                                        spacing: 4
-
-                                        Text {
-                                            id: batIcon
-                                            text: "󰁹"
-                                            font.family: "JetBrainsMono Nerd Font"
-                                            font.pixelSize: 13
-                                            color: theme.primary
-                                        }
-
-                                        Text {
-                                            id: batText
-                                            text: "100%"
-                                            font.family: "Noto Sans"
-                                            font.pixelSize: 11
-                                            color: theme.fg
-                                        }
-                                    }
-
-                                    Process {
-                                        id: batProc
-                                        command: ["bash", "-c", "cap=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null || echo ''); stat=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null || echo ''); if [[ -n $cap ]]; then echo \"$cap:$stat\"; fi"]
-                                        stdout: SplitParser {
-                                            onRead: data => {
-                                                var str = data.trim();
-                                                if (str.length > 0 && str.indexOf(":") !== -1) {
-                                                    batContainer.visible = true;
-                                                    var parts = str.split(":");
-                                                    var cap = parseInt(parts[0]) || 0;
-                                                    var stat = parts[1] || "";
-                                                    batText.text = cap + "%";
-                                                    if (stat === "Charging") {
-                                                        batIcon.text = "󰂄";
-                                                    } else if (cap >= 90) {
-                                                        batIcon.text = "󰁹";
-                                                    } else if (cap >= 70) {
-                                                        batIcon.text = "󰂂";
-                                                    } else if (cap >= 50) {
-                                                        batIcon.text = "󰂀";
-                                                    } else if (cap >= 30) {
-                                                        batIcon.text = "󰁾";
-                                                    } else {
-                                                        batIcon.text = "󰁺";
-                                                        batIcon.color = theme.error;
-                                                    }
-                                                }
+                                                wifiIcon.text = "󰤮";
+                                                wifiText.text = "Off";
                                             }
                                         }
                                     }
+                                }
 
-                                    Timer {
-                                        interval: 5000
-                                        running: true
-                                        repeat: true
-                                        triggeredOnStart: true
-                                        onTriggered: batProc.running = true
+                                Timer {
+                                    interval: 4000
+                                    running: true
+                                    repeat: true
+                                    triggeredOnStart: true
+                                    onTriggered: wifiProc.running = true
+                                }
+
+                                MouseArea {
+                                    id: wifiMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: netEditorProc.running = true
+                                }
+
+                                Process { id: netEditorProc; command: ["kitty", "-e", "nmtui"] }
+                            }
+
+                            // ── Bluetooth Widget ────────────────────────────
+                            Rectangle {
+                                implicitHeight: 22
+                                implicitWidth: 22
+                                radius: 5
+                                color: btMouse.containsMouse ? theme.cardHover : "transparent"
+
+                                Text {
+                                    id: btIcon
+                                    anchors.centerIn: parent
+                                    text: "󰂯"
+                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.pixelSize: 13
+                                    color: theme.primary
+                                }
+
+                                Process {
+                                    id: btProc
+                                    command: ["bash", "-c", "if bluetoothctl show | grep -q 'Powered: yes'; then if [[ $(bluetoothctl devices Connected 2>/dev/null | wc -l) -gt 0 ]]; then echo 'connected'; else echo 'on'; fi; else echo 'off'; fi"]
+                                    stdout: SplitParser {
+                                        onRead: data => {
+                                            var status = data.trim();
+                                            if (status === "connected") {
+                                                btIcon.text = "󰂱";
+                                                btIcon.color = theme.primaryBright;
+                                            } else if (status === "on") {
+                                                btIcon.text = "󰂯";
+                                                btIcon.color = theme.primary;
+                                            } else {
+                                                btIcon.text = "󰂲";
+                                                btIcon.color = theme.surfaceVariant;
+                                            }
+                                        }
                                     }
                                 }
 
-                                // ── Power Menu Button (Shutdown / Reboot / Lock) ──
-                                Rectangle {
-                                    implicitWidth: 22
-                                    implicitHeight: 22
-                                    radius: 5
-                                    color: powerMouse.containsMouse ? Qt.rgba(theme.error.r, theme.error.g, theme.error.b, 0.25) : "transparent"
+                                Timer {
+                                    interval: 4000
+                                    running: true
+                                    repeat: true
+                                    triggeredOnStart: true
+                                    onTriggered: btProc.running = true
+                                }
+
+                                MouseArea {
+                                    id: btMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: bluemanProc.running = true
+                                }
+
+                                Process { id: bluemanProc; command: ["blueman-manager"] }
+                            }
+
+                            // ── Volume Widget ───────────────────────────────
+                            Rectangle {
+                                implicitHeight: 22
+                                implicitWidth: volLayout.implicitWidth + 8
+                                radius: 5
+                                color: volMouse.containsMouse ? theme.cardHover : "transparent"
+
+                                RowLayout {
+                                    id: volLayout
+                                    anchors.centerIn: parent
+                                    spacing: 4
 
                                     Text {
-                                        anchors.centerIn: parent
-                                        text: "󰐥"
+                                        id: volIcon
+                                        text: "󰕾"
                                         font.family: "JetBrainsMono Nerd Font"
                                         font.pixelSize: 13
-                                        color: powerMouse.containsMouse ? theme.error : theme.fg
+                                        color: theme.primary
                                     }
 
-                                    MouseArea {
-                                        id: powerMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: powerMenuProc.running = true
+                                    Text {
+                                        id: volText
+                                        text: "..."
+                                        font.family: "Noto Sans"
+                                        font.pixelSize: 11
+                                        color: theme.fg
+                                    }
+                                }
+
+                                Process {
+                                    id: getVolProc
+                                    command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]
+                                    stdout: SplitParser {
+                                        onRead: data => {
+                                            var str = data.trim();
+                                            if (str.indexOf("[MUTED]") !== -1) {
+                                                volIcon.text = "󰝟";
+                                                volText.text = "Mute";
+                                            } else {
+                                                var parts = str.split(" ");
+                                                if (parts.length >= 2) {
+                                                    var val = Math.round(parseFloat(parts[1]) * 100);
+                                                    volText.text = val + "%";
+                                                    if (val <= 30) volIcon.text = "󰕿";
+                                                    else if (val <= 70) volIcon.text = "󰖀";
+                                                    else volIcon.text = "󰕾";
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Timer {
+                                    interval: 2000
+                                    running: true
+                                    repeat: true
+                                    triggeredOnStart: true
+                                    onTriggered: getVolProc.running = true
+                                }
+
+                                MouseArea {
+                                    id: volMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: pavuProc.running = true
+                                    onWheel: wheel => {
+                                        if (wheel.angleDelta.y > 0) {
+                                            volUpProc.running = true;
+                                        } else {
+                                            volDownProc.running = true;
+                                        }
+                                        getVolProc.running = true;
+                                    }
+                                }
+
+                                Process { id: pavuProc; command: ["pavucontrol"] }
+                                Process { id: volUpProc; command: ["volume-osd", "up"] }
+                                Process { id: volDownProc; command: ["volume-osd", "down"] }
+                            }
+
+                            // ── Battery Widget ──────────────────────────────
+                            Rectangle {
+                                id: batContainer
+                                implicitHeight: 22
+                                implicitWidth: batLayout.implicitWidth + 8
+                                radius: 5
+                                color: "transparent"
+                                visible: false
+
+                                RowLayout {
+                                    id: batLayout
+                                    anchors.centerIn: parent
+                                    spacing: 4
+
+                                    Text {
+                                        id: batIcon
+                                        text: "󰁹"
+                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.pixelSize: 13
+                                        color: theme.primary
                                     }
 
-                                    Process {
-                                        id: powerMenuProc
-                                        command: ["rofi-power-menu"]
+                                    Text {
+                                        id: batText
+                                        text: "100%"
+                                        font.family: "Noto Sans"
+                                        font.pixelSize: 11
+                                        color: theme.fg
                                     }
+                                }
+
+                                Process {
+                                    id: batProc
+                                    command: ["bash", "-c", "cap=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null || echo ''); stat=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null || echo ''); if [[ -n $cap ]]; then echo \"$cap:$stat\"; fi"]
+                                    stdout: SplitParser {
+                                        onRead: data => {
+                                            var str = data.trim();
+                                            if (str.length > 0 && str.indexOf(":") !== -1) {
+                                                batContainer.visible = true;
+                                                var parts = str.split(":");
+                                                var cap = parseInt(parts[0]) || 0;
+                                                var stat = parts[1] || "";
+                                                batText.text = cap + "%";
+                                                if (stat === "Charging") {
+                                                    batIcon.text = "󰂄";
+                                                } else if (cap >= 90) {
+                                                    batIcon.text = "󰁹";
+                                                } else if (cap >= 70) {
+                                                    batIcon.text = "󰂂";
+                                                } else if (cap >= 50) {
+                                                    batIcon.text = "󰂀";
+                                                } else if (cap >= 30) {
+                                                    batIcon.text = "󰁾";
+                                                } else {
+                                                    batIcon.text = "󰁺";
+                                                    batIcon.color = theme.error;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Timer {
+                                    interval: 5000
+                                    running: true
+                                    repeat: true
+                                    triggeredOnStart: true
+                                    onTriggered: batProc.running = true
+                                }
+                            }
+
+                            // ── Power Menu Button (Shutdown / Reboot / Lock) ──
+                            Rectangle {
+                                implicitWidth: 22
+                                implicitHeight: 22
+                                radius: 5
+                                color: powerMouse.containsMouse ? Qt.rgba(theme.error.r, theme.error.g, theme.error.b, 0.25) : "transparent"
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "󰐥"
+                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.pixelSize: 13
+                                    color: powerMouse.containsMouse ? theme.error : theme.fg
+                                }
+
+                                MouseArea {
+                                    id: powerMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: powerMenuProc.running = true
+                                }
+
+                                Process {
+                                    id: powerMenuProc
+                                    command: ["rofi-power-menu"]
                                 }
                             }
                         }

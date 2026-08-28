@@ -126,6 +126,7 @@ in
     layout {
         gaps 6
         center-focused-column "never"
+        background-color "transparent"
 
         preset-column-widths {
             proportion 0.33333
@@ -169,6 +170,22 @@ in
             offset x=0 y=4
             color "#00000080"
         }
+    }
+
+    // Overview backdrop configuration (Super+O)
+    overview {
+        backdrop-color "#00000040"
+    }
+
+    // Keep wallpaper visible in overview backdrop
+    layer-rule {
+        match namespace="^awww-daemon$"
+        place-within-backdrop true
+    }
+
+    layer-rule {
+        match namespace="^swww.*"
+        place-within-backdrop true
     }
 
     // Include dynamic Pywal palette (optional so missing file won't break config)
