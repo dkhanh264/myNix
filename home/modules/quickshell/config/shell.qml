@@ -72,7 +72,7 @@ ShellRoot {
                     right: true
                 }
 
-                implicitHeight: 38
+                implicitHeight: 34
                 color: "transparent"
 
                 WlrLayershell.layer: WlrLayer.Top
@@ -85,10 +85,10 @@ ShellRoot {
                 Item {
                     anchors {
                         fill: parent
-                        topMargin: 4
-                        leftMargin: 8
-                        rightMargin: 8
-                        bottomMargin: 2
+                        topMargin: 6
+                        leftMargin: 6
+                        rightMargin: 6
+                        bottomMargin: 0
                     }
 
                     // ── Left Side: Launcher & CPU/RAM Islands ───────────────
@@ -97,7 +97,7 @@ ShellRoot {
                             left: parent.left
                             verticalCenter: parent.verticalCenter
                         }
-                        spacing: 8
+                        spacing: 6
 
                         // ── Left Island 1: App Launcher & Hostname ──────────
                         Rectangle {
@@ -196,7 +196,7 @@ ShellRoot {
                                     }
                                     Text {
                                         id: ramText
-                                        text: "0%"
+                                        text: "0.0G"
                                         font.family: "Noto Sans"
                                         font.pixelSize: 11
                                         color: theme.fg
@@ -206,16 +206,16 @@ ShellRoot {
 
                             Process {
                                 id: sysResProc
-                                command: ["bash", "-c", "cpu=$(top -bn1 | awk '/%Cpu/ { printf \"%d\", 100 - $8 }'); ram=$(free -m | awk '/Mem:/ { printf \"%d\", $3*100/$2 }'); echo \"$cpu:$ram\""]
+                                command: ["bash", "-c", "cpu=$(top -bn1 | awk '/%Cpu/ { printf \"%d%%\", 100 - $8 }'); ram=$(free -m | awk '/Mem:/ { printf \"%.1fG\", $3/1024 }'); echo \"$cpu:$ram\""]
                                 stdout: SplitParser {
                                     onRead: data => {
                                         var str = data.trim();
                                         if (str.indexOf(":") !== -1) {
                                             var parts = str.split(":");
-                                            var cpuVal = parts[0] || "0";
-                                            var ramVal = parts[1] || "0";
-                                            cpuText.text = cpuVal + "%";
-                                            ramText.text = ramVal + "%";
+                                            var cpuVal = parts[0] || "0%";
+                                            var ramVal = parts[1] || "0.0G";
+                                            cpuText.text = cpuVal;
+                                            ramText.text = ramVal;
                                         }
                                     }
                                 }
