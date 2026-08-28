@@ -33,22 +33,22 @@ let
     sort=-time
     layer=overlay
     anchor=top-right
-    font=Noto Sans 10
-    width=360
-    height=150
+    font=Noto Sans SemiBold 10
+    width=340
+    height=140
     margin=16,16
-    padding=12
+    padding=12,16
     border-size=2
-    border-radius=10
+    border-radius=12
     icons=1
-    max-icon-size=48
+    max-icon-size=44
     default-timeout=4500
     ignore-timeout=0
 
-    background-color=#1b1b1fe6
+    background-color=#1b1b1ff0
     text-color=#e5e1e6
     border-color=#a9c7ff
-    progress-color=over #a9c7ff
+    progress-color=over #a9c7ff55
 
     [urgency=low]
     border-color=#938f99
@@ -62,6 +62,14 @@ let
     border-color=#ffb4ab
     text-color=#ffb4ab
     default-timeout=0
+
+    [app-name="Điều khiển hệ thống"]
+    border-color=#a9c7ff
+    border-radius=12
+    width=300
+    padding=12,16
+    progress-color=over #a9c7ff55
+    default-timeout=1500
   '';
 
 
@@ -443,22 +451,22 @@ max-history=100
 sort=-time
 layer=overlay
 anchor=top-right
-font=Noto Sans 10
-width=360
-height=150
+font=Noto Sans SemiBold 10
+width=340
+height=140
 margin=16,16
-padding=12
+padding=12,16
 border-size=2
-border-radius=10
+border-radius=12
 icons=1
-max-icon-size=48
+max-icon-size=44
 default-timeout=4500
 ignore-timeout=0
 
-background-color=''${BG}e6
+background-color=''${BG}f0
 text-color=$FG
 border-color=$PRIMARY
-progress-color=over $PRIMARY
+progress-color=over ''${PRIMARY}55
 
 [urgency=low]
 border-color=$MUTED
@@ -472,6 +480,14 @@ default-timeout=4500
 border-color=$ERROR
 text-color=$ERROR
 default-timeout=0
+
+[app-name="Điều khiển hệ thống"]
+border-color=$PRIMARY
+border-radius=12
+width=300
+padding=12,16
+progress-color=over ''${PRIMARY}55
+default-timeout=1500
 EOF
       then
         changed_any=1
