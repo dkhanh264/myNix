@@ -45,6 +45,7 @@
     brave
     papers
     anki
+    weka
 
     (pkgs.callPackage ../../pkgs/davinci-resolve { })
 
