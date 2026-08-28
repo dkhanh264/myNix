@@ -4,25 +4,25 @@
     enable = true;
 
     options = {
-      # Tối ưu hiển thị cho đọc sách và tài liệu
+      # Reading display optimizations
       adjust-open = "width";
-      guioptions = "s"; # Chỉ giữ thanh trạng thái, ẩn thanh cuộn để tối giản
+      guioptions = "s"; # Statusbar only, hide scrollbars
       font = "JetBrainsMono Nerd Font 10";
       page-padding = 4;
       render-loading = false;
       selection-clipboard = "clipboard";
-      database = "sqlite"; # Tự động nhớ trang đang đọc dở
+      database = "sqlite"; # Remember reading position
 
-      # Cuộn mượt hơn
+      # Smooth scrolling
       scroll-step = 60;
       scroll-page-aware = true;
       scroll-full-overlap = 0.01;
 
-      # Đổi màu / Chế độ đọc ban đêm (Dark mode)
+      # Dark mode / Recolor
       recolor-keephue = true;
       recolor-reverse-video = true;
 
-      # Bảng màu phong cách Tokyo Night
+      # Tokyo Night color palette
       default-bg = "#1a1b26";
       default-fg = "#c0caf5";
       statusbar-bg = "#16161e";
@@ -44,13 +44,13 @@
       completion-highlight-bg = "#283457";
       completion-highlight-fg = "#c0caf5";
 
-      # Màu chữ và màu nền khi bật chế độ Recolor (Ctrl + r hoặc phím i)
+      # Recolor foreground and background (Ctrl+r or i)
       recolor-darkcolor = "#c0caf5";
       recolor-lightcolor = "#1a1b26";
     };
 
     mappings = {
-      # Phím tắt đọc sách tiện lợi
+      # Navigation shortcuts
       "i" = "recolor";
       "<C-d>" = "scroll half-down";
       "<C-u>" = "scroll half-up";

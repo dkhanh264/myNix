@@ -63,7 +63,7 @@ let
     text-color=#ffb4ab
     default-timeout=0
 
-    [app-name="Điều khiển hệ thống"]
+    [app-name="System Controls"]
     border-color=#a9c7ff
     border-radius=12
     width=300
@@ -481,7 +481,7 @@ border-color=$ERROR
 text-color=$ERROR
 default-timeout=0
 
-[app-name="Điều khiển hệ thống"]
+[app-name="System Controls"]
 border-color=$PRIMARY
 border-radius=12
 width=300
@@ -501,9 +501,9 @@ EOF
 
       # Notify immediately as soon as colors are updated so user feedback is instant
       if (( changed_any )); then
-        app_title="Giao diện hệ thống"
-        msg="Đã cập nhật giao diện"
-        body="Màu hệ thống đã đồng bộ theo hình nền mới."
+        app_title="System Theme"
+        msg="Theme Updated"
+        body="System colors synced with new wallpaper."
 
         notify-send -a "$app_title" -i preferences-desktop-theme -t 3000 \
           "$msg" "$body" || true

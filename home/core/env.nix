@@ -15,12 +15,12 @@
     ELECTRON_OZONE_PLATFORM_HINT = "auto";
     NIXOS_OZONE_WL               = "1";
 
-    # Buộc các framework dùng Wayland backend
+    # Force GUI frameworks to use Wayland backend
     QT_QPA_PLATFORM    = "wayland;xcb";
     SDL_VIDEODRIVER    = "wayland";
     MOZ_ENABLE_WAYLAND = "1";
 
-    # Fcitx5 — input method tiếng Việt
+    # Fcitx5 input method
     QT_IM_MODULE = "fcitx";
     XMODIFIERS = "@im=fcitx";
     INPUT_METHOD = "fcitx";

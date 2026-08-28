@@ -12,15 +12,17 @@ let
       procps
     ];
     text = ''
-      shutdown="󰐥  Tắt máy"
-      reboot="󰜉  Khởi động lại"
-      lock="󰌾  Khóa màn hình"
-      suspend="󰤄  Tạm dừng (Suspend)"
-      logout="󰍃  Đăng xuất"
+      shutdown="󰐥  Power Off"
+      reboot="󰜉  Reboot"
+      lock="󰌾  Lock Screen"
+      suspend="󰤄  Suspend"
+      logout="󰍃  Log Out"
 
       options="''${shutdown}\n''${reboot}\n''${lock}\n''${suspend}\n''${logout}"
 
-      chosen="$(printf '%b' "$options" | rofi -dmenu -p "Nguồn" -i -config "$HOME/.config/rofi/config.rasi" || true)"
+      chosen="$(printf '%b' "$options" | rofi -dmenu -p "Power" -i \
+        -config "$HOME/.config/rofi/config.rasi" \
+        -theme-str 'window { width: 380px; } mainbox { children: [ "listview" ]; } inputbar { enabled: false; } listview { lines: 5; scrollbar: false; }' || true)"
 
       case "$chosen" in
         "$shutdown")

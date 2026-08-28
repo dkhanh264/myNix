@@ -10,18 +10,18 @@
       };
 
       listener = [
-        # Giảm độ sáng màn hình sau 3 phút (180s)
+        # Dim screen brightness after 3 minutes (180s)
         {
           timeout = 180;
           on-timeout = "${pkgs.brightnessctl}/bin/brightnessctl -s set 10";
           on-resume = "${pkgs.brightnessctl}/bin/brightnessctl -r";
         }
-        # Tự động khóa màn hình sau 5 phút (300s)
+        # Lock screen after 5 minutes (300s)
         {
           timeout = 300;
           on-timeout = "loginctl lock-session";
         }
-        # Tắt màn hình sau 10 phút (600s)
+        # Turn off monitors after 10 minutes (600s)
         {
           timeout = 600;
           on-timeout = "niri msg action power-off-monitors";

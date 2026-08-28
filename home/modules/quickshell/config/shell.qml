@@ -24,33 +24,36 @@ ShellRoot {
         property color cardHover: Qt.rgba(primary.r, primary.g, primary.b, 0.22)
     }
 
-    function reloadSystemTheme() {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "file://" + Quickshell.env("HOME") + "/.config/current/system-palette.json");
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === XMLHttpRequest.DONE && (xhr.status === 200 || xhr.status === 0)) {
-                try {
-                    var data = JSON.parse(xhr.responseText);
-                    if (data.background) theme.bg = data.background;
-                    if (data.foreground) theme.fg = data.foreground;
-                    if (data.primary) theme.primary = data.primary;
-                    if (data.primaryBright) theme.primaryBright = data.primaryBright;
-                    if (data.secondary) theme.secondary = data.secondary;
-                    if (data.surface) theme.surface = data.surface;
-                    if (data.surfaceVariant) theme.surfaceVariant = data.surfaceVariant;
-                    if (data.error) theme.error = data.error;
-                } catch (e) {}
+    Process {
+        id: themeProc
+        command: ["bash", "-c", "cat $HOME/.config/current/system-palette.json 2>/dev/null | tr -d '\\n'"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                var str = data.trim();
+                if (str.length > 0) {
+                    try {
+                        var json = JSON.parse(str);
+                        if (json.background) theme.bg = json.background;
+                        if (json.foreground) theme.fg = json.foreground;
+                        if (json.primary) theme.primary = json.primary;
+                        if (json.primaryBright) theme.primaryBright = json.primaryBright;
+                        if (json.secondary) theme.secondary = json.secondary;
+                        if (json.surface) theme.surface = json.surface;
+                        if (json.surfaceVariant) theme.surfaceVariant = json.surfaceVariant;
+                        if (json.error) theme.error = json.error;
+                    } catch(e) {}
+                }
             }
-        };
-        xhr.send();
+        }
     }
 
     Timer {
-        interval: 3000
+        interval: 2000
         running: true
         repeat: true
         triggeredOnStart: true
-        onTriggered: reloadSystemTheme()
+        onTriggered: themeProc.running = true
     }
 
     Variants {
@@ -69,7 +72,7 @@ ShellRoot {
                     right: true
                 }
 
-                height: 38
+                implicitHeight: 38
                 color: "transparent"
 
                 WlrLayershell.layer: WlrLayer.Top

@@ -39,16 +39,39 @@ window {
 
 mainbox {
     enabled:                    true;
-    spacing:                    16px;
+    spacing:                    0px;
     margin:                     0px;
     padding:                    24px;
     border:                     0px solid;
     background-color:           transparent;
-    children:                   [ "listview" ];
+    children:                   [ "inputbar", "listview" ];
 }
 
 inputbar {
+    enabled:                    true;
+    spacing:                    0px;
+    margin:                     0px;
+    padding:                    0px;
+    border:                     0px solid;
+    background-color:           transparent;
+    text-color:                 transparent;
+    children:                   [ "entry" ];
+}
+
+prompt {
     enabled:                    false;
+}
+
+entry {
+    enabled:                    true;
+    background-color:           transparent;
+    text-color:                 transparent;
+    cursor:                     default;
+    placeholder:                "";
+    placeholder-color:          transparent;
+    padding:                    0px;
+    margin:                     0px;
+    border:                     0px;
 }
 
 listview {

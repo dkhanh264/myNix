@@ -1,60 +1,60 @@
-## Tính năng chính
+## Key Features
 
-- **NixOS flake** với cấu hình `nixosConfigurations.HiMeo`.
-- **Hyprland (Wayland)**: Rofi, swww và hypridle.
-- **NVIDIA + Intel PRIME Sync Mode** và biến môi trường Wayland cần thiết.
-- **Home Manager** cho user `dk` với module tách theo chủ đề.
-- **NixVim** cấu hình hoàn toàn bằng Nix (LSP, Treesitter, Telescope, v.v.).
-- **Shell**: Zsh + Starship + alias tiện dụng.
-- **Theme**: GTK/Qt + Pywal theo wallpaper.
-- **Wallpaper switcher**: `Super+Ctrl+Space` để đổi wallpaper và cập nhật theme theo màu.
-- **Scripts quản lý bởi Nix flake**: script tùy biến (menu/wallpaper/OSD) được đóng gói bằng `writeShellScriptBin`.
+- **NixOS flake** with `nixosConfigurations.HiMeo` target.
+- **Niri (Wayland)**: Quickshell topbar, Rofi, Mako, and Hypridle.
+- **NVIDIA + Intel PRIME Sync Mode** with Wayland optimizations.
+- **Home Manager** for user `dk` with modular topic configuration.
+- **NixVim** configured entirely in Nix (LSP, Treesitter, Telescope, etc.).
+- **Shell**: Zsh + Starship + productivity aliases.
+- **Theme**: GTK/Qt + dynamic Pywal color palette synced with wallpaper.
+- **Wallpaper switcher**: `Super+Ctrl+Space` to cycle wallpaper and dynamically update system colors.
+- **Scripts managed by Nix flake**: modular OSD and system control utilities packaged via `writeShellApplication`.
 
-## Cấu hình hệ thống
+## System Configuration
 
-File chính: `hosts/laptop/configuration.nix`
+Main file: `hosts/laptop/configuration.nix`
 
-- Bootloader: systemd-boot (UEFI)
+- Bootloader: systemd-boot (UEFI) / Lanzaboote
 - NetworkManager
 - Timezone: `Asia/Ho_Chi_Minh`
-- Input method: Fcitx5 + Unikey
-- Audio: PipeWire
+- Input method: Fcitx5
+- Audio: PipeWire + WirePlumber
 - Display manager: SDDM (Wayland)
 
-## Cấu hình Home Manager
+## Home Manager Configuration
 
-File chính: `home/home.nix`
+Main file: `home/home.nix`
 
-- Core packages + môi trường
-- Hyprland + Rofi + swww + hypridle
+- Core packages & environment
+- Niri + Quickshell + Rofi + Mako + Hypridle
 - Terminal: Kitty
 - Dev: Git + NixVim
 - Theme: GTK/Qt + Pywal
 
-## NixVim thân thiện cho người mới
+## NixVim Shortcuts
 
-- `Space + e`: mở/đóng cây thư mục.
-- `Space + ff`: tìm file nhanh.
-- `Space + fg`: tìm text trong project.
-- `Space + fr`: mở file gần đây.
-- `Space + fk`: tìm/phím tắt đã map.
-- `Space + w`: lưu file.
-- `Space + q`: đóng cửa sổ hiện tại.
-- `Esc`: bỏ highlight sau khi search.
-- Khi quên phím tắt, bấm `Space` và chờ popup `which-key` hiện gợi ý.
+- `Space + e`: Toggle file explorer tree.
+- `Space + ff`: Quick file search.
+- `Space + fg`: Live grep text across project.
+- `Space + fr`: Open recent files.
+- `Space + fk`: Search keymaps.
+- `Space + w`: Save file.
+- `Space + q`: Close current window.
+- `Esc`: Clear search highlights.
+- Press `Space` and wait for the `which-key` popup menu for shortcuts.
 
-## Sử dụng
+## Usage
 
 ### Build / Switch
 
 ```sh
-sudo nixos-rebuild switch --flake /etc/nixos#HiMeo
+sudo nixos-rebuild switch --flake .#HiMeo
 ```
 
 ### Update flake
 
 ```sh
-sudo nix flake update /etc/nixos
+sudo nix flake update
 ```
 
 ### Garbage collect
@@ -63,7 +63,7 @@ sudo nix flake update /etc/nixos
 sudo nix-collect-garbage -d
 ```
 
-## Ghi chú
+## Notes
 
-- Wallpaper mặc định lấy từ `~/Pictures/wallpapers/wallpaper.jpg`.
-- Có alias sẵn trong Zsh để rebuild/update/gc.
+- Default wallpaper loaded from `~/Pictures/wallpapers`.
+- Zsh aliases available for quick rebuild/update/gc.

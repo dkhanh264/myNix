@@ -15,15 +15,14 @@
     53317 # LocalSend TCP File Transfer
   ];
 
-
   # Extra module configurations
   boot.extraModprobeConfig = ''
     options v4l2loopback devices=1 video_nr=2 card_label="Iriun Webcam" exclusive_caps=1
   '';
 
   boot.lanzaboote = {
-  enable = true;
-  pkiBundle = "/etc/secureboot";
+    enable = true;
+    pkiBundle = "/etc/secureboot";
   };
 
   programs.nix-ld.enable = true;
@@ -57,13 +56,15 @@
     };
   };
 
-  # ── Bộ gõ Tiếng Việt Lotus (Fcitx5 Lotus) ────────────────────────────────
+  # ── Fcitx5 Lotus Vietnamese Input Method ───────────────────────────────
   services.fcitx5-lotus = {
     enable = true;
     users = [ "dk" ];
   };
-  #---Android SDK----------------------------------------------------------
+
+  # ── Android SDK ────────────────────────────────────────────────────────
   nixpkgs.config.android_sdk.accept_license = true;
+
   # ── NVIDIA Driver ──────────────────────────────────────────────────────
   nixpkgs.config.allowUnfree = true;
 
@@ -73,16 +74,15 @@
     modesetting.enable = true;
     package = config.boot.kernelPackages.nvidiaPackages.production;
     
-    # 1. Chuyển sang driver độc quyền (proprietary). Driver open-source hiện tại vẫn chưa hoàn toàn ổn định cho multi-monitor Wayland.
+    # 1. Proprietary driver for multi-monitor Wayland stability.
     open = false; 
 
-    # 2. Bật powerManagement (Bắt buộc trên Wayland để tránh lỗi crash/giật lag khi sleep/resume).
+    # 2. Power management (required on Wayland for sleep/resume stability).
     powerManagement.enable = true; 
     powerManagement.finegrained = false;
 
     prime = {
-      # 3. Đổi sang chế độ Sync Mode (Reverse Prime). 
-      # Chế độ này sẽ dùng GPU NVIDIA để render toàn bộ, giúp màn hình rời hoạt động ở mức FPS tối đa và mượt mà nhất.
+      # 3. Reverse Prime Sync Mode (renders via NVIDIA for high refresh rates).
       sync.enable = true; 
       
       intelBusId = "PCI:0:2:0";
@@ -91,9 +91,7 @@
   };
 
   services.power-profiles-daemon.enable = true;
-
   services.usbmuxd.enable = true;
-
 
   hardware.graphics = {
     enable = true;
@@ -156,7 +154,7 @@
     };
   };
 
-  # enable zram swap with 100% RAM allocation (zstd compression expands RAM capacity 2-3x)
+  # Enable zram swap with 100% RAM allocation (zstd compression expands RAM capacity 2-3x)
   zramSwap = {
     enable = true;
     algorithm = "zstd";
@@ -182,14 +180,14 @@
 
   services.fstrim.enable = true;
 
-  # Giới hạn dung lượng lưu log của systemd journald để giảm bớt ghi đĩa (I/O) và tiết kiệm RAM
+  # Limit systemd journald log size to reduce disk I/O and RAM usage
   services.journald.extraConfig = ''
     SystemMaxUse=100M
     SystemMaxFileSize=20M
     Storage=persistent
   '';
 
-  # Quản lý nhiệt độ & điện năng thông minh cho CPU Intel
+  # Intelligent thermal and power management for Intel CPU
   services.thermald.enable = true;
 
   # ── Audio — PipeWire ───────────────────────────────────────────────────
@@ -319,10 +317,10 @@
     NIXOS_OZONE_WL = "1";
   };
 
-  # ── Automatic Nix Garbage Collection ───────────────────────────────
+  # ── Automatic Nix Garbage Collection ───────────────────────────────────
   nix.gc = {
     automatic = true;
-    dates = "weekly";           # Chạy mỗi tuần (hoặc daily)
+    dates = "weekly";
     options = "--delete-older-than 14d";
   };
 
@@ -335,7 +333,7 @@
     extra-trusted-public-keys = [ "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964=" ];
   };
   boot.extraModulePackages = with config.boot.kernelPackages; [
-  v4l2loopback
+    v4l2loopback
   ];
 
   boot.kernelModules = [ "v4l2loopback" ];

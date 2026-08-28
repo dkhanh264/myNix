@@ -8,7 +8,7 @@ let
       gawk
     ];
     text = ''
-      app_title="Điều khiển hệ thống"
+      app_title="System Controls"
 
       case "''${1:-}" in
         up)
@@ -27,11 +27,11 @@ let
           source_output="$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null || true)"
           if [[ "$source_output" == *"[MUTED]"* ]]; then
             icon="microphone-disabled-symbolic"
-            label="Microphone · Tắt tiếng"
+            label="Microphone · Muted"
             val=0
           else
             icon="microphone-sensitivity-high-symbolic"
-            label="Microphone · Bật"
+            label="Microphone · On"
             val=100
           fi
           notify-send -a "$app_title" -u low -t 1600 \
@@ -59,19 +59,19 @@ let
 
       if (( is_muted )) || (( percentage == 0 )); then
         icon="audio-volume-muted-symbolic"
-        label="Âm lượng · Tắt tiếng"
+        label="Volume · Muted"
         progress_val=0
       elif (( percentage <= 30 )); then
         icon="audio-volume-low-symbolic"
-        label="Âm lượng · ''${percentage}%"
+        label="Volume · ''${percentage}%"
         progress_val="$percentage"
       elif (( percentage <= 70 )); then
         icon="audio-volume-medium-symbolic"
-        label="Âm lượng · ''${percentage}%"
+        label="Volume · ''${percentage}%"
         progress_val="$percentage"
       else
         icon="audio-volume-high-symbolic"
-        label="Âm lượng · ''${percentage}%"
+        label="Volume · ''${percentage}%"
         progress_val="$percentage"
       fi
 
@@ -102,8 +102,8 @@ let
       percentage="''${percentage%%%}"
       [[ "$percentage" =~ ^[0-9]+$ ]] || percentage=0
 
-      app_title="Điều khiển hệ thống"
-      label="Độ sáng · ''${percentage}%"
+      app_title="System Controls"
+      label="Brightness · ''${percentage}%"
 
       notify-send -a "$app_title" -u low -t 1600 \
         -i "display-brightness-symbolic" \

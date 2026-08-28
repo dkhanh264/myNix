@@ -24,7 +24,7 @@ _:
       cat = "bat";
       cd  = "z";
 
-      # Khởi động emulator android
+      # Android emulator launcher
       runadr = "emulator -avd test -gpu host";
 
       rebuild     = "sudo nixos-rebuild switch --flake /etc/nixos#HiMeo";

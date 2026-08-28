@@ -1,5 +1,5 @@
 {
-  description = "NixOS 26.05 — Dual Boot Laptop với Niri";
+  description = "NixOS 26.05 — Dual Boot Laptop with Niri";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";

@@ -48,9 +48,9 @@ let
       wl-copy --type image/png < "$screenshot_path"
       completed=1
 
-      app_title="Chụp màn hình"
-      msg="Đã sao chép ảnh chụp màn hình"
-      body="Đã lưu tại $screenshot_path"
+      app_title="Screenshot"
+      msg="Screenshot copied to clipboard"
+      body="Saved to $screenshot_path"
 
       notify-send -a "$app_title" -u normal -t 4500 \
         -h string:x-canonical-private-synchronous:screenshot \
@@ -82,7 +82,7 @@ in
         }
 
         mouse {
-            // natural-scroll // Bỏ natural-scroll để cuộn chuột theo hướng chuẩn truyền thống
+            // natural-scroll // Disable natural-scroll for standard mouse wheel direction
         }
 
         warp-mouse-to-focus
