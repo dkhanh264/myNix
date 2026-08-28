@@ -48,6 +48,7 @@
     papers
     anki
     weka
+    localsend
 
     (pkgs.callPackage ../../pkgs/davinci-resolve { })
 
