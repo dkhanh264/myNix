@@ -2,6 +2,7 @@
   pkgs,
   codex-cli-nix,
   antigravity-nix,
+  open-design,
   ...
 }:
 {
@@ -57,6 +58,5 @@
     nodejs_22
     codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
     antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-cli
-    opencode
   ];
 }
