@@ -4,7 +4,6 @@
     EDITOR = "nvim";
     BROWSER = "brave";
     TERMINAL = "kitty";
-    OD_DATA_DIR = "${config.home.homeDirectory}/.od";
     WALLPAPER = "${config.home.homeDirectory}/Pictures/wallpapers/wallpaper.jpg";
 
     # NVIDIA + Wayland + GPU Offloading

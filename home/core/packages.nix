@@ -2,7 +2,6 @@
   pkgs,
   codex-cli-nix,
   antigravity-nix,
-  open-design,
   ...
 }:
 {
