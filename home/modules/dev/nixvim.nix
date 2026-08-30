@@ -43,10 +43,6 @@
       winborder = "rounded";
     };
 
-    extraPlugins = with pkgs.vimPlugins; [
-      cord-nvim
-    ];
-
     extraPackages = with pkgs; [
       tree-sitter
       git
@@ -533,6 +529,51 @@
         enable = true;
         enableTelescope = true;
       };
+
+      cord = {
+        enable = true;
+        settings = {
+          editor = {
+            client = "neovim";
+            tooltip = "The Superior Text Editor";
+          };
+          display = {
+            theme = "catppuccin";
+            flavor = "mocha";
+          };
+          timestamp = {
+            enabled = true;
+            reset_on_idle = false;
+            reset_on_change = false;
+          };
+          idle = {
+            enabled = true;
+            timeout = 300000;
+            show_status = true;
+            ignore_focus = true;
+            unidle_on_focus = true;
+            smart_idle = true;
+            details = "Idling";
+            tooltip = "💤";
+          };
+          text = {
+            viewing = "Viewing {}";
+            editing = "Editing {}";
+            file_browser = "Browsing files in {}";
+            plugin_manager = "Managing plugins in {}";
+            lsp = "Configuring LSP in {}";
+            docs = "Reading {}";
+            vcs = "Committing changes in {}";
+            notes = "Taking notes in {}";
+            debug = "Debugging in {}";
+            test = "Testing in {}";
+            diagnostics = "Fixing problems in {}";
+            terminal = "Running commands in {}";
+            dashboard = "Home";
+            workspace = "In {}";
+          };
+        };
+      };
     };
 
     diagnostic.settings = {
@@ -578,12 +619,6 @@
           require("nvim-tree.api").tree.open()
         end,
       })
-
-      -- Cord needs an explicit setup call when loaded through extraPlugins.
-      local cord_ok, cord = pcall(require, "cord")
-      if cord_ok then
-        cord.setup({})
-      end
     '';
 
     keymaps = [
