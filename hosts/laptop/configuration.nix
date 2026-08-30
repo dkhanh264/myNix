@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   imports = [ ./hardware-configuration.nix ];
@@ -9,10 +14,12 @@
   # Firewall configuration for LocalSend & custom ports
   networking.firewall.allowedUDPPorts = [
     4698
+    8081
     53317 # LocalSend Multicast / UDP Discovery
   ];
   networking.firewall.allowedTCPPorts = [
     53317 # LocalSend TCP File Transfer
+    8081
   ];
 
   # Extra module configurations
@@ -73,18 +80,18 @@
   hardware.nvidia = {
     modesetting.enable = true;
     package = config.boot.kernelPackages.nvidiaPackages.production;
-    
+
     # 1. Proprietary driver for multi-monitor Wayland stability.
-    open = false; 
+    open = false;
 
     # 2. Power management (required on Wayland for sleep/resume stability).
-    powerManagement.enable = true; 
+    powerManagement.enable = true;
     powerManagement.finegrained = false;
 
     prime = {
       # 3. Reverse Prime Sync Mode (renders via NVIDIA for high refresh rates).
-      sync.enable = true; 
-      
+      sync.enable = true;
+
       intelBusId = "PCI:0:2:0";
       nvidiaBusId = "PCI:1:0:0";
     };
@@ -128,7 +135,10 @@
         default = [ "gtk" ];
       };
       niri = {
-        default = [ "gnome" "gtk" ];
+        default = [
+          "gnome"
+          "gtk"
+        ];
         "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ];
@@ -138,7 +148,7 @@
   };
 
   security.polkit.enable = true;
-  security.pam.services.hyprlock = {};
+  security.pam.services.hyprlock = { };
 
   services.displayManager.sddm = {
     enable = true;
@@ -173,9 +183,9 @@
 
   # Sysctl: RAM-first memory policy, zRAM single-page decompression, and IDE mmap capacity
   boot.kernel.sysctl = {
-    "vm.swappiness" = 60;          # RAM first, zRAM under memory pressure
-    "vm.page-cluster" = 0;         # Optimize single-page compression/decompression for zRAM
-    "vm.max_map_count" = 1048576;  # Max mmap limit for JVM, Android Studio, IDEs, and Electron
+    "vm.swappiness" = 60; # RAM first, zRAM under memory pressure
+    "vm.page-cluster" = 0; # Optimize single-page compression/decompression for zRAM
+    "vm.max_map_count" = 1048576; # Max mmap limit for JVM, Android Studio, IDEs, and Electron
   };
 
   services.fstrim.enable = true;
@@ -297,7 +307,10 @@
   fonts.fontconfig.defaultFonts = {
     sansSerif = [ "Noto Sans" ];
     serif = [ "Noto Serif" ];
-    monospace = [ "JetBrainsMono Nerd Font Mono" "Noto Sans Mono" ];
+    monospace = [
+      "JetBrainsMono Nerd Font Mono"
+      "Noto Sans Mono"
+    ];
     emoji = [ "Noto Color Emoji" ];
   };
 
@@ -326,7 +339,10 @@
 
   # ── Nix Settings ───────────────────────────────────────────────────────
   nix.settings = {
-    experimental-features = [ "nix-command" "flakes" ];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     max-jobs = "auto";
     auto-optimise-store = true;
     extra-substituters = [ "https://niri.cachix.org" ];
