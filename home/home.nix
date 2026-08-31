@@ -13,5 +13,6 @@
     ./modules/media
     ./modules/notification
     ./modules/quickshell
+    ./modules/serpantinum
   ];
 }

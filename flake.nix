@@ -43,6 +43,11 @@
       url = "github:niri-wm/niri";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    serpantinum = {
+      url = "github:ilyamiro/serpantinum";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -61,6 +66,7 @@
       concord,
       fcitx5-lotus,
       niri,
+      serpantinum,
       ...
     }@inputs:
     let
@@ -75,6 +81,7 @@
             lanzaboote.nixosModules.lanzaboote
             home-manager.nixosModules.home-manager
             fcitx5-lotus.nixosModules.fcitx5-lotus
+            serpantinum.nixosModules.default
 
             {
               home-manager = {
@@ -82,10 +89,11 @@
                 useUserPackages = true;
                 backupFileExtension = "backup";
 
-                extraSpecialArgs = { inherit codex-cli-nix antigravity-nix concord; };
+                extraSpecialArgs = { inherit codex-cli-nix antigravity-nix concord serpantinum; };
 
                 sharedModules = [
                   nixvim.homeModules.nixvim
+                  serpantinum.homeManagerModules.default
                 ];
 
                 users.dk = { ... }: {

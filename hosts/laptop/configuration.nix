@@ -121,6 +121,7 @@
 
   # ── Wayland & Niri ─────────────────────────────────────────────────────
   programs.niri.enable = true;
+  programs.serpantinum.enable = true;
 
   # ── XDG Desktop Portal (File chooser, Screencast, etc.) ────────────────
   xdg.portal = {
