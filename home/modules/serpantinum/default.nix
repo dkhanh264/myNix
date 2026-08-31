@@ -16,6 +16,7 @@ in
     package = serpantinum.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (oldAttrs: {
       patches = (oldAttrs.patches or [ ]) ++ [
         ./patches/fix-niri-multimonitor-workspaces.patch
+        ./patches/fix-cava-lock-freeze.patch
       ];
     });
 
