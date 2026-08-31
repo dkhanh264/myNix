@@ -126,6 +126,12 @@ ensure_daemon() {
     fi
 
     if [ "$daemon_running" = false ]; then
+        if systemctl --user is-active --quiet serpantinum 2>/dev/null || pgrep -f "quickshell.*Shell.qml" >/dev/null 2>&1; then
+            daemon_running=true
+        fi
+    fi
+
+    if [ "$daemon_running" = false ]; then
         rm -f "/tmp/serpantinumd.pid" 2>/dev/null
         rm -f "/tmp/serpantinumd.lock" 2>/dev/null
 

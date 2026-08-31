@@ -79,7 +79,7 @@ PanelWindow {
                 switchWidget("hidden", "");
             } else if (cmd === "toggle" || cmd === "open") {
                 if (targetWidget === effectivelyActive) {
-                    let currentItem = widgetCache[targetWidget] || widgetStack.currentItem;
+                    let currentItem = widgetCache[targetWidget];
 
                     if (arg !== "" && arg !== masterWindow.activeArg) {
                         masterWindow.activeArg = arg;
@@ -99,7 +99,7 @@ PanelWindow {
                 let legacyArg = targetWidget;
 
                 if (cmd === effectivelyActive) {
-                    let currentItem = widgetCache[cmd] || widgetStack.currentItem;
+                    let currentItem = widgetCache[cmd];
                     if (legacyArg !== "" && currentItem && currentItem.activeMode !== undefined && currentItem.activeMode !== legacyArg) {
                         currentItem.activeMode = legacyArg;
                     } else if (legacyArg !== "" && currentItem && currentItem.gotoTab !== undefined) {
@@ -232,10 +232,6 @@ PanelWindow {
         onClicked: switchWidget("hidden", "")
     }
 
-    Item {
-        id: preloaderContainer
-        visible: false
-    }
 
     property var widgetCache: ({})
     property var componentCache: ({})
@@ -266,7 +262,10 @@ PanelWindow {
             return null;
         }
 
-        let item = comp.createObject(preloaderContainer);
+        let item = comp.createObject(widgetContainer, {
+            "anchors.fill": widgetContainer,
+            "visible": false
+        });
         if (item) widgetCache[name] = item;
         return item;
     }
@@ -467,7 +466,7 @@ PanelWindow {
     }
 
     onIsVisibleChanged: {
-        if (isVisible) widgetStack.forceActiveFocus();
+        if (isVisible && widgetCache[currentActive]) widgetCache[currentActive].forceActiveFocus();
     }
 
     Item {
@@ -504,25 +503,14 @@ PanelWindow {
 
             MouseArea { anchors.fill: parent }
 
-            StackView {
-                id: widgetStack
+            Item {
+                id: widgetContainer
                 anchors.fill: parent
                 focus: true
-
-                replaceEnter: null
-                replaceExit: null
-                pushEnter: null
-                pushExit: null
-                popEnter: null
-                popExit: null
 
                 Keys.onEscapePressed: (event) => {
                     switchWidget("hidden", "");
                     event.accepted = true;
-                }
-
-                onCurrentItemChanged: {
-                    if (currentItem) currentItem.forceActiveFocus();
                 }
             }
         }
@@ -561,6 +549,11 @@ PanelWindow {
                 masterWindow.disableMorph = true;
                 masterWindow.isVisible = false;
 
+                for (let wName in widgetCache) {
+                    let item = widgetCache[wName];
+                    if (item) item.visible = false;
+                }
+
                 delayedClear.scheduledGeneration = gen;
                 delayedClear.restart();
             }
@@ -597,7 +590,7 @@ PanelWindow {
         if (cachedItem.targetMasterWidth !== undefined)  cachedItem.targetMasterWidth  = t.w;
         if (cachedItem.targetMasterHeight !== undefined) cachedItem.targetMasterHeight = t.h;
 
-        let isComingFromHidden = (!masterWindow.isVisible || widgetStack.currentItem === null || masterWindow.currentActive === "hidden");
+        let isComingFromHidden = (!masterWindow.isVisible || masterWindow.currentActive === "hidden");
 
         masterWindow.currentActive = newWidget;
         masterWindow.activeArg = arg;
@@ -626,8 +619,16 @@ PanelWindow {
         if (arg !== "" && cachedItem.activeMode !== undefined) cachedItem.activeMode = arg;
         if (arg !== "" && cachedItem.gotoTab !== undefined) cachedItem.gotoTab(arg);
 
-        if (widgetStack.currentItem !== cachedItem) {
-            widgetStack.replace(cachedItem, {}, StackView.Immediate);
+        for (let wName in widgetCache) {
+            let item = widgetCache[wName];
+            if (item && wName !== newWidget) {
+                item.visible = false;
+            }
+        }
+
+        if (cachedItem) {
+            cachedItem.visible = true;
+            cachedItem.forceActiveFocus();
         }
 
         masterWindow.isVisible = true;
