@@ -2,6 +2,7 @@
   pkgs,
   codex-cli-nix,
   antigravity-nix,
+  concord,
   ...
 }:
 {
@@ -57,5 +58,6 @@
     nodejs_22
     codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
     antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-cli
+    concord.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 }

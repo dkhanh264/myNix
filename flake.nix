@@ -34,6 +34,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    concord = {
+      url = "github:chojs23/concord";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     niri = {
       url = "github:niri-wm/niri";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -53,6 +58,7 @@
       lanzaboote,
       codex-cli-nix,
       antigravity-nix,
+      concord,
       fcitx5-lotus,
       niri,
       ...
@@ -76,7 +82,7 @@
                 useUserPackages = true;
                 backupFileExtension = "backup";
 
-                extraSpecialArgs = { inherit codex-cli-nix antigravity-nix; };
+                extraSpecialArgs = { inherit codex-cli-nix antigravity-nix concord; };
 
                 sharedModules = [
                   nixvim.homeModules.nixvim
