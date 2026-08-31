@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   ...
 }:
 
@@ -98,6 +99,7 @@
   };
 
   services.power-profiles-daemon.enable = true;
+  services.upower.enable = true;
   services.usbmuxd.enable = true;
 
   hardware.graphics = {
@@ -154,10 +156,15 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
-    theme = "sugar-dark";
+    theme = "material-you";
+    extraPackages = with pkgs; [
+      kdePackages.qt5compat
+      kdePackages.qtsvg
+      kdePackages.qtdeclarative
+    ];
     settings = {
       Theme = {
-        Current = "sugar-dark";
+        Current = "material-you";
         CursorTheme = "Adwaita";
         CursorSize = 24;
         Font = "Noto Sans";
@@ -322,7 +329,16 @@
     wget
     pciutils
     libimobiledevice
-    sddm-sugar-dark
+    (pkgs.stdenv.mkDerivation {
+      pname = "sddm-serpantinum-theme";
+      version = "1.0";
+      src = "${inputs.serpantinum}/config/sddm/themes";
+      dontBuild = true;
+      installPhase = ''
+        mkdir -p $out/share/sddm/themes
+        cp -r material-you $out/share/sddm/themes/
+      '';
+    })
     xwayland-satellite
     hyprlock
   ];

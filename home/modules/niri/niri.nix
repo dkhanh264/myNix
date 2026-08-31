@@ -39,7 +39,6 @@
     output "eDP-1" {
         mode "1920x1080@144.003"
         scale 1.0
-        position x=0 y=0
         variable-refresh-rate
     }
 
@@ -47,7 +46,6 @@
     output "HDMI-A-1" {
         mode "1920x1080@179.961"
         scale 1.0
-        position x=1920 y=0
     }
 
     // Disable Client-Side Decorations globally
@@ -176,10 +174,12 @@
 
         // Applications & Core Actions
         Mod+Return { spawn "kitty"; }
-        Mod+F { spawn "brave"; }
+        Mod+Q { spawn "kitty"; }
+        Mod+W { spawn "brave"; }
         Mod+E { spawn "nautilus"; }
         Alt+F4 { close-window; }
-        Mod+Shift+F { toggle-window-floating; }
+        Mod+F { maximize-column; }
+        Mod+Shift+F { fullscreen-window; }
         Mod+V { toggle-window-floating; }
         Mod+Shift+V { switch-focus-between-floating-and-tiling; }
         Mod+Tab { toggle-column-tabbed-display; }
@@ -189,15 +189,16 @@
         Mod+O repeat=false { toggle-overview; }
 
         // Serpantinum Toggles & Controls
+        Mod+Space { spawn "serpantinum" "msg" "toggle" "launcher"; }
         Mod+D { spawn "serpantinum" "msg" "toggle" "launcher"; }
         Mod+C { spawn "serpantinum" "msg" "toggle" "clipboard"; }
-        Mod+Q { spawn "serpantinum" "msg" "toggle" "music"; }
         Mod+B { spawn "serpantinum" "msg" "toggle" "system"; }
-        Mod+W { spawn "serpantinum" "msg" "toggle" "wallpaper"; }
+        Ctrl+Mod+Space { spawn "serpantinum" "msg" "toggle" "wallpaper"; }
         Mod+S { spawn "serpantinum" "msg" "toggle" "calendar"; }
         Mod+N { spawn "serpantinum" "msg" "toggle" "network"; }
         Mod+G { spawn "serpantinum" "msg" "toggle" "guide"; }
-        Mod+R { spawn "serpantinum" "reload"; }
+        Mod+R { switch-preset-column-width; }
+        Mod+Shift+R { spawn "serpantinum" "reload"; }
 
         // Lock screen
         Mod+Alt+L { spawn "serpantinum" "lock"; }
@@ -209,7 +210,6 @@
         XF86MonBrightnessUp   { spawn "serpantinum" "brightness" "raise"; }
 
         // Media & Volume controls
-        Mod+Space     { spawn "playerctl" "play-pause"; }
         XF86AudioPlay { spawn "playerctl" "play-pause"; }
         XF86AudioPause { spawn "playerctl" "play-pause"; }
         XF86AudioNext { spawn "playerctl" "next"; }
