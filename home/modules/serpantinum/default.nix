@@ -4,7 +4,7 @@ let
   jsonFormat = pkgs.formats.json { };
   userSettings = lib.filterAttrsRecursive (_: v: v != null) cfg.settings;
   userSettingsFile = jsonFormat.generate "serpantinum-user-settings.json" userSettings;
-  templateSettings = builtins.fromJSON (builtins.readFile "${serpantinum}/config/serpantinum/settings.json");
+  templateSettings = builtins.fromJSON (builtins.readFile "${./config}/serpantinum/settings.json");
   mergedSettings = lib.recursiveUpdate templateSettings userSettings;
   settingsFile = jsonFormat.generate "serpantinum-settings.json" mergedSettings;
   settingsTarget = "${config.xdg.configHome}/serpantinum/settings.json";
@@ -15,10 +15,11 @@ in
     systemd.enable = true;
     package = serpantinum.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (oldAttrs: {
       nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.makeWrapper ];
-      patches = (oldAttrs.patches or [ ]) ++ [
-        ./patches/fix-niri-multimonitor-workspaces.patch
-        ./patches/fix-cava-lock-freeze.patch
-      ];
+      postPatch = (oldAttrs.postPatch or "") + ''
+        cp -rf ${./src}/. src/
+        cp -rf ${./bin}/. bin/
+        cp -rf ${./config}/. config/
+      '';
       postFixup = (oldAttrs.postFixup or "") + ''
         for bin in serpantinum serpantinumd; do
           wrapProgram "$out/bin/$bin" \
