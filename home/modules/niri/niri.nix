@@ -196,11 +196,12 @@
         Mod+W { spawn "serpantinum" "msg" "toggle" "wallpaper"; }
         Mod+S { spawn "serpantinum" "msg" "toggle" "calendar"; }
         Mod+N { spawn "serpantinum" "msg" "toggle" "network"; }
-        Mod+H { spawn "serpantinum" "msg" "toggle" "guide"; }
+        Mod+G { spawn "serpantinum" "msg" "toggle" "guide"; }
         Mod+R { spawn "serpantinum" "reload"; }
 
         // Lock screen
-        Mod+L { spawn "serpantinum" "lock"; }
+        Mod+Alt+L { spawn "serpantinum" "lock"; }
+        Ctrl+Alt+L { spawn "serpantinum" "lock"; }
         XF86PowerOff { spawn "serpantinum" "lock"; }
 
         // Brightness controls
@@ -275,8 +276,6 @@
         Mod+Equal { set-column-width "+10%"; }
         Mod+Shift+Minus { set-window-height "-10%"; }
         Mod+Shift+Equal { set-window-height "+10%"; }
-        Mod+Shift+Up    { set-window-height "-5%"; }
-        Mod+Shift+Down  { set-window-height "+5%"; }
         Mod+Ctrl+R { reset-window-height; }
 
         // Workspaces (Serpantinum workspace manager integration)
