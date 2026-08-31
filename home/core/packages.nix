@@ -25,14 +25,17 @@
     mesa-demos
     gnome-clocks
 
-    # Media
+    # Media & Recording
     imv
     gnome-sound-recorder
+    wf-recorder
+    gpu-screen-recorder
 
     # Hardware control & Audio GUI
     playerctl
     brightnessctl
     pavucontrol
+    pulseaudio
 
     # Archive
     zip

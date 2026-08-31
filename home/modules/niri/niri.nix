@@ -219,11 +219,12 @@
         XF86AudioMute        allow-when-locked=true { spawn "serpantinum" "volume" "mute-toggle"; }
         XF86AudioMicMute     allow-when-locked=true { spawn "serpantinum" "volume" "mic-toggle"; }
 
-        // Screenshot shortcuts
+        // Screenshot & Recording shortcuts
         Print { spawn "serpantinum" "screenshot"; }
         Shift+Print { spawn "serpantinum" "screenshot" "--edit"; }
         Super+Print { spawn "serpantinum" "screenshot" "--full"; }
         Super+Shift+Print { spawn "serpantinum" "screenshot" "--full" "--edit"; }
+        Ctrl+Print { spawn "serpantinum" "screenshot" "--full" "--record"; }
 
         // Focus Navigation
         Mod+Left  { focus-column-left; }

@@ -14,10 +14,17 @@ in
     enable = true;
     systemd.enable = true;
     package = serpantinum.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (oldAttrs: {
+      nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.makeWrapper ];
       patches = (oldAttrs.patches or [ ]) ++ [
         ./patches/fix-niri-multimonitor-workspaces.patch
         ./patches/fix-cava-lock-freeze.patch
       ];
+      postFixup = (oldAttrs.postFixup or "") + ''
+        for bin in serpantinum serpantinumd; do
+          wrapProgram "$out/bin/$bin" \
+            --prefix PATH : "${lib.makeBinPath [ pkgs.pulseaudio ]}"
+        done
+      '';
     });
 
     settings = {
