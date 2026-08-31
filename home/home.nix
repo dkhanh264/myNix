@@ -7,11 +7,9 @@
     ./modules/shell
     ./modules/niri
     ./modules/terminal
-    ./modules/launcher
     ./modules/dev
     ./modules/theme
     ./modules/media
-    ./modules/notification
     ./modules/serpantinum
   ];
 }

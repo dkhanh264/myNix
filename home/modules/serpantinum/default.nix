@@ -4,12 +4,28 @@
     enable = true;
     systemd.enable = true;
 
-    # Cấu hình tùy chọn cho Serpantinum (nếu muốn ghi đè cấu hình mặc định)
-    # settings = {
-    #   wallpaperDir = "${config.home.homeDirectory}/Pictures/Wallpapers";
-    #   bar = {
-    #     position = "top"; # "top" | "bottom" | "left" | "right"
-    #   };
-    # };
+    settings = {
+      wallpaperDir = "${config.home.homeDirectory}/Pictures/wallpapers";
+      bar = {
+        position = "top";
+        style = "fill";
+        time = {
+          format = "HH:mm:ss";
+        };
+      };
+      theme = {
+        fontFamily = "JetBrains Mono";
+        borderRadius = 10;
+        matugen = true;
+      };
+      notifications = {
+        dnd = false;
+        position = "top right";
+        sound = true;
+      };
+      idle = {
+        enabled = true;
+      };
+    };
   };
 }

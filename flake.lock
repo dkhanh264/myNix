@@ -395,7 +395,8 @@
         "lanzaboote": "lanzaboote",
         "niri": "niri",
         "nixpkgs": "nixpkgs",
-        "nixvim": "nixvim"
+        "nixvim": "nixvim",
+        "serpantinum": "serpantinum"
       }
     },
     "rust-overlay": {
@@ -437,6 +438,43 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "serpantinum": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "serpantinum-wallpapers": "serpantinum-wallpapers"
+      },
+      "locked": {
+        "lastModified": 1788128213,
+        "narHash": "sha256-06agiukx22yvr6hEJVRcZUEl/54XFPs2maGxF5po5TU=",
+        "owner": "ilyamiro",
+        "repo": "serpantinum",
+        "rev": "cf3f0d9e2d2c7375994099fb5395728088980201",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ilyamiro",
+        "repo": "serpantinum",
+        "type": "github"
+      }
+    },
+    "serpantinum-wallpapers": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787675697,
+        "narHash": "sha256-ADvKHmQDsX50opqeiyEAB3uxUTjuCyDym0pGQCy7Sws=",
+        "owner": "ilyamiro",
+        "repo": "shell-wallpapers",
+        "rev": "1cb526443872fbf283a3f8305c3aa647545c02e4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ilyamiro",
+        "repo": "shell-wallpapers",
         "type": "github"
       }
     },

@@ -5,68 +5,13 @@
   ...
 }:
 
-let
-  captureScreen = pkgs.writeShellApplication {
-    name = "capture-screen";
-    runtimeInputs = with pkgs; [
-      coreutils
-      grim
-      slurp
-      wl-clipboard
-      libnotify
-    ];
-    text = ''
-      set -Eeuo pipefail
-
-      mode="''${1:-region}"
-      case "$mode" in
-        region|full) ;;
-        *)
-          printf 'Usage: capture-screen {region|full}\n' >&2
-          exit 2
-          ;;
-      esac
-
-      screenshot_dir="''${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
-      mkdir -p -- "$screenshot_dir"
-      screenshot_path=$(mktemp --tmpdir="$screenshot_dir" \
-        "screenshot-$(date +%Y-%m-%d_%H-%M-%S)-XXXXXX.png")
-      completed=0
-      cleanup() {
-        (( completed )) || rm -f -- "$screenshot_path"
-      }
-      trap cleanup EXIT
-
-      if [[ "$mode" == "region" ]]; then
-        selection="$(slurp)" || exit 0
-        [[ -n "$selection" ]] || exit 0
-        grim -g "$selection" "$screenshot_path"
-      else
-        grim "$screenshot_path"
-      fi
-
-      wl-copy --type image/png < "$screenshot_path"
-      completed=1
-
-      app_title="Screenshot"
-      msg="Screenshot copied to clipboard"
-      body="Saved to $screenshot_path"
-
-      notify-send -a "$app_title" -u normal -t 4500 \
-        -h string:x-canonical-private-synchronous:screenshot \
-        -i "$screenshot_path" "$msg" \
-        "$body" || true
-    '';
-  };
-
-in
 {
-  home.packages = [
-    captureScreen
-  ];
-
   xdg.configFile."niri/config.kdl".text = ''
     // Input device configuration
+    hotkey-overlay {
+        skip-at-startup
+    }
+
     input {
         keyboard {
             xkb {
@@ -82,7 +27,7 @@ in
         }
 
         mouse {
-            // natural-scroll // Disable natural-scroll for standard mouse wheel direction
+            // natural-scroll
         }
 
         warp-mouse-to-focus
@@ -105,11 +50,15 @@ in
         position x=1920 y=0
     }
 
-    // Disable Client-Side Decorations globally (remove titlebars / close-minimize-maximize buttons)
+    // Disable Client-Side Decorations globally
     prefer-no-csd
 
     // Environment variables
     environment {
+        NIXOS_OZONE_WL "1"
+        XDG_CURRENT_DESKTOP "Niri"
+        XDG_SESSION_TYPE "wayland"
+        XDG_SESSION_DESKTOP "Niri"
         XCURSOR_SIZE "24"
         XCURSOR_THEME "aosp-cursors"
         QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
@@ -119,8 +68,8 @@ in
     spawn-at-startup "dbus-update-activation-environment" "--systemd" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP=niri"
     spawn-at-startup "rfkill" "unblock" "bluetooth"
     spawn-sh-at-startup "wl-paste --type text --watch cliphist store"
+    spawn-sh-at-startup "wl-paste --type image --watch cliphist store"
     spawn-at-startup "fcitx5" "-d"
-    spawn-at-startup "restore-background"
 
     // Layout configuration
     layout {
@@ -172,27 +121,9 @@ in
         }
     }
 
-    // Overview backdrop configuration (Super+O)
+    // Overview backdrop configuration (Super+O / Super+Backspace)
     overview {
         backdrop-color "#00000040"
-    }
-
-    // Keep wallpaper visible in overview backdrop
-    layer-rule {
-        match namespace="^awww-daemon$"
-        place-within-backdrop true
-    }
-
-    layer-rule {
-        match namespace="^swww.*"
-        place-within-backdrop true
-    }
-
-    // Include dynamic Pywal palette (optional so missing file won't break config)
-    include optional=true "${config.home.homeDirectory}/.config/niri/wal-colors.kdl"
-
-    hotkey-overlay {
-        skip-at-startup
     }
 
     screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
@@ -239,60 +170,81 @@ in
         draw-border-with-background false
     }
 
-    // Keybindings
+    // Keybindings (Serpantinum prioritized)
     binds {
         Mod+Shift+Slash { show-hotkey-overlay; }
 
-        // Core required binds
-        Mod+Q { spawn "kitty"; }
-        Mod+W { spawn "brave"; }
-        Alt+F4 { close-window; }
-
-        // Applications & System Utilities
+        // Applications & Core Actions
+        Mod+Return { spawn "kitty"; }
+        Mod+F { spawn "brave"; }
         Mod+E { spawn "nautilus"; }
-        Mod+Space { spawn "rofi-launcher"; }
-        Mod+Ctrl+Space { spawn "cycle-background"; }
-        Mod+C { spawn-sh "cliphist list | rofi -dmenu -p 'Clipboard' | cliphist decode | wl-copy"; }
-        Mod+Alt+L { spawn-sh "pidof hyprlock || hyprlock"; }
+        Alt+F4 { close-window; }
+        Mod+Shift+F { toggle-window-floating; }
+        Mod+V { toggle-window-floating; }
+        Mod+Shift+V { switch-focus-between-floating-and-tiling; }
+        Mod+Tab { toggle-column-tabbed-display; }
 
-        // Audio, Media & Brightness Controls
-        XF86AudioRaiseVolume allow-when-locked=true { spawn "volume-osd" "up"; }
-        XF86AudioLowerVolume allow-when-locked=true { spawn "volume-osd" "down"; }
-        XF86AudioMute        allow-when-locked=true { spawn "volume-osd" "mute"; }
-        XF86AudioMicMute     allow-when-locked=true { spawn "volume-osd" "mute-mic"; }
-        XF86MonBrightnessUp   allow-when-locked=true { spawn "brightness-osd" "up"; }
-        XF86MonBrightnessDown allow-when-locked=true { spawn "brightness-osd" "down"; }
-        XF86AudioPlay        allow-when-locked=true { spawn "playerctl" "play-pause"; }
-        XF86AudioNext        allow-when-locked=true { spawn "playerctl" "next"; }
-        XF86AudioPrev        allow-when-locked=true { spawn "playerctl" "previous"; }
+        // Overview
+        Mod+Backspace { toggle-overview; }
+        Mod+O repeat=false { toggle-overview; }
+
+        // Serpantinum Toggles & Controls
+        Mod+D { spawn "serpantinum" "msg" "toggle" "launcher"; }
+        Mod+C { spawn "serpantinum" "msg" "toggle" "clipboard"; }
+        Mod+Q { spawn "serpantinum" "msg" "toggle" "music"; }
+        Mod+B { spawn "serpantinum" "msg" "toggle" "system"; }
+        Mod+W { spawn "serpantinum" "msg" "toggle" "wallpaper"; }
+        Mod+S { spawn "serpantinum" "msg" "toggle" "calendar"; }
+        Mod+N { spawn "serpantinum" "msg" "toggle" "network"; }
+        Mod+H { spawn "serpantinum" "msg" "toggle" "guide"; }
+        Mod+R { spawn "serpantinum" "reload"; }
+
+        // Lock screen
+        Mod+L { spawn "serpantinum" "lock"; }
+        XF86PowerOff { spawn "serpantinum" "lock"; }
+
+        // Brightness controls
+        XF86MonBrightnessDown { spawn "serpantinum" "brightness" "lower"; }
+        XF86MonBrightnessUp   { spawn "serpantinum" "brightness" "raise"; }
+
+        // Media & Volume controls
+        Mod+Space     { spawn "playerctl" "play-pause"; }
+        XF86AudioPlay { spawn "playerctl" "play-pause"; }
+        XF86AudioPause { spawn "playerctl" "play-pause"; }
+        XF86AudioNext { spawn "playerctl" "next"; }
+        XF86AudioPrev { spawn "playerctl" "previous"; }
+        XF86AudioRaiseVolume allow-when-locked=true { spawn "serpantinum" "volume" "raise"; }
+        XF86AudioLowerVolume allow-when-locked=true { spawn "serpantinum" "volume" "lower"; }
+        XF86AudioMute        allow-when-locked=true { spawn "serpantinum" "volume" "mute-toggle"; }
+        XF86AudioMicMute     allow-when-locked=true { spawn "serpantinum" "volume" "mic-toggle"; }
 
         // Screenshot shortcuts
-        Print { spawn "capture-screen" "region"; }
-        Shift+Print { spawn "capture-screen" "full"; }
-        Ctrl+Print { screenshot-screen; }
-        Alt+Print { screenshot-window; }
+        Print { spawn "serpantinum" "screenshot"; }
+        Shift+Print { spawn "serpantinum" "screenshot" "--edit"; }
+        Super+Print { spawn "serpantinum" "screenshot" "--full"; }
+        Super+Shift+Print { spawn "serpantinum" "screenshot" "--full" "--edit"; }
 
-        // Focus navigation
+        // Focus Navigation
         Mod+Left  { focus-column-left; }
         Mod+Right { focus-column-right; }
-        Mod+Up    { focus-window-up; }
-        Mod+Down  { focus-window-down; }
+        Mod+Up    { focus-window-or-workspace-up; }
+        Mod+Down  { focus-window-or-workspace-down; }
         Mod+H     { focus-column-left; }
         Mod+J     { focus-window-down; }
         Mod+K     { focus-window-up; }
         Mod+L     { focus-column-right; }
 
-        // Moving windows & columns within monitor
+        // Moving Windows & Columns
         Mod+Ctrl+Left  { move-column-left; }
         Mod+Ctrl+Right { move-column-right; }
-        Mod+Ctrl+Up    { move-window-up; }
-        Mod+Ctrl+Down  { move-window-down; }
+        Mod+Ctrl+Up    { move-column-to-workspace-up; }
+        Mod+Ctrl+Down  { move-column-to-workspace-down; }
         Mod+Ctrl+H     { move-column-left; }
         Mod+Ctrl+J     { move-window-down; }
         Mod+Ctrl+K     { move-window-up; }
         Mod+Ctrl+L     { move-column-right; }
 
-        // Focus monitor navigation
+        // Focus Monitor Navigation
         Mod+Shift+Left  { focus-monitor-left; }
         Mod+Shift+Right { focus-monitor-right; }
         Mod+Shift+Up    { focus-monitor-up; }
@@ -302,7 +254,7 @@ in
         Mod+Shift+K     { focus-monitor-up; }
         Mod+Shift+L     { focus-monitor-right; }
 
-        // Moving columns across monitors
+        // Moving Columns across Monitors
         Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
         Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
         Mod+Shift+Ctrl+Up    { move-column-to-monitor-up; }
@@ -312,61 +264,43 @@ in
         Mod+Shift+Ctrl+K     { move-column-to-monitor-up; }
         Mod+Shift+Ctrl+L     { move-column-to-monitor-right; }
 
-        // Column layout adjustments
+        // Column Layout Adjustments
         Mod+BracketLeft  { consume-or-expel-window-left; }
         Mod+BracketRight { consume-or-expel-window-right; }
         Mod+Comma  { consume-window-into-column; }
         Mod+Period { expel-window-from-column; }
 
-        // Column & window resizing
+        // Resizing
         Mod+Minus { set-column-width "-10%"; }
         Mod+Equal { set-column-width "+10%"; }
         Mod+Shift+Minus { set-window-height "-10%"; }
         Mod+Shift+Equal { set-window-height "+10%"; }
-
-        Mod+R { switch-preset-column-width; }
-        Mod+Shift+R { switch-preset-column-width-back; }
+        Mod+Shift+Up    { set-window-height "-5%"; }
+        Mod+Shift+Down  { set-window-height "+5%"; }
         Mod+Ctrl+R { reset-window-height; }
 
-        Mod+F { maximize-column; }
-        Mod+Shift+F { fullscreen-window; }
-        Mod+V { toggle-window-floating; }
-        Mod+Shift+V { switch-focus-between-floating-and-tiling; }
-        Mod+Tab { toggle-column-tabbed-display; }
-        Mod+O repeat=false { toggle-overview; }
+        // Workspaces (Serpantinum workspace manager integration)
+        Mod+1 { spawn "serpantinum" "msg" "workspace" "1"; }
+        Mod+2 { spawn "serpantinum" "msg" "workspace" "2"; }
+        Mod+3 { spawn "serpantinum" "msg" "workspace" "3"; }
+        Mod+4 { spawn "serpantinum" "msg" "workspace" "4"; }
+        Mod+5 { spawn "serpantinum" "msg" "workspace" "5"; }
+        Mod+6 { spawn "serpantinum" "msg" "workspace" "6"; }
+        Mod+7 { spawn "serpantinum" "msg" "workspace" "7"; }
+        Mod+8 { spawn "serpantinum" "msg" "workspace" "8"; }
+        Mod+9 { spawn "serpantinum" "msg" "workspace" "9"; }
+        Mod+0 { spawn "serpantinum" "msg" "workspace" "10"; }
 
-        // Workspaces
-        Mod+1 { focus-workspace 1; }
-        Mod+2 { focus-workspace 2; }
-        Mod+3 { focus-workspace 3; }
-        Mod+4 { focus-workspace 4; }
-        Mod+5 { focus-workspace 5; }
-        Mod+6 { focus-workspace 6; }
-        Mod+7 { focus-workspace 7; }
-        Mod+8 { focus-workspace 8; }
-        Mod+9 { focus-workspace 9; }
-
-        // Move whole column to workspace
-        Mod+Ctrl+1 { move-column-to-workspace 1; }
-        Mod+Ctrl+2 { move-column-to-workspace 2; }
-        Mod+Ctrl+3 { move-column-to-workspace 3; }
-        Mod+Ctrl+4 { move-column-to-workspace 4; }
-        Mod+Ctrl+5 { move-column-to-workspace 5; }
-        Mod+Ctrl+6 { move-column-to-workspace 6; }
-        Mod+Ctrl+7 { move-column-to-workspace 7; }
-        Mod+Ctrl+8 { move-column-to-workspace 8; }
-        Mod+Ctrl+9 { move-column-to-workspace 9; }
-
-        // Move single focused window to workspace
-        Mod+Shift+1 { move-window-to-workspace 1; }
-        Mod+Shift+2 { move-window-to-workspace 2; }
-        Mod+Shift+3 { move-window-to-workspace 3; }
-        Mod+Shift+4 { move-window-to-workspace 4; }
-        Mod+Shift+5 { move-window-to-workspace 5; }
-        Mod+Shift+6 { move-window-to-workspace 6; }
-        Mod+Shift+7 { move-window-to-workspace 7; }
-        Mod+Shift+8 { move-window-to-workspace 8; }
-        Mod+Shift+9 { move-window-to-workspace 9; }
+        Mod+Shift+1 { spawn "serpantinum" "msg" "workspace" "1" "move"; }
+        Mod+Shift+2 { spawn "serpantinum" "msg" "workspace" "2" "move"; }
+        Mod+Shift+3 { spawn "serpantinum" "msg" "workspace" "3" "move"; }
+        Mod+Shift+4 { spawn "serpantinum" "msg" "workspace" "4" "move"; }
+        Mod+Shift+5 { spawn "serpantinum" "msg" "workspace" "5" "move"; }
+        Mod+Shift+6 { spawn "serpantinum" "msg" "workspace" "6" "move"; }
+        Mod+Shift+7 { spawn "serpantinum" "msg" "workspace" "7" "move"; }
+        Mod+Shift+8 { spawn "serpantinum" "msg" "workspace" "8" "move"; }
+        Mod+Shift+9 { spawn "serpantinum" "msg" "workspace" "9" "move"; }
+        Mod+Shift+0 { spawn "serpantinum" "msg" "workspace" "10" "move"; }
 
         // Mouse wheel workspace / column scrolling
         Mod+WheelScrollDown      cooldown-ms=150 { focus-workspace-down; }
