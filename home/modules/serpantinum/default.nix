@@ -32,7 +32,7 @@ in
       wallpaperDir = "${config.home.homeDirectory}/Pictures/wallpapers";
       bar = {
         position = "top";
-        style = "fill";
+        style = "modular";
         time = {
           format = "HH:mm:ss";
         };
@@ -55,7 +55,7 @@ in
   };
 
   # Ensure declarative settings from Nix are merged into ~/.config/serpantinum/settings.json
-  # without overwriting runtime state (e.g. location, avatar, matugen colors).
+  # as base defaults without overwriting runtime state (e.g. bar style, location, avatar, matugen colors).
   home.activation.serpantinumSettings = lib.mkForce (lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     TARGET="${settingsTarget}"
     run mkdir -p "$(dirname "$TARGET")"
@@ -63,7 +63,7 @@ in
       run install -m 0644 ${settingsFile} "$TARGET"
     else
       TMP_FILE="$(mktemp)"
-      if ${pkgs.jq}/bin/jq -s '.[0] * .[1]' "$TARGET" ${userSettingsFile} > "$TMP_FILE" 2>/dev/null && ${pkgs.jq}/bin/jq -e . "$TMP_FILE" >/dev/null 2>&1; then
+      if ${pkgs.jq}/bin/jq -s '.[0] * .[1]' ${settingsFile} "$TARGET" > "$TMP_FILE" 2>/dev/null && ${pkgs.jq}/bin/jq -e . "$TMP_FILE" >/dev/null 2>&1; then
         run cp "$TMP_FILE" "$TARGET"
         run chmod 0644 "$TARGET"
       fi

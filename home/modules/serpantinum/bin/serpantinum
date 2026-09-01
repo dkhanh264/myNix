@@ -120,21 +120,20 @@ show_ipc_help() {
 ensure_daemon() {
     local daemon_running=false
     if [ -f "/tmp/serpantinumd.pid" ]; then
-        if kill -0 "$(cat "/tmp/serpantinumd.pid")" 2>/dev/null; then
+        local pid
+        pid="$(cat "/tmp/serpantinumd.pid" 2>/dev/null)"
+        if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
             daemon_running=true
         fi
     fi
 
     if [ "$daemon_running" = false ]; then
-        if systemctl --user is-active --quiet serpantinum 2>/dev/null || pgrep -f "quickshell.*Shell.qml" >/dev/null 2>&1; then
+        if systemctl --user is-active --quiet serpantinum 2>/dev/null || pgrep -f "quickshell" >/dev/null 2>&1; then
             daemon_running=true
         fi
     fi
 
     if [ "$daemon_running" = false ]; then
-        rm -f "/tmp/serpantinumd.pid" 2>/dev/null
-        rm -f "/tmp/serpantinumd.lock" 2>/dev/null
-
         [ "$VERBOSE" = true ] && echo "$(t "cli.starting_daemon")"
         "$BIN_DIR/serpantinumd" start > /dev/null 2>&1 &
         sleep 0.5

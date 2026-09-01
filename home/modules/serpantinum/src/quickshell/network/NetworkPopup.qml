@@ -164,7 +164,7 @@ Item {
         id: btConnectSimTimer
         property string targetId: ""
         property int attemptId: 0
-        interval: 5000
+        interval: 12000
         onTriggered: {
             if (window.activeConnectId !== attemptId) return;
             let bt = window.busyTasks;
@@ -586,9 +586,12 @@ Item {
             window.stopBtScan();
             let d = window.btDeviceMap[macOrSsid];
             if (d) {
-                d.trusted = true;
+                if (!d.trusted) d.trusted = true;
                 if (!d.paired && !d.bonded) d.pair();
                 d.connect();
+                if (macOrSsid && macOrSsid !== "") {
+                    Quickshell.execDetached(["bluetoothctl", "trust", macOrSsid]);
+                }
                 btConnectSimTimer.targetId = id || "";
                 btConnectSimTimer.attemptId = window.activeConnectId;
                 btConnectSimTimer.restart();
