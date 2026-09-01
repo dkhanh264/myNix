@@ -539,7 +539,7 @@
           };
           display = {
             theme = "catppuccin";
-            flavor = "mocha";
+            flavor = "dark";
           };
           timestamp = {
             enabled = true;
@@ -556,21 +556,22 @@
             details = "Idling";
             tooltip = "💤";
           };
+          variables = true;
           text = {
-            viewing = "Viewing {}";
-            editing = "Editing {}";
-            file_browser = "Browsing files in {}";
-            plugin_manager = "Managing plugins in {}";
-            lsp = "Configuring LSP in {}";
-            docs = "Reading {}";
-            vcs = "Committing changes in {}";
-            notes = "Taking notes in {}";
-            debug = "Debugging in {}";
-            test = "Testing in {}";
-            diagnostics = "Fixing problems in {}";
-            terminal = "Running commands in {}";
+            viewing = "Viewing \${filename}";
+            editing = "Editing \${filename}";
+            file_browser = "Browsing files in \${name}";
+            plugin_manager = "Managing plugins in \${name}";
+            lsp = "Configuring LSP in \${name}";
+            docs = "Reading \${name}";
+            vcs = "Committing changes in \${name}";
+            notes = "Taking notes in \${name}";
+            debug = "Debugging in \${name}";
+            test = "Testing in \${name}";
+            diagnostics = "Fixing problems in \${name}";
+            terminal = "Running commands in \${name}";
             dashboard = "Home";
-            workspace = "In {}";
+            workspace = "In \${workspace}";
           };
         };
       };
@@ -586,28 +587,21 @@
         border = "rounded";
         source = "if_many";
       };
-      signs = true;
+      signs = {
+        text.__raw = ''
+          {
+            [vim.diagnostic.severity.ERROR] = "󰅚 ",
+            [vim.diagnostic.severity.WARN] = "󰀪 ",
+            [vim.diagnostic.severity.HINT] = "󰌶 ",
+            [vim.diagnostic.severity.INFO] = "󰋽 ",
+          }
+        '';
+      };
       underline = true;
       update_in_insert = false;
     };
 
     extraConfigLua = ''
-      local signs = {
-        Error = "󰅚 ",
-        Warn = "󰀪 ",
-        Hint = "󰌶 ",
-        Info = "󰋽 ",
-      }
-
-      for type, icon in pairs(signs) do
-        local hl = "DiagnosticSign" .. type
-        vim.fn.sign_define(hl, {
-          text = icon,
-          texthl = hl,
-          numhl = "",
-        })
-      end
-
       -- Open NvimTree only when Neovim starts with a directory.
       vim.api.nvim_create_autocmd("VimEnter", {
         callback = function(data)
