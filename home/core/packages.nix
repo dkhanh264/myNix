@@ -35,6 +35,7 @@
     brightnessctl
     pavucontrol
     pulseaudio
+    guvcview
 
     # Archive
     zip
@@ -42,6 +43,7 @@
 
     # user apps
     discord-ptb
+    vesktop
     spotify
     fastfetch
     jetbrains.idea
