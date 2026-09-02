@@ -18,6 +18,10 @@
     # Wayland essentials
     wl-clipboard
     cliphist
+    grim
+    slurp
+    satty
+    matugen
 
     # System tray & GUI tools
     nautilus

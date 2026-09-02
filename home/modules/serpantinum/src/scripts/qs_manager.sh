@@ -117,7 +117,21 @@ if [[ "$ACTION" =~ ^[0-9]+$ ]]; then
     exit 0
 fi
 
-SRC_DIR="${WALLPAPER_DIR:-${srcdir:-$HOME/Pictures/Wallpapers}}"
+if [[ -z "${WALLPAPER_DIR:-}" ]]; then
+    WP_FROM_CFG="$(get_setting "wallpaperDir" "")"
+    if [[ -z "$WP_FROM_CFG" ]]; then
+        WP_FROM_CFG="$(get_setting "wallpaper_dir" "")"
+    fi
+    if [[ -n "$WP_FROM_CFG" && -d "$WP_FROM_CFG" ]]; then
+        SRC_DIR="$WP_FROM_CFG"
+    elif [[ -d "$HOME/Pictures/wallpapers" ]]; then
+        SRC_DIR="$HOME/Pictures/wallpapers"
+    else
+        SRC_DIR="${srcdir:-$HOME/Pictures/Wallpapers}"
+    fi
+else
+    SRC_DIR="$WALLPAPER_DIR"
+fi
 THUMB_DIR="$QS_CACHE_WALLPAPER/thumbs"
 PREP_LOCK="$QS_RUN_DIR/wallpaper_prep.lock"
 

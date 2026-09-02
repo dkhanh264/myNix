@@ -331,7 +331,7 @@
     (pkgs.stdenv.mkDerivation {
       pname = "sddm-serpantinum-theme";
       version = "1.0";
-      src = "${inputs.serpantinum}/config/sddm/themes";
+      src = ./../../home/modules/serpantinum/config/sddm/themes;
       dontBuild = true;
       installPhase = ''
         mkdir -p $out/share/sddm/themes
