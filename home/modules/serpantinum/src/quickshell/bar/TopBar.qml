@@ -31,7 +31,7 @@ Item {
     property real cornerRadius: barWindow ? barWindow.cornerRadius : 12
 
     property bool suppressAnimation: false
-    property bool layoutAnimationsEnabled: barWindow && barWindow.startupCascadeFinished && !barWindow.positionChanging && !contentWrapper.suppressAnimation
+    property bool layoutAnimationsEnabled: !!(barWindow && barWindow.startupCascadeFinished && !barWindow.positionChanging && !contentWrapper.suppressAnimation)
 
     Timer {
         id: snapTimer
@@ -492,7 +492,7 @@ Item {
         }
 
         Behavior on opacity {
-            enabled: barWindow && !barWindow.positionChanging && barWindow.startupCascadeFinished && !contentWrapper.suppressAnimation
+            enabled: !!(barWindow && !barWindow.positionChanging && barWindow.startupCascadeFinished && !contentWrapper.suppressAnimation)
             NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
         }
     }
@@ -544,7 +544,7 @@ Item {
         }
 
         Behavior on opacity {
-            enabled: barWindow && !barWindow.positionChanging && barWindow.startupCascadeFinished && !contentWrapper.suppressAnimation
+            enabled: !!(barWindow && !barWindow.positionChanging && barWindow.startupCascadeFinished && !contentWrapper.suppressAnimation)
             NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
         }
     }
@@ -596,7 +596,7 @@ Item {
         }
 
         Behavior on opacity {
-            enabled: barWindow && !barWindow.positionChanging && barWindow.startupCascadeFinished && !contentWrapper.suppressAnimation
+            enabled: !!(barWindow && !barWindow.positionChanging && barWindow.startupCascadeFinished && !contentWrapper.suppressAnimation)
             NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
         }
     }
@@ -664,7 +664,7 @@ Item {
             }
 
             Behavior on opacity {
-                enabled: barWindow && !barWindow.positionChanging && barWindow.startupCascadeFinished && !contentWrapper.suppressAnimation
+                enabled: !!(barWindow && !barWindow.positionChanging && barWindow.startupCascadeFinished && !contentWrapper.suppressAnimation)
                 NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
             }
         }

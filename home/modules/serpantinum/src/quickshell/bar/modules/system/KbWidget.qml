@@ -21,6 +21,7 @@ Rectangle {
     property alias kbPill: kbPill
     property bool isNiri: false
     property bool isSway: false
+    function s(val) { return barWindow ? barWindow.s(val) : val; }
 
     Component.onCompleted: {
         let de = SystemInfo.desktopEnv ? SystemInfo.desktopEnv.toLowerCase() : "";
@@ -76,18 +77,18 @@ Rectangle {
 
     x: targetX
     Behavior on x {
-        enabled: barWindow && barWindow.startupCascadeFinished
+        enabled: !!(barWindow && barWindow.startupCascadeFinished)
         NumberAnimation { duration: 600; easing.type: Easing.OutQuint }
     }
-    y: barWindow.baseOffsetY
-    height: barWindow.barHeight
+    y: barWindow ? barWindow.baseOffsetY : 0
+    height: barWindow ? barWindow.barHeight : 36
     radius: ThemeBackend.borderRadius
     border.color: (isGrouped || isSolid) ? "transparent" : ThemeBackend.surface0
     border.width: (isGrouped || isSolid) ? 0 : 1
     color: (isGrouped || isSolid) ? "transparent" : ThemeBackend.base
     clip: true
 
-    property real targetWidth: (moduleActive && sysLayout.implicitWidth > 0) ? (sysLayout.implicitWidth + barWindow.s(10)) : 0
+    property real targetWidth: (moduleActive && sysLayout.implicitWidth > 0) ? (sysLayout.implicitWidth + s(10)) : 0
     width: targetWidth
 
     opacity: (showLayout && moduleActive) ? ((barWindow && barWindow.barOpacity !== undefined) ? barWindow.barOpacity : 1.0) : 0.0
@@ -95,46 +96,46 @@ Rectangle {
     Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
     Timer {
-        running: kbWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady
+        running: !!(kbWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady)
         interval: 100
         onTriggered: kbWidgetRoot.showLayout = true
     }
 
     transform: Translate {
-        x: kbWidgetRoot.showLayout ? 0 : barWindow.s(60)
+        x: kbWidgetRoot.showLayout ? 0 : s(60)
         Behavior on x { NumberAnimation { duration: 800; easing.type: Easing.OutQuint } }
     }
 
     Row {
         id: sysLayout
         anchors.centerIn: parent
-        property int pillHeight: barWindow.s(30)
+        property int pillHeight: s(30)
 
         ClickButton {
             id: kbPill
             property bool initAnimTrigger: false
             height: sysLayout.pillHeight
-            maxWidth: barWindow.s(100)
-            cornerRadius: Math.max(0, ThemeBackend.borderRadius - (barWindow ? barWindow.s(2) : 2))
-            horizontalPadding: barWindow.s(12)
+            maxWidth: s(100)
+            cornerRadius: Math.max(0, ThemeBackend.borderRadius - s(2))
+            horizontalPadding: s(12)
             buttonIcon: "󰌌"
-            iconFontSize: barWindow.s(15)
+            iconFontSize: s(15)
             buttonText: kbLayout
-            textFontSize: barWindow.s(12)
+            textFontSize: s(12)
             accentColor: ThemeBackend.surface0
             textColor: ThemeBackend.text
 
-            property real targetWidth: Math.max(barWindow.s(52), implicitWidth)
+            property real targetWidth: Math.max(s(52), implicitWidth)
             width: targetWidth
 
             Behavior on width {
-                enabled: barWindow.startupCascadeFinished
+                enabled: !!(barWindow && barWindow.startupCascadeFinished)
                 NumberAnimation { duration: 480; easing.type: Easing.OutQuint }
             }
 
-            Timer { running: kbWidgetRoot.moduleActive && kbWidgetRoot.showLayout && !kbPill.initAnimTrigger; interval: 70; onTriggered: kbPill.initAnimTrigger = true }
+            Timer { running: !!(kbWidgetRoot.moduleActive && kbWidgetRoot.showLayout && !kbPill.initAnimTrigger); interval: 70; onTriggered: kbPill.initAnimTrigger = true }
             opacity: initAnimTrigger ? 1.0 : 0.0
-            transform: Translate { y: kbPill.initAnimTrigger ? 0 : barWindow.s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
+            transform: Translate { y: kbPill.initAnimTrigger ? 0 : s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
             Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
 
             onClicked: {

@@ -19,6 +19,7 @@ Rectangle {
     property bool isGrouped: false
     property bool isNiri: false
     property bool isSway: false
+    function s(val) { return barWindow ? barWindow.s(val) : val; }
 
     property int niriActiveIndex: 0
     property var niriOccupiedMap: ({})
@@ -61,6 +62,7 @@ Rectangle {
 
     onModuleActiveChanged: {
         if (!moduleActive) {
+            niriDebounceTimer.stop();
             if (isNiri) {
                 niriPoller.running = false;
                 niriWaiter.running = false;
@@ -79,6 +81,14 @@ Rectangle {
                 swayPoller.running = true;
             }
         }
+    }
+
+    Component.onDestruction: {
+        niriDebounceTimer.stop();
+        niriPoller.running = false;
+        niriWaiter.running = false;
+        swayPoller.running = false;
+        swayWaiter.running = false;
     }
 
     Process {
@@ -132,18 +142,29 @@ Rectangle {
         }
     }
 
+    Timer {
+        id: niriDebounceTimer
+        interval: 60
+        repeat: false
+        onTriggered: {
+            if (workspacesWidgetRoot.moduleActive && workspacesWidgetRoot.isNiri) {
+                niriPoller.running = false;
+                niriPoller.running = true;
+            }
+        }
+    }
+
     Process {
         id: niriWaiter
         running: false
         command: [
             "bash",
             "-c",
-            "niri msg --json event-stream 2>/dev/null | grep -m 1 -E '\"(WorkspacesChanged|WorkspaceActivated|WindowsChanged|WindowOpenedOrChanged|WindowClosed|WindowFocusChanged)\"'"
+            "niri msg --json event-stream 2>/dev/null | grep -m 1 -E '\"(WorkspacesChanged|WorkspaceActivated|WindowsChanged)\"'"
         ]
         onExited: {
-            niriPoller.running = false;
             if (workspacesWidgetRoot.moduleActive && workspacesWidgetRoot.isNiri) {
-                niriPoller.running = true;
+                niriDebounceTimer.restart();
             }
         }
     }
@@ -202,19 +223,18 @@ Rectangle {
     property real targetX: 0
     x: targetX
     Behavior on x {
-        enabled: barWindow && barWindow.startupCascadeFinished
+        enabled: !!(barWindow && barWindow.startupCascadeFinished)
         NumberAnimation { duration: 600; easing.type: Easing.OutQuint }
     }
 
     color: (isGrouped || isSolid) ? "transparent" : ThemeBackend.base
     radius: ThemeBackend.borderRadius
     border.width: (isGrouped || isSolid) ? 0 : 1
-    border.color: (isGrouped || isSolid) ? "transparent" : ThemeBackend.surface0
-    height: barWindow.barHeight
-    y: barWindow.baseOffsetY
+    height: barWindow ? barWindow.barHeight : 36
+    y: barWindow ? barWindow.baseOffsetY : 0
     clip: true
 
-    property real targetWidth: (moduleActive && workspaceCount > 0) ? wsLayout.implicitWidth + barWindow.s(22) : 0
+    property real targetWidth: (moduleActive && workspaceCount > 0) ? (wsLayout.implicitWidth + (barWindow ? barWindow.s(22) : 22)) : 0
     width: targetWidth
     Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
 
@@ -272,7 +292,7 @@ Rectangle {
     Rectangle {
         id: activeHighlight
         z: 3
-        radius: barWindow.s(8)
+        radius: s(8)
         color: ThemeBackend.mauve
 
         property int prevIdx: 0
@@ -287,8 +307,6 @@ Rectangle {
                     leftAnim.duration = 300;
                     rightAnim.duration = 400;
                 }
-            }
-            if (curIdx >= 0) {
                 prevIdx = curIdx;
             }
         }
@@ -296,15 +314,15 @@ Rectangle {
         function getX(index, activeIndex) {
             if (index < 0) return 0;
             let xPos = 0;
-            let spacing = barWindow.s(8);
+            let spacing = s(8);
             for (let i = 0; i < index; i++) {
-                xPos += (i === activeIndex ? barWindow.s(36) : barWindow.s(18)) + spacing;
+                xPos += (i === activeIndex ? s(36) : s(18)) + spacing;
             }
             return xPos;
         }
 
         property real targetLeft: curIdx >= 0 ? getX(curIdx, curIdx) : 0
-        property real targetRight: curIdx >= 0 ? targetLeft + barWindow.s(36) : 0
+        property real targetRight: curIdx >= 0 ? targetLeft + s(36) : 0
         property real actualLeft: targetLeft
         property real actualRight: targetRight
 
@@ -314,7 +332,7 @@ Rectangle {
         x: wsLayout.x + actualLeft
         y: wsLayout.y + (wsLayout.height - height) / 2
         width: actualRight - actualLeft
-        height: barWindow.s(18)
+        height: s(18)
         opacity: (workspacesWidgetRoot.workspaceCount > 0 && workspacesWidgetRoot.activeIndex >= 0) ? 1.0 : 0.0
         Behavior on opacity { NumberAnimation { duration: 180 } }
     }
@@ -323,7 +341,7 @@ Rectangle {
         id: wsLayout
         z: 2
         anchors.centerIn: parent
-        spacing: barWindow.s(8)
+        spacing: s(8)
 
         Repeater {
             model: workspacesWidgetRoot.workspaceCount
@@ -346,8 +364,8 @@ Rectangle {
                 property bool isActive: index === workspacesWidgetRoot.activeIndex
                 property bool initAnimTrigger: false
 
-                width: isActive ? barWindow.s(36) : barWindow.s(18)
-                height: barWindow.s(18)
+                width: isActive ? (barWindow ? barWindow.s(36) : 36) : (barWindow ? barWindow.s(18) : 18)
+                height: barWindow ? barWindow.s(18) : 18
                 anchors.verticalCenter: parent.verticalCenter
 
                 Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
@@ -355,7 +373,7 @@ Rectangle {
                 Rectangle {
                     id: wsVisualShape
                     anchors.fill: parent
-                    radius: barWindow.s(10)
+                    radius: barWindow ? barWindow.s(10) : 10
                     color: wsPill.isActive ? "transparent" : (wsPill.isOccupied ? ThemeBackend.surface2 : ThemeBackend.surface0)
                     border.width: 0
                     border.color: wsPillMouse.containsMouse ? ThemeBackend.overlay2 : ThemeBackend.surface1
@@ -369,12 +387,12 @@ Rectangle {
 
                 opacity: initAnimTrigger ? 1.0 : 0.0
                 transform: Translate {
-                    y: wsPill.initAnimTrigger ? 0 : barWindow.s(15)
+                    y: wsPill.initAnimTrigger ? 0 : (barWindow ? barWindow.s(15) : 15)
                     Behavior on y { NumberAnimation { duration: 650; easing.type: Easing.OutQuint } }
                 }
 
                 Component.onCompleted: {
-                    if (!barWindow.startupCascadeFinished) {
+                    if (barWindow && !barWindow.startupCascadeFinished) {
                         animTimer.interval = index * 50 + 100;
                         if (workspacesWidgetRoot.moduleActive) animTimer.start();
                     } else {

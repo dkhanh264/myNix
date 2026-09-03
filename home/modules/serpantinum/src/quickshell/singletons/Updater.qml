@@ -113,6 +113,7 @@ Item {
                 }
             }
         }
+        onLoadFailed: (error) => {}
     }
 
     Timer {

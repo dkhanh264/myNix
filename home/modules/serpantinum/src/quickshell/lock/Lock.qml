@@ -236,9 +236,8 @@ Scope {
         }
     }
 
-    Settings {
+    QtObject {
         id: lockSettings
-        category: "LockScreen"
         property bool hidePassword: false
         property int revealDuration: 300
     }

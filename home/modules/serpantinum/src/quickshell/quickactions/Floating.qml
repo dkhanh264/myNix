@@ -119,34 +119,39 @@ Variants {
 
             property int tabCount: Math.max(1, tabModules.length)
 
-            IpcHandler {
-                target: "floating"
+            Loader {
+                active: modelData === Quickshell.screens[0]
+                sourceComponent: Component {
+                    IpcHandler {
+                        target: "floating"
 
-                function setIndex(idx: string) {
-                    let newIdx = parseInt(idx);
-                    if (!isNaN(newIdx) && newIdx >= 0 && newIdx < floatingWidget.tabCount) {
-                        floatingWidget.activeIndex = newIdx;
-                    }
-                }
+                        function setIndex(idx: string) {
+                            let newIdx = parseInt(idx);
+                            if (!isNaN(newIdx) && newIdx >= 0 && newIdx < floatingWidget.tabCount) {
+                                floatingWidget.activeIndex = newIdx;
+                            }
+                        }
 
-                function showSystemUsage() {
-                    let sysIndex = 1;
-                    for (let i = 0; i < floatingWidget.tabModules.length; i++) {
-                        if (floatingWidget.tabModules[i].indexOf("SystemUsage") !== -1) {
-                            sysIndex = i;
-                            break;
+                        function showSystemUsage() {
+                            let sysIndex = 1;
+                            for (let i = 0; i < floatingWidget.tabModules.length; i++) {
+                                if (floatingWidget.tabModules[i].indexOf("SystemUsage") !== -1) {
+                                    sysIndex = i;
+                                    break;
+                                }
+                            }
+                            floatingWidget.activeIndex = sysIndex;
+                            let sideEdge = (floatingWidget.barPosition === "left") ? "right" : "left";
+                            let centerPos = floatingWidget.height / 2;
+                            floatingWidget.useGraceTimer = true;
+                            floatingWidget.showSidebar(sideEdge, centerPos, true);
+                            hideTimer.restart();
+                        }
+
+                        function forceReload() {
+                            Quickshell.reload(true)
                         }
                     }
-                    floatingWidget.activeIndex = sysIndex;
-                    let sideEdge = (floatingWidget.barPosition === "left") ? "right" : "left";
-                    let centerPos = floatingWidget.height / 2;
-                    floatingWidget.useGraceTimer = true;
-                    floatingWidget.showSidebar(sideEdge, centerPos, true);
-                    hideTimer.restart();
-                }
-
-                function forceReload() {
-                    Quickshell.reload(true)
                 }
             }
 

@@ -442,10 +442,8 @@ Item {
         }
     }
 
-    Settings {
+    QtObject {
         id: searchState
-        location: Caching.getCacheDir("wallpaper") + "/settings.conf"
-        category: "QS_WallpaperPicker"
         property string query: ""
         property bool searched: false
         property string lastName: ""

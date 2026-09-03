@@ -32,7 +32,7 @@ Rectangle {
     Timer {
         id: typewriterTimer
         interval: 30
-        running: timeDateRoot.moduleActive && barWindow && barWindow.isStartupReady && typeInIndex < fullDateStr.length
+        running: !!(timeDateRoot.moduleActive && barWindow && barWindow.isStartupReady && typeInIndex < fullDateStr.length)
         repeat: true
         onTriggered: typeInIndex += 1
     }
@@ -42,7 +42,7 @@ Rectangle {
     x: targetX
 
     Behavior on x {
-        enabled: barWindow && barWindow.startupCascadeFinished && !barWindow.positionChanging
+        enabled: !!(barWindow && barWindow.startupCascadeFinished && !barWindow.positionChanging)
         NumberAnimation { duration: timeDateRoot.animDuration; easing.type: Easing.OutQuint }
     }
 
@@ -126,7 +126,7 @@ Rectangle {
     }
 
     Timer {
-        running: barWindow && barWindow.isStartupReady
+        running: !!(barWindow && barWindow.isStartupReady)
         interval: 120
         onTriggered: timeDateRoot.showLayout = true
     }

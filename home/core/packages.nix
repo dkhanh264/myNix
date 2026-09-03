@@ -22,6 +22,7 @@
     slurp
     satty
     matugen
+    xdg-user-dirs
 
     # System tray & GUI tools
     nautilus

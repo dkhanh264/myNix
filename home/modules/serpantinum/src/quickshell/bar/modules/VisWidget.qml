@@ -83,7 +83,7 @@ Rectangle {
 
     x: targetX
     Behavior on x {
-        enabled: barWindow && barWindow.startupCascadeFinished
+        enabled: !!(barWindow && barWindow.startupCascadeFinished)
         NumberAnimation { duration: 600; easing.type: Easing.OutQuint }
     }
 
@@ -104,7 +104,7 @@ Rectangle {
     Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
     Timer {
-        running: visWidgetRoot.moduleActive && barWindow && !visWidgetRoot.showLayout
+        running: !!(visWidgetRoot.moduleActive && barWindow && !visWidgetRoot.showLayout)
         interval: 100
         onTriggered: {
             if (barWindow && barWindow.isStartupReady) {
@@ -130,17 +130,6 @@ Rectangle {
                 color: ThemeBackend.mauve
                 opacity: 0.45 + (level * 0.55)
                 anchors.verticalCenter: parent.verticalCenter
-
-                Behavior on height {
-                    NumberAnimation {
-                        duration: 55
-                        easing.type: Easing.OutQuad
-                    }
-                }
-
-                Behavior on opacity {
-                    NumberAnimation { duration: 55 }
-                }
             }
         }
     }

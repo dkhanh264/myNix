@@ -28,7 +28,7 @@ Rectangle {
 
     x: targetX
     Behavior on x {
-        enabled: barWindow && barWindow.startupCascadeFinished
+        enabled: !!(barWindow && barWindow.startupCascadeFinished)
         NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
     }
 

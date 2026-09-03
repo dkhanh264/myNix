@@ -111,7 +111,7 @@ Rectangle {
     }
 
     Timer {
-        running: trayWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady
+        running: !!(trayWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady)
         interval: 100
         onTriggered: trayWidgetRoot.showLayout = true
     }
@@ -119,7 +119,7 @@ Rectangle {
     transform: Translate {
         x: trayWidgetRoot.showLayout ? 0 : (barWindow ? barWindow.s(60) : 60)
         Behavior on x {
-            enabled: barWindow && barWindow.startupCascadeFinished && !barWindow.positionChanging && !suppressAnimation
+            enabled: !!(barWindow && barWindow.startupCascadeFinished && !barWindow.positionChanging && !suppressAnimation)
             NumberAnimation { duration: 800; easing.type: Easing.OutQuint }
         }
     }

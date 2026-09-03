@@ -36,5 +36,6 @@ Item {
                 root.appTitle = "";
             }
         }
+        onLoadFailed: (error) => {}
     }
 }

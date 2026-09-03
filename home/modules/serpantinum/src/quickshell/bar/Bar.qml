@@ -134,47 +134,52 @@ Variants {
                 onTriggered: barWindow.startupFilesReady = true
             }
 
-            IpcHandler {
-                target: "topbar"
-                function setRedactMode(active: string): void {
-                    barWindow.isRedacting = (active === "true" || active === "1");
-                }
-                function forceReload() {
-                    Quickshell.reload(true)
-                }
-                function queueReload() {
-                    if (!barWindow.isNotifOpen && !barWindow.isSysOpen) {
-                        Quickshell.reload(true)
-                    } else {
-                        barWindow.pendingReload = true
-                    }
-                }
-                function toggleUpdate() {
-                    let target = null;
-                    if (barWindow.isVertical) target = verticalWrapper.getWidget("left");
-                    else target = contentWrapper.getWidget("left");
-                    if (target && typeof target.toggleUpdate === "function") {
-                        target.toggleUpdate();
-                    }
-                }
-                function getWidgetGeometry(widgetName: string): void {
-                    let target = null;
-                    if (barWindow.isVertical) target = verticalWrapper.getWidget(widgetName);
-                    else target = contentWrapper.getWidget(widgetName);
+            Loader {
+                active: modelData === Quickshell.screens[0]
+                sourceComponent: Component {
+                    IpcHandler {
+                        target: "topbar"
+                        function setRedactMode(active: string): void {
+                            barWindow.isRedacting = (active === "true" || active === "1");
+                        }
+                        function forceReload() {
+                            Quickshell.reload(true)
+                        }
+                        function queueReload() {
+                            if (!barWindow.isNotifOpen && !barWindow.isSysOpen) {
+                                Quickshell.reload(true)
+                            } else {
+                                barWindow.pendingReload = true
+                            }
+                        }
+                        function toggleUpdate() {
+                            let target = null;
+                            if (barWindow.isVertical) target = verticalWrapper ? verticalWrapper.getWidget("left") : null;
+                            else target = contentWrapper ? contentWrapper.getWidget("left") : null;
+                            if (target && typeof target.toggleUpdate === "function") {
+                                target.toggleUpdate();
+                            }
+                        }
+                        function getWidgetGeometry(widgetName: string): void {
+                            let target = null;
+                            if (barWindow.isVertical) target = verticalWrapper ? verticalWrapper.getWidget(widgetName) : null;
+                            else target = contentWrapper ? contentWrapper.getWidget(widgetName) : null;
 
-                    if (target && target.width > 0) {
-                        let pos = target.mapToItem(null, 0, 0);
+                            if (target && target.width > 0) {
+                                let pos = target.mapToItem(null, 0, 0);
 
-                        let absoluteX = pos.x + barWindow.margins.left;
-                        let absoluteY = pos.y + barWindow.margins.top;
+                                let absoluteX = pos.x + barWindow.margins.left;
+                                let absoluteY = pos.y + barWindow.margins.top;
 
-                        let geo = {
-                            startX: Math.round(absoluteX),
-                            startY: Math.round(absoluteY),
-                            endX: Math.round(absoluteX + target.width),
-                            endY: Math.round(absoluteY + target.height)
-                        };
-                        Quickshell.execDetached(["bash", "-c", "echo '" + JSON.stringify(geo) + "' > " + Caching.runDir + "/tutorial_target.json"]);
+                                let geo = {
+                                    startX: Math.round(absoluteX),
+                                    startY: Math.round(absoluteY),
+                                    endX: Math.round(absoluteX + target.width),
+                                    endY: Math.round(absoluteY + target.height)
+                                };
+                                Quickshell.execDetached(["bash", "-c", "echo '" + JSON.stringify(geo) + "' > " + Caching.runDir + "/tutorial_target.json"]);
+                            }
+                        }
                     }
                 }
             }
@@ -296,6 +301,7 @@ Variants {
                     let txt = text().trim();
                     if (barWindow.activeWidget !== txt) barWindow.activeWidget = txt;
                 }
+                onLoadFailed: (error) => {}
             }
 
             property bool isStartupReady: false
@@ -308,24 +314,36 @@ Variants {
             property bool isDataReady: fastPollerLoaded
             Timer { interval: 400; running: true; onTriggered: barWindow.isDataReady = true }
 
-            SideBar {
-                id: verticalWrapper
-                barWindow: barWindow
-                property real hideOffsetX: {
-                    if (!barWindow || barWindow.isRevealed) return 0;
-                    let offset = barWindow.barHeight + barWindow.edgePadding + barWindow.s(10);
-                    return barWindow.barPosition === "right" ? offset : -offset;
-                }
-                transform: Translate {
-                    x: verticalWrapper.hideOffsetX
-                    Behavior on x { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+            Loader {
+                id: verticalLoader
+                anchors.fill: parent
+                active: barWindow.isVertical
+                sourceComponent: SideBar {
+                    barWindow: barWindow
+                    property real hideOffsetX: {
+                        if (!barWindow || barWindow.isRevealed) return 0;
+                        let offset = barWindow.barHeight + barWindow.edgePadding + barWindow.s(10);
+                        return barWindow.barPosition === "right" ? offset : -offset;
+                    }
+                    transform: Translate {
+                        x: hideOffsetX
+                        Behavior on x { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+                    }
                 }
             }
 
-            TopBar {
-                id: contentWrapper
-                barWindow: barWindow
+            readonly property var verticalWrapper: verticalLoader.item
+
+            Loader {
+                id: contentLoader
+                anchors.fill: parent
+                active: !barWindow.isVertical
+                sourceComponent: TopBar {
+                    barWindow: barWindow
+                }
             }
+
+            readonly property var contentWrapper: contentLoader.item
         }
     }
 }

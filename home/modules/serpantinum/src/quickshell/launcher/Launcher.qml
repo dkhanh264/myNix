@@ -65,10 +65,6 @@ PanelWindow {
             launcherWindow.loadApps();
             launcherWindow.executeFilter(searchInput.text);
         }
-        function onCountChanged() {
-            launcherWindow.loadApps();
-            launcherWindow.executeFilter(searchInput.text);
-        }
     }
 
     Component.onCompleted: {

@@ -25,6 +25,8 @@ Rectangle {
     property bool showLayout: false
     property alias btPill: btPill
 
+    function s(val) { return barWindow ? barWindow.s(val) : val; }
+
     Component.onCompleted: {
         updateBtData();
     }
@@ -141,18 +143,18 @@ Rectangle {
 
     x: targetX
     Behavior on x {
-        enabled: barWindow && barWindow.startupCascadeFinished
+        enabled: !!(barWindow && barWindow.startupCascadeFinished)
         NumberAnimation { duration: 600; easing.type: Easing.OutQuint }
     }
-    y: barWindow.baseOffsetY
-    height: barWindow.barHeight
+    y: barWindow ? barWindow.baseOffsetY : 0
+    height: barWindow ? barWindow.barHeight : 36
     radius: ThemeBackend.borderRadius
     border.color: (isGrouped || isSolid) ? "transparent" : ThemeBackend.surface0
     border.width: (isGrouped || isSolid) ? 0 : 1
     color: (isGrouped || isSolid) ? "transparent" : ThemeBackend.base
     clip: true
 
-    property real targetWidth: (moduleActive && !isDesktop && sysLayout.implicitWidth > 0) ? (sysLayout.implicitWidth + barWindow.s(10)) : 0
+    property real targetWidth: (moduleActive && !isDesktop && sysLayout.implicitWidth > 0) ? (sysLayout.implicitWidth + s(10)) : 0
     width: targetWidth
 
     opacity: (showLayout && moduleActive && !isDesktop) ? ((barWindow && barWindow.barOpacity !== undefined) ? barWindow.barOpacity : 1.0) : 0.0
@@ -160,20 +162,20 @@ Rectangle {
     Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
     Timer {
-        running: btWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady
+        running: !!(btWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady)
         interval: 100
         onTriggered: btWidgetRoot.showLayout = true
     }
 
     transform: Translate {
-        x: btWidgetRoot.showLayout ? 0 : barWindow.s(60)
+        x: btWidgetRoot.showLayout ? 0 : s(60)
         Behavior on x { NumberAnimation { duration: 800; easing.type: Easing.OutQuint } }
     }
 
     Row {
         id: sysLayout
         anchors.centerIn: parent
-        property int pillHeight: barWindow.s(30)
+        property int pillHeight: s(30)
 
         ClickButton {
             id: btPill
@@ -181,14 +183,14 @@ Rectangle {
             property bool isActive: isBtOn
 
             height: sysLayout.pillHeight
-            maxWidth: barWindow.s(160)
+            maxWidth: s(160)
             visible: targetWidth > 0
-            cornerRadius: Math.max(0, ThemeBackend.borderRadius - (barWindow ? barWindow.s(2) : 2))
-            horizontalPadding: barWindow.s(12)
+            cornerRadius: Math.max(0, ThemeBackend.borderRadius - s(2))
+            horizontalPadding: s(12)
             buttonIcon: btIcon
-            iconFontSize: barWindow.s(15)
+            iconFontSize: s(15)
             buttonText: btDevice
-            textFontSize: barWindow.s(12)
+            textFontSize: s(12)
             accentColor: isActive ? ThemeBackend.mauve : ThemeBackend.surface0
             textColor: isActive ? ThemeBackend.base : ThemeBackend.text
 
@@ -196,9 +198,9 @@ Rectangle {
             width: targetWidth
             Behavior on width { NumberAnimation { duration: 480; easing.type: Easing.OutQuint } }
 
-            Timer { running: btWidgetRoot.moduleActive && btWidgetRoot.showLayout && !btPill.initAnimTrigger; interval: 190; onTriggered: btPill.initAnimTrigger = true }
+            Timer { running: !!(btWidgetRoot.moduleActive && btWidgetRoot.showLayout && !btPill.initAnimTrigger); interval: 190; onTriggered: btPill.initAnimTrigger = true }
             opacity: initAnimTrigger ? 1.0 : 0.0
-            transform: Translate { y: btPill.initAnimTrigger ? 0 : barWindow.s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
+            transform: Translate { y: btPill.initAnimTrigger ? 0 : s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
             Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
 
             onClicked: Quickshell.execDetached(["bash", "-c", Caching.serpantinumDir + "/scripts/qs_manager.sh toggle network bt"])

@@ -137,18 +137,20 @@ Rectangle {
 
     x: targetX
     Behavior on x {
-        enabled: barWindow && barWindow.startupCascadeFinished
+        enabled: !!(barWindow && barWindow.startupCascadeFinished)
         NumberAnimation { duration: 600; easing.type: Easing.OutQuint }
     }
-    y: barWindow.baseOffsetY
-    height: barWindow.barHeight
+    function s(val) { return barWindow ? barWindow.s(val) : val; }
+
+    y: barWindow ? barWindow.baseOffsetY : 0
+    height: barWindow ? barWindow.barHeight : 36
     radius: ThemeBackend.borderRadius
     border.color: (isGrouped || isSolid) ? "transparent" : ThemeBackend.surface0
     border.width: (isGrouped || isSolid) ? 0 : 1
     color: (isGrouped || isSolid) ? "transparent" : ThemeBackend.base
     clip: true
 
-    property real targetWidth: (moduleActive && sysLayout.implicitWidth > 0) ? (sysLayout.implicitWidth + barWindow.s(10)) : 0
+    property real targetWidth: (moduleActive && sysLayout.implicitWidth > 0) ? (sysLayout.implicitWidth + s(10)) : 0
     width: targetWidth
 
     opacity: (showLayout && moduleActive) ? ((barWindow && barWindow.barOpacity !== undefined) ? barWindow.barOpacity : 1.0) : 0.0
@@ -156,20 +158,20 @@ Rectangle {
     Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
     Timer {
-        running: wifiWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady
+        running: !!(wifiWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady)
         interval: 100
         onTriggered: wifiWidgetRoot.showLayout = true
     }
 
     transform: Translate {
-        x: wifiWidgetRoot.showLayout ? 0 : barWindow.s(60)
+        x: wifiWidgetRoot.showLayout ? 0 : s(60)
         Behavior on x { NumberAnimation { duration: 800; easing.type: Easing.OutQuint } }
     }
 
     Row {
         id: sysLayout
         anchors.centerIn: parent
-        property int pillHeight: barWindow.s(30)
+        property int pillHeight: s(30)
 
         ClickButton {
             id: wifiPill
@@ -177,13 +179,13 @@ Rectangle {
             property bool isActive: showEthernet ? (ethStatus === "Connected") : isWifiOn
 
             height: sysLayout.pillHeight
-            maxWidth: barWindow.s(160)
+            maxWidth: s(160)
             cornerRadius: Math.max(0, ThemeBackend.borderRadius - 2)
-            horizontalPadding: barWindow.s(12)
+            horizontalPadding: s(12)
             buttonIcon: showEthernet ? "󰈀" : wifiIcon
-            iconFontSize: barWindow.s(15)
+            iconFontSize: s(15)
             buttonText: showEthernet ? ethStatus : ((isWifiOn ? (wifiSsid !== "" ? wifiSsid : "On") : "Off"))
-            textFontSize: barWindow.s(12)
+            textFontSize: s(12)
             accentColor: isActive ? ThemeBackend.blue : ThemeBackend.surface0
             textColor: isActive ? ThemeBackend.base : ThemeBackend.text
 
@@ -191,9 +193,9 @@ Rectangle {
             width: targetWidth
             Behavior on width { NumberAnimation { duration: 480; easing.type: Easing.OutQuint } }
 
-            Timer { running: wifiWidgetRoot.moduleActive && wifiWidgetRoot.showLayout && !wifiPill.initAnimTrigger; interval: 130; onTriggered: wifiPill.initAnimTrigger = true }
+            Timer { running: !!(wifiWidgetRoot.moduleActive && wifiWidgetRoot.showLayout && !wifiPill.initAnimTrigger); interval: 130; onTriggered: wifiPill.initAnimTrigger = true }
             opacity: initAnimTrigger ? 1.0 : 0.0
-            transform: Translate { y: wifiPill.initAnimTrigger ? 0 : barWindow.s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
+            transform: Translate { y: wifiPill.initAnimTrigger ? 0 : s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
             Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
 
             onClicked: Quickshell.execDetached(["bash", "-c", Caching.serpantinumDir + "/scripts/qs_manager.sh toggle network wifi"])

@@ -61,6 +61,7 @@ Rectangle {
 
     onModuleActiveChanged: {
         if (!moduleActive) {
+            niriDebounceTimer.stop();
             if (isNiri) {
                 niriPoller.running = false;
                 niriWaiter.running = false;
@@ -79,6 +80,14 @@ Rectangle {
                 swayPoller.running = true;
             }
         }
+    }
+
+    Component.onDestruction: {
+        niriDebounceTimer.stop();
+        niriPoller.running = false;
+        niriWaiter.running = false;
+        swayPoller.running = false;
+        swayWaiter.running = false;
     }
 
     Process {
@@ -132,18 +141,29 @@ Rectangle {
         }
     }
 
+    Timer {
+        id: niriDebounceTimer
+        interval: 60
+        repeat: false
+        onTriggered: {
+            if (sideWsRoot.moduleActive && sideWsRoot.isNiri) {
+                niriPoller.running = false;
+                niriPoller.running = true;
+            }
+        }
+    }
+
     Process {
         id: niriWaiter
         running: false
         command: [
             "bash",
             "-c",
-            "niri msg --json event-stream 2>/dev/null | grep -m 1 -E '\"(WorkspacesChanged|WorkspaceActivated|WindowsChanged|WindowOpenedOrChanged|WindowClosed|WindowFocusChanged)\"'"
+            "niri msg --json event-stream 2>/dev/null | grep -m 1 -E '\"(WorkspacesChanged|WorkspaceActivated|WindowsChanged)\"'"
         ]
         onExited: {
-            niriPoller.running = false;
             if (sideWsRoot.moduleActive && sideWsRoot.isNiri) {
-                niriPoller.running = true;
+                niriDebounceTimer.restart();
             }
         }
     }

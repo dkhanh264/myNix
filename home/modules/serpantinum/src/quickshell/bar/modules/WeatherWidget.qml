@@ -27,7 +27,7 @@ Rectangle {
     x: targetX
 
     Behavior on x {
-        enabled: barWindow && barWindow.startupCascadeFinished && !barWindow.positionChanging
+        enabled: !!(barWindow && barWindow.startupCascadeFinished && !barWindow.positionChanging)
         NumberAnimation { duration: weatherWidgetRoot.animDuration; easing.type: Easing.OutQuint }
     }
 
@@ -111,7 +111,7 @@ Rectangle {
     }
 
     Timer {
-        running: barWindow && barWindow.isStartupReady
+        running: !!(barWindow && barWindow.isStartupReady)
         interval: 120
         onTriggered: weatherWidgetRoot.showLayout = true
     }

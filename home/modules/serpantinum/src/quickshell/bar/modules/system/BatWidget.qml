@@ -39,7 +39,7 @@ Rectangle {
 
     x: targetX
     Behavior on x {
-        enabled: barWindow && barWindow.startupCascadeFinished
+        enabled: !!(barWindow && barWindow.startupCascadeFinished)
         NumberAnimation { duration: 600; easing.type: Easing.OutQuint }
     }
     y: barWindow ? barWindow.baseOffsetY : 0
@@ -68,7 +68,7 @@ Rectangle {
     }
 
     Timer {
-        running: batWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady
+        running: !!(batWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady)
         interval: 100
         onTriggered: batWidgetRoot.showLayout = true
     }

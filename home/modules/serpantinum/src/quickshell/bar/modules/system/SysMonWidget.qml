@@ -34,12 +34,12 @@ Rectangle {
 
     x: targetX
     Behavior on x {
-        enabled: barWindow && barWindow.startupCascadeFinished
+        enabled: !!(barWindow && barWindow.startupCascadeFinished)
         NumberAnimation { duration: 600; easing.type: Easing.OutQuint }
     }
 
-    y: barWindow.baseOffsetY
-    height: barWindow.barHeight
+    y: barWindow ? barWindow.baseOffsetY : 0
+    height: barWindow ? barWindow.barHeight : 36
     radius: Math.min(ThemeBackend.borderRadius, height / 2)
     border.color: (isGrouped || isSolid) ? "transparent" : ThemeBackend.surface0
     border.width: (isGrouped || isSolid) ? 0 : 1
@@ -64,7 +64,7 @@ Rectangle {
     }
 
     Timer {
-        running: sysMonWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady
+        running: !!(sysMonWidgetRoot.moduleActive && barWindow && barWindow.isStartupReady && barWindow.isDataReady)
         interval: 100
         onTriggered: sysMonWidgetRoot.showLayout = true
     }

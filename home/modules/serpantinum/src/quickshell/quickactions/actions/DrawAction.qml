@@ -95,14 +95,17 @@ Item {
         }
     ]
     property int activePaletteIndex: 0
-    property string picturesDir: ""
+    property string picturesDir: (typeof Caching !== "undefined" && Caching.home) ? (Caching.home + "/Pictures") : ""
 
     Process {
         id: getPicturesDir
         command: ["xdg-user-dir", "PICTURES"]
         running: true
         stdout: SplitParser {
-            onRead: data => { root.picturesDir = data.trim() }
+            onRead: data => {
+                let d = data ? data.trim() : "";
+                if (d !== "") root.picturesDir = d;
+            }
         }
     }
 
@@ -119,6 +122,7 @@ Item {
                 } catch(e) {}
             }
         }
+        onLoadFailed: (error) => {}
     }
 
     Timer {

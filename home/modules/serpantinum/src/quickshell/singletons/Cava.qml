@@ -7,7 +7,7 @@ import "../"
 Item {
     id: root
 
-    property int barCount: 64
+    property int barCount: 32
     property var barLevels: {
         let arr = [];
         for (let i = 0; i < barCount; i++) arr.push(0.0);
@@ -83,7 +83,7 @@ Item {
         onExited: root.restartCava()
         command: [
             "bash", "-c",
-            "cava -p <(printf '[general]\\nbars = %d\\nframerate = 60\\nsensitivity = 150\\n[output]\\nmethod = raw\\nraw_target = /dev/stdout\\ndata_format = ascii\\nascii_max_range = 1000\\nbar_delimiter = 59\\n' " + root.barCount + ")"
+            "cava -p <(printf '[general]\\nbars = %d\\nframerate = 30\\nsensitivity = 150\\n[output]\\nmethod = raw\\nraw_target = /dev/stdout\\ndata_format = ascii\\nascii_max_range = 1000\\nbar_delimiter = 59\\n' " + root.barCount + ")"
         ]
         stdout: SplitParser {
             onRead: data => {

@@ -23,7 +23,7 @@ in
       postFixup = (oldAttrs.postFixup or "") + ''
         for bin in serpantinum serpantinumd; do
           wrapProgram "$out/bin/$bin" \
-            --prefix PATH : "${lib.makeBinPath [ pkgs.pulseaudio ]}"
+            --prefix PATH : "${lib.makeBinPath [ pkgs.pulseaudio pkgs.xdg-user-dirs ]}"
         done
       '';
     });
@@ -54,6 +54,13 @@ in
     };
   };
 
+  systemd.user.services.serpantinum = {
+    Service = {
+      KillMode = lib.mkForce "process";
+      TimeoutStopSec = lib.mkForce "5s";
+    };
+  };
+
   # Ensure declarative settings from Nix are merged into ~/.config/serpantinum/settings.json
   # as base defaults without overwriting runtime state (e.g. bar style, location, avatar, matugen colors).
   home.activation.serpantinumSettings = lib.mkForce (lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -68,6 +75,18 @@ in
         run chmod 0644 "$TARGET"
       fi
       rm -f "$TMP_FILE"
+    fi
+
+    STATE_DIR="${config.home.homeDirectory}/.local/state/serpantinum"
+    run mkdir -p "$STATE_DIR"
+    if [ ! -f "$STATE_DIR/version" ]; then
+      echo "SERPANTINUM_VERSION=2.0.3" > "$STATE_DIR/version"
+    fi
+
+    QA_DIR="${config.xdg.configHome}/serpantinum/quickactions"
+    run mkdir -p "$QA_DIR"
+    if [ ! -f "$QA_DIR/palettes.json" ]; then
+      echo "[]" > "$QA_DIR/palettes.json"
     fi
   '');
 }
