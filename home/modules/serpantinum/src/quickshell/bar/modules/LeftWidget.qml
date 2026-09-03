@@ -59,6 +59,12 @@ Rectangle {
         onTriggered: leftWidgetRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady) {
+            leftWidgetRoot.showLayout = true;
+        }
+    }
+
     Row {
         id: leftLayout
         anchors.verticalCenter: parent.verticalCenter
@@ -83,6 +89,11 @@ Rectangle {
             textColor: isHoveredOrHighlighted ? ThemeBackend.text : ThemeBackend.overlay2
 
             Timer { running: !!(leftWidgetRoot.moduleActive && leftWidgetRoot.showLayout && !helpButton.initAnimTrigger); interval: 70; onTriggered: helpButton.initAnimTrigger = true }
+            Component.onCompleted: {
+                if (barWindow && barWindow.startupCascadeFinished) {
+                    helpButton.initAnimTrigger = true;
+                }
+            }
             opacity: initAnimTrigger ? 1.0 : 0.0
             transform: Translate { y: helpButton.initAnimTrigger ? 0 : s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
             Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }

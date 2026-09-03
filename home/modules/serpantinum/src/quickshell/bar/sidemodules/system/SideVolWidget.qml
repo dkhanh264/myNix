@@ -41,6 +41,12 @@ Rectangle {
         onTriggered: sideVolRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            sideVolRoot.showLayout = true;
+        }
+    }
+
     IconButton {
         id: volBtn
         anchors.centerIn: parent

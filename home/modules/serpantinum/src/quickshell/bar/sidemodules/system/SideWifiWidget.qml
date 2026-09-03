@@ -38,6 +38,12 @@ Rectangle {
         onTriggered: sideWifiRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            sideWifiRoot.showLayout = true;
+        }
+    }
+
     IconButton {
         id: wifiBtn
         anchors.centerIn: parent

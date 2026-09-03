@@ -163,6 +163,12 @@ Rectangle {
         onTriggered: wifiWidgetRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            wifiWidgetRoot.showLayout = true;
+        }
+    }
+
     transform: Translate {
         x: wifiWidgetRoot.showLayout ? 0 : s(60)
         Behavior on x { NumberAnimation { duration: 800; easing.type: Easing.OutQuint } }
@@ -194,6 +200,11 @@ Rectangle {
             Behavior on width { NumberAnimation { duration: 480; easing.type: Easing.OutQuint } }
 
             Timer { running: !!(wifiWidgetRoot.moduleActive && wifiWidgetRoot.showLayout && !wifiPill.initAnimTrigger); interval: 130; onTriggered: wifiPill.initAnimTrigger = true }
+            Component.onCompleted: {
+                if (barWindow && barWindow.startupCascadeFinished) {
+                    wifiPill.initAnimTrigger = true;
+                }
+            }
             opacity: initAnimTrigger ? 1.0 : 0.0
             transform: Translate { y: wifiPill.initAnimTrigger ? 0 : s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
             Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }

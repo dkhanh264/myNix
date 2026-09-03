@@ -29,6 +29,9 @@ Rectangle {
 
     Component.onCompleted: {
         updateBtData();
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            btWidgetRoot.showLayout = true;
+        }
     }
 
     onModuleActiveChanged: {
@@ -199,6 +202,11 @@ Rectangle {
             Behavior on width { NumberAnimation { duration: 480; easing.type: Easing.OutQuint } }
 
             Timer { running: !!(btWidgetRoot.moduleActive && btWidgetRoot.showLayout && !btPill.initAnimTrigger); interval: 190; onTriggered: btPill.initAnimTrigger = true }
+            Component.onCompleted: {
+                if (barWindow && barWindow.startupCascadeFinished) {
+                    btPill.initAnimTrigger = true;
+                }
+            }
             opacity: initAnimTrigger ? 1.0 : 0.0
             transform: Translate { y: btPill.initAnimTrigger ? 0 : s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
             Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }

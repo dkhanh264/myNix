@@ -27,6 +27,9 @@ Rectangle {
         let de = SystemInfo.desktopEnv ? SystemInfo.desktopEnv.toLowerCase() : "";
         kbWidgetRoot.isNiri = de.indexOf("niri") !== -1;
         kbWidgetRoot.isSway = de.indexOf("sway") !== -1;
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            kbWidgetRoot.showLayout = true;
+        }
     }
 
     onModuleActiveChanged: {
@@ -134,6 +137,11 @@ Rectangle {
             }
 
             Timer { running: !!(kbWidgetRoot.moduleActive && kbWidgetRoot.showLayout && !kbPill.initAnimTrigger); interval: 70; onTriggered: kbPill.initAnimTrigger = true }
+            Component.onCompleted: {
+                if (barWindow && barWindow.startupCascadeFinished) {
+                    kbPill.initAnimTrigger = true;
+                }
+            }
             opacity: initAnimTrigger ? 1.0 : 0.0
             transform: Translate { y: kbPill.initAnimTrigger ? 0 : s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
             Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }

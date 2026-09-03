@@ -131,6 +131,12 @@ Rectangle {
         onTriggered: timeDateRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady) {
+            timeDateRoot.showLayout = true;
+        }
+    }
+
     Item {
         id: topArea
         width: parent.width

@@ -14,6 +14,7 @@ Variants {
     delegate: Component {
         PanelWindow {
             id: barWindow
+            readonly property var rootBarWindow: barWindow
             visible: barConfigReady
 
             property bool pendingReload: false
@@ -319,11 +320,11 @@ Variants {
                 anchors.fill: parent
                 active: barWindow.isVertical
                 sourceComponent: SideBar {
-                    barWindow: barWindow
+                    barWindow: rootBarWindow
                     property real hideOffsetX: {
-                        if (!barWindow || barWindow.isRevealed) return 0;
-                        let offset = barWindow.barHeight + barWindow.edgePadding + barWindow.s(10);
-                        return barWindow.barPosition === "right" ? offset : -offset;
+                        if (!rootBarWindow || rootBarWindow.isRevealed) return 0;
+                        let offset = rootBarWindow.barHeight + rootBarWindow.edgePadding + rootBarWindow.s(10);
+                        return rootBarWindow.barPosition === "right" ? offset : -offset;
                     }
                     transform: Translate {
                         x: hideOffsetX
@@ -339,7 +340,7 @@ Variants {
                 anchors.fill: parent
                 active: !barWindow.isVertical
                 sourceComponent: TopBar {
-                    barWindow: barWindow
+                    barWindow: rootBarWindow
                 }
             }
 

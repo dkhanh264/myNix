@@ -28,7 +28,12 @@ Rectangle {
         }
     }
 
-    Component.onCompleted: updateSubscription()
+    Component.onCompleted: {
+        updateSubscription();
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            sideSysMonRoot.showLayout = true;
+        }
+    }
     Component.onDestruction: SysData.unsubscribe()
     onIsSysVisibleChanged: updateSubscription()
 

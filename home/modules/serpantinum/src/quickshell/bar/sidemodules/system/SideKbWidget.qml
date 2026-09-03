@@ -27,6 +27,9 @@ Rectangle {
         let de = SystemInfo.desktopEnv ? SystemInfo.desktopEnv.toLowerCase() : "";
         sideKbRoot.isNiri = de.indexOf("niri") !== -1;
         sideKbRoot.isSway = de.indexOf("sway") !== -1;
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            sideKbRoot.showLayout = true;
+        }
     }
 
     onModuleActiveChanged: {

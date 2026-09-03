@@ -116,6 +116,12 @@ Rectangle {
         onTriggered: weatherWidgetRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady) {
+            weatherWidgetRoot.showLayout = true;
+        }
+    }
+
     Item {
         id: topArea
         width: parent.width

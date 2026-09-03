@@ -28,7 +28,12 @@ Rectangle {
         }
     }
 
-    Component.onCompleted: updateSubscription()
+    Component.onCompleted: {
+        updateSubscription();
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            sysMonWidgetRoot.showLayout = true;
+        }
+    }
     Component.onDestruction: SysData.unsubscribe()
     onIsSysVisibleChanged: updateSubscription()
 
@@ -102,6 +107,12 @@ Rectangle {
             running: sysMonWidgetRoot.moduleActive && sysMonWidgetRoot.showLayout && !initAnimTrigger
             interval: 150
             onTriggered: initAnimTrigger = true
+        }
+
+        Component.onCompleted: {
+            if (barWindow && barWindow.startupCascadeFinished) {
+                initAnimTrigger = true;
+            }
         }
 
         opacity: initAnimTrigger ? 1.0 : 0.0

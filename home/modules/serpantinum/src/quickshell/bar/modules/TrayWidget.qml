@@ -116,6 +116,12 @@ Rectangle {
         onTriggered: trayWidgetRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            trayWidgetRoot.showLayout = true;
+        }
+    }
+
     transform: Translate {
         x: trayWidgetRoot.showLayout ? 0 : (barWindow ? barWindow.s(60) : 60)
         Behavior on x {

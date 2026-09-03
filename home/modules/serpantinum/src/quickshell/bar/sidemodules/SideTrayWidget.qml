@@ -120,6 +120,12 @@ Rectangle {
         onTriggered: sideTrayWidgetRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            sideTrayWidgetRoot.showLayout = true;
+        }
+    }
+
     transform: Translate {
         y: sideTrayWidgetRoot.showLayout ? 0 : (barWindow ? barWindow.s(60) : 60)
         Behavior on y {

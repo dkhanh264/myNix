@@ -38,6 +38,12 @@ Rectangle {
         onTriggered: sideBtRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            sideBtRoot.showLayout = true;
+        }
+    }
+
     IconButton {
         id: btBtn
         anchors.centerIn: parent

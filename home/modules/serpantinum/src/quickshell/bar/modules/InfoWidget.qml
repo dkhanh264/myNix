@@ -280,5 +280,8 @@ Rectangle {
 
     Component.onCompleted: {
         infoWidgetRoot.checkRecording();
+        if (barWindow && barWindow.isStartupReady) {
+            infoWidgetRoot.showLayout = true;
+        }
     }
 }

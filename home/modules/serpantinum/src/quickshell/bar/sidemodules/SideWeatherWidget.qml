@@ -121,6 +121,12 @@ Rectangle {
         onTriggered: sideWeatherWidgetRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady) {
+            sideWeatherWidgetRoot.showLayout = true;
+        }
+    }
+
     Item {
         id: topArea
         width: barWindow ? barWindow.barHeight : 40

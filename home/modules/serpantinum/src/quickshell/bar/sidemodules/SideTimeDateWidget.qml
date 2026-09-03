@@ -118,6 +118,12 @@ Rectangle {
         onTriggered: sideTimeDateRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady) {
+            sideTimeDateRoot.showLayout = true;
+        }
+    }
+
     Item {
         id: topArea
         width: barWindow ? barWindow.barHeight : 40

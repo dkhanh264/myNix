@@ -73,6 +73,12 @@ Rectangle {
         onTriggered: batWidgetRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            batWidgetRoot.showLayout = true;
+        }
+    }
+
     transform: Translate {
         x: batWidgetRoot.showLayout ? 0 : (barWindow ? barWindow.s(60) : 60)
         Behavior on x { NumberAnimation { duration: 800; easing.type: Easing.OutQuint } }
@@ -112,6 +118,12 @@ Rectangle {
                 running: batWidgetRoot.moduleActive && batWidgetRoot.showLayout && !batPill.initAnimTrigger
                 interval: 150
                 onTriggered: batPill.initAnimTrigger = true
+            }
+
+            Component.onCompleted: {
+                if (barWindow && barWindow.startupCascadeFinished) {
+                    batPill.initAnimTrigger = true;
+                }
             }
 
             opacity: initAnimTrigger ? 1.0 : 0.0

@@ -59,6 +59,12 @@ Rectangle {
         onTriggered: sideBatRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            sideBatRoot.showLayout = true;
+        }
+    }
+
     transform: Translate {
         y: sideBatRoot.showLayout ? 0 : (barWindow ? barWindow.s(60) : 60)
         Behavior on y { NumberAnimation { duration: 800; easing.type: Easing.OutQuint } }

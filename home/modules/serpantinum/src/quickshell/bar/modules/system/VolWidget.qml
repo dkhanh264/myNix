@@ -57,6 +57,12 @@ Rectangle {
         onTriggered: volWidgetRoot.showLayout = true
     }
 
+    Component.onCompleted: {
+        if (barWindow && barWindow.isStartupReady && barWindow.isDataReady) {
+            volWidgetRoot.showLayout = true;
+        }
+    }
+
     transform: Translate {
         x: volWidgetRoot.showLayout ? 0 : s(60)
         Behavior on x { NumberAnimation { duration: 800; easing.type: Easing.OutQuint } }
@@ -89,6 +95,11 @@ Rectangle {
             Behavior on width { NumberAnimation { duration: 480; easing.type: Easing.OutQuint } }
 
             Timer { running: !!(volWidgetRoot.moduleActive && volWidgetRoot.showLayout && !volPill.initAnimTrigger); interval: 250; onTriggered: volPill.initAnimTrigger = true }
+            Component.onCompleted: {
+                if (barWindow && barWindow.startupCascadeFinished) {
+                    volPill.initAnimTrigger = true;
+                }
+            }
             opacity: initAnimTrigger ? 1.0 : 0.0
             transform: Translate { y: volPill.initAnimTrigger ? 0 : s(15); Behavior on y { NumberAnimation { duration: 620; easing.type: Easing.OutQuint } } }
             Behavior on opacity { NumberAnimation { duration: 450; easing.type: Easing.OutCubic } }
