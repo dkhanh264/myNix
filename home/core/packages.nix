@@ -56,6 +56,7 @@
     anki
     weka
     localsend
+    zoom
 
     (pkgs.callPackage ../../pkgs/davinci-resolve { })
 
