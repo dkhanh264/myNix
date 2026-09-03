@@ -54,16 +54,16 @@
     // Environment variables
     environment {
         NIXOS_OZONE_WL "1"
-        XDG_CURRENT_DESKTOP "Niri"
+        XDG_CURRENT_DESKTOP "niri"
         XDG_SESSION_TYPE "wayland"
-        XDG_SESSION_DESKTOP "Niri"
+        XDG_SESSION_DESKTOP "niri"
         XCURSOR_SIZE "24"
         XCURSOR_THEME "aosp-cursors"
         QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
     }
 
     // Autostart services
-    spawn-at-startup "dbus-update-activation-environment" "--systemd" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP=niri"
+    spawn-at-startup "dbus-update-activation-environment" "--systemd" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP=niri" "NIRI_SOCKET"
     spawn-at-startup "rfkill" "unblock" "bluetooth"
     spawn-sh-at-startup "wl-paste --type text --watch cliphist store"
     spawn-sh-at-startup "wl-paste --type image --watch cliphist store"

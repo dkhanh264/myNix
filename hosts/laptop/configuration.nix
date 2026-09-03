@@ -152,6 +152,7 @@
 
   security.polkit.enable = true;
   security.pam.services.hyprlock = { };
+  security.pam.services.quickshell = { };
 
   services.displayManager.sddm = {
     enable = true;
