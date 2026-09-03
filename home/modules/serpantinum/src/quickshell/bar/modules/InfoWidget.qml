@@ -76,29 +76,14 @@ Rectangle {
         running: infoWidgetRoot.moduleActive && infoWidgetRoot.recCacheDir !== ""
         command: infoWidgetRoot.recCacheDir ? [
             "bash", "-c",
-            "mkdir -p '" + infoWidgetRoot.recCacheDir + "' && inotifywait -m -e create,delete,modify,moved_to,moved_from '" + infoWidgetRoot.recCacheDir + "' 2>/dev/null"
+            "mkdir -p '" + infoWidgetRoot.recCacheDir + "' && exec inotifywait -m -e create,delete,modify,moved_to,moved_from '" + infoWidgetRoot.recCacheDir + "' 2>/dev/null"
         ] : []
         stdout: SplitParser {
             onRead: data => {
                 infoWidgetRoot.checkRecording();
             }
         }
-        onExited: {
-            if (infoWidgetRoot.moduleActive && infoWidgetRoot.recCacheDir !== "") {
-                recWatcherRestartTimer.restart();
-            }
-        }
         Component.onDestruction: running = false
-    }
-
-    Timer {
-        id: recWatcherRestartTimer
-        interval: 1000
-        repeat: false
-        onTriggered: {
-            recWatcher.running = false;
-            recWatcher.running = true;
-        }
     }
 
     Timer {
