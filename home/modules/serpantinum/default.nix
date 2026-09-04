@@ -220,11 +220,80 @@ let
                                 Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", (nextIndex + 1).toString()]);
                             }
                         }'
+
+      # 5. Add btop theme template to Matugen and reload btop on theme change
+      cat << 'EOF' > src/assets/matugen/templates/btop.theme.template
+# Matugen generated theme for btop
+theme[main_bg]="{{colors.surface.default.hex}}"
+theme[main_fg]="{{colors.on_surface.default.hex}}"
+theme[title]="{{colors.primary.default.hex}}"
+theme[hi_fg]="{{colors.primary.default.hex}}"
+theme[selected_bg]="{{colors.primary.default.hex}}"
+theme[selected_fg]="{{colors.on_primary.default.hex}}"
+theme[inactive_fg]="{{colors.outline.default.hex}}"
+theme[graph_text]="{{colors.on_surface_variant.default.hex}}"
+theme[meter_bg]="{{colors.surface_container_highest.default.hex}}"
+theme[proc_misc]="{{colors.tertiary.default.hex}}"
+theme[cpu_box]="{{colors.primary.default.hex}}"
+theme[mem_box]="{{colors.secondary.default.hex}}"
+theme[net_box]="{{colors.tertiary.default.hex}}"
+theme[proc_box]="{{colors.primary.default.hex}}"
+theme[div_line]="{{colors.outline_variant.default.hex}}"
+theme[temp_start]="{{colors.primary.default.hex}}"
+theme[temp_mid]="{{colors.tertiary.default.hex}}"
+theme[temp_end]="{{colors.error.default.hex}}"
+theme[cpu_start]="{{colors.primary.default.hex}}"
+theme[cpu_mid]="{{colors.tertiary.default.hex}}"
+theme[cpu_end]="{{colors.error.default.hex}}"
+theme[free_start]="{{colors.tertiary.default.hex}}"
+theme[free_mid]="{{colors.secondary.default.hex}}"
+theme[free_end]="{{colors.primary.default.hex}}"
+theme[cached_start]="{{colors.secondary.default.hex}}"
+theme[cached_mid]="{{colors.tertiary.default.hex}}"
+theme[cached_end]="{{colors.primary.default.hex}}"
+theme[available_start]="{{colors.secondary.default.hex}}"
+theme[available_mid]="{{colors.tertiary.default.hex}}"
+theme[available_end]="{{colors.primary.default.hex}}"
+theme[used_start]="{{colors.primary.default.hex}}"
+theme[used_mid]="{{colors.tertiary.default.hex}}"
+theme[used_end]="{{colors.error.default.hex}}"
+theme[download_start]="{{colors.secondary.default.hex}}"
+theme[download_mid]="{{colors.tertiary.default.hex}}"
+theme[download_end]="{{colors.primary.default.hex}}"
+theme[upload_start]="{{colors.primary.default.hex}}"
+theme[upload_mid]="{{colors.tertiary.default.hex}}"
+theme[upload_end]="{{colors.secondary.default.hex}}"
+theme[process_start]="{{colors.primary.default.hex}}"
+theme[process_mid]="{{colors.tertiary.default.hex}}"
+theme[process_end]="{{colors.error.default.hex}}"
+EOF
+
+      cat << 'EOF' >> src/assets/matugen/config.toml
+
+[templates.btop]
+input_path = "templates/btop.theme.template"
+output_path = "~/.config/btop/themes/matugen.theme"
+EOF
+
+      cat << 'EOF' >> src/assets/matugen/config-static.toml
+
+[templates.btop]
+input_path = "templates/btop.theme.template"
+output_path = "~/.config/btop/themes/matugen.theme"
+EOF
+
+      substituteInPlace src/quickshell/singletons/Matugen.qml \
+        --replace-fail 'killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true' \
+                       'killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true; killall -USR2 btop 2>/dev/null || pkill -SIGUSR2 -x btop 2>/dev/null || true'
+
+      substituteInPlace src/scripts/wallpaper/matugen_reload.sh \
+        --replace-fail 'killall -USR1 .kitty-wrapped' \
+                       'killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true; killall -USR2 btop 2>/dev/null || pkill -SIGUSR2 -x btop 2>/dev/null || true'
     '';
 
     postFixup = (oldAttrs.postFixup or "") + ''
-      wrapProgram $out/bin/serpantinum --prefix PATH : ${lib.makeBinPath [ pkgs.niri ]}
-      wrapProgram $out/bin/serpantinumd --prefix PATH : ${lib.makeBinPath [ pkgs.niri ]}
+      wrapProgram $out/bin/serpantinum --prefix PATH : ${lib.makeBinPath [ pkgs.niri pkgs.procps pkgs.psmisc ]}
+      wrapProgram $out/bin/serpantinumd --prefix PATH : ${lib.makeBinPath [ pkgs.niri pkgs.procps pkgs.psmisc ]}
     '';
   });
 in
