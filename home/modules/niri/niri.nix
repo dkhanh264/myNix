@@ -28,10 +28,18 @@
 
         mouse {
             // natural-scroll
+            accel-speed 0.0
+            accel-profile "flat"
         }
 
         warp-mouse-to-focus
         focus-follows-mouse
+    }
+
+    // Cursor configuration
+    cursor {
+        xcursor-theme "aosp-cursors"
+        xcursor-size 24
     }
 
     // Output configuration
@@ -39,7 +47,7 @@
     output "eDP-1" {
         mode "1920x1080@144.003"
         scale 1.0
-        variable-refresh-rate
+        variable-refresh-rate on-demand=true
     }
 
     // External display (HDMI-A-1)
@@ -50,6 +58,11 @@
 
     // Disable Client-Side Decorations globally
     prefer-no-csd
+
+    // Debug flags
+    debug {
+        disable-cursor-plane
+    }
 
     // Environment variables
     environment {
