@@ -58,6 +58,7 @@
     weka
     localsend
     zoom-us
+    obsidian
 
     (pkgs.callPackage ../../pkgs/davinci-resolve { })
 
