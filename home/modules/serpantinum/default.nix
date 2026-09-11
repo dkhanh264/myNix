@@ -3,7 +3,7 @@ let
   patchedSerpantinum = serpantinum.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (oldAttrs: {
     postPatch = (oldAttrs.postPatch or "") + ''
       # 1. Fix missing getConfigDir in Caching.qml
-      substituteInPlace src/quickshell/singletons/Caching.qml \
+      substituteInPlace src/quickshell/singletons/system/Caching.qml \
         --replace-fail 'readonly property string cacheDir:' \
 'readonly property string configDir: Quickshell.env("QS_CONFIG_DIR") ? Quickshell.env("QS_CONFIG_DIR") : (home + "/.config/serpantinum")
 
@@ -27,16 +27,16 @@ let
 
       # 3. Fix inotifywait process leak in InfoWidget.qml & SideInfoWidget.qml
       substituteInPlace src/quickshell/bar/modules/InfoWidget.qml \
-        --replace-fail '&& inotifywait -m' '&& exec inotifywait -m' \
+        --replace-quiet '&& inotifywait -m' '&& exec inotifywait -m' \
         --replace-fail 'recWatcher.running = false;' 'if (!recWatcher.running)'
 
       substituteInPlace src/quickshell/bar/sidemodules/SideInfoWidget.qml \
-        --replace-fail '&& inotifywait -m' '&& exec inotifywait -m' \
+        --replace-quiet '&& inotifywait -m' '&& exec inotifywait -m' \
         --replace-fail 'recWatcher.running = false;' 'if (!recWatcher.running)'
 
       # 4. Fix Niri workspaces display, monitor filtering, occupied state, dynamic count & click focus
       substituteInPlace src/quickshell/bar/modules/WorkspacesWidget.qml \
-        --replace-fail 'return !workspacesWidgetRoot.niriOccupiedMap[index];' \
+        --replace-quiet 'return !workspacesWidgetRoot.niriOccupiedMap[index];' \
                        'return !!workspacesWidgetRoot.niriOccupiedMap[index];' \
         --replace-fail '    property int workspaceCount: (typeof Config !== "undefined"' \
 '    property int niriMaxWorkspaceIndex: 0
@@ -129,7 +129,7 @@ let
                         }'
 
       substituteInPlace src/quickshell/bar/sidemodules/SideWorkspacesWidget.qml \
-        --replace-fail 'return !sideWsRoot.niriOccupiedMap[index];' \
+        --replace-quiet 'return !sideWsRoot.niriOccupiedMap[index];' \
                        'return !!sideWsRoot.niriOccupiedMap[index];' \
         --replace-fail '    property int workspaceCount: (typeof Config !== "undefined"' \
 '    property int niriMaxWorkspaceIndex: 0
@@ -282,7 +282,7 @@ input_path = "templates/btop.theme.template"
 output_path = "~/.config/btop/themes/matugen.theme"
 EOF
 
-      substituteInPlace src/quickshell/singletons/Matugen.qml \
+      substituteInPlace src/quickshell/singletons/theme/Matugen.qml \
         --replace-fail 'killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true' \
                        'killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true; killall -USR2 btop 2>/dev/null || pkill -SIGUSR2 -x btop 2>/dev/null || true'
 
