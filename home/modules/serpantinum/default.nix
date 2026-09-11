@@ -289,6 +289,129 @@ EOF
       substituteInPlace src/scripts/wallpaper/matugen_reload.sh \
         --replace-fail 'killall -USR1 .kitty-wrapped' \
                        'killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true; killall -USR2 btop 2>/dev/null || pkill -SIGUSR2 -x btop 2>/dev/null || true'
+
+      # 6. Support animated GIF wallpapers in WallpaperEngine.qml
+      substituteInPlace src/quickshell/wallpaper/WallpaperEngine.qml \
+        --replace-fail 'property bool isVideoB: false' \
+                       'property bool isVideoB: false
+                property bool isAnimatedA: false
+                property bool isAnimatedB: false' \
+        --replace-fail 'barWindow.isVideoB = false;
+                            barWindow.originalFileName = "";' \
+                       'barWindow.isVideoB = false;
+                            barWindow.isAnimatedA = false;
+                            barWindow.isAnimatedB = false;
+                            barWindow.originalFileName = "";' \
+        --replace-fail 'function isVideo(p) {' \
+                       'function isAnimated(p) {
+                    let lp = p.toLowerCase();
+                    return lp.endsWith(".gif");
+                }
+
+                function isVideo(p) {' \
+        --replace-fail 'let cleanPath = String(path).trim();
+                    let vid = barWindow.isVideo(cleanPath);' \
+                       'let cleanPath = String(path).trim();
+                    let vid = barWindow.isVideo(cleanPath);
+                    let anim = barWindow.isAnimated(cleanPath);' \
+        --replace-fail 'barWindow.pathA = cleanPath;
+                        barWindow.isVideoA = vid;
+                        barWindow.activeLayer = 0;' \
+                       'barWindow.pathA = cleanPath;
+                        barWindow.isVideoA = vid;
+                        barWindow.isAnimatedA = anim;
+                        barWindow.activeLayer = 0;' \
+        --replace-fail 'barWindow.pathB = cleanPath;
+                        barWindow.isVideoB = vid;
+                        barWindow.activeLayer = 1;' \
+                       'barWindow.pathB = cleanPath;
+                        barWindow.isVideoB = vid;
+                        barWindow.isAnimatedB = anim;
+                        barWindow.activeLayer = 1;' \
+        --replace-fail 'barWindow.stopB();
+                            barWindow.pathB = "";
+                            barWindow.isVideoB = false;
+                        } else {
+                            barWindow.stopA();
+                            barWindow.pathA = "";
+                            barWindow.isVideoA = false;' \
+                       'barWindow.stopB();
+                            barWindow.pathB = "";
+                            barWindow.isVideoB = false;
+                            barWindow.isAnimatedB = false;
+                        } else {
+                            barWindow.stopA();
+                            barWindow.pathA = "";
+                            barWindow.isVideoA = false;
+                            barWindow.isAnimatedA = false;' \
+        --replace-fail 'Image {
+                            id: imgA
+                            anchors.fill: parent
+                            source: !barWindow.isVideoA && barWindow.pathA ? "file://" + barWindow.pathA : ""
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            visible: !barWindow.isVideoA && barWindow.pathA !== ""
+                            cache: true
+                            sourceSize.width: parent.width > 0 ? parent.width : 0
+                            sourceSize.height: parent.height > 0 ? parent.height : 0
+                        }' \
+                       'Image {
+                            id: imgA
+                            anchors.fill: parent
+                            source: !barWindow.isVideoA && !barWindow.isAnimatedA && barWindow.pathA ? "file://" + barWindow.pathA : ""
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            visible: !barWindow.isVideoA && !barWindow.isAnimatedA && barWindow.pathA !== ""
+                            cache: true
+                            sourceSize.width: parent.width > 0 ? parent.width : 0
+                            sourceSize.height: parent.height > 0 ? parent.height : 0
+                        }
+
+                        AnimatedImage {
+                            id: animA
+                            anchors.fill: parent
+                            source: !barWindow.isVideoA && barWindow.isAnimatedA && barWindow.pathA ? "file://" + barWindow.pathA : ""
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            visible: !barWindow.isVideoA && barWindow.isAnimatedA && barWindow.pathA !== ""
+                            cache: true
+                            playing: !barWindow.playbackPaused
+                            paused: barWindow.playbackPaused
+                        }' \
+        --replace-fail 'Image {
+                            id: imgB
+                            anchors.fill: parent
+                            source: !barWindow.isVideoB && barWindow.pathB ? "file://" + barWindow.pathB : ""
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            visible: !barWindow.isVideoB && barWindow.pathB !== ""
+                            cache: true
+                            sourceSize.width: parent.width > 0 ? parent.width : 0
+                            sourceSize.height: parent.height > 0 ? parent.height : 0
+                        }' \
+                       'Image {
+                            id: imgB
+                            anchors.fill: parent
+                            source: !barWindow.isVideoB && !barWindow.isAnimatedB && barWindow.pathB ? "file://" + barWindow.pathB : ""
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            visible: !barWindow.isVideoB && !barWindow.isAnimatedB && barWindow.pathB !== ""
+                            cache: true
+                            sourceSize.width: parent.width > 0 ? parent.width : 0
+                            sourceSize.height: parent.height > 0 ? parent.height : 0
+                        }
+
+                        AnimatedImage {
+                            id: animB
+                            anchors.fill: parent
+                            source: !barWindow.isVideoB && barWindow.isAnimatedB && barWindow.pathB ? "file://" + barWindow.pathB : ""
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            visible: !barWindow.isVideoB && barWindow.isAnimatedB && barWindow.pathB !== ""
+                            cache: true
+                            playing: !barWindow.playbackPaused
+                            paused: barWindow.playbackPaused
+                        }'
     '';
 
     postFixup = (oldAttrs.postFixup or "") + ''

@@ -729,7 +729,7 @@ EOF
       fi
 
       case "''${NEW_BACKGROUND,,}" in
-        *.jpg|*.jpeg|*.png|*.webp|*.mp4|*.mkv|*.webm|*.avi|*.mov) ;;
+        *.jpg|*.jpeg|*.png|*.webp|*.gif|*.mp4|*.mkv|*.webm|*.avi|*.mov) ;;
         *)
           notify_wallpaper_error "That file type is not supported."
           exit 1
@@ -889,7 +889,7 @@ EOF
         done < <(
           LC_ALL=C find "$BACKGROUNDS_DIR" -type f \( \
             -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o \
-            -iname "*.webp" -o -iname "*.mp4" -o -iname "*.mkv" -o \
+            -iname "*.webp" -o -iname "*.gif" -o -iname "*.mp4" -o -iname "*.mkv" -o \
             -iname "*.webm" -o -iname "*.avi" -o -iname "*.mov" \
           \) -print0 | LC_ALL=C sort -z
         )
@@ -922,7 +922,7 @@ EOF
       mapfile -d "" -t BACKGROUNDS < <(
         LC_ALL=C find "$BACKGROUNDS_DIR" -type f \( \
           -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o \
-          -iname "*.webp" -o -iname "*.mp4" -o -iname "*.mkv" -o \
+          -iname "*.webp" -o -iname "*.gif" -o -iname "*.mp4" -o -iname "*.mkv" -o \
           -iname "*.webm" -o -iname "*.avi" -o -iname "*.mov" \
         \) -print0 | LC_ALL=C sort -z
       )
