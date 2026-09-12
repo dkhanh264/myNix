@@ -41,6 +41,10 @@
   # ── Network ────────────────────────────────────────────────────────────
   networking.hostName = "HiMeo";
   networking.networkmanager.enable = true;
+  networking.nameservers = [
+    "1.1.1.1"
+    "8.8.8.8"
+  ];
 
   # ── Locale & Timezone ──────────────────────────────────────────────────
   time.timeZone = "Asia/Ho_Chi_Minh";
