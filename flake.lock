@@ -371,11 +371,11 @@
         "serpantinum-wallpapers": "serpantinum-wallpapers"
       },
       "locked": {
-        "lastModified": 1789079718,
-        "narHash": "sha256-YtxvaKxIj5vW1rzcmeDhZaFU5IdZ/2dBTpf59migtSs=",
+        "lastModified": 1789901281,
+        "narHash": "sha256-ElegDM/vxU0Q5oQzuUsZNkTLA6+oaE+evfmypf5D2CQ=",
         "owner": "ilyamiro",
         "repo": "serpantinum",
-        "rev": "7fdcc2f722b1589e754b9dc9e215b8f78b261190",
+        "rev": "14f5e45765f01a8ee30aabcbfc00680349b65946",
         "type": "github"
       },
       "original": {
@@ -387,11 +387,11 @@
     "serpantinum-wallpapers": {
       "flake": false,
       "locked": {
-        "lastModified": 1787675697,
-        "narHash": "sha256-ADvKHmQDsX50opqeiyEAB3uxUTjuCyDym0pGQCy7Sws=",
+        "lastModified": 1789127588,
+        "narHash": "sha256-L3xRtDXH1ERwVIP+ztT6qn7YYh3aHpfpy1/nvyjvKIc=",
         "owner": "ilyamiro",
         "repo": "shell-wallpapers",
-        "rev": "1cb526443872fbf283a3f8305c3aa647545c02e4",
+        "rev": "4f5994aff60403f88d3f0378e6f9c9d0a00b0289",
         "type": "github"
       },
       "original": {
