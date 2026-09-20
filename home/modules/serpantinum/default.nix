@@ -35,15 +35,23 @@ let
         --replace-fail 'recWatcher.running = false;' 'if (!recWatcher.running)'
 
       # 4. Fix Niri workspaces display, monitor filtering, occupied state, dynamic count & click focus
-      substituteInPlace src/quickshell/bar/modules/WorkspacesWidget.qml \
-        --replace-quiet 'return !workspacesWidgetRoot.niriOccupiedMap[index];' \
-                       'return !!workspacesWidgetRoot.niriOccupiedMap[index];' \
-        --replace-fail '    property int workspaceCount: (typeof Config !== "undefined"' \
+      substituteInPlace src/quickshell/bar/modules/workspaces/WorkspacesWidget.qml \
+        --replace-fail '    property int workspaceCount: Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
 '    property int niriMaxWorkspaceIndex: 0
-    property int baseWorkspaceCount: (typeof Config !== "undefined"' \
-        --replace-fail 'Math.max(2, Math.min(10, Config.rawSettings.workspaceCount)) : 8))' \
-'Math.max(2, Math.min(10, Config.rawSettings.workspaceCount)) : 8))
-    property int workspaceCount: (isNiri && niriMaxWorkspaceIndex > baseWorkspaceCount) ? Math.min(10, niriMaxWorkspaceIndex) : baseWorkspaceCount' \
+    property int workspaceCount: (isNiri && niriMaxWorkspaceIndex > baseWorkspaceCount) ? Math.min(10, niriMaxWorkspaceIndex) : Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
+        --replace-fail '        if (isNiri) {
+            niriActiveIndex = index;
+            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
+        }' \
+'        if (isNiri) {
+            niriActiveIndex = index;
+            let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
+            if (sName !== "") {
+                Quickshell.execDetached(["bash", "-c", "niri msg action focus-monitor \"" + sName + "\" && niri msg action focus-workspace " + wsId]);
+            } else {
+                Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
+            }
+        }' \
         --replace-fail '                    let data = JSON.parse(this.text);
                     let wsList = data.workspaces || [];
                     let winList = data.windows || [];
@@ -100,43 +108,25 @@ let
                     }
                     workspacesWidgetRoot.niriMaxWorkspaceIndex = maxWs;
                     workspacesWidgetRoot.niriActiveIndex = activeIdx;
-                    workspacesWidgetRoot.niriOccupiedMap = occ;' \
-        --replace-fail '                        if (workspacesWidgetRoot.isNiri) {
-                            workspacesWidgetRoot.niriActiveIndex = wsPill.index;
-                            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsPill.wsId.toString()]);
-                        }' \
-'                        if (workspacesWidgetRoot.isNiri) {
-                            workspacesWidgetRoot.niriActiveIndex = wsPill.index;
-                            let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
-                            if (sName !== "") {
-                                Quickshell.execDetached(["bash", "-c", "niri msg action focus-monitor \"" + sName + "\" && niri msg action focus-workspace " + wsPill.wsId]);
-                            } else {
-                                Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsPill.wsId.toString()]);
-                            }
-                        }' \
-        --replace-fail '                        if (workspacesWidgetRoot.isNiri) {
-                            workspacesWidgetRoot.niriActiveIndex = nextIndex;
-                            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", (nextIndex + 1).toString()]);
-                        }' \
-'                        if (workspacesWidgetRoot.isNiri) {
-                            workspacesWidgetRoot.niriActiveIndex = nextIndex;
-                            let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
-                            if (sName !== "") {
-                                Quickshell.execDetached(["bash", "-c", "niri msg action focus-monitor \"" + sName + "\" && niri msg action focus-workspace " + (nextIndex + 1)]);
-                            } else {
-                                Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", (nextIndex + 1).toString()]);
-                            }
-                        }'
+                    workspacesWidgetRoot.niriOccupiedMap = occ;'
 
-      substituteInPlace src/quickshell/bar/sidemodules/SideWorkspacesWidget.qml \
-        --replace-quiet 'return !sideWsRoot.niriOccupiedMap[index];' \
-                       'return !!sideWsRoot.niriOccupiedMap[index];' \
-        --replace-fail '    property int workspaceCount: (typeof Config !== "undefined"' \
+      substituteInPlace src/quickshell/bar/sidemodules/workspaces/SideWorkspacesWidget.qml \
+        --replace-fail '    property int workspaceCount: Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
 '    property int niriMaxWorkspaceIndex: 0
-    property int baseWorkspaceCount: (typeof Config !== "undefined"' \
-        --replace-fail 'Math.max(2, Math.min(10, Config.rawSettings.workspaceCount)) : 8))' \
-'Math.max(2, Math.min(10, Config.rawSettings.workspaceCount)) : 8))
-    property int workspaceCount: (isNiri && niriMaxWorkspaceIndex > baseWorkspaceCount) ? Math.min(10, niriMaxWorkspaceIndex) : baseWorkspaceCount' \
+    property int workspaceCount: (isNiri && niriMaxWorkspaceIndex > baseWorkspaceCount) ? Math.min(10, niriMaxWorkspaceIndex) : Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
+        --replace-fail '        if (isNiri) {
+            niriActiveIndex = index;
+            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
+        }' \
+'        if (isNiri) {
+            niriActiveIndex = index;
+            let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
+            if (sName !== "") {
+                Quickshell.execDetached(["bash", "-c", "niri msg action focus-monitor \"" + sName + "\" && niri msg action focus-workspace " + wsId]);
+            } else {
+                Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
+            }
+        }' \
         --replace-fail '                    let data = JSON.parse(this.text);
                     let wsList = data.workspaces || [];
                     let winList = data.windows || [];
@@ -158,8 +148,8 @@ let
                             occ[idx] = true;
                         }
                     }
-                    sideWsRoot.niriActiveIndex = activeIdx;
-                    sideWsRoot.niriOccupiedMap = occ;' \
+                    workspacesWidgetRoot.niriActiveIndex = activeIdx;
+                    workspacesWidgetRoot.niriOccupiedMap = occ;' \
 '                    let data = JSON.parse(this.text);
                     let wsList = data.workspaces || [];
                     let winList = data.windows || [];
@@ -191,35 +181,9 @@ let
                             occ[idx] = true;
                         }
                     }
-                    sideWsRoot.niriMaxWorkspaceIndex = maxWs;
-                    sideWsRoot.niriActiveIndex = activeIdx;
-                    sideWsRoot.niriOccupiedMap = occ;' \
-        --replace-fail '                        if (sideWsRoot.isNiri) {
-                            sideWsRoot.niriActiveIndex = wsPill.index;
-                            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsPill.wsId.toString()]);
-                        }' \
-'                        if (sideWsRoot.isNiri) {
-                            sideWsRoot.niriActiveIndex = wsPill.index;
-                            let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
-                            if (sName !== "") {
-                                Quickshell.execDetached(["bash", "-c", "niri msg action focus-monitor \"" + sName + "\" && niri msg action focus-workspace " + wsPill.wsId]);
-                            } else {
-                                Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsPill.wsId.toString()]);
-                            }
-                        }' \
-        --replace-fail '                        if (sideWsRoot.isNiri) {
-                            sideWsRoot.niriActiveIndex = nextIndex;
-                            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", (nextIndex + 1).toString()]);
-                        }' \
-'                        if (sideWsRoot.isNiri) {
-                            sideWsRoot.niriActiveIndex = nextIndex;
-                            let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
-                            if (sName !== "") {
-                                Quickshell.execDetached(["bash", "-c", "niri msg action focus-monitor \"" + sName + "\" && niri msg action focus-workspace " + (nextIndex + 1)]);
-                            } else {
-                                Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", (nextIndex + 1).toString()]);
-                            }
-                        }'
+                    workspacesWidgetRoot.niriMaxWorkspaceIndex = maxWs;
+                    workspacesWidgetRoot.niriActiveIndex = activeIdx;
+                    workspacesWidgetRoot.niriOccupiedMap = occ;'
 
       # 5. Add btop theme template to Matugen and reload btop on theme change
       cat << 'EOF' > src/assets/matugen/templates/btop.theme.template
