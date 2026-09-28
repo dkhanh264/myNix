@@ -47,7 +47,6 @@
     unzip
 
     # user apps
-    discord-ptb
     vesktop
     spotify
     fastfetch
