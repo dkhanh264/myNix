@@ -63,6 +63,7 @@
 
     # dev
     jdk21
+    gradle
     nodejs_22
     codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
     antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-cli
