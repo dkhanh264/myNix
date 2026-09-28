@@ -62,7 +62,7 @@
     (pkgs.callPackage ../../pkgs/davinci-resolve { })
 
     # dev
-    jdk17
+    jdk21
     nodejs_22
     codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
     antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-cli
