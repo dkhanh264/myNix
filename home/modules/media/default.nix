@@ -5,5 +5,6 @@
     ./mpv.nix
     ./iriun.nix
     ./zathura.nix
+    ./camera.nix
   ];
 }
