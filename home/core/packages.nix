@@ -48,6 +48,7 @@
 
     # user apps
     vesktop
+    discord
     spotify
     fastfetch
     jetbrains.idea
