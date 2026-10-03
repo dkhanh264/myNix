@@ -25,17 +25,10 @@ let
         --replace-fail 'let content = data.trim();' \
                        'let content = (typeof data !== "undefined" && data ? data : text()).trim();'
 
-      # 3. Fix inotifywait process leak in InfoWidget.qml & SideInfoWidget.qml
-      substituteInPlace src/quickshell/bar/modules/InfoWidget.qml \
-        --replace-quiet '&& inotifywait -m' '&& exec inotifywait -m' \
-        --replace-fail 'recWatcher.running = false;' 'if (!recWatcher.running)'
-
-      substituteInPlace src/quickshell/bar/sidemodules/SideInfoWidget.qml \
-        --replace-quiet '&& inotifywait -m' '&& exec inotifywait -m' \
-        --replace-fail 'recWatcher.running = false;' 'if (!recWatcher.running)'
+      # 3. Note: inotifywait process leak fix is already included in upstream serpantinum 2.2.4 (InfoFace.qml & SideInfoFace.qml)
 
       # 4. Fix Niri workspaces display, monitor filtering, occupied state, dynamic count & click focus
-      substituteInPlace src/quickshell/bar/modules/workspaces/WorkspacesWidget.qml \
+      substituteInPlace src/quickshell/bar/faces/workspaces/WorkspacesFace.qml \
         --replace-fail '    property int workspaceCount: Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
 '    property int niriMaxWorkspaceIndex: 0
     property int workspaceCount: (isNiri && niriMaxWorkspaceIndex > baseWorkspaceCount) ? Math.min(10, niriMaxWorkspaceIndex) : Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
@@ -73,8 +66,8 @@ let
                             occ[idx] = true;
                         }
                     }
-                    workspacesWidgetRoot.niriActiveIndex = activeIdx;
-                    workspacesWidgetRoot.niriOccupiedMap = occ;' \
+                    root.niriActiveIndex = activeIdx;
+                    root.niriOccupiedMap = occ;' \
 '                    let data = JSON.parse(this.text);
                     let wsList = data.workspaces || [];
                     let winList = data.windows || [];
@@ -106,11 +99,11 @@ let
                             occ[idx] = true;
                         }
                     }
-                    workspacesWidgetRoot.niriMaxWorkspaceIndex = maxWs;
-                    workspacesWidgetRoot.niriActiveIndex = activeIdx;
-                    workspacesWidgetRoot.niriOccupiedMap = occ;'
+                    root.niriMaxWorkspaceIndex = maxWs;
+                    root.niriActiveIndex = activeIdx;
+                    root.niriOccupiedMap = occ;'
 
-      substituteInPlace src/quickshell/bar/sidemodules/workspaces/SideWorkspacesWidget.qml \
+      substituteInPlace src/quickshell/bar/faces/workspaces/SideWorkspacesFace.qml \
         --replace-fail '    property int workspaceCount: Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
 '    property int niriMaxWorkspaceIndex: 0
     property int workspaceCount: (isNiri && niriMaxWorkspaceIndex > baseWorkspaceCount) ? Math.min(10, niriMaxWorkspaceIndex) : Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
@@ -148,8 +141,8 @@ let
                             occ[idx] = true;
                         }
                     }
-                    workspacesWidgetRoot.niriActiveIndex = activeIdx;
-                    workspacesWidgetRoot.niriOccupiedMap = occ;' \
+                    root.niriActiveIndex = activeIdx;
+                    root.niriOccupiedMap = occ;' \
 '                    let data = JSON.parse(this.text);
                     let wsList = data.workspaces || [];
                     let winList = data.windows || [];
@@ -181,9 +174,9 @@ let
                             occ[idx] = true;
                         }
                     }
-                    workspacesWidgetRoot.niriMaxWorkspaceIndex = maxWs;
-                    workspacesWidgetRoot.niriActiveIndex = activeIdx;
-                    workspacesWidgetRoot.niriOccupiedMap = occ;'
+                    root.niriMaxWorkspaceIndex = maxWs;
+                    root.niriActiveIndex = activeIdx;
+                    root.niriOccupiedMap = occ;'
 
       # 5. Add btop theme template to Matugen and reload btop on theme change
       cat << 'EOF' > src/assets/matugen/templates/btop.theme.template
@@ -316,8 +309,8 @@ EOF
                             asynchronous: true
                             visible: !barWindow.isVideoA && barWindow.pathA !== ""
                             cache: true
-                            sourceSize.width: parent.width > 0 ? parent.width : 0
-                            sourceSize.height: parent.height > 0 ? parent.height : 0
+                            sourceSize.width: parent.width > 0 ? Math.ceil(parent.width * (Screen.devicePixelRatio || 1)) : 0
+                            sourceSize.height: parent.height > 0 ? Math.ceil(parent.height * (Screen.devicePixelRatio || 1)) : 0
                         }' \
                        'Image {
                             id: imgA
@@ -327,8 +320,8 @@ EOF
                             asynchronous: true
                             visible: !barWindow.isVideoA && !barWindow.isAnimatedA && barWindow.pathA !== ""
                             cache: true
-                            sourceSize.width: parent.width > 0 ? parent.width : 0
-                            sourceSize.height: parent.height > 0 ? parent.height : 0
+                            sourceSize.width: parent.width > 0 ? Math.ceil(parent.width * (Screen.devicePixelRatio || 1)) : 0
+                            sourceSize.height: parent.height > 0 ? Math.ceil(parent.height * (Screen.devicePixelRatio || 1)) : 0
                         }
 
                         AnimatedImage {
@@ -350,8 +343,8 @@ EOF
                             asynchronous: true
                             visible: !barWindow.isVideoB && barWindow.pathB !== ""
                             cache: true
-                            sourceSize.width: parent.width > 0 ? parent.width : 0
-                            sourceSize.height: parent.height > 0 ? parent.height : 0
+                            sourceSize.width: parent.width > 0 ? Math.ceil(parent.width * (Screen.devicePixelRatio || 1)) : 0
+                            sourceSize.height: parent.height > 0 ? Math.ceil(parent.height * (Screen.devicePixelRatio || 1)) : 0
                         }' \
                        'Image {
                             id: imgB
@@ -361,8 +354,8 @@ EOF
                             asynchronous: true
                             visible: !barWindow.isVideoB && !barWindow.isAnimatedB && barWindow.pathB !== ""
                             cache: true
-                            sourceSize.width: parent.width > 0 ? parent.width : 0
-                            sourceSize.height: parent.height > 0 ? parent.height : 0
+                            sourceSize.width: parent.width > 0 ? Math.ceil(parent.width * (Screen.devicePixelRatio || 1)) : 0
+                            sourceSize.height: parent.height > 0 ? Math.ceil(parent.height * (Screen.devicePixelRatio || 1)) : 0
                         }
 
                         AnimatedImage {
