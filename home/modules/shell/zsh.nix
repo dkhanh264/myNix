@@ -51,7 +51,7 @@ _:
         gl  = "git log --oneline --graph --decorate";
       };
 
-      initExtra = ''
+      initContent = ''
         # Tự động chuyển đổi hoặc set tần số quét màn hình
         hz() {
           case "$1" in
