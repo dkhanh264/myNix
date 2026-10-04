@@ -8,23 +8,21 @@ in
     enable = true;
 
     # Theme cấu hình (có thể đổi sang theme khác như dracula, nord, sleek, text, v.v.)
-    theme = spicePkgs.themes.catppuccin;
-    colorScheme = "mocha";
+    theme = spicePkgs.themes.starryNight;
+    colorScheme = "Base";
 
     # Các tiện ích mở rộng hữu ích
     enabledExtensions = with spicePkgs.extensions; [
-      adblockify         # Chặn quảng cáo
-      shuffle            # Shuffle ngẫu nhiên thực sự
-      playlistIcons      # Icon cho playlist
-      history            # Lịch sử nghe nhạc
-      hidePodcasts       # Ẩn podcasts nếu không cần
-      fullAppDisplay     # Toàn màn hình đẹp
+      adblockify # Chặn quảng cáo
+      shuffle # Shuffle ngẫu nhiên thực sự
+      playlistIcons # Icon cho playlist
+      fullAppDisplay # Toàn màn hình đẹp
     ];
 
     # Các ứng dụng tùy chỉnh tích hợp vào sidebar
     enabledCustomApps = with spicePkgs.apps; [
-      marketplace        # Cửa hàng theme/extension trực quan trong Spotify
-      lyricsPlus         # Hiển thị lời bài hát nâng cao (đồng bộ, dịch)
+      marketplace # Cửa hàng theme/extension trực quan trong Spotify
+      lyricsPlus # Hiển thị lời bài hát nâng cao (đồng bộ, dịch)
     ];
   };
 }
