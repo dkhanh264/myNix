@@ -6,5 +6,6 @@
     ./iriun.nix
     ./zathura.nix
     ./camera.nix
+    ./spicetify.nix
   ];
 }

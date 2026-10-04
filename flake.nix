@@ -43,6 +43,11 @@
       url = "github:ilyamiro/serpantinum";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    spicetify-nix = {
+      url = "github:Gerg-L/spicetify-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -61,6 +66,7 @@
       fcitx5-lotus,
       niri,
       serpantinum,
+      spicetify-nix,
       ...
     }@inputs:
     let
@@ -83,11 +89,15 @@
                 useUserPackages = true;
                 backupFileExtension = "backup";
 
-                extraSpecialArgs = { inherit codex-cli-nix antigravity-nix serpantinum; };
+                extraSpecialArgs = {
+                  inherit codex-cli-nix antigravity-nix serpantinum inputs;
+                  spicetify-nix = inputs.spicetify-nix;
+                };
 
                 sharedModules = [
                   nixvim.homeModules.nixvim
                   serpantinum.homeManagerModules.default
+                  inputs.spicetify-nix.homeManagerModules.default
                 ];
 
                 users.dk = { ... }: {

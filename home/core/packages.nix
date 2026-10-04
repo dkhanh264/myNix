@@ -48,7 +48,6 @@
 
     # user apps
     vesktop
-    spotify
     fastfetch
     jetbrains.idea
     brave
