@@ -176,6 +176,14 @@
     }
 
     window-rule {
+        match app-id=r#"^[sS]team$"# title=r#"^Friends List$"#
+        match app-id=r#"^[sS]team$"# title=r#"^Steam - News"#
+        match app-id=r#"^[sS]team$"# title=r#"^.* - Chat$"#
+        match app-id=r#"^[sS]team$"# title=r#"^Settings$"#
+        open-floating true
+    }
+
+    window-rule {
         geometry-corner-radius 8
         clip-to-geometry true
         draw-border-with-background false
