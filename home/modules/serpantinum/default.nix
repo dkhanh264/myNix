@@ -20,163 +20,37 @@ let
 
     readonly property string cacheDir:'
 
-      # 2. Fix TypeError in ScreenshotOverlay.qml when onLoaded has no data arg
-      substituteInPlace src/quickshell/screenshot/ScreenshotOverlay.qml \
-        --replace-fail 'let content = data.trim();' \
-                       'let content = (typeof data !== "undefined" && data ? data : text()).trim();'
+      # 2. Note: ScreenshotOverlay TypeError fix is included in upstream serpantinum 2.2.6
 
       # 3. Note: inotifywait process leak fix is already included in upstream serpantinum 2.2.4 (InfoFace.qml & SideInfoFace.qml)
 
-      # 4. Fix Niri workspaces display, monitor filtering, occupied state, dynamic count & click focus
+      # 4. Note: Dynamic workspace count & occupancy logic are handled upstream by NiriState singleton in serpantinum 2.2.6.
+      # Fix Niri workspace click focus for multi-monitor setup
       substituteInPlace src/quickshell/bar/faces/workspaces/WorkspacesFace.qml \
-        --replace-fail '    property int workspaceCount: Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
-'    property int niriMaxWorkspaceIndex: 0
-    property int workspaceCount: (isNiri && niriMaxWorkspaceIndex > baseWorkspaceCount) ? Math.min(10, niriMaxWorkspaceIndex) : Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
         --replace-fail '        if (isNiri) {
-            niriActiveIndex = index;
             Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
         }' \
 '        if (isNiri) {
-            niriActiveIndex = index;
             let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
             if (sName !== "") {
                 Quickshell.execDetached(["bash", "-c", "niri msg action focus-monitor \"" + sName + "\" && niri msg action focus-workspace " + wsId]);
             } else {
                 Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
             }
-        }' \
-        --replace-fail '                    let data = JSON.parse(this.text);
-                    let wsList = data.workspaces || [];
-                    let winList = data.windows || [];
-                    let occ = {};
-                    for (let i = 0; i < winList.length; i++) {
-                        let win = winList[i];
-                        if (win.workspace_id !== undefined && win.workspace_id !== null) {
-                            occ[win.workspace_id] = true;
-                        }
-                    }
-                    let activeIdx = 0;
-                    for (let j = 0; j < wsList.length; j++) {
-                        let w = wsList[j];
-                        let idx = (w.idx !== undefined ? w.idx : (w.id !== undefined ? w.id : 1)) - 1;
-                        if (w.is_focused || w.is_active) {
-                            activeIdx = idx;
-                        }
-                        if (w.active_window_id !== null || occ[w.id] || occ[w.idx]) {
-                            occ[idx] = true;
-                        }
-                    }
-                    root.niriActiveIndex = activeIdx;
-                    root.niriOccupiedMap = occ;' \
-'                    let data = JSON.parse(this.text);
-                    let wsList = data.workspaces || [];
-                    let winList = data.windows || [];
-                    let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
-                    let myWs = wsList;
-                    if (sName !== "") {
-                        let filtered = wsList.filter(w => !w.output || w.output === sName);
-                        if (filtered.length > 0) myWs = filtered;
-                    }
-                    let occupiedWsIds = {};
-                    for (let i = 0; i < winList.length; i++) {
-                        let win = winList[i];
-                        if (win.workspace_id !== undefined && win.workspace_id !== null) {
-                            occupiedWsIds[win.workspace_id] = true;
-                        }
-                    }
-                    let occ = {};
-                    let activeIdx = 0;
-                    let maxWs = 0;
-                    for (let j = 0; j < myWs.length; j++) {
-                        let w = myWs[j];
-                        let wIdx = (w.idx !== undefined ? w.idx : (w.id !== undefined ? w.id : 1));
-                        if (wIdx > maxWs) maxWs = wIdx;
-                        let idx = wIdx - 1;
-                        if (w.is_active || (sName === "" && w.is_focused)) {
-                            activeIdx = idx;
-                        }
-                        if (w.active_window_id !== null || occupiedWsIds[w.id] || occupiedWsIds[w.idx]) {
-                            occ[idx] = true;
-                        }
-                    }
-                    root.niriMaxWorkspaceIndex = maxWs;
-                    root.niriActiveIndex = activeIdx;
-                    root.niriOccupiedMap = occ;'
+        }'
 
       substituteInPlace src/quickshell/bar/faces/workspaces/SideWorkspacesFace.qml \
-        --replace-fail '    property int workspaceCount: Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
-'    property int niriMaxWorkspaceIndex: 0
-    property int workspaceCount: (isNiri && niriMaxWorkspaceIndex > baseWorkspaceCount) ? Math.min(10, niriMaxWorkspaceIndex) : Math.max(2, (activeIndex >= baseWorkspaceCount) ? (activeIndex + 1) : baseWorkspaceCount)' \
         --replace-fail '        if (isNiri) {
-            niriActiveIndex = index;
             Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
         }' \
 '        if (isNiri) {
-            niriActiveIndex = index;
             let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
             if (sName !== "") {
                 Quickshell.execDetached(["bash", "-c", "niri msg action focus-monitor \"" + sName + "\" && niri msg action focus-workspace " + wsId]);
             } else {
                 Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
             }
-        }' \
-        --replace-fail '                    let data = JSON.parse(this.text);
-                    let wsList = data.workspaces || [];
-                    let winList = data.windows || [];
-                    let occ = {};
-                    for (let i = 0; i < winList.length; i++) {
-                        let win = winList[i];
-                        if (win.workspace_id !== undefined && win.workspace_id !== null) {
-                            occ[win.workspace_id] = true;
-                        }
-                    }
-                    let activeIdx = 0;
-                    for (let j = 0; j < wsList.length; j++) {
-                        let w = wsList[j];
-                        let idx = (w.idx !== undefined ? w.idx : (w.id !== undefined ? w.id : 1)) - 1;
-                        if (w.is_focused || w.is_active) {
-                            activeIdx = idx;
-                        }
-                        if (w.active_window_id !== null || occ[w.id] || occ[w.idx]) {
-                            occ[idx] = true;
-                        }
-                    }
-                    root.niriActiveIndex = activeIdx;
-                    root.niriOccupiedMap = occ;' \
-'                    let data = JSON.parse(this.text);
-                    let wsList = data.workspaces || [];
-                    let winList = data.windows || [];
-                    let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
-                    let myWs = wsList;
-                    if (sName !== "") {
-                        let filtered = wsList.filter(w => !w.output || w.output === sName);
-                        if (filtered.length > 0) myWs = filtered;
-                    }
-                    let occupiedWsIds = {};
-                    for (let i = 0; i < winList.length; i++) {
-                        let win = winList[i];
-                        if (win.workspace_id !== undefined && win.workspace_id !== null) {
-                            occupiedWsIds[win.workspace_id] = true;
-                        }
-                    }
-                    let occ = {};
-                    let activeIdx = 0;
-                    let maxWs = 0;
-                    for (let j = 0; j < myWs.length; j++) {
-                        let w = myWs[j];
-                        let wIdx = (w.idx !== undefined ? w.idx : (w.id !== undefined ? w.id : 1));
-                        if (wIdx > maxWs) maxWs = wIdx;
-                        let idx = wIdx - 1;
-                        if (w.is_active || (sName === "" && w.is_focused)) {
-                            activeIdx = idx;
-                        }
-                        if (w.active_window_id !== null || occupiedWsIds[w.id] || occupiedWsIds[w.idx]) {
-                            occ[idx] = true;
-                        }
-                    }
-                    root.niriMaxWorkspaceIndex = maxWs;
-                    root.niriActiveIndex = activeIdx;
-                    root.niriOccupiedMap = occ;'
+        }'
 
       # 5. Add btop theme template to Matugen and reload btop on theme change
       cat << 'EOF' > src/assets/matugen/templates/btop.theme.template
