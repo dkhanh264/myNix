@@ -465,6 +465,39 @@ _set_turbo() {
   esac
 }
 
+_set_cap() {
+  local action="${1:-status}"
+  local mf="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+  if [[ ! -f "$mf" ]]; then
+    echo "❌ Hệ thống không hỗ trợ điều khiển intel_pstate max_perf_pct."
+    return 1
+  fi
+
+  if [[ "$action" == "status" || -z "$action" ]]; then
+    local cur
+    cur="$(cat "$mf" 2>/dev/null || echo "unknown")"
+    echo "Trần xung nhịp CPU hiện tại (max_perf_pct): ${cur}%"
+    return 0
+  fi
+
+  local val="${action%\%}"
+
+  if ! [[ "$val" =~ ^[0-9]+$ ]] || (( val < 10 || val > 100 )); then
+    echo "❌ Giá trị không hợp lệ: '$action'. Vui lòng nhập số từ 10 đến 100 (Ví dụ: eco cap 40 hoặc eco cap 50%)"
+    return 1
+  fi
+
+  if echo "$val" > "$mf" 2>/dev/null || sudo -n sh -c "echo '$val' > '$mf'" 2>/dev/null; then
+    local actual
+    actual="$(cat "$mf" 2>/dev/null || echo "$val")"
+    echo "✓ Đã đặt trần xung nhịp tối đa CPU về: ${actual}%"
+    _notify "normal" "⚙️ Trần xung nhịp CPU: ${actual}%" "Đã giới hạn max_perf_pct ở mức ${actual}%"
+  else
+    echo "⚠️  Cần quyền root: echo $val | sudo tee $mf"
+    return 1
+  fi
+}
+
 _run_daemon() {
   echo "🔋 Eco Power Daemon đang chạy trong nền (tự động đảo chế độ khi cắm/rút sạc)..."
   local prev_ac=""
@@ -547,6 +580,9 @@ case "${1:-}" in
   turbo|tb)
     _set_turbo "${2:-status}"
     ;;
+  cap|limit|max)
+    _set_cap "${2:-status}"
+    ;;
   daemon|auto|watch)
     _run_daemon
     ;;
@@ -568,6 +604,8 @@ case "${1:-}" in
     echo "  • eco on  / eco 60    : Bật siêu tiết kiệm pin (60Hz, CPU power-saver, Tắt Turbo Boost, WiFi eco, tắt đèn phím)"
     echo "  • eco off / eco 144   : Chuyển về hiệu năng mượt mà (144Hz, CPU balanced, Bật Turbo Boost)"
     echo "  • eco status          : Xem trạng thái nguồn điện, pin, GPU, CPU, sạc nhánh"
+    echo "  • eco cap <10-100>    : Đặt trần % xung nhịp CPU tối đa (Ví dụ: eco cap 40, eco cap 50%)"
+    echo "  • eco cap status      : Xem trần % xung nhịp CPU hiện tại"
     echo "  • eco bypass on       : Bật chế độ sạc nhánh (ngắt sạc ở ~80%, bảo vệ pin)"
     echo "  • eco bypass off      : Tắt sạc nhánh (cho phép sạc đầy 100%)"
     echo "  • eco bypass status   : Xem trạng thái sạc nhánh"

@@ -34,6 +34,7 @@ _:
         powersave = "eco on";
         tietkiem  = "eco on";
         pin       = "eco status";
+        cap       = "eco cap";
 
         # Monitor rotation (Màn hình rời HDMI-A-1)
         rot90     = "niri msg output HDMI-A-1 transform 90";
