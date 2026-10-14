@@ -26,7 +26,16 @@
   # Extra module configurations
   boot.extraModprobeConfig = ''
     options v4l2loopback devices=1 video_nr=2 card_label="Iriun Webcam" exclusive_caps=1
+
+    # Tối ưu hóa tiết kiệm pin cho WiFi & Audio
+    options iwlwifi power_save=1
+    options iwlmvm power_scheme=3
+    options snd_hda_intel power_save=1 power_save_controller=Y
   '';
+
+  boot.kernelParams = [
+    "pcie_aspm=force"
+  ];
 
   boot.lanzaboote = {
     enable = true;
@@ -42,6 +51,7 @@
   networking.hostName = "HiMeo";
   networking.networkmanager = {
     enable = true;
+    wifi.powersave = true;
     insertNameservers = [
       "1.1.1.1"
       "8.8.8.8"
@@ -95,13 +105,17 @@
     # 1. Proprietary driver for multi-monitor Wayland stability.
     open = false;
 
-    # 2. Power management (required on Wayland for sleep/resume stability).
+    # 2. Dynamic Power Management (RTD3) - Tự động tắt dGPU (D3cold 0W) khi không dùng
     powerManagement.enable = true;
-    powerManagement.finegrained = false;
+    powerManagement.finegrained = true;
 
     prime = {
-      # 3. Reverse Prime Sync Mode (renders via NVIDIA for high refresh rates).
-      sync.enable = true;
+      # Chế độ Offload: Các tác vụ thông thường (Niri, Web, Notes) chạy trên Intel iGPU tiết kiệm pin tối đa.
+      # Khi cần game/đồ họa nặng (Steam, DaVinci), chỉ cần chạy qua lệnh: nvidia-offload <app>
+      offload = {
+        enable = true;
+        enableOffloadCmd = true;
+      };
 
       intelBusId = "PCI:0:2:0";
       nvidiaBusId = "PCI:1:0:0";
@@ -358,6 +372,8 @@
     wget
     pciutils
     libimobiledevice
+    libnotify
+    iw
     (pkgs.stdenv.mkDerivation {
       pname = "sddm-serpantinum-theme";
       version = "1.0";
