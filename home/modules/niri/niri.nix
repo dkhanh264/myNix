@@ -62,6 +62,7 @@
     // Debug flags
     debug {
         disable-cursor-plane
+        render-drm-device "/dev/dri/renderD128"
     }
 
     // Environment variables

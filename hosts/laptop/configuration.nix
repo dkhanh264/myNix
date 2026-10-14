@@ -196,6 +196,17 @@
   };
 
   security.polkit.enable = true;
+  security.sudo.extraRules = [
+    {
+      users = [ "dk" ];
+      commands = [
+        {
+          command = "${pkgs.iw}/bin/iw";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
   security.pam.services.hyprlock = { };
   security.pam.services.quickshell = { };
 

@@ -7,6 +7,14 @@ set -euo pipefail
 
 NOTIFY_TITLE="⚡ Quản trị Năng lượng"
 
+# Tự động tìm NIRI_SOCKET và WAYLAND_DISPLAY nếu chạy từ daemon hoặc systemd
+if [[ -z "${NIRI_SOCKET:-}" ]]; then
+  export NIRI_SOCKET="$(ls /run/user/"$(id -u)"/niri.*.sock 2>/dev/null | head -n1 || true)"
+fi
+if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then
+  export WAYLAND_DISPLAY="$(ls /run/user/"$(id -u)"/wayland-* 2>/dev/null | grep -v '\.lock$' | head -n1 | xargs -r basename 2>/dev/null || echo "wayland-1")"
+fi
+
 _notify() {
   local urgency="$1"
   local summary="$2"
@@ -14,6 +22,32 @@ _notify() {
   if command -v notify-send >/dev/null 2>&1 && [[ -n "${WAYLAND_DISPLAY:-${DISPLAY:-}}" ]]; then
     notify-send -u "$urgency" -a "$NOTIFY_TITLE" "$summary" "$body" 2>/dev/null || true
   fi
+}
+
+_is_ac_online() {
+  # 1. Kiểm tra ADP0
+  if [[ -f /sys/class/power_supply/ADP0/online && "$(cat /sys/class/power_supply/ADP0/online 2>/dev/null)" == "1" ]]; then
+    return 0
+  fi
+  # 2. Kiểm tra các nguồn cấp AC hoặc USB-C khác
+  local ac
+  for ac in /sys/class/power_supply/AC* /sys/class/power_supply/ucsi* /sys/class/power_supply/ADP*; do
+    if [[ -f "$ac/online" && "$(cat "$ac/online" 2>/dev/null)" == "1" ]]; then
+      return 0
+    fi
+  done
+  # 3. Kiểm tra trạng thái pin BAT0
+  if [[ -f /sys/class/power_supply/BAT0/status ]]; then
+    local bat_st
+    bat_st="$(cat /sys/class/power_supply/BAT0/status 2>/dev/null || true)"
+    if [[ "$bat_st" == "Charging" || "$bat_st" == "Full" ]]; then
+      return 0
+    fi
+    if [[ "$bat_st" == "Discharging" ]]; then
+      return 1
+    fi
+  fi
+  return 1
 }
 
 _get_cm_file() {
@@ -40,15 +74,10 @@ _get_cur_profile() {
 }
 
 _get_ac_status() {
-  local adp="/sys/class/power_supply/ADP0"
-  if [[ -f "$adp/online" ]]; then
-    if [[ "$(cat "$adp/online" 2>/dev/null)" == "1" ]]; then
-      echo "🔌 Cắm sạc AC (Adapter Online)"
-    else
-      echo "🔋 Đang dùng Pin (AC Disconnected)"
-    fi
+  if _is_ac_online; then
+    echo "🔌 Cắm sạc AC (Adapter Online)"
   else
-    echo "Không rõ nguồn cấp"
+    echo "🔋 Đang dùng Pin (AC Disconnected)"
   fi
 }
 
@@ -212,7 +241,9 @@ _set_eco() {
     max_b="$(brightnessctl m 2>/dev/null || echo 1)"
     pct=$(( cur_b * 100 / max_b ))
     if (( pct > 45 )); then
-      echo "$cur_b" > /tmp/.prev_screen_brightness 2>/dev/null || true
+      if [[ ! -f /tmp/.prev_screen_brightness ]]; then
+        echo "$cur_b" > /tmp/.prev_screen_brightness 2>/dev/null || true
+      fi
       brightnessctl set 35% >/dev/null 2>&1 || true
       echo "  ✓ Màn hình: Giảm độ sáng về 35%"
     fi
@@ -386,18 +417,23 @@ _run_daemon() {
   echo "🔋 Eco Power Daemon đang chạy trong nền (tự động đảo chế độ khi cắm/rút sạc)..."
   local prev_ac=""
   while true; do
-    local cur_ac
-    cur_ac="$(cat /sys/class/power_supply/ADP0/online 2>/dev/null || echo "1")"
-    if [[ -n "$prev_ac" && "$cur_ac" != "$prev_ac" ]]; then
+    local cur_ac="0"
+    if _is_ac_online; then
+      cur_ac="1"
+    fi
+
+    if [[ "$cur_ac" != "$prev_ac" ]]; then
       if [[ "$cur_ac" == "0" ]]; then
         _notify "normal" "🔋 Đang dùng Pin" "Tự động kích hoạt Chế độ Siêu Tiết Kiệm (60Hz • No-Turbo)"
         _set_eco
-      elif [[ "$cur_ac" == "1" ]]; then
-        _notify "normal" "⚡ Đã cắm nguồn AC" "Tự động kích hoạt Chế độ Hiệu Năng (144Hz • Turbo • Balanced)"
+      else
+        if [[ -n "$prev_ac" ]]; then
+          _notify "normal" "⚡ Đã cắm nguồn AC" "Tự động kích hoạt Chế độ Hiệu Năng (144Hz • Turbo • Balanced)"
+        fi
         _set_normal
       fi
+      prev_ac="$cur_ac"
     fi
-    prev_ac="$cur_ac"
     sleep 3
   done
 }

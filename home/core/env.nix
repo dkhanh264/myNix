@@ -6,10 +6,9 @@
     TERMINAL = "kitty";
     WALLPAPER = "${config.home.homeDirectory}/Pictures/wallpapers/wallpaper.jpg";
 
-    # NVIDIA + Wayland + GPU Offloading
-    LIBVA_DRIVER_NAME = "nvidia";
-    __GLX_VENDOR_LIBRARY_NAME = "nvidia";
-    NVD_BACKEND = "direct";
+    # Hardware Video Acceleration & GPU Offload
+    # Intel iHD driver for efficient video decode on iGPU (keeps dGPU in D3cold 0W)
+    LIBVA_DRIVER_NAME = "iHD";
 
     # Dynamic GPU & Wayland Offloading for Chromium/Electron/Firefox
     ELECTRON_OZONE_PLATFORM_HINT = "auto";
