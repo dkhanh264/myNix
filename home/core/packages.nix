@@ -59,6 +59,7 @@
     obsidian
 
     (pkgs.callPackage ../../pkgs/davinci-resolve { })
+    (pkgs.callPackage ../../pkgs/eco { })
 
     # dev
     jdk21

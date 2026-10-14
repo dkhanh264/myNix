@@ -25,4 +25,8 @@
     XMODIFIERS = "@im=fcitx";
     INPUT_METHOD = "fcitx";
   };
+
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.local/bin"
+  ];
 }

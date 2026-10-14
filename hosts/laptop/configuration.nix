@@ -252,6 +252,14 @@
   # Intelligent thermal and power management for Intel CPU
   services.thermald.enable = true;
 
+  # Cho phép người dùng chỉnh chế độ Sạc nhánh (Lenovo Conservation Mode) không cần mật khẩu root
+  systemd.tmpfiles.rules = [
+    "z /sys/bus/platform/drivers/ideapad_acpi/*/conservation_mode 0666 root users -"
+  ];
+  services.udev.extraRules = ''
+    ACTION=="add|change", SUBSYSTEM=="platform", DRIVERS=="ideapad_acpi", ATTR{conservation_mode}!="", RUN+="${pkgs.coreutils}/bin/chmod 0666 /sys%p/conservation_mode"
+  '';
+
   # ── Audio — PipeWire ───────────────────────────────────────────────────
   services.pipewire = {
     enable = true;
