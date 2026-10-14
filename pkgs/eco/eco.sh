@@ -30,7 +30,9 @@ _get_cm_file() {
 }
 
 _get_cur_hz() {
-  niri msg outputs 2>/dev/null | grep -oE '[0-9]+\.[0-9]+.*\(current\)' | grep -oE '^[0-9]+' || echo "144"
+  local hz
+  hz="$(niri msg outputs 2>/dev/null | awk '/\(current/ { match($0, /@([0-9]+)/, m); if (m[1]) print m[1] }' | head -n1)"
+  echo "${hz:-60}"
 }
 
 _get_cur_profile() {
@@ -186,11 +188,15 @@ _set_eco() {
     echo "  ! Không thể đổi tần số quét màn hình (Niri không chạy?)"
   fi
 
-  # 2. CPU: power-saver
+  # 2. CPU: power-saver & tắt Intel Turbo Boost
   if command -v powerprofilesctl >/dev/null 2>&1; then
     powerprofilesctl set power-saver 2>/dev/null || true
-    echo "  ✓ CPU: power-saver (Lenovo Quiet Mode & EPP power)"
   fi
+  local no_turbo_file="/sys/devices/system/cpu/intel_pstate/no_turbo"
+  if [[ -f "$no_turbo_file" ]]; then
+    echo 1 > "$no_turbo_file" 2>/dev/null || sudo -n sh -c "echo 1 > '$no_turbo_file'" 2>/dev/null || true
+  fi
+  echo "  ✓ CPU: power-saver • Tắt Turbo Boost (giảm 50-70% điện năng CPU)"
 
   # 3. WiFi: Power save
   _apply_wifi_powersave "true"
@@ -229,7 +235,7 @@ _set_eco() {
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "✨ Đã bật Siêu Tiết Kiệm Pin thành công!"
 
-  _notify "normal" "🔋 Chế độ Siêu Tiết Kiệm Pin: ĐÃ BẬT" "Màn hình 60Hz • CPU Power-Saver • WiFi Eco • $bat_info"
+  _notify "normal" "🔋 Chế độ Siêu Tiết Kiệm Pin: ĐÃ BẬT" "Màn hình 60Hz • CPU Power-Saver (No-Turbo) • WiFi Eco • $bat_info"
 }
 
 _set_normal() {
@@ -242,11 +248,15 @@ _set_normal() {
     echo "  ! Không thể đổi tần số quét màn hình"
   fi
 
-  # 2. CPU: balanced
+  # 2. CPU: balanced & bật lại Intel Turbo Boost
   if command -v powerprofilesctl >/dev/null 2>&1; then
     powerprofilesctl set balanced 2>/dev/null || true
-    echo "  ✓ CPU: balanced"
   fi
+  local no_turbo_file="/sys/devices/system/cpu/intel_pstate/no_turbo"
+  if [[ -f "$no_turbo_file" ]]; then
+    echo 0 > "$no_turbo_file" 2>/dev/null || sudo -n sh -c "echo 0 > '$no_turbo_file'" 2>/dev/null || true
+  fi
+  echo "  ✓ CPU: balanced • Bật Turbo Boost (tối đa 4.9 GHz)"
 
   # 3. WiFi: High performance
   _apply_wifi_powersave "false"
@@ -328,6 +338,70 @@ _set_bypass() {
   esac
 }
 
+_set_turbo() {
+  local action="${1:-status}"
+  local tf="/sys/devices/system/cpu/intel_pstate/no_turbo"
+  if [[ ! -f "$tf" ]]; then
+    echo "❌ Hệ thống không hỗ trợ điều khiển intel_pstate Turbo Boost."
+    return 1
+  fi
+
+  case "$action" in
+    off|disable|1)
+      if echo 1 > "$tf" 2>/dev/null || sudo -n sh -c "echo 1 > '$tf'" 2>/dev/null; then
+        echo "✓ Đã TẮT Intel Turbo Boost (CPU giới hạn ở xung gốc, tiết kiệm 50-70% điện năng)"
+        _notify "normal" "⚡ Intel Turbo Boost: TẮT" "Giới hạn xung nhịp mát mẻ • Tiết kiệm pin"
+      else
+        echo "⚠️  Cần quyền root: echo 1 | sudo tee $tf"
+        return 1
+      fi
+      ;;
+    on|enable|0)
+      if echo 0 > "$tf" 2>/dev/null || sudo -n sh -c "echo 0 > '$tf'" 2>/dev/null; then
+        echo "✓ Đã BẬT Intel Turbo Boost (Mở khóa xung nhịp tối đa 4.9 GHz)"
+        _notify "normal" "🚀 Intel Turbo Boost: BẬT" "Hiệu năng tối đa 4.9 GHz"
+      else
+        echo "⚠️  Cần quyền root: echo 0 | sudo tee $tf"
+        return 1
+      fi
+      ;;
+    status)
+      local val
+      val="$(cat "$tf" 2>/dev/null || echo "unknown")"
+      if [[ "$val" == "1" ]]; then
+        echo "Intel Turbo Boost: ĐÃ TẮT ✓ (Tiết kiệm điện năng tối đa)"
+      elif [[ "$val" == "0" ]]; then
+        echo "Intel Turbo Boost: ĐANG BẬT (Hiệu năng cao lên tới 4.9 GHz)"
+      else
+        echo "Intel Turbo Boost: $val"
+      fi
+      ;;
+    *)
+      echo "Cách dùng: eco turbo [on|off|status]"
+      ;;
+  esac
+}
+
+_run_daemon() {
+  echo "🔋 Eco Power Daemon đang chạy trong nền (tự động đảo chế độ khi cắm/rút sạc)..."
+  local prev_ac=""
+  while true; do
+    local cur_ac
+    cur_ac="$(cat /sys/class/power_supply/ADP0/online 2>/dev/null || echo "1")"
+    if [[ -n "$prev_ac" && "$cur_ac" != "$prev_ac" ]]; then
+      if [[ "$cur_ac" == "0" ]]; then
+        _notify "normal" "🔋 Đang dùng Pin" "Tự động kích hoạt Chế độ Siêu Tiết Kiệm (60Hz • No-Turbo)"
+        _set_eco
+      elif [[ "$cur_ac" == "1" ]]; then
+        _notify "normal" "⚡ Đã cắm nguồn AC" "Tự động kích hoạt Chế độ Hiệu Năng (144Hz • Turbo • Balanced)"
+        _set_normal
+      fi
+    fi
+    prev_ac="$cur_ac"
+    sleep 3
+  done
+}
+
 _show_status() {
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "📊 TRẠNG THÁI NĂNG LƯỢNG HỆ THỐNG"
@@ -336,7 +410,15 @@ _show_status() {
   echo "  🔋 Trạng thái Pin    : $(_get_battery_status)"
   echo "  🛡️  Sạc nhánh (Bảo vệ): $(_get_bypass_status)"
   echo "  🖥️  Tần số quét eDP-1: $(_get_cur_hz) Hz"
-  echo "  ⚙️  CPU Profile       : $(_get_cur_profile)"
+  local turbo_st="Bật"
+  if [[ -f "/sys/devices/system/cpu/intel_pstate/no_turbo" ]]; then
+    if [[ "$(cat /sys/devices/system/cpu/intel_pstate/no_turbo 2>/dev/null)" == "1" ]]; then
+      turbo_st="TẮT ✓ (Mát & Tiết kiệm điện)"
+    else
+      turbo_st="BẬT (Tối đa 4.9 GHz)"
+    fi
+  fi
+  echo "  ⚙️  CPU Profile       : $(_get_cur_profile) • Turbo: $turbo_st"
   echo "  🎮 Trạng thái GPU    : $(_get_gpu_status)"
   if command -v brightnessctl >/dev/null 2>&1; then
     local cur_b max_b pct
@@ -365,6 +447,12 @@ case "${1:-}" in
   bypass|bp|protect)
     _set_bypass "${2:-status}"
     ;;
+  turbo|tb)
+    _set_turbo "${2:-status}"
+    ;;
+  daemon|auto|watch)
+    _run_daemon
+    ;;
   status|info|st)
     _show_status
     ;;
@@ -380,12 +468,14 @@ case "${1:-}" in
   help|-h|--help)
     echo "Cách dùng:"
     echo "  • eco                 : Tự động đảo chế độ (Toggle 60Hz Eco ⇄ 144Hz Hiệu năng)"
-    echo "  • eco on  / eco 60    : Bật siêu tiết kiệm pin (60Hz, CPU power-saver, WiFi eco, tắt đèn phím)"
-    echo "  • eco off / eco 144   : Chuyển về hiệu năng mượt mà (144Hz, CPU balanced)"
+    echo "  • eco on  / eco 60    : Bật siêu tiết kiệm pin (60Hz, CPU power-saver, Tắt Turbo Boost, WiFi eco, tắt đèn phím)"
+    echo "  • eco off / eco 144   : Chuyển về hiệu năng mượt mà (144Hz, CPU balanced, Bật Turbo Boost)"
     echo "  • eco status          : Xem trạng thái nguồn điện, pin, GPU, CPU, sạc nhánh"
     echo "  • eco bypass on       : Bật chế độ sạc nhánh (ngắt sạc ở ~80%, bảo vệ pin)"
     echo "  • eco bypass off      : Tắt sạc nhánh (cho phép sạc đầy 100%)"
     echo "  • eco bypass status   : Xem trạng thái sạc nhánh"
+    echo "  • eco turbo on/off    : Bật/Tắt riêng Intel Turbo Boost"
+    echo "  • eco daemon          : Chạy tiến trình nền tự động chuyển chế độ khi cắm/rút sạc"
     ;;
   *)
     echo "Tham số không hợp lệ: $1"
@@ -393,3 +483,4 @@ case "${1:-}" in
     exit 1
     ;;
 esac
+

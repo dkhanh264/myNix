@@ -31,10 +31,12 @@
     options iwlwifi power_save=1
     options iwlmvm power_scheme=3
     options snd_hda_intel power_save=1 power_save_controller=Y
+    options snd_soc_sof power_save=1
   '';
 
   boot.kernelParams = [
     "pcie_aspm=force"
+    "nvme_core.default_ps_max_latency_us=0" # Cho phép NVMe SSD vào trạng thái tiết kiệm điện sâu nhất (APST)
   ];
 
   boot.lanzaboote = {
@@ -238,6 +240,11 @@
     "vm.swappiness" = 60; # RAM first, zRAM under memory pressure
     "vm.page-cluster" = 0; # Optimize single-page compression/decompression for zRAM
     "vm.max_map_count" = 1048576; # Max mmap limit for JVM, Android Studio, IDEs, and Electron
+
+    # Tối ưu hóa năng lượng: giảm số lần đánh thức CPU & ổ đĩa SSD
+    "kernel.nmi_watchdog" = 0; # Tắt ngắt NMI định kỳ để CPU đạt Package C-states sâu
+    "vm.dirty_writeback_centisecs" = 1500; # 15s ghi đĩa định kỳ thay vì 5s, để NVMe SSD ở chế độ ngủ (APST)
+    "vm.laptop_mode" = 5; # Tối ưu hóa I/O caching khi dùng pin
   };
 
   services.fstrim.enable = true;
@@ -252,13 +259,26 @@
   # Intelligent thermal and power management for Intel CPU
   services.thermald.enable = true;
 
-  # Cho phép người dùng chỉnh chế độ Sạc nhánh (Lenovo Conservation Mode) không cần mật khẩu root
+  # Quyền hạn điều khiển phần cứng không cần root:
+  # 1. Sạc nhánh Lenovo (Conservation Mode)
+  # 2. Bật/Tắt Intel Turbo Boost (tiết kiệm điện CPU i7-13650HX)
   systemd.tmpfiles.rules = [
     "z /sys/bus/platform/drivers/ideapad_acpi/*/conservation_mode 0666 root users -"
+    "z /sys/devices/system/cpu/intel_pstate/no_turbo 0666 root users -"
   ];
+
   services.udev.extraRules = ''
     ACTION=="add|change", SUBSYSTEM=="platform", DRIVERS=="ideapad_acpi", ATTR{conservation_mode}!="", RUN+="${pkgs.coreutils}/bin/chmod 0666 /sys%p/conservation_mode"
+    # Autosuspend cho các thiết bị USB rảnh rỗi (ngoại trừ chuột & bàn phím HID để tránh lag)
+    ACTION=="add", SUBSYSTEM=="usb", ATTR{power/control}=="*", ATTR{bInterfaceClass}!="03", ATTR{power/control}="auto"
   '';
+
+  # Tiết kiệm pin tối đa khi gập máy laptop
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend";
+    HandleLidSwitchExternalPower = "suspend";
+    HandleLidSwitchDocked = "ignore";
+  };
 
   # ── Audio — PipeWire ───────────────────────────────────────────────────
   services.pipewire = {

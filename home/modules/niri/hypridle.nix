@@ -10,21 +10,26 @@
       };
 
       listener = [
-        # Dim screen brightness after 3 minutes (180s)
+        # Dim screen brightness after 2 minutes (120s)
         {
-          timeout = 180;
+          timeout = 120;
           on-timeout = "${pkgs.brightnessctl}/bin/brightnessctl -s set 10";
           on-resume = "${pkgs.brightnessctl}/bin/brightnessctl -r";
         }
-        # Lock screen after 5 minutes (300s)
+        # Lock screen after 4 minutes (240s)
         {
-          timeout = 300;
+          timeout = 240;
           on-timeout = "loginctl lock-session";
         }
-        # Turn off monitors after 10 minutes (600s)
+        # Turn off monitors after 6 minutes (360s)
         {
-          timeout = 600;
+          timeout = 360;
           on-timeout = "niri msg action power-off-monitors";
+        }
+        # Tự động ngủ sâu (Suspend) sau 15 phút (900s) không sử dụng để bảo toàn pin
+        {
+          timeout = 900;
+          on-timeout = "systemctl suspend";
         }
       ];
     };
