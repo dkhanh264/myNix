@@ -36,7 +36,10 @@
 
   boot.kernelParams = [
     "pcie_aspm=force"
+    "pcie_aspm.policy=powersupersave"
     "nvme_core.default_ps_max_latency_us=0" # Cho phép NVMe SSD vào trạng thái tiết kiệm điện sâu nhất (APST)
+    "i915.enable_fbc=1" # Frame Buffer Compression cho Intel iGPU
+    "i915.enable_psr=1" # Panel Self Refresh cho màn hình laptop
   ];
 
   boot.lanzaboote = {
@@ -273,15 +276,22 @@
   # Quyền hạn điều khiển phần cứng không cần root:
   # 1. Sạc nhánh Lenovo (Conservation Mode)
   # 2. Bật/Tắt Intel Turbo Boost (tiết kiệm điện CPU i7-13650HX)
+  # 3. Giới hạn xung nhịp tối đa max_perf_pct khi dùng pin
+  # 4. Chính sách tiết kiệm điện PCIe ASPM & Runtime PM
   systemd.tmpfiles.rules = [
     "z /sys/bus/platform/drivers/ideapad_acpi/*/conservation_mode 0666 root users -"
     "z /sys/devices/system/cpu/intel_pstate/no_turbo 0666 root users -"
+    "z /sys/devices/system/cpu/intel_pstate/max_perf_pct 0666 root users -"
+    "z /sys/module/pcie_aspm/parameters/policy 0666 root users -"
+    "z /sys/bus/pci/devices/*/power/control 0666 root users -"
   ];
 
   services.udev.extraRules = ''
     ACTION=="add|change", SUBSYSTEM=="platform", DRIVERS=="ideapad_acpi", ATTR{conservation_mode}!="", RUN+="${pkgs.coreutils}/bin/chmod 0666 /sys%p/conservation_mode"
     # Autosuspend cho các thiết bị USB rảnh rỗi (ngoại trừ chuột & bàn phím HID để tránh lag)
     ACTION=="add", SUBSYSTEM=="usb", ATTR{power/control}=="*", ATTR{bInterfaceClass}!="03", ATTR{power/control}="auto"
+    # Runtime Power Management cho tất cả thiết bị PCI (Ethernet Realtek, NVMe SSD, WiFi...)
+    ACTION=="add", SUBSYSTEM=="pci", ATTR{power/control}="auto"
   '';
 
   # Tiết kiệm pin tối đa khi gập máy laptop

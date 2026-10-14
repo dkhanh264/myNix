@@ -142,20 +142,18 @@ in
 {
   programs.btop = {
     enable = true;
-    package = pkgs.btop.override { cudaSupport = true; };
+    package = pkgs.btop;
     settings = {
       color_theme = "matugen";
       theme_background = false;
       truecolor = true;
       graph_symbol = "braille";
-      update_ms = 1000;
-      shown_boxes = "cpu mem net proc gpu0";
-      show_gpu_info = "Auto";
-      selected_gpu = "Auto";
+      update_ms = 2000;
+      shown_boxes = "cpu mem net proc";
+      show_gpu_info = "Off";
       show_battery = true;
       show_battery_watts = true;
       check_temp = true;
-      gpu_mirror_graph = true;
     };
   };
 

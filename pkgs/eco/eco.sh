@@ -173,7 +173,24 @@ _get_gpu_status() {
         echo "RTX 4060: D3cold (đang ngủ, 0W) ✓"
         ;;
       active)
-        echo "RTX 4060: Active (đang thức)"
+        local blockers=""
+        local p
+        for p in $(pgrep -u "$USER" 2>/dev/null || true); do
+          if [[ "$p" != "$$" ]]; then
+            local pcomm
+            pcomm="$(cat /proc/$p/comm 2>/dev/null || true)"
+            if [[ "$pcomm" != "niri" && "$pcomm" != "eco" && "$pcomm" != "systemd" && -n "$pcomm" ]]; then
+              if ls -l /proc/$p/fd 2>/dev/null | grep -q -E "nvidiactl|nvidia0|nvidia-uvm|dri/renderD129"; then
+                blockers="${blockers:+$blockers, }$pcomm (PID $p)"
+              fi
+            fi
+          fi
+        done
+        if [[ -n "$blockers" ]]; then
+          echo "RTX 4060: Active (đang thức do: $blockers)"
+        else
+          echo "RTX 4060: Active (đang thức)"
+        fi
         ;;
       *)
         echo "RTX 4060: $st"
@@ -217,21 +234,44 @@ _set_eco() {
     echo "  ! Không thể đổi tần số quét màn hình (Niri không chạy?)"
   fi
 
-  # 2. CPU: power-saver & tắt Intel Turbo Boost
+  # 2. CPU: power-saver & tắt Intel Turbo Boost & giới hạn 60% xung nhịp tối đa
   if command -v powerprofilesctl >/dev/null 2>&1; then
     powerprofilesctl set power-saver 2>/dev/null || true
   fi
   local no_turbo_file="/sys/devices/system/cpu/intel_pstate/no_turbo"
   if [[ -f "$no_turbo_file" ]]; then
-    echo 1 > "$no_turbo_file" 2>/dev/null || sudo -n sh -c "echo 1 > '$no_turbo_file'" 2>/dev/null || true
+    { echo 1 > "$no_turbo_file"; } 2>/dev/null || sudo -n sh -c "echo 1 > '$no_turbo_file'" 2>/dev/null || true
   fi
-  echo "  ✓ CPU: power-saver • Tắt Turbo Boost (giảm 50-70% điện năng CPU)"
+  local max_perf_file="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+  if [[ -f "$max_perf_file" ]]; then
+    { echo 60 > "$max_perf_file"; } 2>/dev/null || sudo -n sh -c "echo 60 > '$max_perf_file'" 2>/dev/null || true
+  fi
+  echo "  ✓ CPU: power-saver • Tắt Turbo Boost & giới hạn 60% P-state (giảm triệt để điện năng CPU HX)"
 
-  # 3. WiFi: Power save
+  # 3. PCIe: Tiết kiệm điện sâu nhất (powersupersave & autosuspend toàn hệ thống)
+  local aspm="/sys/module/pcie_aspm/parameters/policy"
+  if [[ -f "$aspm" ]]; then
+    { echo powersupersave > "$aspm"; } 2>/dev/null || sudo -n sh -c "echo powersupersave > '$aspm'" 2>/dev/null || true
+  fi
+  local pci_dev
+  for pci_dev in /sys/bus/pci/devices/*/power/control; do
+    if [[ -f "$pci_dev" ]]; then
+      { echo auto > "$pci_dev"; } 2>/dev/null || true
+    fi
+  done
+  echo "  ✓ PCIe: Kích hoạt powersupersave & Runtime PM (NVMe, WiFi, Realtek, Chipset)"
+
+  # 4. GPU: Đảm bảo runtime power management của dGPU là auto
+  local nvd_pm="/sys/bus/pci/devices/0000:01:00.0/power/control"
+  if [[ -f "$nvd_pm" ]]; then
+    { echo auto > "$nvd_pm"; } 2>/dev/null || true
+  fi
+
+  # 5. WiFi: Power save
   _apply_wifi_powersave "true"
   echo "  ✓ WiFi: Kích hoạt 802.11 Power Saving"
 
-  # 4. Đèn bàn phím & Giảm độ sáng
+  # 6. Đèn bàn phím & Giảm độ sáng
   if command -v brightnessctl >/dev/null 2>&1; then
     brightnessctl --device='platform::kbd_backlight' set 0 >/dev/null 2>&1 || true
     echo "  ✓ Bàn phím: Tắt đèn LED nền"
@@ -249,7 +289,7 @@ _set_eco() {
     fi
   fi
 
-  # 5. Bluetooth: Tắt nếu không kết nối thiết bị nào
+  # 7. Bluetooth: Tắt nếu không kết nối thiết bị nào
   if command -v bluetoothctl >/dev/null 2>&1; then
     local bt_devs
     bt_devs="$(bluetoothctl devices Connected 2>/dev/null || true)"
@@ -259,14 +299,16 @@ _set_eco() {
     fi
   fi
 
-  echo "  • GPU: $(_get_gpu_status)"
+  local gpu_st
+  gpu_st="$(_get_gpu_status)"
+  echo "  • GPU: $gpu_st"
   local bat_info
   bat_info="$(_get_battery_status)"
   echo "  🔋 $bat_info"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "✨ Đã bật Siêu Tiết Kiệm Pin thành công!"
 
-  _notify "normal" "🔋 Chế độ Siêu Tiết Kiệm Pin: ĐÃ BẬT" "Màn hình 60Hz • CPU Power-Saver (No-Turbo) • WiFi Eco • $bat_info"
+  _notify "normal" "🔋 Chế độ Siêu Tiết Kiệm Pin: ĐÃ BẬT" "Màn hình 60Hz • CPU Power-Saver • $gpu_st • $bat_info"
 }
 
 _set_normal() {
@@ -279,21 +321,31 @@ _set_normal() {
     echo "  ! Không thể đổi tần số quét màn hình"
   fi
 
-  # 2. CPU: balanced & bật lại Intel Turbo Boost
+  # 2. CPU: balanced & bật lại Intel Turbo Boost & 100% xung nhịp
   if command -v powerprofilesctl >/dev/null 2>&1; then
     powerprofilesctl set balanced 2>/dev/null || true
   fi
   local no_turbo_file="/sys/devices/system/cpu/intel_pstate/no_turbo"
   if [[ -f "$no_turbo_file" ]]; then
-    echo 0 > "$no_turbo_file" 2>/dev/null || sudo -n sh -c "echo 0 > '$no_turbo_file'" 2>/dev/null || true
+    { echo 0 > "$no_turbo_file"; } 2>/dev/null || sudo -n sh -c "echo 0 > '$no_turbo_file'" 2>/dev/null || true
   fi
-  echo "  ✓ CPU: balanced • Bật Turbo Boost (tối đa 4.9 GHz)"
+  local max_perf_file="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+  if [[ -f "$max_perf_file" ]]; then
+    { echo 100 > "$max_perf_file"; } 2>/dev/null || sudo -n sh -c "echo 100 > '$max_perf_file'" 2>/dev/null || true
+  fi
+  echo "  ✓ CPU: balanced • Bật Turbo Boost & 100% P-state (tối đa 4.9 GHz)"
 
-  # 3. WiFi: High performance
+  # 3. PCIe: Khôi phục chính sách mặc định
+  local aspm="/sys/module/pcie_aspm/parameters/policy"
+  if [[ -f "$aspm" ]]; then
+    { echo default > "$aspm"; } 2>/dev/null || sudo -n sh -c "echo default > '$aspm'" 2>/dev/null || true
+  fi
+
+  # 4. WiFi: High performance
   _apply_wifi_powersave "false"
   echo "  ✓ WiFi: Tối đa băng thông & độ trễ thấp"
 
-  # 4. Phục hồi độ sáng màn hình
+  # 5. Phục hồi độ sáng màn hình
   if command -v brightnessctl >/dev/null 2>&1; then
     if [[ -f /tmp/.prev_screen_brightness ]]; then
       local prev_b
@@ -306,7 +358,7 @@ _set_normal() {
     fi
   fi
 
-  # 5. Phục hồi Bluetooth
+  # 6. Phục hồi Bluetooth
   if command -v bluetoothctl >/dev/null 2>&1; then
     bluetoothctl power on >/dev/null 2>&1 || true
   fi
@@ -454,8 +506,17 @@ _show_status() {
       turbo_st="BẬT (Tối đa 4.9 GHz)"
     fi
   fi
-  echo "  ⚙️  CPU Profile       : $(_get_cur_profile) • Turbo: $turbo_st"
+  local max_perf_info=""
+  if [[ -f "/sys/devices/system/cpu/intel_pstate/max_perf_pct" ]]; then
+    max_perf_info=" • Cap: $(cat /sys/devices/system/cpu/intel_pstate/max_perf_pct 2>/dev/null)%"
+  fi
+  echo "  ⚙️  CPU Profile       : $(_get_cur_profile) • Turbo: $turbo_st$max_perf_info"
   echo "  🎮 Trạng thái GPU    : $(_get_gpu_status)"
+  local aspm_st="default"
+  if [[ -f "/sys/module/pcie_aspm/parameters/policy" ]]; then
+    aspm_st="$(cat /sys/module/pcie_aspm/parameters/policy 2>/dev/null | grep -o '\[[a-z]*\]' | tr -d '[]' || echo "default")"
+  fi
+  echo "  ⚡ PCIe ASPM Policy  : $aspm_st"
   if command -v brightnessctl >/dev/null 2>&1; then
     local cur_b max_b pct
     cur_b="$(brightnessctl g 2>/dev/null || echo 0)"
