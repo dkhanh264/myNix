@@ -36,10 +36,10 @@ _:
         pin       = "eco status";
         cap       = "eco cap";
 
-        # Monitor rotation (Màn hình rời HDMI-A-1)
-        rot90     = "niri msg output HDMI-A-1 transform 90";
-        rot0      = "niri msg output HDMI-A-1 transform normal";
-        rotnormal = "niri msg output HDMI-A-1 transform normal";
+        # Monitor rotation (Màn hình rời DP-1 / HDMI-A-1 tự động)
+        rot90     = "rotate-ext 90";
+        rot0      = "rotate-ext normal";
+        rotnormal = "rotate-ext normal";
         rot       = "rotate-ext";
         xoay      = "rotate-ext";
 
@@ -74,26 +74,33 @@ _:
           fi
         }
 
-        # Xoay màn hình rời (HDMI-A-1) hoặc tự động toggle giữa ngang và dọc
+        # Xoay màn hình rời (tự động nhận diện DP-1 hoặc HDMI-A-1) hoặc tự động toggle giữa ngang và dọc
         rotate-ext() {
+          local ext_out
+          ext_out="$(niri msg outputs 2>/dev/null | grep -oE '\((DP-[0-9]+|HDMI-A-[0-9]+)\)' | tr -d '()' | head -n1)"
+          if [[ -z "$ext_out" ]]; then
+            echo "Lỗi: Không tìm thấy màn hình rời đang kết nối (DP hoặc HDMI)"
+            return 1
+          fi
+
           case "$1" in
             90)
-              niri msg output HDMI-A-1 transform 90 && echo "Màn hình rời (HDMI-A-1): 90° (xoay dọc ngược chiều kim đồng hồ)"
+              niri msg output "$ext_out" transform 90 && echo "Màn hình rời ($ext_out): 90° (xoay dọc ngược chiều kim đồng hồ)"
               ;;
             0|normal)
-              niri msg output HDMI-A-1 transform normal && echo "Màn hình rời (HDMI-A-1): Bình thường (ngang)"
+              niri msg output "$ext_out" transform normal && echo "Màn hình rời ($ext_out): Bình thường (ngang)"
               ;;
             270)
-              niri msg output HDMI-A-1 transform 270 && echo "Màn hình rời (HDMI-A-1): 270° (xoay dọc theo chiều kim đồng hồ)"
+              niri msg output "$ext_out" transform 270 && echo "Màn hình rời ($ext_out): 270° (xoay dọc theo chiều kim đồng hồ)"
               ;;
             180)
-              niri msg output HDMI-A-1 transform 180 && echo "Màn hình rời (HDMI-A-1): 180°"
+              niri msg output "$ext_out" transform 180 && echo "Màn hình rời ($ext_out): 180°"
               ;;
             "")
-              if niri msg outputs | grep -A 10 'HDMI-A-1' | grep -q 'Transform: normal'; then
-                niri msg output HDMI-A-1 transform 90 && echo "Chuyển màn hình rời sang: Dọc (90° ngược chiều kim đồng hồ)"
+              if niri msg outputs | grep -A 10 "$ext_out" | grep -q 'Transform: normal'; then
+                niri msg output "$ext_out" transform 90 && echo "Chuyển màn hình rời ($ext_out) sang: Dọc (90° ngược chiều kim đồng hồ)"
               else
-                niri msg output HDMI-A-1 transform normal && echo "Chuyển màn hình rời sang: Ngang (bình thường)"
+                niri msg output "$ext_out" transform normal && echo "Chuyển màn hình rời ($ext_out) sang: Ngang (bình thường)"
               fi
               ;;
             *)

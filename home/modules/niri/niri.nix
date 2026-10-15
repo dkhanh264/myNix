@@ -47,13 +47,23 @@
     output "eDP-1" {
         mode "1920x1080@144.003"
         scale 1.0
+        position x=0 y=0
         variable-refresh-rate on-demand=true
     }
 
-    // External display (HDMI-A-1)
+    // External display via DisplayPort (DP-1) - LG UltraGear
+    output "DP-1" {
+        mode "1920x1080@179.961"
+        scale 1.0
+        position x=1920 y=0
+        variable-refresh-rate
+    }
+
+    // External display fallback via HDMI (HDMI-A-1)
     output "HDMI-A-1" {
         mode "1920x1080@179.961"
         scale 1.0
+        position x=1920 y=0
     }
 
     // Disable Client-Side Decorations globally
