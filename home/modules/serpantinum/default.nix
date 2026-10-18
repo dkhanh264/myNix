@@ -39,19 +39,6 @@ let
             }
         }'
 
-      substituteInPlace src/quickshell/bar/faces/workspaces/SideWorkspacesFace.qml \
-        --replace-fail '        if (isNiri) {
-            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
-        }' \
-'        if (isNiri) {
-            let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
-            if (sName !== "") {
-                Quickshell.execDetached(["bash", "-c", "niri msg action focus-monitor \"" + sName + "\" && niri msg action focus-workspace " + wsId]);
-            } else {
-                Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
-            }
-        }'
-
       # 5. Add btop theme template to Matugen and reload btop on theme change
       cat << 'EOF' > src/assets/matugen/templates/btop.theme.template
 # Matugen generated theme for btop
