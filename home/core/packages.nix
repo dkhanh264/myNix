@@ -64,6 +64,7 @@
 
     # dev
     jdk21
+    reqable
     gradle
     nodejs_22
     codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
