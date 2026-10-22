@@ -375,9 +375,6 @@
   };
   services.blueman.enable = true;
 
-  # ── Docker (SQL Server dev container, etc.) ────────────────────────────
-  virtualisation.docker.enable = true;
-
   # ── User Account ───────────────────────────────────────────────────────
   users.users.dk = {
     isNormalUser = true;
@@ -390,7 +387,6 @@
       "audio"
       "input"
       "kvm"
-      "docker"
     ];
 
     shell = pkgs.zsh;

@@ -1,13 +1,10 @@
-{ pkgs, ... }:
+_:
 
 {
   imports = [
     ./git.nix
     ./nixvim.nix
   ];
-
-  # SQL GUI client (DBeaver Community)
-  home.packages = [ pkgs.dbeaver-bin ];
 
   programs.vscode = {
     enable = true;
