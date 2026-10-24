@@ -116,7 +116,7 @@
 
     prime = {
       # Chế độ Offload: Các tác vụ thông thường (Niri, Web, Notes) chạy trên Intel iGPU tiết kiệm pin tối đa.
-      # Khi cần game/đồ họa nặng (Steam, DaVinci), chỉ cần chạy qua lệnh: nvidia-offload <app>
+      # Khi cần ứng dụng/đồ họa nặng (DaVinci), chỉ cần chạy qua lệnh: nvidia-offload <app>
       offload = {
         enable = true;
         enableOffloadCmd = true;
@@ -154,24 +154,6 @@
   programs.niri.enable = true;
   programs.serpantinum.enable = true;
 
-  # ── Steam & Gaming ─────────────────────────────────────────────────────
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
-    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
-    localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
-    extraCompatPackages = with pkgs; [
-      proton-ge-bin
-    ];
-    protontricks.enable = true;
-    extest.enable = true;
-  };
-
-  programs.gamemode.enable = true;
-  programs.gamescope = {
-    enable = true;
-    capSysNice = true;
-  };
 
   # ── XDG Desktop Portal (File chooser, Screencast, etc.) ────────────────
   xdg.portal = {
@@ -435,7 +417,6 @@
     })
     xwayland-satellite
     hyprlock
-    mangohud
   ];
 
   environment.sessionVariables = {
