@@ -58,6 +58,7 @@
     localsend
     zoom-us
     obsidian
+    dbeaver-bin
 
     (pkgs.callPackage ../../pkgs/davinci-resolve { })
     (pkgs.callPackage ../../pkgs/eco { })

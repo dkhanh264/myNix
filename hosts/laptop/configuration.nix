@@ -357,6 +357,9 @@
   };
   services.blueman.enable = true;
 
+  # ── Virtualisation ─────────────────────────────────────────────────────
+  virtualisation.docker.enable = true;
+
   # ── User Account ───────────────────────────────────────────────────────
   users.users.dk = {
     isNormalUser = true;
@@ -369,6 +372,7 @@
       "audio"
       "input"
       "kvm"
+      "docker"
     ];
 
     shell = pkgs.zsh;
