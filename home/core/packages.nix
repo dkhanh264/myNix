@@ -27,7 +27,6 @@
     # System tray & GUI tools
     nautilus
     mesa-demos
-    gnome-clocks
 
     # Media & Recording
     imv
@@ -47,7 +46,6 @@
     unzip
 
     # user apps
-    vesktop
     fastfetch
     nvtopPackages.nvidia
     jetbrains.idea
