@@ -46,6 +46,7 @@
     unzip
 
     # user apps
+    vesktop
     fastfetch
     nvtopPackages.nvidia
     jetbrains.idea
