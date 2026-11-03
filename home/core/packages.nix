@@ -63,6 +63,7 @@
     (pkgs.callPackage ../../pkgs/eco { })
 
     # dev
+    lazydocker
     jdk21
     reqable
     gradle
