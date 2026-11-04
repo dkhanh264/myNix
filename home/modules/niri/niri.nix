@@ -32,7 +32,7 @@
             accel-profile "flat"
         }
 
-        warp-mouse-to-focus
+        // warp-mouse-to-focus
         focus-follows-mouse
     }
 
@@ -84,6 +84,8 @@
         XCURSOR_SIZE "24"
         XCURSOR_THEME "aosp-cursors"
         QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
+        _JAVA_AWT_WM_NONREPARENTING "1"
+        IJ_JAVA_OPTIONS "-Dsun.awt.wl.Shadow=false -Dide.tree.expandable.items=false -Dide.list.expandable.items=false -Dide.table.expandable.items=false"
     }
 
     // Autostart services
@@ -184,6 +186,14 @@
     window-rule {
         match app-id=r#"brave"# title="^Picture-in-Picture$"
         open-floating true
+    }
+
+    // JetBrains IDEs: prevent untitled helper/tooltip JWindows from stealing focus
+    window-rule {
+        match app-id=r#"^jetbrains-.*$"# title="^$"
+        match app-id=r#"^jetbrains-.*$"# title="^win.*$"
+        open-floating true
+        open-focused false
     }
 
 
