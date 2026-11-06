@@ -65,6 +65,7 @@
     # dev
     lazydocker
     jdk21
+    python3
     reqable
     gradle
     nodejs_22
