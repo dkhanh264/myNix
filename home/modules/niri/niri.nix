@@ -234,6 +234,7 @@
         Mod+Shift+R { spawn "serpantinum" "reload"; }
 
         // Lock screen
+        Mod+L { spawn "serpantinum" "lock"; }
         Mod+Alt+L { spawn "serpantinum" "lock"; }
         Ctrl+Alt+L { spawn "serpantinum" "lock"; }
         XF86PowerOff { spawn "serpantinum" "lock"; }
@@ -267,7 +268,6 @@
         Mod+H     { focus-column-left; }
         Mod+J     { focus-window-down; }
         Mod+K     { focus-window-up; }
-        Mod+L     { focus-column-right; }
 
         // Moving Windows & Columns
         Mod+Ctrl+Left  { move-column-left; }
