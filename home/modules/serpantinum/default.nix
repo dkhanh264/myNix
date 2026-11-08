@@ -1,5 +1,36 @@
 { pkgs, lib, config, serpantinum, ... }:
 let
+  # Smart wrapper for gpu-screen-recorder on Hybrid Intel + NVIDIA PRIME Offload setups:
+  # Automatically enables NVIDIA Render Offload when the target monitor (-w <mon>) is connected to the NVIDIA dGPU (0x10de),
+  # while keeping Intel iGPU (VAAPI) for internal displays (eDP-1) to save battery.
+  gsrPrimeWrapper = pkgs.writeShellScriptBin "gpu-screen-recorder" ''
+    target_mon=""
+    prev=""
+    for arg in "$@"; do
+      if [ "$prev" = "-w" ]; then
+        target_mon="$arg"
+        break
+      fi
+      prev="$arg"
+    done
+
+    if [ -n "$target_mon" ]; then
+      for conn in /sys/class/drm/card*-"$target_mon"; do
+        if [ -r "$conn/status" ] && [ -r "$conn/../device/vendor" ]; then
+          if [ "$(< "$conn/status")" = "connected" ] && [ "$(< "$conn/../device/vendor")" = "0x10de" ]; then
+            export __NV_PRIME_RENDER_OFFLOAD=1
+            export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
+            export __GLX_VENDOR_LIBRARY_NAME=nvidia
+            export __VK_LAYER_NV_optimus=NVIDIA_only
+            break
+          fi
+        fi
+      done
+    fi
+
+    exec "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder" "$@"
+  '';
+
   patchedSerpantinum = serpantinum.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (oldAttrs: {
     postPatch = (oldAttrs.postPatch or "") + ''
       # 1. Fix missing getConfigDir in Caching.qml
@@ -227,8 +258,8 @@ EOF
     '';
 
     postFixup = (oldAttrs.postFixup or "") + ''
-      wrapProgram $out/bin/serpantinum --prefix PATH : ${lib.makeBinPath [ pkgs.niri pkgs.procps pkgs.psmisc ]}
-      wrapProgram $out/bin/serpantinumd --prefix PATH : ${lib.makeBinPath [ pkgs.niri pkgs.procps pkgs.psmisc ]}
+      wrapProgram $out/bin/.serpantinum-wrapped --prefix PATH : ${lib.makeBinPath [ gsrPrimeWrapper pkgs.niri pkgs.procps pkgs.psmisc ]}
+      wrapProgram $out/bin/.serpantinumd-wrapped --prefix PATH : ${lib.makeBinPath [ gsrPrimeWrapper pkgs.niri pkgs.procps pkgs.psmisc ]}
     '';
   });
 in
