@@ -8,8 +8,8 @@ in
     enable = true;
 
     # Theme cấu hình (có thể đổi sang theme khác như dracula, nord, sleek, text, v.v.)
-    theme = spicePkgs.themes.starryNight;
-    colorScheme = "Base";
+    theme = spicePkgs.themes.sleek;
+    colorScheme = "UltraBlack";
 
     # Các tiện ích mở rộng hữu ích
     enabledExtensions = with spicePkgs.extensions; [
