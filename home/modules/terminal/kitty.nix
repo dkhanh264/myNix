@@ -19,7 +19,7 @@ in
 {
   programs.kitty = {
     enable = true;
-    extraConfig = customizedKittyConf;
+    extraConfig = customizedKittyConf + "\ninclude themes/serpantinum.conf\n";
   };
 }
 

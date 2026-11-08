@@ -27,17 +27,15 @@ let
       # 4. Note: Dynamic workspace count & occupancy logic are handled upstream by NiriState singleton in serpantinum 2.2.6.
       # Fix Niri workspace click focus for multi-monitor setup
       substituteInPlace src/quickshell/bar/faces/workspaces/WorkspacesFace.qml \
-        --replace-fail '        if (isNiri) {
-            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
-        }' \
-'        if (isNiri) {
+        --replace-fail '        if (Compositor.name === "niri") {
+            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);' \
+'        if (Compositor.name === "niri") {
             let sName = (barWindow && barWindow.screen && barWindow.screen.name) ? barWindow.screen.name : "";
             if (sName !== "") {
                 Quickshell.execDetached(["bash", "-c", "niri msg action focus-monitor \"" + sName + "\" && niri msg action focus-workspace " + wsId]);
             } else {
                 Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", wsId.toString()]);
-            }
-        }'
+            }'
 
       # 5. Add btop theme template to Matugen and reload btop on theme change
       cat << 'EOF' > src/assets/matugen/templates/btop.theme.template
@@ -93,20 +91,16 @@ input_path = "templates/btop.theme.template"
 output_path = "~/.config/btop/themes/matugen.theme"
 EOF
 
-      cat << 'EOF' >> src/assets/matugen/config-static.toml
-
-[templates.btop]
-input_path = "templates/btop.theme.template"
-output_path = "~/.config/btop/themes/matugen.theme"
-EOF
+      substituteInPlace src/assets/matugen/apps/btop/app.json \
+        --replace-fail '"icon": "󰄪",' '"icon": "󰄪",
+  "default": true,' \
+        --replace-fail '"output": "$XDG_CONFIG_HOME/btop/themes/serpantinum.theme"' \
+                       '"output": "$XDG_CONFIG_HOME/btop/themes/matugen.theme"'
 
       substituteInPlace src/quickshell/singletons/theme/Matugen.qml \
-        --replace-fail 'killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true' \
-                       'killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true; killall -USR2 btop 2>/dev/null || pkill -SIGUSR2 -x btop 2>/dev/null || true'
-
-      substituteInPlace src/scripts/wallpaper/matugen_reload.sh \
-        --replace-fail 'killall -USR1 .kitty-wrapped' \
-                       'killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true; killall -USR2 btop 2>/dev/null || pkill -SIGUSR2 -x btop 2>/dev/null || true'
+        --replace-fail 'AppTheming.apply();' \
+                       'AppTheming.apply();
+                Quickshell.execDetached(["bash", "-c", "killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true; killall -USR2 btop 2>/dev/null || pkill -SIGUSR2 -x btop 2>/dev/null || true"]);'
 
       # 6. Support animated GIF wallpapers in WallpaperEngine.qml
       substituteInPlace src/quickshell/wallpaper/WallpaperEngine.qml \
@@ -147,21 +141,21 @@ EOF
                         barWindow.isAnimatedB = anim;
                         barWindow.activeLayer = 1;' \
         --replace-fail 'barWindow.stopB();
-                            barWindow.pathB = "";
-                            barWindow.isVideoB = false;
-                        } else {
-                            barWindow.stopA();
-                            barWindow.pathA = "";
-                            barWindow.isVideoA = false;' \
+                        barWindow.pathB = "";
+                        barWindow.isVideoB = false;
+                    } else {
+                        barWindow.stopA();
+                        barWindow.pathA = "";
+                        barWindow.isVideoA = false;' \
                        'barWindow.stopB();
-                            barWindow.pathB = "";
-                            barWindow.isVideoB = false;
-                            barWindow.isAnimatedB = false;
-                        } else {
-                            barWindow.stopA();
-                            barWindow.pathA = "";
-                            barWindow.isVideoA = false;
-                            barWindow.isAnimatedA = false;' \
+                        barWindow.pathB = "";
+                        barWindow.isVideoB = false;
+                        barWindow.isAnimatedB = false;
+                    } else {
+                        barWindow.stopA();
+                        barWindow.pathA = "";
+                        barWindow.isVideoA = false;
+                        barWindow.isAnimatedA = false;' \
         --replace-fail 'Image {
                             id: imgA
                             anchors.fill: parent
