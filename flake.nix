@@ -48,6 +48,11 @@
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    prismlauncher-cracked = {
+      url = "github:Diegiwg/PrismLauncher-Cracked";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -67,6 +72,7 @@
       niri,
       serpantinum,
       spicetify-nix,
+      prismlauncher-cracked,
       ...
     }@inputs:
     let
@@ -90,7 +96,13 @@
                 backupFileExtension = "backup";
 
                 extraSpecialArgs = {
-                  inherit codex-cli-nix antigravity-nix serpantinum inputs;
+                  inherit
+                    codex-cli-nix
+                    antigravity-nix
+                    prismlauncher-cracked
+                    serpantinum
+                    inputs
+                    ;
                   spicetify-nix = inputs.spicetify-nix;
                 };
 

@@ -2,6 +2,7 @@
   pkgs,
   codex-cli-nix,
   antigravity-nix,
+  prismlauncher-cracked,
   ...
 }:
 {
@@ -71,5 +72,6 @@
     nodejs_22
     codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
     antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-cli
+    prismlauncher-cracked.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 }
