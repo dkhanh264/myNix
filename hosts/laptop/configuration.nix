@@ -25,7 +25,7 @@
 
   # Extra module configurations
   boot.extraModprobeConfig = ''
-    options v4l2loopback devices=3 video_nr=2,3,4 card_label="Iriun Webcam","Iriun Cam 2","Iriun Cam 3" exclusive_caps=1,1,1
+    options v4l2loopback devices=3 video_nr=2,3,4 card_label="Iriun Webcam,Iriun Cam 2,Iriun Cam 3" exclusive_caps=1,1,1
 
     # Tối ưu hóa tiết kiệm pin cho WiFi & Audio
     options iwlwifi power_save=1
@@ -451,7 +451,7 @@
 
   boot.kernelModules = [ "v4l2loopback" ];
 
-  # Ensure extra v4l2loopback clone devices (/dev/video3, /dev/video4) exist immediately without reboot
+  # Ensure extra v4l2loopback clone devices (/dev/video3, /dev/video4) exist with clean labels
   systemd.services.v4l2loopback-extra-devices = {
     description = "Ensure extra Iriun Webcam v4l2loopback devices exist";
     wantedBy = [ "multi-user.target" ];
@@ -462,6 +462,12 @@
     };
     script = ''
       ctl="${config.boot.kernelPackages.v4l2loopback.bin}/bin/v4l2loopback-ctl"
+      if [ -f /sys/devices/virtual/video4linux/video3/name ] && grep -q '"' /sys/devices/virtual/video4linux/video3/name; then
+        "$ctl" delete /dev/video3 || true
+      fi
+      if [ -f /sys/devices/virtual/video4linux/video4/name ] && grep -q '"' /sys/devices/virtual/video4linux/video4/name; then
+        "$ctl" delete /dev/video4 || true
+      fi
       if [ ! -e /dev/video3 ]; then
         "$ctl" add -n "Iriun Cam 2" -x 1 /dev/video3 || true
       fi

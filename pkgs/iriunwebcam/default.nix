@@ -134,7 +134,7 @@ stdenv.mkDerivation rec {
       struct v4l2_capability cap;
       memset(&cap, 0, sizeof(cap));
       if (real_ioctl(fd, VIDIOC_QUERYCAP, &cap) != 0) return;
-      if (strncmp((const char *)cap.card, "Iriun Webcam", 12) != 0) return;
+      if (strstr((const char *)cap.card, "Iriun Webcam") == NULL) return;
 
       pthread_mutex_lock(&lock);
       close_clones_locked();
@@ -149,7 +149,7 @@ stdenv.mkDerivation rec {
         struct v4l2_capability ccap;
         memset(&ccap, 0, sizeof(ccap));
         if (real_ioctl(cfd, VIDIOC_QUERYCAP, &ccap) == 0 &&
-            strncmp((const char *)ccap.card, "Iriun Cam ", 10) == 0) {
+            strstr((const char *)ccap.card, "Iriun Cam ") != NULL) {
           clone_fds[num_clones++] = cfd;
         } else {
           real_close(cfd);
