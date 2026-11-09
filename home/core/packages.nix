@@ -47,6 +47,7 @@
     unzip
 
     # user apps
+    discord-ptb
     vesktop
     fastfetch
     nvtopPackages.nvidia
