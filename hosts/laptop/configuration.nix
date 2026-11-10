@@ -6,6 +6,76 @@
   ...
 }:
 
+let
+  sddmSerpantinumTheme = pkgs.stdenv.mkDerivation {
+    pname = "sddm-serpantinum-theme";
+    version = "2.4.3";
+    src = "${inputs.serpantinum}/config/sddm/themes";
+    dontBuild = true;
+    installPhase = ''
+      mkdir -p $out/share/sddm/themes $out/share/fonts/truetype
+      cp -r material-you $out/share/sddm/themes/
+      chmod -R u+w $out/share/sddm/themes/material-you
+      cp -f material-you/font/*.ttf $out/share/fonts/truetype/
+
+      substituteInPlace $out/share/sddm/themes/material-you/Main.qml \
+        --replace-fail 'readonly property real radius: 10 * s' \
+                       'function cfgStr(key, fallback) { return (typeof config !== "undefined" && config[key] !== undefined && String(config[key]).trim() !== "") ? String(config[key]).trim() : fallback; }
+    function cfgNum(key, fallback) { if (typeof config !== "undefined" && config[key] !== undefined && String(config[key]).trim() !== "") { let n = Number(config[key]); if (!isNaN(n)) return n; } return fallback; }
+    readonly property real radius: cfgNum("borderRadius", 10) * s
+    readonly property string customBg: cfgStr("background", "")
+    readonly property bool customBgIsGif: customBg.toLowerCase().endsWith(".gif")' \
+        --replace-fail 'readonly property color cText: isDark ? "#EEE3FD" : "#3A2656"' \
+                       'readonly property color cText: isDark ? cfgStr("darkText", "#EEE3FD") : cfgStr("lightText", "#3A2656")' \
+        --replace-fail 'readonly property color cDark: isDark ? "#CBA6F7" : "#4A2C72"' \
+                       'readonly property color cDark: isDark ? cfgStr("darkPrimary", "#CBA6F7") : cfgStr("lightPrimary", "#4A2C72")' \
+        --replace-fail 'readonly property color cMid: isDark ? "#B392E6" : "#6B4A99"' \
+                       'readonly property color cMid: isDark ? cfgStr("darkSecondary", "#B392E6") : cfgStr("lightSecondary", "#6B4A99")' \
+        --replace-fail 'readonly property color cSurface: isDark ? Qt.rgba(0.125, 0.082, 0.2, 0.9) : Qt.rgba(0.953, 0.922, 0.988, 0.92)' \
+                       'readonly property color cSurface: Qt.rgba(cSurfaceSolid.r, cSurfaceSolid.g, cSurfaceSolid.b, isDark ? 0.90 : 0.92)' \
+        --replace-fail 'readonly property color cSurfaceHover: isDark ? "#33214F" : "#E4D4F9"' \
+                       'readonly property color cSurfaceHover: isDark ? cfgStr("darkSurfaceHover", "#33214F") : cfgStr("lightSurfaceHover", "#E4D4F9")' \
+        --replace-fail 'readonly property color cField: isDark ? "#33214F" : "#E4D4F9"' \
+                       'readonly property color cField: isDark ? cfgStr("darkField", "#33214F") : cfgStr("lightField", "#E4D4F9")' \
+        --replace-fail 'readonly property color cFieldBox: isDark ? "#46306C" : "#D6BFF8"' \
+                       'readonly property color cFieldBox: isDark ? cfgStr("darkFieldBox", "#46306C") : cfgStr("lightFieldBox", "#D6BFF8")' \
+        --replace-fail 'readonly property color cSurfaceSolid: isDark ? "#241636" : "#F3EBFC"' \
+                       'readonly property color cSurfaceSolid: isDark ? cfgStr("darkSurfaceSolid", "#241636") : cfgStr("lightSurfaceSolid", "#F3EBFC")' \
+        --replace-fail 'readonly property color cOnAccent: isDark ? "#1E1233" : "#F3EBFC"' \
+                       'readonly property color cOnAccent: isDark ? cfgStr("darkOnAccent", "#1E1233") : cfgStr("lightOnAccent", "#F3EBFC")' \
+        --replace-fail 'readonly property color cRed: isDark ? "#ff6b7a" : "#ea1821"' \
+                       'readonly property color cRed: isDark ? cfgStr("darkError", "#ff6b7a") : cfgStr("lightError", "#ea1821")' \
+        --replace-fail 'readonly property color cBusy: isDark ? "#CBA6F7" : "#8A67BD"' \
+                       'readonly property color cBusy: isDark ? cfgStr("darkBusy", "#CBA6F7") : cfgStr("lightBusy", "#8A67BD")' \
+        --replace-fail 'readonly property color cMenu1: isDark ? "#B392E6" : "#6B4A99"' \
+                       'readonly property color cMenu1: isDark ? cfgStr("darkMenu1", "#B392E6") : cfgStr("lightMenu1", "#6B4A99")' \
+        --replace-fail 'readonly property color cMenu2: isDark ? "#CBA6F7" : "#8A67BD"' \
+                       'readonly property color cMenu2: isDark ? cfgStr("darkMenu2", "#CBA6F7") : cfgStr("lightMenu2", "#8A67BD")' \
+        --replace-fail 'readonly property color cMenuDanger: isDark ? "#ff6b7a" : "#ea1821"' \
+                       'readonly property color cMenuDanger: isDark ? cfgStr("darkError", "#ff6b7a") : cfgStr("lightError", "#ea1821")' \
+        --replace-fail 'source: root.isDark ? "bg_dark.jpg" : "bg.jpg"' \
+                       'property bool customBgFailed: false
+        source: (!root.customBgIsGif && root.customBg !== "" && !customBgFailed) ? (root.customBg.startsWith("/") ? "file://" + root.customBg : root.customBg) : (root.isDark ? "bg_dark.jpg" : "bg.jpg")
+        cache: false
+        fillMode: Image.PreserveAspectCrop
+        visible: !(root.customBgIsGif && customGif.status === AnimatedImage.Ready)
+        onStatusChanged: { if (status === Image.Error) customBgFailed = true; }
+    }
+    AnimatedImage {
+        id: customGif
+        anchors.fill: parent
+        source: (root.customBgIsGif && root.customBg !== "") ? (root.customBg.startsWith("/") ? "file://" + root.customBg : root.customBg) : ""
+        cache: false
+        visible: root.customBgIsGif && root.customBg !== "" && status === AnimatedImage.Ready
+        playing: visible' \
+        --replace-fail 'color: root.isDark ? Qt.rgba(0, 0, 0, modelData.alpha * 1.6) : Qt.rgba(0.18, 0.1, 0.29, modelData.alpha)' \
+                       'color: root.isDark ? Qt.rgba(0, 0, 0, modelData.alpha * 1.6) : Qt.rgba(root.cText.r, root.cText.g, root.cText.b, modelData.alpha)'
+
+      rm -f $out/share/sddm/themes/material-you/theme.conf
+      ln -s /var/lib/serpantinum-sddm/theme.conf $out/share/sddm/themes/material-you/theme.conf
+    '';
+  };
+in
 {
   imports = [ ./hardware-configuration.nix ];
 
@@ -200,16 +270,18 @@
     wayland.enable = true;
     theme = "material-you";
     extraPackages = with pkgs; [
-      kdePackages.qt5compat
       kdePackages.qtsvg
       kdePackages.qtdeclarative
     ];
     settings = {
+      General = {
+        GreeterEnvironment = "QT_WAYLAND_DISABLE_WINDOWDECORATION=1";
+        InputMethod = "";
+      };
       Theme = {
         Current = "material-you";
         CursorTheme = "Adwaita";
         CursorSize = 24;
-        Font = "Noto Sans";
       };
     };
   };
@@ -266,6 +338,8 @@
     "z /sys/devices/system/cpu/intel_pstate/max_perf_pct 0666 root users -"
     "z /sys/module/pcie_aspm/parameters/policy 0666 root users -"
     "z /sys/bus/pci/devices/*/power/control 0666 root users -"
+    "d /var/lib/serpantinum-sddm 0755 dk users -"
+    "C /var/lib/serpantinum-sddm/theme.conf 0644 dk users - ${inputs.serpantinum}/config/sddm/themes/material-you/theme.conf"
   ];
 
   services.udev.extraRules = ''
@@ -388,6 +462,7 @@
     nerd-fonts.jetbrains-mono
     nerd-fonts.fira-code
     font-awesome
+    sddmSerpantinumTheme
   ];
 
   fonts.fontconfig.defaultFonts = {
@@ -409,16 +484,8 @@
     libimobiledevice
     libnotify
     iw
-    (pkgs.stdenv.mkDerivation {
-      pname = "sddm-serpantinum-theme";
-      version = "1.0";
-      src = "${inputs.serpantinum}/config/sddm/themes";
-      dontBuild = true;
-      installPhase = ''
-        mkdir -p $out/share/sddm/themes
-        cp -r material-you $out/share/sddm/themes/
-      '';
-    })
+    adwaita-icon-theme
+    sddmSerpantinumTheme
     xwayland-satellite
     hyprlock
   ];

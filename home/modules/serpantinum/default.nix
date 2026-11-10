@@ -31,6 +31,202 @@ let
     exec "${pkgs.gpu-screen-recorder}/bin/gpu-screen-recorder" "$@"
   '';
 
+  # Synchronize Serpantinum wallpaper, Matugen/preset colors, mode, and borderRadius to SDDM
+  sddmSyncScript = pkgs.writeShellScriptBin "sync-sddm-serpantinum" ''
+    SYNC_DIR="/var/lib/serpantinum-sddm"
+    if [ ! -d "$SYNC_DIR" ] || [ ! -w "$SYNC_DIR" ]; then
+      exit 0
+    fi
+
+    exec 9>"$SYNC_DIR/.sync.lock"
+    ${pkgs.util-linux}/bin/flock -w 5 9 || exit 0
+
+    exec "${pkgs.python3}/bin/python3" - << 'PYEOF'
+import glob
+import json
+import os
+import shutil
+
+home = os.path.expanduser("~")
+sync_dir = "/var/lib/serpantinum-sddm"
+settings_path = os.path.join(home, ".config/serpantinum/settings.json")
+palette_path = os.path.join(home, ".local/state/serpantinum/matugen/palette.json")
+qs_colors_path = os.path.join(home, ".local/state/serpantinum/qs_colors.json")
+wp_cache_dir = os.path.join(home, ".cache/serpantinum/wallpaper")
+
+def load_json(path):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+settings = load_json(settings_path)
+palette = load_json(palette_path)
+qs_colors = load_json(qs_colors_path)
+
+theme_cfg = settings.get("theme", {}) if isinstance(settings.get("theme"), dict) else {}
+lock_cfg = settings.get("lockscreen", {}) if isinstance(settings.get("lockscreen"), dict) else {}
+
+mode = str(theme_cfg.get("mode") or palette.get("mode") or "dark").strip().lower()
+if mode not in ("dark", "light", "auto"):
+    mode = "dark"
+
+border_radius = theme_cfg.get("borderRadius", 10)
+try:
+    border_radius = int(border_radius)
+except Exception:
+    border_radius = 10
+
+wp_source = ""
+if lock_cfg.get("backgroundMode") == "custom":
+    custom_bg = str(lock_cfg.get("customBackground") or "").strip()
+    if custom_bg.startswith("file://"):
+        custom_bg = custom_bg[7:]
+    if custom_bg and os.path.isfile(custom_bg):
+        wp_source = custom_bg
+
+if not wp_source:
+    candidates = [os.path.join(wp_cache_dir, "current_eDP-1")] + sorted(
+        glob.glob(os.path.join(wp_cache_dir, "current_*"))
+    )
+    for c in candidates:
+        if c.endswith("_name") or c.endswith(".png") or c.endswith(".json"):
+            continue
+        if os.path.isfile(c):
+            try:
+                with open(c, "r", encoding="utf-8") as f:
+                    target = f.read().strip()
+                if target and os.path.isfile(target):
+                    wp_source = target
+                    break
+            except Exception:
+                pass
+
+if not wp_source and isinstance(palette.get("image"), str):
+    img = palette["image"].strip()
+    if img and os.path.isfile(img):
+        wp_source = img
+
+snapshot_png = os.path.join(wp_cache_dir, "current_wallpaper.png")
+video_exts = (".mp4", ".mkv", ".mov", ".webm")
+bg_dest = ""
+
+if wp_source and os.path.isfile(wp_source) and not wp_source.lower().endswith(video_exts):
+    ext = os.path.splitext(wp_source)[1].lower() or ".png"
+    dest = os.path.join(sync_dir, "wallpaper" + ext)
+    tmp = dest + ".tmp"
+    shutil.copyfile(wp_source, tmp)
+    os.chmod(tmp, 0o644)
+    os.replace(tmp, dest)
+    bg_dest = dest
+elif os.path.isfile(snapshot_png):
+    dest = os.path.join(sync_dir, "wallpaper.png")
+    tmp = dest + ".tmp"
+    shutil.copyfile(snapshot_png, tmp)
+    os.chmod(tmp, 0o644)
+    os.replace(tmp, dest)
+    bg_dest = dest
+
+if bg_dest:
+    for old_file in glob.glob(os.path.join(sync_dir, "wallpaper.*")):
+        if old_file != bg_dest and not old_file.endswith(".tmp"):
+            try:
+                os.remove(old_file)
+            except Exception:
+                pass
+
+colors = palette.get("colors", {}) if isinstance(palette.get("colors"), dict) else {}
+
+def md3_color(role, variant, fallback):
+    entry = colors.get(role)
+    if isinstance(entry, dict):
+        sub = entry.get(variant) or entry.get("default")
+        if isinstance(sub, dict):
+            val = sub.get("color") or sub.get("hex")
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+        elif isinstance(sub, str) and sub.strip():
+            return sub.strip()
+    return fallback
+
+qsc = qs_colors.get("colors", qs_colors) if isinstance(qs_colors, dict) else {}
+def qsc_str(key, fallback):
+    v = qsc.get(key)
+    if isinstance(v, str) and v.strip():
+        return v.strip()
+    if isinstance(v, dict):
+        for k in ("hex", "color"):
+            if isinstance(v.get(k), str) and v.get(k).strip():
+                return v.get(k).strip()
+    return fallback
+
+dark_text = md3_color("on_surface", "dark", qsc_str("text", "#EEE3FD"))
+light_text = md3_color("on_surface", "light", "#3A2656")
+
+dark_primary = md3_color("primary", "dark", qsc_str("blue", "#CBA6F7"))
+light_primary = md3_color("primary", "light", "#4A2C72")
+
+dark_secondary = md3_color("secondary", "dark", qsc_str("green", "#B392E6"))
+light_secondary = md3_color("secondary", "light", "#6B4A99")
+
+dark_surface_solid = md3_color("surface_container", "dark", qsc_str("surface0", "#241636"))
+light_surface_solid = md3_color("surface_container", "light", "#F3EBFC")
+
+dark_surface_hover = md3_color("surface_container_high", "dark", qsc_str("surface1", "#33214F"))
+light_surface_hover = md3_color("surface_container_high", "light", "#E4D4F9")
+
+dark_field_box = md3_color("surface_container_highest", "dark", qsc_str("surface2", "#46306C"))
+light_field_box = md3_color("surface_container_highest", "light", "#D6BFF8")
+
+dark_on_accent = md3_color("on_primary", "dark", qsc_str("crust", "#1E1233"))
+light_on_accent = md3_color("on_primary", "light", "#F3EBFC")
+
+dark_error = md3_color("error", "dark", qsc_str("red", "#ff6b7a"))
+light_error = md3_color("error", "light", "#ea1821")
+
+conf_lines = [
+    "[General]",
+    f"mode={mode}",
+    "font=Google-Sans",
+    f"borderRadius={border_radius}",
+    f"background={bg_dest}",
+    f"darkText={dark_text}",
+    f"lightText={light_text}",
+    f"darkPrimary={dark_primary}",
+    f"lightPrimary={light_primary}",
+    f"darkSecondary={dark_secondary}",
+    f"lightSecondary={light_secondary}",
+    f"darkSurfaceSolid={dark_surface_solid}",
+    f"lightSurfaceSolid={light_surface_solid}",
+    f"darkSurfaceHover={dark_surface_hover}",
+    f"lightSurfaceHover={light_surface_hover}",
+    f"darkField={dark_surface_hover}",
+    f"lightField={light_surface_hover}",
+    f"darkFieldBox={dark_field_box}",
+    f"lightFieldBox={light_field_box}",
+    f"darkOnAccent={dark_on_accent}",
+    f"lightOnAccent={light_on_accent}",
+    f"darkError={dark_error}",
+    f"lightError={light_error}",
+    f"darkBusy={dark_primary}",
+    f"lightBusy={light_primary}",
+    f"darkMenu1={dark_secondary}",
+    f"lightMenu1={light_secondary}",
+    f"darkMenu2={dark_primary}",
+    f"lightMenu2={light_primary}",
+    "",
+]
+
+conf_path = os.path.join(sync_dir, "theme.conf")
+conf_tmp = conf_path + ".tmp"
+with open(conf_tmp, "w", encoding="utf-8") as f:
+    f.write("\n".join(conf_lines))
+os.chmod(conf_tmp, 0o644)
+os.replace(conf_tmp, conf_path)
+PYEOF
+  '';
+
   patchedSerpantinum = serpantinum.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (oldAttrs: {
     postPatch = (oldAttrs.postPatch or "") + ''
       # 1. Fix missing getConfigDir in Caching.qml
@@ -131,10 +327,19 @@ EOF
       substituteInPlace src/quickshell/singletons/theme/Matugen.qml \
         --replace-fail 'AppTheming.apply();' \
                        'AppTheming.apply();
-                Quickshell.execDetached(["bash", "-c", "killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true; killall -USR2 btop 2>/dev/null || pkill -SIGUSR2 -x btop 2>/dev/null || true"]);'
+                Quickshell.execDetached(["bash", "-c", "sync-sddm-serpantinum >/dev/null 2>&1 || true; killall -USR1 .kitty-wrapped 2>/dev/null || pkill -SIGUSR1 kitty 2>/dev/null || true; killall -USR2 btop 2>/dev/null || pkill -SIGUSR2 -x btop 2>/dev/null || true"]);'
 
-      # 6. Support animated GIF wallpapers in WallpaperEngine.qml
+      substituteInPlace src/quickshell/singletons/theme/ThemeBackend.qml \
+        --replace-fail '        if (root.isMatugenTheme()) {' \
+                       '        Quickshell.execDetached(["sync-sddm-serpantinum"]);
+        if (root.isMatugenTheme()) {'
+
+      # 6. Support animated GIF wallpapers in WallpaperEngine.qml & sync wallpaper to SDDM
       substituteInPlace src/quickshell/wallpaper/WallpaperEngine.qml \
+        --replace-fail 'cp -f \"$2\" \"$3\" 2>/dev/null || true' \
+                       'cp -f \"$2\" \"$3\" 2>/dev/null || true; sync-sddm-serpantinum >/dev/null 2>&1 || true' \
+        --replace-fail 'then cp -f \"$2\" \"$6\" && cp -f \"$2\" \"$7\"; fi"' \
+                       'then cp -f \"$2\" \"$6\" && cp -f \"$2\" \"$7\"; sync-sddm-serpantinum >/dev/null 2>&1 || true; fi"' \
         --replace-fail 'property bool isVideoB: false' \
                        'property bool isVideoB: false
                 property bool isAnimatedA: false
@@ -258,12 +463,18 @@ EOF
     '';
 
     postFixup = (oldAttrs.postFixup or "") + ''
-      wrapProgram $out/bin/.serpantinum-wrapped --prefix PATH : ${lib.makeBinPath [ gsrPrimeWrapper pkgs.niri pkgs.procps pkgs.psmisc ]}
-      wrapProgram $out/bin/.serpantinumd-wrapped --prefix PATH : ${lib.makeBinPath [ gsrPrimeWrapper pkgs.niri pkgs.procps pkgs.psmisc ]}
+      wrapProgram $out/bin/.serpantinum-wrapped --prefix PATH : ${lib.makeBinPath [ gsrPrimeWrapper sddmSyncScript pkgs.niri pkgs.procps pkgs.psmisc ]}
+      wrapProgram $out/bin/.serpantinumd-wrapped --prefix PATH : ${lib.makeBinPath [ gsrPrimeWrapper sddmSyncScript pkgs.niri pkgs.procps pkgs.psmisc ]}
     '';
   });
 in
 {
+  home.packages = [ sddmSyncScript ];
+
+  home.activation.syncSddmSerpantinum = lib.hm.dag.entryAfter [ "writeBoundary" "serpantinumSettings" ] ''
+    run ${sddmSyncScript}/bin/sync-sddm-serpantinum || true
+  '';
+
   programs.serpantinum = {
     enable = true;
     package = patchedSerpantinum;
