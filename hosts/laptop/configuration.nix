@@ -270,6 +270,7 @@ in
     wayland.enable = true;
     theme = "material-you";
     extraPackages = with pkgs; [
+      kdePackages.qt5compat
       kdePackages.qtsvg
       kdePackages.qtdeclarative
     ];
