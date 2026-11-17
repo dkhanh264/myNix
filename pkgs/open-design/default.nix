@@ -103,16 +103,45 @@ stdenv.mkDerivation (finalAttrs: {
 
     autoPatchelf node_modules
 
+    local nodedir="$TMPDIR/nodejs-headers"
+    mkdir -p "$nodedir/include/node"
+    ln -s "${nodejs_24}/bin" "$nodedir/bin"
+    ln -s "${nodejs_24}/lib" "$nodedir/lib"
+    ln -s "${nodejs_24}/share" "$nodedir/share"
+    for entry in "${nodejs_24}"/include/node/*; do
+      local base
+      base="$(basename "$entry")"
+      if [ "$base" = "node_object_wrap.h" ]; then
+        cp -L "$entry" "$nodedir/include/node/$base"
+        chmod u+w "$nodedir/include/node/$base"
+      else
+        ln -s "$entry" "$nodedir/include/node/$base"
+      fi
+    done
+
+    # Node 24.19.0 (nodejs/node#63642) added AddCleanupHook/RemoveCleanupHook to
+    # node::ObjectWrap, causing Assertion `(env) != nullptr' in
+    # node::RemoveEnvironmentCleanupHook when Statement::~Statement() runs during GC.
+    # better-sqlite3 already cleans up via Addon::Cleanup (AddEnvironmentCleanupHook).
+    if grep -Fq 'RemoveEnvironmentCleanupHook(v8::Isolate::GetCurrent(), CleanupHook, this);' "$nodedir/include/node/node_object_wrap.h"; then
+      substituteInPlace "$nodedir/include/node/node_object_wrap.h" \
+        --replace-fail "    AddCleanupHook();" "" \
+        --replace-fail "    RemoveCleanupHook();" ""
+      substituteInPlace "$nodedir/include/node/node_object_wrap.h" \
+        --replace-fail $'  void AddCleanupHook() {\n    AddEnvironmentCleanupHook(v8::Isolate::GetCurrent(), CleanupHook, this);\n  }\n\n  void RemoveCleanupHook() {\n    RemoveEnvironmentCleanupHook(v8::Isolate::GetCurrent(), CleanupHook, this);\n  }\n\n  static void CleanupHook(void* arg) { delete static_cast<ObjectWrap*>(arg); }\n\n' ""
+    fi
+    export npm_config_nodedir="$nodedir"
+
     local sqliteDir
     sqliteDir="$(realpath apps/daemon/node_modules/better-sqlite3)"
-    (cd "$sqliteDir" && node-gyp rebuild --release --nodedir=${nodejs_24})
+    (cd "$sqliteDir" && "${nodejs_24}/bin/node" "${node-gyp}/lib/node_modules/node-gyp/bin/node-gyp.js" rebuild --release --nodedir="$nodedir")
     node -e "require('./apps/daemon/node_modules/better-sqlite3')(':memory:').close()"
 
     if [ -e apps/daemon/node_modules/node-pty ]; then
       local ptyDir
       ptyDir="$(realpath apps/daemon/node_modules/node-pty)"
       if ! node -e "require('./apps/daemon/node_modules/node-pty')" 2>/dev/null; then
-        (cd "$ptyDir" && node-gyp rebuild --release --nodedir=${nodejs_24})
+        (cd "$ptyDir" && "${nodejs_24}/bin/node" "${node-gyp}/lib/node_modules/node-gyp/bin/node-gyp.js" rebuild --release --nodedir="$nodedir")
       fi
     fi
   '';
@@ -221,7 +250,18 @@ stdenv.mkDerivation (finalAttrs: {
     runHook preInstallCheck
 
     test -f "$out/lib/open-design/apps/web/out/index.html"
-    "${nodejs_24}/bin/node" -e "require('$out/lib/open-design/apps/daemon/node_modules/better-sqlite3')(':memory:').close()"
+    if grep -Fqa "RemoveEnvironmentCleanupHook" \
+      "$out/lib/open-design/apps/daemon/node_modules/better-sqlite3/build/Release/better_sqlite3.node"; then
+      echo "ERROR: better_sqlite3.node still references RemoveEnvironmentCleanupHook!" >&2
+      exit 1
+    fi
+    "${nodejs_24}/bin/node" --expose-gc -e "
+      const Database = require('$out/lib/open-design/apps/daemon/node_modules/better-sqlite3');
+      const db = new Database(':memory:');
+      for (let i = 0; i < 1000; i++) db.prepare('SELECT ' + i).get();
+      global.gc();
+      db.close();
+    "
     "${nodejs_24}/bin/node" -e "require('$out/lib/open-design/apps/daemon/node_modules/node-pty')"
     "$out/bin/open-design" --help >/dev/null
 
