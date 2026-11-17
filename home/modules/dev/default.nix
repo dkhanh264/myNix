@@ -4,6 +4,7 @@ _:
   imports = [
     ./git.nix
     ./nixvim.nix
+    ./open-design.nix
   ];
 
   programs.vscode = {
