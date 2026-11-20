@@ -48,7 +48,17 @@
     unzip
 
     # user apps
-    pkgs-unstable.discord-ptb
+    (pkgs-unstable.discord-ptb.override {
+      unwrappedDiscord = pkgs-unstable.discord-ptb.passthru.unwrappedDiscord.overrideAttrs (old: {
+        postInstall = (old.postInstall or "") + ''
+          ${pkgs.jq}/bin/jq \
+            --arg modules "$out/opt/DiscordPTB/modules" \
+            '. + { disableUpdater: true, localModulesRoot: $modules }' \
+            "$out/opt/DiscordPTB/resources/build_info.json" > "$TMPDIR/build_info.json"
+          mv "$TMPDIR/build_info.json" "$out/opt/DiscordPTB/resources/build_info.json"
+        '';
+      });
+    })
     vesktop
     fastfetch
     nvtopPackages.nvidia
