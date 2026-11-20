@@ -410,6 +410,23 @@ in
           }
         ];
       };
+      extraConfig."53-serpantinum-audio-stream" = {
+        "stream.rules" = [
+          {
+            matches = [
+              { "node.name" = "serpantinum_output"; }
+              { "node.name" = "serpantinum_sink"; }
+            ];
+            actions = {
+              update-props = {
+                "state.restore-props" = false;
+                "state.restore-target" = false;
+                "state.default-volume" = 1.0;
+              };
+            };
+          }
+        ];
+      };
     };
   };
 
