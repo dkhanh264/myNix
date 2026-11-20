@@ -1,5 +1,6 @@
 {
   pkgs,
+  pkgs-unstable,
   codex-cli-nix,
   antigravity-nix,
   prismlauncher-cracked,
@@ -47,7 +48,7 @@
     unzip
 
     # user apps
-    discord-ptb
+    pkgs-unstable.discord-ptb
     vesktop
     fastfetch
     nvtopPackages.nvidia

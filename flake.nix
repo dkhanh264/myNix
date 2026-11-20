@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     lanzaboote = {
       url = "github:nix-community/lanzaboote";
@@ -63,6 +64,7 @@
   outputs =
     {
       nixpkgs,
+      nixpkgs-unstable,
       home-manager,
       nixvim,
       lanzaboote,
@@ -78,9 +80,16 @@
     let
       mkSystem =
         hostname:
-        nixpkgs.lib.nixosSystem {
+        let
           system = "x86_64-linux";
-          specialArgs = { inherit inputs; };
+          pkgs-unstable = import nixpkgs-unstable {
+            inherit system;
+            config.allowUnfree = true;
+          };
+        in
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = { inherit inputs pkgs-unstable; };
 
           modules = [
             ./hosts/${hostname}/configuration.nix
@@ -97,6 +106,7 @@
 
                 extraSpecialArgs = {
                   inherit
+                    pkgs-unstable
                     codex-cli-nix
                     antigravity-nix
                     prismlauncher-cracked
